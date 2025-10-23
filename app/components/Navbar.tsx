@@ -11,7 +11,7 @@ const Navbar = () => {
     { name: 'Features', href: '#features' },
     { name: 'How It Works', href: '#how-it-works' },
     { name: 'Testimonials', href: '#testimonials' },
-    { name: 'Buyer', href: '#buyer' },
+    { name: 'Buyer', href: '/buyer-portal' },
     { name: 'Manufacturer', href: '#manufacturer' },
     { name: 'Designer', href: '#designer' },
   ];
@@ -25,7 +25,7 @@ const Navbar = () => {
             <Link href="/" className="flex items-center gap-3">
               <Image
                 src="/groupo-logo.png"
-                alt="Groupo Logo"
+                alt="Grupo Logo"
                 width={50}
                 height={50}
                 className="h-12 w-auto"
@@ -33,7 +33,7 @@ const Navbar = () => {
               />
               <div className="flex flex-col">
                 <span className="text-2xl font-bold text-blue-600">
-                  Groupo
+                  Grupo
                 </span>
                 <span className="text-xs text-gray-600 font-medium hidden sm:block">
                   One Stop AI Manufacturing Platform

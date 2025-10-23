@@ -48,7 +48,7 @@ const Footer = () => {
                 className="h-12 w-auto"
               />
               <div>
-                <span className="text-2xl font-bold text-white">Groupo</span>
+                <span className="text-2xl font-bold text-white">Grupo</span>
                 <p className="text-xs text-gray-400">One-Stop AI Manufacturing Platform</p>
               </div>
             </Link>
