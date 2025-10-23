@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import AIChatbot from '../components/AIChatbot';
 
 type TabType = 'designs' | 'instant-quote' | 'custom-quote' | 'my-orders' | 'chats' | 'requirements' | 'cart' | 'profile';
 
@@ -175,6 +176,9 @@ export default function BuyerPortal() {
   if (step === 'dashboard') {
     return (
       <div className="min-h-screen bg-gray-50">
+        {/* AI Chatbot */}
+        <AIChatbot />
+        
         {/* Header */}
         <header className="bg-white border-b border-gray-200 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
