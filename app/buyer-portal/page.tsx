@@ -3,7 +3,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import AIChatbot from '../components/AIChatbot';
+import apiService from '../lib/apiService';
 
 type TabType = 'designs' | 'instant-quote' | 'custom-quote' | 'my-orders' | 'chats' | 'requirements' | 'cart' | 'profile';
 
@@ -52,28 +54,41 @@ export default function BuyerPortal() {
   });
   const [userPhoneNumber, setUserPhoneNumber] = useState('');
 
-  const handleSendOTP = (e: React.FormEvent) => {
+  const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock: Move to OTP verification step
+    try {
     console.log('Sending OTP to:', phoneNumber);
+      const response = await apiService.sendOTP(phoneNumber);
+      console.log('OTP sent successfully:', response);
     setStep('otp');
+    } catch (error) {
+      console.error('Failed to send OTP:', error);
+      alert('Failed to send OTP. Please try again.');
+    }
   };
 
-  const handleVerifyOTP = (e: React.FormEvent) => {
+  const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock: Accept any 6-digit OTP
-    if (otp.length === 6) {
-      console.log('OTP verified:', otp);
-      // Store phone number in localStorage
+    try {
+      console.log('Verifying OTP:', otp);
+      const response = await apiService.verifyOTP(phoneNumber, otp);
+      console.log('OTP verified successfully:', response);
+      
+      // Store token and user data
+      apiService.setToken(response.data.token);
       localStorage.setItem('buyerPhoneNumber', phoneNumber);
+      localStorage.setItem('user_role', 'buyer');
+      
       setStep('dashboard');
-    } else {
-      alert('Please enter a 6-digit OTP');
+    } catch (error) {
+      console.error('Failed to verify OTP:', error);
+      alert('Invalid OTP. Please try again.');
     }
   };
 
   const handleLogout = () => {
     // Clear localStorage and reset to phone step
+    apiService.logout();
     localStorage.removeItem('buyerPhoneNumber');
     setPhoneNumber('');
     setOtp('');
