@@ -1372,12 +1372,12 @@ export default function ManufacturerPortal() {
                   
                   <div className="space-y-2">
                     <SignedOut>
-                      <SignInButton mode="modal" redirectUrl="/manufacturer-portal">
+                      <SignInButton mode="modal" fallbackRedirectUrl="/manufacturer-portal">
                         <button className="w-full px-4 py-2 text-blue-600 hover:text-blue-800 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors">
                           Sign In with Clerk
                         </button>
                       </SignInButton>
-                      <SignUpButton mode="modal" redirectUrl="/manufacturer-portal">
+                      <SignUpButton mode="modal" fallbackRedirectUrl="/manufacturer-portal">
                         <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                           Sign Up with Clerk
                         </button>
