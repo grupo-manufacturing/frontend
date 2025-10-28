@@ -1,4 +1,5 @@
 // API service for Grupo frontend
+// const API_BASE_URL = 'http://localhost:5000/api';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://grupo-backend.onrender.com/api';
 
 class ApiService {
@@ -46,12 +47,13 @@ class ApiService {
   /**
    * Send OTP to phone number
    * @param {string} phoneNumber - Phone number
+   * @param {string} role - User role ('buyer' or 'manufacturer')
    * @returns {Promise} Response data
    */
-  async sendOTP(phoneNumber) {
+  async sendOTP(phoneNumber, role = 'buyer') {
     return this.request('/auth/send-otp', {
       method: 'POST',
-      body: JSON.stringify({ phoneNumber })
+      body: JSON.stringify({ phoneNumber, role })
     });
   }
 
@@ -59,12 +61,13 @@ class ApiService {
    * Verify OTP
    * @param {string} phoneNumber - Phone number
    * @param {string} otp - OTP code
+   * @param {string} role - User role ('buyer' or 'manufacturer')
    * @returns {Promise} Response data
    */
-  async verifyOTP(phoneNumber, otp) {
+  async verifyOTP(phoneNumber, otp, role = 'buyer') {
     return this.request('/auth/verify-otp', {
       method: 'POST',
-      body: JSON.stringify({ phoneNumber, otp })
+      body: JSON.stringify({ phoneNumber, otp, role })
     });
   }
 
@@ -142,12 +145,69 @@ class ApiService {
   }
 
   /**
-   * Logout user
+   * Get manufacturer profile
+   * @returns {Promise} Response data
    */
-  logout() {
-    this.removeToken();
-    if (typeof window !== 'undefined') {
-      window.location.href = '/';
+  async getManufacturerProfile() {
+    return this.request('/auth/manufacturer-profile', {
+      method: 'GET'
+    });
+  }
+
+  /**
+   * Update manufacturer profile
+   * @param {Object} profileData - Profile data to update
+   * @returns {Promise} Response data
+   */
+  async updateManufacturerProfile(profileData) {
+    return this.request('/auth/manufacturer-profile', {
+      method: 'PUT',
+      body: JSON.stringify(profileData)
+    });
+  }
+
+  /**
+   * Get buyer profile
+   * @returns {Promise} Response data
+   */
+  async getBuyerProfile() {
+    return this.request('/auth/buyer-profile', {
+      method: 'GET'
+    });
+  }
+
+  /**
+   * Update buyer profile
+   * @param {Object} profileData - Profile data to update
+   * @returns {Promise} Response data
+   */
+  async updateBuyerProfile(profileData) {
+    return this.request('/auth/buyer-profile', {
+      method: 'PUT',
+      body: JSON.stringify(profileData)
+    });
+  }
+
+  /**
+   * Logout user (calls backend logout endpoint)
+   */
+  async logout() {
+    try {
+      // Call backend logout endpoint if token exists
+      if (this.getToken()) {
+        await this.request('/auth/logout', {
+          method: 'POST'
+        });
+      }
+    } catch (error) {
+      console.error('Logout API call failed:', error);
+      // Continue with local logout even if API call fails
+    } finally {
+      // Always clear local storage
+      this.removeToken();
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
     }
   }
 }

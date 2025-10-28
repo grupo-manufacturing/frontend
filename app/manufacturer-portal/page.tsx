@@ -32,19 +32,29 @@ export default function ManufacturerPortal() {
 
   // Profile form states
   const [profileData, setProfileData] = useState({
-    companyName: 'Premium Textiles Manufacturing Co.',
-    businessType: 'Manufacturer',
-    phoneNumber: '+1 555 000 0000', // Default value, will be updated from localStorage
-    gstNumber: 'GST987654321',
-    msmeNumber: 'MSME123456',
-    dailyCapacity: '10000',
-    factoryAddress: '456 Industrial Park, Mumbai, Maharashtra 400001',
-    specialization: 'High-quality cotton and synthetic textile manufacturing',
-    certifications: ['ISO 9001:2015', 'OEKO-TEX', 'GOTS Certified']
+    companyName: '',
+    businessType: '',
+    phoneNumber: '',
+    gstNumber: '',
+    msmeNumber: '',
+    dailyCapacity: '',
+    factoryAddress: '',
+    specialization: '',
+    certifications: []
   });
 
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [originalProfileData, setOriginalProfileData] = useState(profileData);
+  const [originalProfileData, setOriginalProfileData] = useState({
+    companyName: '',
+    businessType: '',
+    phoneNumber: '',
+    gstNumber: '',
+    msmeNumber: '',
+    dailyCapacity: '',
+    factoryAddress: '',
+    specialization: '',
+    certifications: []
+  });
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +68,7 @@ export default function ManufacturerPortal() {
     
     try {
       console.log('Sending OTP to:', phoneNumber);
-      const response = await apiService.sendOTP(phoneNumber);
+      const response = await apiService.sendOTP(phoneNumber, 'manufacturer');
       console.log('OTP sent successfully:', response);
       setStep('otp');
     } catch (error) {
@@ -96,7 +106,7 @@ export default function ManufacturerPortal() {
     
     try {
       console.log('Verifying OTP:', otp);
-      const response = await apiService.verifyOTP(phoneNumber, otp);
+      const response = await apiService.verifyOTP(phoneNumber, otp, 'manufacturer');
       console.log('OTP verified successfully:', response);
       
       // Store token and user data
@@ -125,19 +135,49 @@ export default function ManufacturerPortal() {
     setOtp('');
   };
 
-  // Load phone number from localStorage on component mount
+  // Load profile data from database on component mount
   useEffect(() => {
-    if (step === 'dashboard') {
-      const storedPhone = localStorage.getItem('manufacturerPhoneNumber');
-      if (storedPhone) {
-        setPhoneNumber(storedPhone);
-        // Update profile data with the phone number from localStorage
-        setProfileData(prev => ({
-          ...prev,
-          phoneNumber: storedPhone
-        }));
+    const loadProfileData = async () => {
+      if (step === 'dashboard' && apiService.isAuthenticated()) {
+        try {
+          const storedPhone = localStorage.getItem('manufacturerPhoneNumber');
+          if (storedPhone) {
+            setPhoneNumber(storedPhone);
+          }
+
+          // Load profile data from database
+          const response = await apiService.getManufacturerProfile();
+          if (response.success && response.data.profile) {
+            const profile = response.data.profile;
+            const loadedProfileData = {
+              companyName: profile.company_name || '',
+              businessType: profile.business_type || '',
+              phoneNumber: profile.phone_number || storedPhone || '',
+              gstNumber: profile.gst_number || '',
+              msmeNumber: profile.msme_number || '',
+              dailyCapacity: profile.daily_capacity?.toString() || '',
+              factoryAddress: profile.factory_address || '',
+              specialization: profile.specialization || '',
+              certifications: profile.certifications || []
+            };
+            setProfileData(loadedProfileData);
+            setOriginalProfileData(loadedProfileData);
+          }
+        } catch (error) {
+          console.error('Failed to load profile data:', error);
+          // Set phone number from localStorage as fallback
+          const storedPhone = localStorage.getItem('manufacturerPhoneNumber');
+          if (storedPhone) {
+            setProfileData(prev => ({
+              ...prev,
+              phoneNumber: storedPhone
+            }));
+          }
+        }
       }
-    }
+    };
+
+    loadProfileData();
   }, [step]);
 
   // Form handlers
@@ -173,12 +213,35 @@ export default function ManufacturerPortal() {
     setIsEditingProfile(true);
   };
 
-  const handleSaveProfile = () => {
-    // Here you would typically send the data to your backend
-    console.log('Profile saved:', profileData);
-    setIsEditingProfile(false);
-    setOriginalProfileData({ ...profileData });
-    alert('Profile updated successfully!');
+  const handleSaveProfile = async () => {
+    try {
+      // Convert frontend data to backend format
+      const profileDataToSave = {
+        company_name: profileData.companyName,
+        business_type: profileData.businessType,
+        phone_number: profileData.phoneNumber,
+        gst_number: profileData.gstNumber,
+        msme_number: profileData.msmeNumber,
+        daily_capacity: parseInt(profileData.dailyCapacity) || 0,
+        factory_address: profileData.factoryAddress,
+        specialization: profileData.specialization,
+        certifications: profileData.certifications
+      };
+
+      const response = await apiService.updateManufacturerProfile(profileDataToSave);
+      
+      if (response.success) {
+        console.log('Profile saved successfully:', response.data.profile);
+        setIsEditingProfile(false);
+        setOriginalProfileData({ ...profileData });
+        alert('Profile updated successfully!');
+      } else {
+        throw new Error(response.message || 'Failed to save profile');
+      }
+    } catch (error) {
+      console.error('Failed to save profile:', error);
+      alert('Failed to save profile. Please try again.');
+    }
   };
 
   const handleCancelEdit = () => {

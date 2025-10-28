@@ -45,14 +45,22 @@ export default function BuyerPortal() {
   // Profile States
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileData, setProfileData] = useState({
-    fullName: 'John Doe',
-    email: 'john.doe@example.com',
-    companyName: 'Fashion Brands Inc.',
-    gstNumber: 'GST123456789',
-    businessAddress: '123 Business Street, New York, NY 10001',
-    aboutBusiness: 'Leading fashion retailer specializing in premium textile products.'
+    fullName: '',
+    email: '',
+    companyName: '',
+    gstNumber: '',
+    businessAddress: '',
+    aboutBusiness: ''
   });
   const [userPhoneNumber, setUserPhoneNumber] = useState('');
+  const [originalProfileData, setOriginalProfileData] = useState({
+    fullName: '',
+    email: '',
+    companyName: '',
+    gstNumber: '',
+    businessAddress: '',
+    aboutBusiness: ''
+  });
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,7 +74,7 @@ export default function BuyerPortal() {
     
     try {
     console.log('Sending OTP to:', phoneNumber);
-      const response = await apiService.sendOTP(phoneNumber);
+      const response = await apiService.sendOTP(phoneNumber, 'buyer');
       console.log('OTP sent successfully:', response);
     setStep('otp');
     } catch (error) {
@@ -104,7 +112,7 @@ export default function BuyerPortal() {
     
     try {
       console.log('Verifying OTP:', otp);
-      const response = await apiService.verifyOTP(phoneNumber, otp);
+      const response = await apiService.verifyOTP(phoneNumber, otp, 'buyer');
       console.log('OTP verified successfully:', response);
       
       // Store token and user data
@@ -198,26 +206,79 @@ export default function BuyerPortal() {
     setQuotes(mockQuotes);
   };
 
-  const handleSaveProfile = () => {
-    // Save profile changes
-    setIsEditingProfile(false);
-    // Here you would typically send the data to your backend
-    console.log('Profile saved:', profileData);
+  const handleSaveProfile = async () => {
+    try {
+      // Convert frontend data to backend format
+      const profileDataToSave = {
+        full_name: profileData.fullName,
+        email: profileData.email,
+        phone_number: userPhoneNumber || phoneNumber,
+        company_name: profileData.companyName,
+        gst_number: profileData.gstNumber,
+        business_address: profileData.businessAddress,
+        about_business: profileData.aboutBusiness
+      };
+
+      const response = await apiService.updateBuyerProfile(profileDataToSave);
+      
+      if (response.success) {
+        console.log('Profile saved successfully:', response.data.profile);
+        setIsEditingProfile(false);
+        setOriginalProfileData({ ...profileData });
+        alert('Profile updated successfully!');
+      } else {
+        throw new Error(response.message || 'Failed to save profile');
+      }
+    } catch (error) {
+      console.error('Failed to save profile:', error);
+      alert('Failed to save profile. Please try again.');
+    }
   };
 
   const handleCancelEdit = () => {
+    setProfileData({ ...originalProfileData });
     setIsEditingProfile(false);
-    // Reset to original values if needed
   };
 
-  // Load phone number from localStorage on component mount
+  // Load profile data from database on component mount
   useEffect(() => {
-    if (step === 'dashboard') {
-      const storedPhone = localStorage.getItem('buyerPhoneNumber');
-      if (storedPhone) {
-        setUserPhoneNumber(storedPhone);
+    const loadProfileData = async () => {
+      if (step === 'dashboard' && apiService.isAuthenticated()) {
+        try {
+          const storedPhone = localStorage.getItem('buyerPhoneNumber');
+          if (storedPhone) {
+            setUserPhoneNumber(storedPhone);
+            setPhoneNumber(storedPhone);
+          }
+
+          // Load profile data from database
+          const response = await apiService.getBuyerProfile();
+          if (response.success && response.data.profile) {
+            const profile = response.data.profile;
+            const loadedProfileData = {
+              fullName: profile.full_name || '',
+              email: profile.email || '',
+              companyName: profile.company_name || '',
+              gstNumber: profile.gst_number || '',
+              businessAddress: profile.business_address || '',
+              aboutBusiness: profile.about_business || ''
+            };
+            setProfileData(loadedProfileData);
+            setOriginalProfileData(loadedProfileData);
+          }
+        } catch (error) {
+          console.error('Failed to load profile data:', error);
+          // Set phone number from localStorage as fallback
+          const storedPhone = localStorage.getItem('buyerPhoneNumber');
+          if (storedPhone) {
+            setUserPhoneNumber(storedPhone);
+            setPhoneNumber(storedPhone);
+          }
+        }
       }
-    }
+    };
+
+    loadProfileData();
   }, [step]);
 
   // Dashboard View
