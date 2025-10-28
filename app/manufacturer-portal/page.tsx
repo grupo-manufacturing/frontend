@@ -59,6 +59,14 @@ export default function ManufacturerPortal() {
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Demo credentials bypass
+    if (phoneNumber === '1234567890') {
+      console.log('Demo credentials detected - bypassing OTP');
+      setStep('otp');
+      return;
+    }
+    
     try {
       console.log('Sending OTP to:', phoneNumber);
       const response = await apiService.sendOTP(phoneNumber);
@@ -72,6 +80,31 @@ export default function ManufacturerPortal() {
 
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Demo credentials bypass
+    if (phoneNumber === '1234567890' && otp === '123456') {
+      console.log('Demo credentials verified - bypassing API call');
+      
+      // Create mock response for demo
+      const mockResponse = {
+        data: {
+          token: 'demo_token_' + Date.now(),
+          user: {
+            phoneNumber: phoneNumber,
+            role: 'manufacturer'
+          }
+        }
+      };
+      
+      // Store token and user data
+      apiService.setToken(mockResponse.data.token);
+      localStorage.setItem('manufacturerPhoneNumber', phoneNumber);
+      localStorage.setItem('user_role', 'manufacturer');
+      
+      setStep('dashboard');
+      return;
+    }
+    
     try {
       console.log('Verifying OTP:', otp);
       const response = await apiService.verifyOTP(phoneNumber, otp);
