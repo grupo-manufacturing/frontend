@@ -35,14 +35,32 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  // Check for demo credentials in cookies
+  const demoToken = request.cookies.get('groupo_token')?.value
+  const isDemoUser = demoToken && demoToken.startsWith('demo_token_')
+
+  // Allow access to portal pages, home page, and API routes without authentication
+  const allowedPaths = [
+    '/',
+    '/buyer-portal',
+    '/manufacturer-portal',
+    '/api',
+    '/login',
+    '/auth'
+  ]
+  
+  const isAllowedPath = allowedPaths.some(path => 
+    request.nextUrl.pathname.startsWith(path)
+  )
+
   if (
     !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth')
+    !isDemoUser &&
+    !isAllowedPath
   ) {
-    // no user, potentially respond by redirecting the user to the login page
+    // Redirect to home page instead of login since we don't have a dedicated login page
     const url = request.nextUrl.clone()
-    url.pathname = '/login'
+    url.pathname = '/'
     return NextResponse.redirect(url)
   }
 

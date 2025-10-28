@@ -100,12 +100,14 @@ class ApiService {
   }
 
   /**
-   * Store JWT token in localStorage
+   * Store JWT token in localStorage and cookies
    * @param {string} token - JWT token
    */
   setToken(token) {
     if (typeof window !== 'undefined') {
       localStorage.setItem('groupo_token', token);
+      // Also set cookie for server-side middleware access
+      document.cookie = `groupo_token=${token}; path=/; max-age=86400; SameSite=Lax`;
     }
   }
 
@@ -121,11 +123,13 @@ class ApiService {
   }
 
   /**
-   * Remove JWT token from localStorage
+   * Remove JWT token from localStorage and cookies
    */
   removeToken() {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('groupo_token');
+      // Also remove cookie
+      document.cookie = 'groupo_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     }
   }
 
