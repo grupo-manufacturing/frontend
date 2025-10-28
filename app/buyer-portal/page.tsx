@@ -4,12 +4,23 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import {
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+  useUser,
+  useClerk,
+} from "@clerk/nextjs";
 import AIChatbot from '../components/AIChatbot';
 import apiService from '../lib/apiService';
 
 type TabType = 'designs' | 'instant-quote' | 'custom-quote' | 'my-orders' | 'chats' | 'requirements' | 'cart' | 'profile';
 
 export default function BuyerPortal() {
+  const { user, isLoaded } = useUser();
+  const { signOut } = useClerk();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'phone' | 'otp' | 'dashboard'>('phone');
@@ -86,13 +97,18 @@ export default function BuyerPortal() {
     }
   };
 
-  const handleLogout = () => {
-    // Clear localStorage and reset to phone step
-    apiService.logout();
-    localStorage.removeItem('buyerPhoneNumber');
-    setPhoneNumber('');
-    setOtp('');
-    setStep('phone');
+  const handleLogout = async () => {
+    // If user is signed in with Clerk, use Clerk signOut
+    if (user) {
+      await signOut();
+    } else {
+      // Clear localStorage and reset to phone step for OTP users
+      apiService.logout();
+      localStorage.removeItem('buyerPhoneNumber');
+      setPhoneNumber('');
+      setOtp('');
+      setStep('phone');
+    }
   };
 
   const handleChangePhoneNumber = () => {
@@ -187,6 +203,13 @@ export default function BuyerPortal() {
     }
   }, [step]);
 
+  // Auto-redirect to dashboard if user is signed in with Clerk
+  useEffect(() => {
+    if (isLoaded && user && step !== 'dashboard') {
+      setStep('dashboard');
+    }
+  }, [isLoaded, user, step]);
+
   // Dashboard View
   if (step === 'dashboard') {
     return (
@@ -217,6 +240,11 @@ export default function BuyerPortal() {
 
               {/* Right Side - Phone, Home, Logout */}
               <div className="flex items-center gap-4">
+                {/* Clerk User Button */}
+                <SignedIn>
+                  <UserButton afterSignOutUrl="/buyer-portal" />
+                </SignedIn>
+                
                 {/* Phone Number with Online Status */}
                 <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
                   <div className="relative">
@@ -1834,6 +1862,36 @@ export default function BuyerPortal() {
                     Send OTP
                   </button>
                 </form>
+
+                {/* Clerk Authentication Buttons */}
+                <div className="mt-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex-1 border-t border-gray-300"></div>
+                    <span className="px-2 text-xs text-gray-500 bg-white">OR</span>
+                    <div className="flex-1 border-t border-gray-300"></div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <SignedOut>
+                      <SignInButton mode="modal" redirectUrl="/buyer-portal">
+                        <button className="w-full px-4 py-2 text-blue-600 hover:text-blue-800 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors">
+                          Sign In with Clerk
+                        </button>
+                      </SignInButton>
+                      <SignUpButton mode="modal" redirectUrl="/buyer-portal">
+                        <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                          Sign Up with Clerk
+                        </button>
+                      </SignUpButton>
+                    </SignedOut>
+                    <SignedIn>
+                      <div className="flex items-center justify-center gap-2">
+                        <UserButton afterSignOutUrl="/buyer-portal" />
+                        <span className="text-sm text-gray-600">Signed in with Clerk</span>
+                      </div>
+                    </SignedIn>
+                  </div>
+                </div>
               </>
             ) : (
               <>
