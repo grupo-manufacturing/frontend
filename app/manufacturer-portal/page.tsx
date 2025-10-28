@@ -40,7 +40,7 @@ export default function ManufacturerPortal() {
     dailyCapacity: '',
     factoryAddress: '',
     specialization: '',
-    certifications: []
+    certifications: [] as string[]
   });
 
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -53,7 +53,7 @@ export default function ManufacturerPortal() {
     dailyCapacity: '',
     factoryAddress: '',
     specialization: '',
-    certifications: []
+    certifications: [] as string[]
   });
 
   const handleSendOTP = async (e: React.FormEvent) => {
