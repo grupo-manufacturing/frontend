@@ -1,9 +1,8 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
 import { NextResponse, type NextRequest } from "next/server";
 
-export default clerkMiddleware(async (auth, req) => {
+export default function middleware(request: NextRequest) {
   // Check for demo credentials first
-  const demoToken = req.cookies.get('groupo_token')?.value;
+  const demoToken = request.cookies.get('groupo_token')?.value;
   const isDemoUser = demoToken && demoToken.startsWith('demo_token_');
 
   // Allow access to portal pages, home page, and API routes without authentication
@@ -17,17 +16,17 @@ export default clerkMiddleware(async (auth, req) => {
   ];
   
   const isAllowedPath = allowedPaths.some(path => 
-    req.nextUrl.pathname.startsWith(path)
+    request.nextUrl.pathname.startsWith(path)
   );
 
   // If it's a demo user or allowed path, let them through
   if (isDemoUser || isAllowedPath) {
-    return NextResponse.next({ request: req });
+    return NextResponse.next({ request });
   }
 
-  // For other paths, let Clerk handle authentication
-  return NextResponse.next({ request: req });
-});
+  // For other paths, redirect to home page
+  return NextResponse.next({ request });
+}
 
 export const config = {
   matcher: [
