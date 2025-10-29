@@ -145,6 +145,30 @@ class ApiService {
   }
 
   /**
+   * Submit manufacturer onboarding data
+   * @param {Object} onboardingData - Onboarding data to submit
+   * @returns {Promise} Response data
+   */
+  async submitManufacturerOnboarding(onboardingData) {
+    return this.request('/auth/manufacturer-onboarding', {
+      method: 'POST',
+      body: JSON.stringify(onboardingData)
+    });
+  }
+
+  /**
+   * Submit buyer onboarding data
+   * @param {Object} onboardingData - Onboarding data to submit
+   * @returns {Promise} Response data
+   */
+  async submitBuyerOnboarding(onboardingData) {
+    return this.request('/auth/buyer-onboarding', {
+      method: 'POST',
+      body: JSON.stringify(onboardingData)
+    });
+  }
+
+  /**
    * Get manufacturer profile
    * @returns {Promise} Response data
    */

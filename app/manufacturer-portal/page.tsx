@@ -6,13 +6,13 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import apiService from '../lib/apiService';
 
-type TabType = 'analytics' | 'onboarding' | 'requirements' | 'profile';
+type TabType = 'analytics' | 'requirements' | 'profile';
 type AnalyticsTabType = 'revenue-trends' | 'product-performance' | 'order-distribution';
 
 export default function ManufacturerPortal() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
-  const [step, setStep] = useState<'phone' | 'otp' | 'dashboard'>('phone');
+  const [step, setStep] = useState<'phone' | 'otp' | 'onboarding' | 'dashboard'>('phone');
   const [activeTab, setActiveTab] = useState<TabType>('analytics');
   const [activeAnalyticsTab, setActiveAnalyticsTab] = useState<AnalyticsTabType>('revenue-trends');
   
@@ -30,31 +30,9 @@ export default function ManufacturerPortal() {
     otherCertificates: null as File | null
   });
 
-  // Profile form states
-  const [profileData, setProfileData] = useState({
-    companyName: '',
-    businessType: '',
-    phoneNumber: '',
-    gstNumber: '',
-    msmeNumber: '',
-    dailyCapacity: '',
-    factoryAddress: '',
-    specialization: '',
-    certifications: [] as string[]
-  });
-
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [originalProfileData, setOriginalProfileData] = useState({
-    companyName: '',
-    businessType: '',
-    phoneNumber: '',
-    gstNumber: '',
-    msmeNumber: '',
-    dailyCapacity: '',
-    factoryAddress: '',
-    specialization: '',
-    certifications: [] as string[]
-  });
+  const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,12 +73,13 @@ export default function ManufacturerPortal() {
         }
       };
       
-      // Store token and user data
-      apiService.setToken(mockResponse.data.token);
-      localStorage.setItem('manufacturerPhoneNumber', phoneNumber);
-      localStorage.setItem('user_role', 'manufacturer');
-      
-      setStep('dashboard');
+      // Check if onboarding is complete, if not show onboarding form
+      const onboardingComplete = localStorage.getItem('manufacturerOnboardingComplete');
+      if (onboardingComplete === 'true') {
+        setStep('dashboard');
+      } else {
+        setStep('onboarding');
+      }
       return;
     }
     
@@ -114,7 +93,29 @@ export default function ManufacturerPortal() {
       localStorage.setItem('manufacturerPhoneNumber', phoneNumber);
       localStorage.setItem('user_role', 'manufacturer');
       
-      setStep('dashboard');
+      // Check onboarding status from backend
+      try {
+        const profileResponse = await apiService.getManufacturerProfile();
+        if (profileResponse.success && profileResponse.data.profile) {
+          const profile = profileResponse.data.profile;
+          if (profile.onboarding_completed) {
+            localStorage.setItem('manufacturerOnboardingComplete', 'true');
+            setStep('dashboard');
+          } else {
+            localStorage.removeItem('manufacturerOnboardingComplete');
+            setStep('onboarding');
+          }
+        } else {
+          // No profile found, show onboarding
+          localStorage.removeItem('manufacturerOnboardingComplete');
+          setStep('onboarding');
+        }
+      } catch (error) {
+        console.error('Failed to check onboarding status:', error);
+        // On error, default to onboarding
+        localStorage.removeItem('manufacturerOnboardingComplete');
+        setStep('onboarding');
+      }
     } catch (error) {
       console.error('Failed to verify OTP:', error);
       alert('Invalid OTP. Please try again.');
@@ -135,50 +136,98 @@ export default function ManufacturerPortal() {
     setOtp('');
   };
 
-  // Load profile data from database on component mount
+  // Load phone number from localStorage on component mount
   useEffect(() => {
-    const loadProfileData = async () => {
-      if (step === 'dashboard' && apiService.isAuthenticated()) {
-        try {
-          const storedPhone = localStorage.getItem('manufacturerPhoneNumber');
-          if (storedPhone) {
-            setPhoneNumber(storedPhone);
-          }
+    if (step === 'dashboard' && apiService.isAuthenticated()) {
+      const storedPhone = localStorage.getItem('manufacturerPhoneNumber');
+      if (storedPhone) {
+        setPhoneNumber(storedPhone);
+      }
+      
+      // Check onboarding status from backend
+      checkOnboardingStatus();
+    }
+  }, [step]);
 
-          // Load profile data from database
-          const response = await apiService.getManufacturerProfile();
-          if (response.success && response.data.profile) {
-            const profile = response.data.profile;
-            const loadedProfileData = {
-              companyName: profile.company_name || '',
-              businessType: profile.business_type || '',
-              phoneNumber: profile.phone_number || storedPhone || '',
-              gstNumber: profile.gst_number || '',
-              msmeNumber: profile.msme_number || '',
-              dailyCapacity: profile.daily_capacity?.toString() || '',
-              factoryAddress: profile.factory_address || '',
-              specialization: profile.specialization || '',
-              certifications: profile.certifications || []
-            };
-            setProfileData(loadedProfileData);
-            setOriginalProfileData(loadedProfileData);
-          }
-        } catch (error) {
-          console.error('Failed to load profile data:', error);
-          // Set phone number from localStorage as fallback
-          const storedPhone = localStorage.getItem('manufacturerPhoneNumber');
-          if (storedPhone) {
-            setProfileData(prev => ({
-              ...prev,
-              phoneNumber: storedPhone
-            }));
-          }
+  // Check onboarding status from backend
+  const checkOnboardingStatus = async () => {
+    try {
+      const response = await apiService.getManufacturerProfile();
+      if (response.success && response.data.profile) {
+        const profile = response.data.profile;
+        if (profile.onboarding_completed) {
+          setIsOnboardingComplete(true);
+          localStorage.setItem('manufacturerOnboardingComplete', 'true');
+        } else {
+          setIsOnboardingComplete(false);
+          localStorage.removeItem('manufacturerOnboardingComplete');
         }
       }
-    };
+    } catch (error) {
+      console.error('Failed to check onboarding status:', error);
+    }
+  };
 
-    loadProfileData();
-  }, [step]);
+  // Load profile data when profile modal is opened
+  const loadProfileData = async () => {
+    setIsLoadingProfile(true);
+    try {
+      const response = await apiService.getManufacturerProfile();
+      if (response.success && response.data.profile) {
+        const profile = response.data.profile;
+        setFormData({
+          unitName: profile.unit_name || '',
+          businessType: profile.business_type || '',
+          gstNumber: profile.gst_number || '',
+          productTypes: profile.product_types || [],
+          capacity: profile.daily_capacity?.toString() || '',
+          location: profile.location || '',
+          panNumber: profile.pan_number || '',
+          coiNumber: profile.coi_number || '',
+          msmeFile: null,
+          otherCertificates: null
+        });
+      }
+    } catch (error) {
+      console.error('Failed to load profile data:', error);
+      alert('Failed to load profile data. Please try again.');
+    } finally {
+      setIsLoadingProfile(false);
+    }
+  };
+
+  // Handle profile update
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      // Convert form data to backend format
+      const profileData = {
+        unit_name: formData.unitName,
+        business_type: formData.businessType,
+        gst_number: formData.gstNumber,
+        product_types: formData.productTypes,
+        daily_capacity: parseInt(formData.capacity) || 0,
+        location: formData.location,
+        pan_number: formData.panNumber,
+        coi_number: formData.coiNumber
+      };
+      
+      // Update profile data
+      const response = await apiService.updateManufacturerProfile(profileData);
+      
+      if (response.success) {
+        console.log('Profile updated successfully:', response.data);
+        alert('Profile updated successfully!');
+        setShowProfile(false);
+      } else {
+        throw new Error(response.message || 'Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      alert('Failed to update profile. Please try again.');
+    }
+  };
 
   // Form handlers
   const handleInputChange = (field: string, value: string) => {
@@ -198,72 +247,311 @@ export default function ManufacturerPortal() {
     setFormData(prev => ({ ...prev, [field]: file }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    alert('Registration submitted successfully!');
-  };
-
-  const handleProfileInputChange = (field: string, value: string) => {
-    setProfileData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleEditProfile = () => {
-    setOriginalProfileData({ ...profileData });
-    setIsEditingProfile(true);
-  };
-
-  const handleSaveProfile = async () => {
+    
     try {
-      // Convert frontend data to backend format
-      const profileDataToSave = {
-        company_name: profileData.companyName,
-        business_type: profileData.businessType,
-        phone_number: profileData.phoneNumber,
-        gst_number: profileData.gstNumber,
-        msme_number: profileData.msmeNumber,
-        daily_capacity: parseInt(profileData.dailyCapacity) || 0,
-        factory_address: profileData.factoryAddress,
-        specialization: profileData.specialization,
-        certifications: profileData.certifications
+      // Convert form data to backend format
+      const onboardingData = {
+        unit_name: formData.unitName,
+        business_type: formData.businessType,
+        gst_number: formData.gstNumber,
+        product_types: formData.productTypes,
+        capacity: parseInt(formData.capacity) || 0,
+        location: formData.location,
+        pan_number: formData.panNumber,
+        coi_number: formData.coiNumber,
+        // For now, skip file uploads until we implement proper file handling
+        // msme_file: formData.msmeFile,
+        // other_certificates: formData.otherCertificates
       };
-
-      const response = await apiService.updateManufacturerProfile(profileDataToSave);
+      
+      // Submit onboarding data to backend
+      const response = await apiService.submitManufacturerOnboarding(onboardingData);
       
       if (response.success) {
-        console.log('Profile saved successfully:', response.data.profile);
-        setIsEditingProfile(false);
-        setOriginalProfileData({ ...profileData });
-        alert('Profile updated successfully!');
+        console.log('Onboarding submitted successfully:', response.data);
+        
+        // Mark onboarding as complete
+        localStorage.setItem('manufacturerOnboardingComplete', 'true');
+        setIsOnboardingComplete(true);
+        
+        // Proceed to dashboard
+        setStep('dashboard');
+        alert('Registration submitted successfully! Welcome to Grupo!');
       } else {
-        throw new Error(response.message || 'Failed to save profile');
+        throw new Error(response.message || 'Failed to submit onboarding');
       }
     } catch (error) {
-      console.error('Failed to save profile:', error);
-      alert('Failed to save profile. Please try again.');
+      console.error('Failed to submit onboarding:', error);
+      alert('Failed to submit registration. Please try again.');
     }
   };
 
-  const handleCancelEdit = () => {
-    setProfileData({ ...originalProfileData });
-    setIsEditingProfile(false);
-  };
 
-  const handleAddCertification = (cert: string) => {
-    if (cert.trim() && !profileData.certifications.includes(cert.trim())) {
-      setProfileData(prev => ({
-        ...prev,
-        certifications: [...prev.certifications, cert.trim()]
-      }));
-    }
-  };
+  // Onboarding View
+  if (step === 'onboarding') {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <header className="bg-white border-b border-gray-200 shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-20">
+              {/* Left Side - Logo and Branding */}
+              <div className="flex items-center gap-3">
+                <Image
+                  src="/groupo-logo.png"
+                  alt="Grupo Logo"
+                  width={40}
+                  height={40}
+                  className="w-10 h-10"
+                />
+                <div className="flex flex-col">
+                  <span className="text-xl font-bold text-blue-600">Grupo</span>
+                  <span className="text-xs text-gray-500 hidden sm:block">
+                    Manufacturing Partner Portal
+                  </span>
+                </div>
+              </div>
 
-  const handleRemoveCertification = (index: number) => {
-    setProfileData(prev => ({
-      ...prev,
-      certifications: prev.certifications.filter((_, i) => i !== index)
-    }));
-  };
+              {/* Right Side - Phone Number */}
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="relative">
+                    <div className="w-2.5 h-2.5 bg-green-500 rounded-full"></div>
+                    <div className="absolute inset-0 w-2.5 h-2.5 bg-green-500 rounded-full animate-ping opacity-75"></div>
+                  </div>
+                  <span className="text-sm font-medium text-gray-700 hidden sm:inline">
+                    {phoneNumber}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-4xl mx-auto">
+            {/* Form Header */}
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Complete Your Registration</h1>
+              <p className="text-gray-600">Fill in the details below to complete your manufacturing unit registration</p>
+            </div>
+
+            {/* Registration Form */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Manufacturing Unit Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Manufacturing Unit Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.unitName}
+                    onChange={(e) => handleInputChange('unitName', e.target.value)}
+                    placeholder="Enter unit name"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                    required
+                  />
+                </div>
+
+                {/* Business Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Business Type <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={formData.businessType}
+                      onChange={(e) => handleInputChange('businessType', e.target.value)}
+                      className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-700 bg-white appearance-none cursor-pointer"
+                      required
+                    >
+                      <option value="">Select your business type</option>
+                      <option value="sole-proprietorship">Sole Proprietorship</option>
+                      <option value="partnership">Partnership</option>
+                      <option value="private-limited">Private Limited</option>
+                      <option value="public-limited">Public Limited</option>
+                      <option value="llp">Limited Liability Partnership (LLP)</option>
+                      <option value="other">Other</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {/* GST Number */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    GST Number <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.gstNumber}
+                    onChange={(e) => handleInputChange('gstNumber', e.target.value)}
+                    placeholder="Enter GST number"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                    required
+                  />
+                </div>
+
+                {/* Product Types */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Product Types
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {[
+                      'T-Shirt', 'Shirt', 'Jeans',
+                      'Trousers', 'Jacket', 'Hoodie',
+                      'Sweater', 'Shorts', 'Skirt',
+                      'Dress', 'Activewear', 'Accessories',
+                      'Other'
+                    ].map((product) => (
+                      <label key={product} className="flex items-center space-x-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.productTypes.includes(product)}
+                          onChange={() => handleProductTypeChange(product)}
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">{product}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Manufacturing Capacity */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Manufacturing Capacity Per Day
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.capacity}
+                    onChange={(e) => handleInputChange('capacity', e.target.value)}
+                    placeholder="Enter capacity (units per day)"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                  />
+                </div>
+
+                {/* Location */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Location of Unit
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.location}
+                    onChange={(e) => handleInputChange('location', e.target.value)}
+                    placeholder="Enter complete address of manufacturing unit"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                  />
+                </div>
+
+                {/* PAN Number */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    PAN Number
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.panNumber}
+                    onChange={(e) => handleInputChange('panNumber', e.target.value)}
+                    placeholder="Enter PAN number"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                  />
+                </div>
+
+                {/* COI Number */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Certificate of Incorporation (COI) Number
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.coiNumber}
+                    onChange={(e) => handleInputChange('coiNumber', e.target.value)}
+                    placeholder="Enter COI number"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                  />
+                </div>
+
+                {/* MSME Certificate Upload */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    MSME Certificate <span className="text-gray-500">(Optional)</span>
+                  </label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <label className="flex flex-col items-center justify-center py-8 cursor-pointer">
+                      <svg className="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                      </svg>
+                      <span className="text-sm text-gray-600">Click to upload MSME certificate</span>
+                      <span className="text-xs text-gray-500 mt-1">(File upload temporarily disabled)</span>
+                      {formData.msmeFile && (
+                        <span className="text-xs text-blue-600 font-medium mt-1">
+                          {formData.msmeFile.name}
+                        </span>
+                      )}
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={(e) => handleFileChange('msmeFile', e.target.files?.[0] || null)}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Other Certificates Upload */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Other Certificates (Optional)
+                  </label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <label className="flex flex-col items-center justify-center py-8 cursor-pointer">
+                      <svg className="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                      </svg>
+                      <span className="text-sm text-gray-600">Click to upload other certificates</span>
+                      <span className="text-xs text-gray-500 mt-1">(File upload temporarily disabled)</span>
+                      {formData.otherCertificates && (
+                        <span className="text-xs text-blue-600 font-medium mt-1">
+                          {formData.otherCertificates.name}
+                        </span>
+                      )}
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={(e) => handleFileChange('otherCertificates', e.target.files?.[0] || null)}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <div className="pt-4">
+                  <button
+                    type="submit"
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
+                  >
+                    Complete Registration & Access Portal
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   // Dashboard View
   if (step === 'dashboard') {
@@ -290,7 +578,7 @@ export default function ManufacturerPortal() {
                 </div>
               </div>
 
-              {/* Right Side - Phone, Home, Logout */}
+              {/* Right Side - Phone, Profile, Home, Logout */}
               <div className="flex items-center gap-4">
                 {/* Phone Number with Online Status */}
                 <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
@@ -302,6 +590,30 @@ export default function ManufacturerPortal() {
                     {phoneNumber}
                   </span>
                 </div>
+
+                {/* Profile Button */}
+                <button
+                  onClick={() => {
+                    setShowProfile(true);
+                    loadProfileData();
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-all border border-gray-200"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                  <span className="font-medium hidden sm:inline">Profile</span>
+                </button>
 
                 {/* Home Button */}
                 <Link
@@ -378,30 +690,6 @@ export default function ManufacturerPortal() {
                 Analytics
               </button>
 
-              {/* Onboarding Tab */}
-              <button
-                onClick={() => setActiveTab('onboarding')}
-                className={`flex items-center gap-2 px-4 py-3 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
-                  activeTab === 'onboarding'
-                    ? 'border-blue-500 text-blue-600 bg-blue-50'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300'
-                }`}
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                  />
-                </svg>
-                Onboarding
-              </button>
 
               {/* Requirements Tab */}
               <button
@@ -428,30 +716,6 @@ export default function ManufacturerPortal() {
                 Requirements
               </button>
 
-              {/* Profile Tab */}
-              <button
-                onClick={() => setActiveTab('profile')}
-                className={`flex items-center gap-2 px-4 py-3 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
-                  activeTab === 'profile'
-                    ? 'border-blue-500 text-blue-600 bg-blue-50'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300'
-                }`}
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-                Profile
-              </button>
             </div>
           </div>
         </nav>
@@ -694,221 +958,6 @@ export default function ManufacturerPortal() {
               </div>
             </div>
           )}
-          {activeTab === 'onboarding' && (
-            <div className="max-w-4xl mx-auto">
-              {/* Form Header */}
-              <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Register Your Manufacturing Unit</h1>
-                <p className="text-gray-600">Fill in the details below to register your manufacturing unit</p>
-              </div>
-
-              {/* Registration Form */}
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Manufacturing Unit Name */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Manufacturing Unit Name
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.unitName}
-                      onChange={(e) => handleInputChange('unitName', e.target.value)}
-                      placeholder="Enter unit name"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                    />
-                  </div>
-
-                  {/* Business Type */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Business Type <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <select
-                        value={formData.businessType}
-                        onChange={(e) => handleInputChange('businessType', e.target.value)}
-                        className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-700 bg-white appearance-none cursor-pointer"
-                        required
-                      >
-                        <option value="">Select your business type</option>
-                        <option value="sole-proprietorship">Sole Proprietorship</option>
-                        <option value="partnership">Partnership</option>
-                        <option value="private-limited">Private Limited</option>
-                        <option value="public-limited">Public Limited</option>
-                        <option value="llp">Limited Liability Partnership (LLP)</option>
-                        <option value="other">Other</option>
-                      </select>
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* GST Number */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      GST Number <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.gstNumber}
-                      onChange={(e) => handleInputChange('gstNumber', e.target.value)}
-                      placeholder="Enter GST number"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                      required
-                    />
-                  </div>
-
-                  {/* Product Types */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      Product Types
-                    </label>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {[
-                        'T-Shirt', 'Shirt', 'Jeans',
-                        'Trousers', 'Jacket', 'Hoodie',
-                        'Sweater', 'Shorts', 'Skirt',
-                        'Dress', 'Activewear', 'Accessories',
-                        'Other'
-                      ].map((product) => (
-                        <label key={product} className="flex items-center space-x-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={formData.productTypes.includes(product)}
-                            onChange={() => handleProductTypeChange(product)}
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          />
-                          <span className="text-sm text-gray-700">{product}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Manufacturing Capacity */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Manufacturing Capacity Per Day
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.capacity}
-                      onChange={(e) => handleInputChange('capacity', e.target.value)}
-                      placeholder="Enter capacity (units per day)"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                    />
-                  </div>
-
-                  {/* Location */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Location of Unit
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.location}
-                      onChange={(e) => handleInputChange('location', e.target.value)}
-                      placeholder="Enter complete address of manufacturing unit"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                    />
-                  </div>
-
-                  {/* PAN Number */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      PAN Number
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.panNumber}
-                      onChange={(e) => handleInputChange('panNumber', e.target.value)}
-                      placeholder="Enter PAN number"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                    />
-                  </div>
-
-                  {/* COI Number */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Certificate of Incorporation (COI) Number
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.coiNumber}
-                      onChange={(e) => handleInputChange('coiNumber', e.target.value)}
-                      placeholder="Enter COI number"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                    />
-                  </div>
-
-                  {/* MSME Certificate Upload */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      MSME Certificate
-                    </label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-                      <label className="flex flex-col items-center justify-center py-8 cursor-pointer">
-                        <svg className="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                        </svg>
-                        <span className="text-sm text-gray-600">Click to upload MSME certificate</span>
-                        {formData.msmeFile && (
-                          <span className="text-xs text-blue-600 font-medium mt-1">
-                            {formData.msmeFile.name}
-                          </span>
-                        )}
-                        <input
-                          type="file"
-                          accept=".pdf,.jpg,.jpeg,.png"
-                          onChange={(e) => handleFileChange('msmeFile', e.target.files?.[0] || null)}
-                          className="hidden"
-                        />
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Other Certificates Upload */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Other Certificates (Optional)
-                    </label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-                      <label className="flex flex-col items-center justify-center py-8 cursor-pointer">
-                        <svg className="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                        </svg>
-                        <span className="text-sm text-gray-600">Click to upload other certificates</span>
-                        {formData.otherCertificates && (
-                          <span className="text-xs text-blue-600 font-medium mt-1">
-                            {formData.otherCertificates.name}
-                          </span>
-                        )}
-                        <input
-                          type="file"
-                          accept=".pdf,.jpg,.jpeg,.png"
-                          onChange={(e) => handleFileChange('otherCertificates', e.target.files?.[0] || null)}
-                          className="hidden"
-                        />
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Submit Button */}
-                  <div className="pt-4">
-                    <button
-                      type="submit"
-                      className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
-                    >
-                      Submit Registration
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
           {activeTab === 'requirements' && (
             <div className="flex items-center justify-center min-h-[60vh]">
               <div className="text-center">
@@ -929,321 +978,249 @@ export default function ManufacturerPortal() {
               </div>
             </div>
           )}
-          {activeTab === 'profile' && (
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-              {/* Profile Header */}
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 mb-6">
-                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                  <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-                    {/* Company Logo */}
-                    <div className="bg-blue-600 rounded-full p-3 flex-shrink-0 self-start">
-                      <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
-                      </svg>
+        </main>
+        
+        {/* Profile Modal */}
+        {showProfile && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto my-8">
+              {/* Modal Header */}
+              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">Edit Profile</h2>
+                <button
+                  onClick={() => setShowProfile(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div className="p-6">
+                {isLoadingProfile ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                  </div>
+                ) : (
+                  <form onSubmit={handleUpdateProfile} className="space-y-6">
+                    {/* Manufacturing Unit Name */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Manufacturing Unit Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.unitName}
+                        onChange={(e) => handleInputChange('unitName', e.target.value)}
+                        placeholder="Enter unit name"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                        required
+                      />
                     </div>
 
-                    {/* Company Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
-                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">{profileData.companyName}</h1>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                            </svg>
-                            Verified
-                          </span>
-                          <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
-                            </svg>
-                            Manufacturer
-                          </span>
+                    {/* Business Type */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Business Type <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <select
+                          value={formData.businessType}
+                          onChange={(e) => handleInputChange('businessType', e.target.value)}
+                          className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-700 bg-white appearance-none cursor-pointer"
+                          required
+                        >
+                          <option value="">Select your business type</option>
+                          <option value="sole-proprietorship">Sole Proprietorship</option>
+                          <option value="partnership">Partnership</option>
+                          <option value="private-limited">Private Limited</option>
+                          <option value="public-limited">Public Limited</option>
+                          <option value="llp">Limited Liability Partnership (LLP)</option>
+                          <option value="other">Other</option>
+                        </select>
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
+                          </svg>
                         </div>
                       </div>
-                      
-                      <p className="text-sm text-gray-600 mb-3">Manufacturing capacity: {profileData.dailyCapacity} units/day</p>
-                      
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-                        </svg>
-                        <span>{profileData.phoneNumber}</span>
-                      </div>
                     </div>
-                  </div>
 
-                  {/* Edit/Save/Cancel Buttons */}
-                  <div className="flex flex-col sm:flex-row gap-2 lg:flex-col xl:flex-row">
-                    {!isEditingProfile ? (
-                      <button
-                        onClick={handleEditProfile}
-                        className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors w-full sm:w-auto"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-                        </svg>
-                        <span className="hidden sm:inline">Edit Profile</span>
-                        <span className="sm:hidden">Edit</span>
-                      </button>
-                    ) : (
-                      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                        <button
-                          onClick={handleSaveProfile}
-                          className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/>
-                          </svg>
-                          <span className="hidden sm:inline">Save Changes</span>
-                          <span className="sm:hidden">Save</span>
-                        </button>
-                        <button
-                          onClick={handleCancelEdit}
-                          className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-colors"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
-                          </svg>
-                          <span className="hidden sm:inline">Cancel</span>
-                          <span className="sm:hidden">Cancel</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Company Information */}
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 mb-6">
-                <div className="mb-4 sm:mb-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-1">Company Information</h2>
-                  <p className="text-sm text-gray-600">Manage your manufacturing unit details</p>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                  {/* Company Name */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
-                    <input
-                      type="text"
-                      value={profileData.companyName}
-                      onChange={(e) => handleProfileInputChange('companyName', e.target.value)}
-                      disabled={!isEditingProfile}
-                      className={`w-full px-3 sm:px-4 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 transition-colors ${
-                        isEditingProfile 
-                          ? 'bg-white border-gray-300 focus:border-blue-500' 
-                          : 'bg-gray-50 border-gray-200 cursor-not-allowed'
-                      }`}
-                    />
-                  </div>
-
-                  {/* Business Type */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Business Type</label>
-                    <input
-                      type="text"
-                      value={profileData.businessType}
-                      onChange={(e) => handleProfileInputChange('businessType', e.target.value)}
-                      disabled={!isEditingProfile}
-                      className={`w-full px-3 sm:px-4 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 transition-colors ${
-                        isEditingProfile 
-                          ? 'bg-white border-gray-300 focus:border-blue-500' 
-                          : 'bg-gray-50 border-gray-200 cursor-not-allowed'
-                      }`}
-                    />
-                  </div>
-
-                  {/* Phone Number */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                    <input
-                      type="tel"
-                      value={profileData.phoneNumber}
-                      onChange={(e) => handleProfileInputChange('phoneNumber', e.target.value)}
-                      disabled={!isEditingProfile}
-                      placeholder="Enter phone number"
-                      className={`w-full px-3 sm:px-4 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 transition-colors ${
-                        isEditingProfile 
-                          ? 'bg-white border-gray-300 focus:border-blue-500' 
-                          : 'bg-gray-50 border-gray-200 cursor-not-allowed'
-                      }`}
-                    />
-                  </div>
-
-                  {/* GST Number */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">GST Number</label>
-                    <input
-                      type="text"
-                      value={profileData.gstNumber}
-                      onChange={(e) => handleProfileInputChange('gstNumber', e.target.value)}
-                      disabled={!isEditingProfile}
-                      className={`w-full px-3 sm:px-4 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 transition-colors ${
-                        isEditingProfile 
-                          ? 'bg-white border-gray-300 focus:border-blue-500' 
-                          : 'bg-gray-50 border-gray-200 cursor-not-allowed'
-                      }`}
-                    />
-                  </div>
-
-                  {/* MSME Number */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">MSME Number</label>
-                    <input
-                      type="text"
-                      value={profileData.msmeNumber}
-                      onChange={(e) => handleProfileInputChange('msmeNumber', e.target.value)}
-                      disabled={!isEditingProfile}
-                      className={`w-full px-3 sm:px-4 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 transition-colors ${
-                        isEditingProfile 
-                          ? 'bg-white border-gray-300 focus:border-blue-500' 
-                          : 'bg-gray-50 border-gray-200 cursor-not-allowed'
-                      }`}
-                    />
-                  </div>
-
-                  {/* Daily Capacity */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Daily Capacity (units)</label>
-                    <input
-                      type="number"
-                      value={profileData.dailyCapacity}
-                      onChange={(e) => handleProfileInputChange('dailyCapacity', e.target.value)}
-                      disabled={!isEditingProfile}
-                      className={`w-full px-3 sm:px-4 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 transition-colors ${
-                        isEditingProfile 
-                          ? 'bg-white border-gray-300 focus:border-blue-500' 
-                          : 'bg-gray-50 border-gray-200 cursor-not-allowed'
-                      }`}
-                    />
-                  </div>
-
-                  {/* Factory Address */}
-                  <div className="lg:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Factory Address</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        </svg>
-                      </div>
+                    {/* GST Number */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        GST Number <span className="text-red-500">*</span>
+                      </label>
                       <input
                         type="text"
-                        value={profileData.factoryAddress}
-                        onChange={(e) => handleProfileInputChange('factoryAddress', e.target.value)}
-                        disabled={!isEditingProfile}
-                        className={`w-full pl-10 pr-3 sm:pr-4 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 transition-colors ${
-                          isEditingProfile 
-                            ? 'bg-white border-gray-300 focus:border-blue-500' 
-                            : 'bg-gray-50 border-gray-200 cursor-not-allowed'
-                        }`}
+                        value={formData.gstNumber}
+                        onChange={(e) => handleInputChange('gstNumber', e.target.value)}
+                        placeholder="Enter GST number"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                        required
                       />
                     </div>
-                  </div>
-                </div>
-              </div>
 
-              {/* Specialization */}
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 mb-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Specialization</h2>
-                {isEditingProfile ? (
-                  <textarea
-                    value={profileData.specialization}
-                    onChange={(e) => handleProfileInputChange('specialization', e.target.value)}
-                    rows={3}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 resize-none"
-                    placeholder="Describe your manufacturing specialization..."
-                  />
-                ) : (
-                  <p className="text-gray-700">{profileData.specialization}</p>
+                    {/* Product Types */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-3">
+                        Product Types
+                      </label>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {[
+                          'T-Shirt', 'Shirt', 'Jeans',
+                          'Trousers', 'Jacket', 'Hoodie',
+                          'Sweater', 'Shorts', 'Skirt',
+                          'Dress', 'Activewear', 'Accessories',
+                          'Other'
+                        ].map((product) => (
+                          <label key={product} className="flex items-center space-x-3 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={formData.productTypes.includes(product)}
+                              onChange={() => handleProductTypeChange(product)}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-gray-700">{product}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Manufacturing Capacity */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Manufacturing Capacity Per Day
+                      </label>
+                      <input
+                        type="number"
+                        value={formData.capacity}
+                        onChange={(e) => handleInputChange('capacity', e.target.value)}
+                        placeholder="Enter capacity (units per day)"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                      />
+                    </div>
+
+                    {/* Location */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Location of Unit
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.location}
+                        onChange={(e) => handleInputChange('location', e.target.value)}
+                        placeholder="Enter complete address of manufacturing unit"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                      />
+                    </div>
+
+                    {/* PAN Number */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        PAN Number
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.panNumber}
+                        onChange={(e) => handleInputChange('panNumber', e.target.value)}
+                        placeholder="Enter PAN number"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                      />
+                    </div>
+
+                    {/* COI Number */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Certificate of Incorporation (COI) Number
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.coiNumber}
+                        onChange={(e) => handleInputChange('coiNumber', e.target.value)}
+                        placeholder="Enter COI number"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                      />
+                    </div>
+
+                    {/* MSME Certificate Upload */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        MSME Certificate <span className="text-gray-500">(Optional)</span>
+                      </label>
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                        <label className="flex flex-col items-center justify-center py-8 cursor-pointer">
+                          <svg className="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                          </svg>
+                          <span className="text-sm text-gray-600">Click to upload MSME certificate</span>
+                          <span className="text-xs text-gray-500 mt-1">(File upload temporarily disabled)</span>
+                          {formData.msmeFile && (
+                            <span className="text-xs text-blue-600 font-medium mt-1">
+                              {formData.msmeFile.name}
+                            </span>
+                          )}
+                          <input
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            onChange={(e) => handleFileChange('msmeFile', e.target.files?.[0] || null)}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Other Certificates Upload */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Other Certificates (Optional)
+                      </label>
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                        <label className="flex flex-col items-center justify-center py-8 cursor-pointer">
+                          <svg className="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                          </svg>
+                          <span className="text-sm text-gray-600">Click to upload other certificates</span>
+                          <span className="text-xs text-gray-500 mt-1">(File upload temporarily disabled)</span>
+                          {formData.otherCertificates && (
+                            <span className="text-xs text-blue-600 font-medium mt-1">
+                              {formData.otherCertificates.name}
+                            </span>
+                          )}
+                          <input
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            onChange={(e) => handleFileChange('otherCertificates', e.target.files?.[0] || null)}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Form Actions */}
+                    <div className="flex gap-4 pt-4">
+                      <button
+                        type="button"
+                        onClick={() => setShowProfile(false)}
+                        className="flex-1 px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="flex-1 px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors"
+                      >
+                        Save Changes
+                      </button>
+                    </div>
+                  </form>
                 )}
               </div>
-
-              {/* Certifications */}
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 mb-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                  </svg>
-                  <h2 className="text-lg font-semibold text-gray-900">Certifications</h2>
-                </div>
-                <div className="flex flex-wrap gap-2 sm:gap-3">
-                  {profileData.certifications.map((cert, index) => (
-                    <div key={index} className="flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-800 text-sm font-medium px-3 py-2 rounded-lg">
-                      <span>{cert}</span>
-                      {isEditingProfile && (
-                        <button
-                          onClick={() => handleRemoveCertification(index)}
-                          className="text-blue-600 hover:text-blue-800 transition-colors"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
-                          </svg>
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  {isEditingProfile && (
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        placeholder="Add certification..."
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm"
-                        onKeyPress={(e) => {
-                          if (e.key === 'Enter') {
-                            handleAddCertification(e.currentTarget.value);
-                            e.currentTarget.value = '';
-                          }
-                        }}
-                      />
-                      <button
-                        onClick={(e) => {
-                          const input = e.currentTarget.previousElementSibling as HTMLInputElement;
-                          if (input.value.trim()) {
-                            handleAddCertification(input.value);
-                            input.value = '';
-                          }
-                        }}
-                        className="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
-                      >
-                        Add
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Performance Metrics */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {/* Total Quotes Sent */}
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
-                  <div className="text-center">
-                    <p className="text-sm font-medium text-gray-600 mb-2">Total Quotes Sent</p>
-                    <p className="text-3xl sm:text-4xl font-bold text-blue-600">42</p>
-                  </div>
-                </div>
-
-                {/* Accepted Orders */}
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
-                  <div className="text-center">
-                    <p className="text-sm font-medium text-gray-600 mb-2">Accepted Orders</p>
-                    <p className="text-3xl sm:text-4xl font-bold text-green-600">28</p>
-                  </div>
-                </div>
-
-                {/* Success Rate */}
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 sm:col-span-2 lg:col-span-1">
-                  <div className="text-center">
-                    <p className="text-sm font-medium text-gray-600 mb-2">Success Rate</p>
-                    <p className="text-3xl sm:text-4xl font-bold text-orange-600">67%</p>
-                  </div>
-                </div>
-              </div>
             </div>
-          )}
-        </main>
+          </div>
+        )}
       </div>
     );
   }

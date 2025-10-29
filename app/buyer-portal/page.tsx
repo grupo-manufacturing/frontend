@@ -7,12 +7,12 @@ import { useRouter } from 'next/navigation';
 import AIChatbot from '../components/AIChatbot';
 import apiService from '../lib/apiService';
 
-type TabType = 'designs' | 'instant-quote' | 'custom-quote' | 'my-orders' | 'chats' | 'requirements' | 'cart' | 'profile';
+type TabType = 'designs' | 'instant-quote' | 'custom-quote' | 'my-orders' | 'chats' | 'requirements' | 'cart';
 
 export default function BuyerPortal() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
-  const [step, setStep] = useState<'phone' | 'otp' | 'dashboard'>('phone');
+  const [step, setStep] = useState<'phone' | 'otp' | 'onboarding' | 'dashboard'>('phone');
   const [activeTab, setActiveTab] = useState<TabType>('designs');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -42,9 +42,8 @@ export default function BuyerPortal() {
   // Chats States
   const [chatSearchQuery, setChatSearchQuery] = useState('');
   
-  // Profile States
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [profileData, setProfileData] = useState({
+  // Onboarding form states
+  const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     companyName: '',
@@ -52,15 +51,11 @@ export default function BuyerPortal() {
     businessAddress: '',
     aboutBusiness: ''
   });
+
+  const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [userPhoneNumber, setUserPhoneNumber] = useState('');
-  const [originalProfileData, setOriginalProfileData] = useState({
-    fullName: '',
-    email: '',
-    companyName: '',
-    gstNumber: '',
-    businessAddress: '',
-    aboutBusiness: ''
-  });
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,7 +101,13 @@ export default function BuyerPortal() {
       localStorage.setItem('buyerPhoneNumber', phoneNumber);
       localStorage.setItem('user_role', 'buyer');
       
-      setStep('dashboard');
+      // Check if onboarding is complete, if not show onboarding form
+      const onboardingComplete = localStorage.getItem('buyerOnboardingComplete');
+      if (onboardingComplete === 'true') {
+        setStep('dashboard');
+      } else {
+        setStep('onboarding');
+      }
       return;
     }
     
@@ -120,7 +121,29 @@ export default function BuyerPortal() {
       localStorage.setItem('buyerPhoneNumber', phoneNumber);
       localStorage.setItem('user_role', 'buyer');
       
-      setStep('dashboard');
+      // Check onboarding status from backend
+      try {
+        const profileResponse = await apiService.getBuyerProfile();
+        if (profileResponse.success && profileResponse.data.profile) {
+          const profile = profileResponse.data.profile;
+          if (profile.onboarding_completed) {
+            localStorage.setItem('buyerOnboardingComplete', 'true');
+            setStep('dashboard');
+          } else {
+            localStorage.removeItem('buyerOnboardingComplete');
+            setStep('onboarding');
+          }
+        } else {
+          // No profile found, show onboarding
+          localStorage.removeItem('buyerOnboardingComplete');
+          setStep('onboarding');
+        }
+      } catch (error) {
+        console.error('Failed to check onboarding status:', error);
+        // On error, default to onboarding
+        localStorage.removeItem('buyerOnboardingComplete');
+        setStep('onboarding');
+      }
     } catch (error) {
       console.error('Failed to verify OTP:', error);
       alert('Invalid OTP. Please try again.');
@@ -206,80 +229,264 @@ export default function BuyerPortal() {
     setQuotes(mockQuotes);
   };
 
-  const handleSaveProfile = async () => {
-    try {
-      // Convert frontend data to backend format
-      const profileDataToSave = {
-        full_name: profileData.fullName,
-        email: profileData.email,
-        phone_number: userPhoneNumber || phoneNumber,
-        company_name: profileData.companyName,
-        gst_number: profileData.gstNumber,
-        business_address: profileData.businessAddress,
-        about_business: profileData.aboutBusiness
-      };
 
-      const response = await apiService.updateBuyerProfile(profileDataToSave);
+  // Form handlers
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Handle onboarding form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      // Convert form data to backend format
+      const onboardingData = {
+        full_name: formData.fullName,
+        email: formData.email,
+        company_name: formData.companyName,
+        gst_number: formData.gstNumber,
+        business_address: formData.businessAddress,
+        about_business: formData.aboutBusiness
+      };
+      
+      // Submit onboarding data to backend
+      const response = await apiService.submitBuyerOnboarding(onboardingData);
       
       if (response.success) {
-        console.log('Profile saved successfully:', response.data.profile);
-        setIsEditingProfile(false);
-        setOriginalProfileData({ ...profileData });
-        alert('Profile updated successfully!');
+        console.log('Onboarding submitted successfully:', response.data);
+        
+        // Mark onboarding as complete
+        localStorage.setItem('buyerOnboardingComplete', 'true');
+        setIsOnboardingComplete(true);
+        
+        // Proceed to dashboard
+        setStep('dashboard');
+        alert('Registration submitted successfully! Welcome to Grupo!');
       } else {
-        throw new Error(response.message || 'Failed to save profile');
+        throw new Error(response.message || 'Failed to submit onboarding');
       }
     } catch (error) {
-      console.error('Failed to save profile:', error);
-      alert('Failed to save profile. Please try again.');
+      console.error('Failed to submit onboarding:', error);
+      alert('Failed to submit registration. Please try again.');
     }
   };
 
-  const handleCancelEdit = () => {
-    setProfileData({ ...originalProfileData });
-    setIsEditingProfile(false);
+  // Load profile data when profile modal is opened
+  const loadProfileData = async () => {
+    setIsLoadingProfile(true);
+    try {
+      const response = await apiService.getBuyerProfile();
+      if (response.success && response.data.profile) {
+        const profile = response.data.profile;
+        setFormData({
+          fullName: profile.full_name || '',
+          email: profile.email || '',
+          companyName: profile.company_name || '',
+          gstNumber: profile.gst_number || '',
+          businessAddress: profile.business_address || '',
+          aboutBusiness: profile.about_business || ''
+        });
+      }
+    } catch (error) {
+      console.error('Failed to load profile data:', error);
+      alert('Failed to load profile data. Please try again.');
+    } finally {
+      setIsLoadingProfile(false);
+    }
   };
 
-  // Load profile data from database on component mount
-  useEffect(() => {
-    const loadProfileData = async () => {
-      if (step === 'dashboard' && apiService.isAuthenticated()) {
-        try {
-          const storedPhone = localStorage.getItem('buyerPhoneNumber');
-          if (storedPhone) {
-            setUserPhoneNumber(storedPhone);
-            setPhoneNumber(storedPhone);
-          }
+  // Handle profile update
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      // Convert form data to backend format
+      const profileData = {
+        full_name: formData.fullName,
+        email: formData.email,
+        company_name: formData.companyName,
+        gst_number: formData.gstNumber,
+        business_address: formData.businessAddress,
+        about_business: formData.aboutBusiness
+      };
+      
+      // Update profile data
+      const response = await apiService.updateBuyerProfile(profileData);
+      
+      if (response.success) {
+        console.log('Profile updated successfully:', response.data);
+        alert('Profile updated successfully!');
+        setShowProfile(false);
+      } else {
+        throw new Error(response.message || 'Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      alert('Failed to update profile. Please try again.');
+    }
+  };
 
-          // Load profile data from database
-          const response = await apiService.getBuyerProfile();
-          if (response.success && response.data.profile) {
-            const profile = response.data.profile;
-            const loadedProfileData = {
-              fullName: profile.full_name || '',
-              email: profile.email || '',
-              companyName: profile.company_name || '',
-              gstNumber: profile.gst_number || '',
-              businessAddress: profile.business_address || '',
-              aboutBusiness: profile.about_business || ''
-            };
-            setProfileData(loadedProfileData);
-            setOriginalProfileData(loadedProfileData);
-          }
-        } catch (error) {
-          console.error('Failed to load profile data:', error);
-          // Set phone number from localStorage as fallback
-          const storedPhone = localStorage.getItem('buyerPhoneNumber');
-          if (storedPhone) {
-            setUserPhoneNumber(storedPhone);
-            setPhoneNumber(storedPhone);
-          }
+  // Load phone number from localStorage on component mount
+  useEffect(() => {
+    if (step === 'dashboard' && apiService.isAuthenticated()) {
+      const storedPhone = localStorage.getItem('buyerPhoneNumber');
+      if (storedPhone) {
+        setUserPhoneNumber(storedPhone);
+        setPhoneNumber(storedPhone);
+      }
+      
+      // Check onboarding status from backend
+      checkOnboardingStatus();
+    }
+  }, [step]);
+
+  // Check onboarding status from backend
+  const checkOnboardingStatus = async () => {
+    try {
+      const response = await apiService.getBuyerProfile();
+      if (response.success && response.data.profile) {
+        const profile = response.data.profile;
+        if (profile.onboarding_completed) {
+          setIsOnboardingComplete(true);
+          localStorage.setItem('buyerOnboardingComplete', 'true');
+        } else {
+          setIsOnboardingComplete(false);
+          localStorage.removeItem('buyerOnboardingComplete');
         }
       }
-    };
+    } catch (error) {
+      console.error('Failed to check onboarding status:', error);
+    }
+  };
 
-    loadProfileData();
-  }, [step]);
+  // Onboarding View
+  if (step === 'onboarding') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-2xl">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Image
+                src="/groupo-logo.png"
+                alt="Grupo Logo"
+                width={50}
+                height={50}
+                className="w-12 h-12"
+              />
+              <div>
+                <h1 className="text-3xl font-bold text-blue-600">Grupo</h1>
+                <p className="text-sm text-gray-500">One-Stop AI Manufacturing Platform</p>
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Complete Your Profile</h2>
+            <p className="text-gray-600">Please provide your business information to get started</p>
+          </div>
+
+          {/* Onboarding Form */}
+          <div className="bg-white rounded-xl shadow-lg p-8">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Full Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Full Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.fullName}
+                  onChange={(e) => handleInputChange('fullName', e.target.value)}
+                  placeholder="Enter your full name"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                  required
+                />
+              </div>
+
+              {/* Email Address */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  placeholder="Enter your email address"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                  required
+                />
+              </div>
+
+              {/* Company Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Company Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.companyName}
+                  onChange={(e) => handleInputChange('companyName', e.target.value)}
+                  placeholder="Enter your company name"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                  required
+                />
+              </div>
+
+              {/* GST Number */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  GST Number
+                </label>
+                <input
+                  type="text"
+                  value={formData.gstNumber}
+                  onChange={(e) => handleInputChange('gstNumber', e.target.value)}
+                  placeholder="Enter GST number (optional)"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                />
+              </div>
+
+              {/* Business Address */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Business Address
+                </label>
+                <input
+                  type="text"
+                  value={formData.businessAddress}
+                  onChange={(e) => handleInputChange('businessAddress', e.target.value)}
+                  placeholder="Enter your business address"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                />
+              </div>
+
+              {/* About Your Business */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  About Your Business
+                </label>
+                <textarea
+                  value={formData.aboutBusiness}
+                  onChange={(e) => handleInputChange('aboutBusiness', e.target.value)}
+                  placeholder="Tell us about your business (optional)"
+                  rows={4}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400 resize-none"
+                />
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
+              >
+                Complete Registration
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Dashboard View
   if (step === 'dashboard') {
@@ -309,7 +516,7 @@ export default function BuyerPortal() {
                 </div>
               </div>
 
-              {/* Right Side - Phone, Home, Logout */}
+              {/* Right Side - Phone, Profile, Home, Logout */}
               <div className="flex items-center gap-4">
                 {/* Phone Number with Online Status */}
                 <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
@@ -321,6 +528,30 @@ export default function BuyerPortal() {
                     {phoneNumber}
                   </span>
                 </div>
+
+                {/* Profile Button */}
+                <button
+                  onClick={() => {
+                    setShowProfile(true);
+                    loadProfileData();
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-all border border-gray-200"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                  <span className="font-medium hidden sm:inline">Profile</span>
+                </button>
 
                 {/* Home Button */}
                 <Link
@@ -547,30 +778,6 @@ export default function BuyerPortal() {
                 Cart
               </button>
 
-              {/* Profile Tab */}
-              <button
-                onClick={() => setActiveTab('profile')}
-                className={`flex items-center gap-2 px-4 py-3 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
-                  activeTab === 'profile'
-                    ? 'border-blue-500 text-blue-600 bg-blue-50'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300'
-                }`}
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-                Profile
-              </button>
             </div>
           </div>
         </nav>
@@ -1534,236 +1741,142 @@ export default function BuyerPortal() {
               </div>
             </div>
           )}
-          {activeTab === 'profile' && (
-            <div>
-              {/* Profile Header Card */}
-              <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 mb-6">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    {/* Avatar */}
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-blue-500 flex items-center justify-center text-white text-xl sm:text-2xl font-bold flex-shrink-0">
-                      JD
-                    </div>
-                    
-                    {/* User Info */}
-                    <div>
-                      <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{profileData.fullName}</h2>
-                      <p className="text-sm sm:text-base text-gray-600 mb-2 sm:mb-3">{profileData.companyName}</p>
-                      
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm">
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                          </svg>
-                          <span>{profileData.email}</span>
-                        </div>
-                        
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                          </svg>
-                          <span>{userPhoneNumber || phoneNumber}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Edit/Save/Cancel Buttons */}
-                  {!isEditingProfile ? (
-                    <button 
-                      onClick={() => setIsEditingProfile(true)}
-                      className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors w-full sm:w-auto"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                      </svg>
-                      <span className="font-medium text-sm sm:text-base text-gray-700">Edit Profile</span>
-                    </button>
-                  ) : (
-                    <div className="flex gap-2 w-full sm:w-auto">
-                      <button 
-                        onClick={handleSaveProfile}
-                        className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span className="font-medium text-sm sm:text-base">Save</span>
-                      </button>
-                      <button 
-                        onClick={handleCancelEdit}
-                        className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                        <span className="font-medium text-sm sm:text-base text-gray-700">Cancel</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
+        </main>
+        
+        {/* Profile Modal */}
+        {showProfile && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto my-8">
+              {/* Modal Header */}
+              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">Edit Profile</h2>
+                <button
+                  onClick={() => setShowProfile(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
 
-              {/* Profile Information Card */}
-              <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 mb-6">
-                <div className="mb-4 sm:mb-6">
-                  <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1">Profile Information</h3>
-                  <p className="text-xs sm:text-sm text-gray-600">Manage your account details and preferences</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                  {/* Full Name */}
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-900 mb-2">
-                      Full Name
-                    </label>
-                    {isEditingProfile ? (
+              {/* Modal Content */}
+              <div className="p-6">
+                {isLoadingProfile ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                  </div>
+                ) : (
+                  <form onSubmit={handleUpdateProfile} className="space-y-6">
+                    {/* Full Name */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Full Name <span className="text-red-500">*</span>
+                      </label>
                       <input
                         type="text"
-                        value={profileData.fullName}
-                        onChange={(e) => setProfileData({...profileData, fullName: e.target.value})}
-                        className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
+                        value={formData.fullName}
+                        onChange={(e) => handleInputChange('fullName', e.target.value)}
+                        placeholder="Enter your full name"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                        required
                       />
-                    ) : (
-                      <div className="flex items-center gap-2 text-sm sm:text-base text-gray-600">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        <span>{profileData.fullName}</span>
-                      </div>
-                    )}
-                  </div>
+                    </div>
 
-                  {/* Email Address */}
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-900 mb-2">
-                      Email Address
-                    </label>
-                    {isEditingProfile ? (
+                    {/* Email Address */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Email Address <span className="text-red-500">*</span>
+                      </label>
                       <input
                         type="email"
-                        value={profileData.email}
-                        onChange={(e) => setProfileData({...profileData, email: e.target.value})}
-                        className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
+                        value={formData.email}
+                        onChange={(e) => handleInputChange('email', e.target.value)}
+                        placeholder="Enter your email address"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                        required
                       />
-                    ) : (
-                      <div className="flex items-center gap-2 text-sm sm:text-base text-gray-600 break-all">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        <span>{profileData.email}</span>
-                      </div>
-                    )}
-                  </div>
+                    </div>
 
-                  {/* Company Name */}
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-900 mb-2">
-                      Company Name
-                    </label>
-                    {isEditingProfile ? (
+                    {/* Company Name */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Company Name <span className="text-red-500">*</span>
+                      </label>
                       <input
                         type="text"
-                        value={profileData.companyName}
-                        onChange={(e) => setProfileData({...profileData, companyName: e.target.value})}
-                        className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
+                        value={formData.companyName}
+                        onChange={(e) => handleInputChange('companyName', e.target.value)}
+                        placeholder="Enter your company name"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                        required
                       />
-                    ) : (
-                      <div className="flex items-center gap-2 text-sm sm:text-base text-gray-600">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
-                        <span>{profileData.companyName}</span>
-                      </div>
-                    )}
-                  </div>
+                    </div>
 
-                  {/* GST Number */}
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-900 mb-2">
-                      GST Number
-                    </label>
-                    {isEditingProfile ? (
+                    {/* GST Number */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        GST Number
+                      </label>
                       <input
                         type="text"
-                        value={profileData.gstNumber}
-                        onChange={(e) => setProfileData({...profileData, gstNumber: e.target.value})}
-                        className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
+                        value={formData.gstNumber}
+                        onChange={(e) => handleInputChange('gstNumber', e.target.value)}
+                        placeholder="Enter GST number (optional)"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
                       />
-                    ) : (
-                      <div className="flex items-center gap-2 text-sm sm:text-base text-gray-600">
-                        <span>{profileData.gstNumber}</span>
-                      </div>
-                    )}
-                  </div>
+                    </div>
 
-                  {/* Business Address */}
-                  <div className="md:col-span-2">
-                    <label className="block text-xs sm:text-sm font-medium text-gray-900 mb-2">
-                      Business Address
-                    </label>
-                    {isEditingProfile ? (
+                    {/* Business Address */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Business Address
+                      </label>
                       <input
                         type="text"
-                        value={profileData.businessAddress}
-                        onChange={(e) => setProfileData({...profileData, businessAddress: e.target.value})}
-                        className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
+                        value={formData.businessAddress}
+                        onChange={(e) => handleInputChange('businessAddress', e.target.value)}
+                        placeholder="Enter your business address"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
                       />
-                    ) : (
-                      <div className="flex items-start gap-2 text-sm sm:text-base text-gray-600">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        <span>{profileData.businessAddress}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                    </div>
 
-                {/* About Your Business */}
-                <div className="mt-4 sm:mt-6">
-                  <label className="block text-xs sm:text-sm font-medium text-gray-900 mb-2">
-                    About Your Business
-                  </label>
-                  {isEditingProfile ? (
-                    <textarea
-                      value={profileData.aboutBusiness}
-                      onChange={(e) => setProfileData({...profileData, aboutBusiness: e.target.value})}
-                      rows={3}
-                      className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 resize-none"
-                    />
-                  ) : (
-                    <p className="text-gray-600 text-xs sm:text-sm">
-                      {profileData.aboutBusiness}
-                    </p>
-                  )}
-                </div>
-              </div>
+                    {/* About Your Business */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        About Your Business
+                      </label>
+                      <textarea
+                        value={formData.aboutBusiness}
+                        onChange={(e) => handleInputChange('aboutBusiness', e.target.value)}
+                        placeholder="Tell us about your business (optional)"
+                        rows={4}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400 resize-none"
+                      />
+                    </div>
 
-              {/* Statistics Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                {/* Total Orders */}
-                <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-                  <p className="text-xs sm:text-sm text-gray-600 mb-1 sm:mb-2">Total Orders</p>
-                  <p className="text-3xl sm:text-4xl font-bold text-blue-600">24</p>
-                </div>
-
-                {/* Active Requirements */}
-                <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-                  <p className="text-xs sm:text-sm text-gray-600 mb-1 sm:mb-2">Active Requirements</p>
-                  <p className="text-3xl sm:text-4xl font-bold text-orange-600">8</p>
-                </div>
-
-                {/* Total Spent */}
-                <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-                  <p className="text-xs sm:text-sm text-gray-600 mb-1 sm:mb-2">Total Spent</p>
-                  <p className="text-3xl sm:text-4xl font-bold text-green-600">$48,250</p>
-                </div>
+                    {/* Form Actions */}
+                    <div className="flex gap-4 pt-4">
+                      <button
+                        type="button"
+                        onClick={() => setShowProfile(false)}
+                        className="flex-1 px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="flex-1 px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors"
+                      >
+                        Save Changes
+                      </button>
+                    </div>
+                  </form>
+                )}
               </div>
             </div>
-          )}
-        </main>
+          </div>
+        )}
       </div>
     );
   }
