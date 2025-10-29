@@ -12,7 +12,7 @@ type TabType = 'designs' | 'instant-quote' | 'custom-quote' | 'my-orders' | 'cha
 export default function BuyerPortal() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
-  const [step, setStep] = useState<'phone' | 'otp' | 'onboarding' | 'dashboard'>('phone');
+  const [step, setStep] = useState<'phone' | 'otp' | 'dashboard'>('phone');
   const [activeTab, setActiveTab] = useState<TabType>('designs');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -42,7 +42,7 @@ export default function BuyerPortal() {
   // Chats States
   const [chatSearchQuery, setChatSearchQuery] = useState('');
   
-  // Onboarding form states
+  // Profile form states
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -51,8 +51,6 @@ export default function BuyerPortal() {
     businessAddress: '',
     aboutBusiness: ''
   });
-
-  const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [userPhoneNumber, setUserPhoneNumber] = useState('');
@@ -101,13 +99,8 @@ export default function BuyerPortal() {
       localStorage.setItem('buyerPhoneNumber', phoneNumber);
       localStorage.setItem('user_role', 'buyer');
       
-      // Check if onboarding is complete, if not show onboarding form
-      const onboardingComplete = localStorage.getItem('buyerOnboardingComplete');
-      if (onboardingComplete === 'true') {
-        setStep('dashboard');
-      } else {
-        setStep('onboarding');
-      }
+      // Go directly to dashboard
+      setStep('dashboard');
       return;
     }
     
@@ -121,29 +114,8 @@ export default function BuyerPortal() {
       localStorage.setItem('buyerPhoneNumber', phoneNumber);
       localStorage.setItem('user_role', 'buyer');
       
-      // Check onboarding status from backend
-      try {
-        const profileResponse = await apiService.getBuyerProfile();
-        if (profileResponse.success && profileResponse.data.profile) {
-          const profile = profileResponse.data.profile;
-          if (profile.onboarding_completed) {
-            localStorage.setItem('buyerOnboardingComplete', 'true');
-            setStep('dashboard');
-          } else {
-            localStorage.removeItem('buyerOnboardingComplete');
-            setStep('onboarding');
-          }
-        } else {
-          // No profile found, show onboarding
-          localStorage.removeItem('buyerOnboardingComplete');
-          setStep('onboarding');
-        }
-      } catch (error) {
-        console.error('Failed to check onboarding status:', error);
-        // On error, default to onboarding
-        localStorage.removeItem('buyerOnboardingComplete');
-        setStep('onboarding');
-      }
+      // Go directly to dashboard
+      setStep('dashboard');
     } catch (error) {
       console.error('Failed to verify OTP:', error);
       alert('Invalid OTP. Please try again.');
@@ -235,42 +207,6 @@ export default function BuyerPortal() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  // Handle onboarding form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      // Convert form data to backend format
-      const onboardingData = {
-        full_name: formData.fullName,
-        email: formData.email,
-        company_name: formData.companyName,
-        gst_number: formData.gstNumber,
-        business_address: formData.businessAddress,
-        about_business: formData.aboutBusiness
-      };
-      
-      // Submit onboarding data to backend
-      const response = await apiService.submitBuyerOnboarding(onboardingData);
-      
-      if (response.success) {
-        console.log('Onboarding submitted successfully:', response.data);
-        
-        // Mark onboarding as complete
-        localStorage.setItem('buyerOnboardingComplete', 'true');
-        setIsOnboardingComplete(true);
-        
-        // Proceed to dashboard
-        setStep('dashboard');
-        alert('Registration submitted successfully! Welcome to Grupo!');
-      } else {
-        throw new Error(response.message || 'Failed to submit onboarding');
-      }
-    } catch (error) {
-      console.error('Failed to submit onboarding:', error);
-      alert('Failed to submit registration. Please try again.');
-    }
-  };
 
   // Load profile data when profile modal is opened
   const loadProfileData = async () => {
@@ -335,158 +271,9 @@ export default function BuyerPortal() {
         setUserPhoneNumber(storedPhone);
         setPhoneNumber(storedPhone);
       }
-      
-      // Check onboarding status from backend
-      checkOnboardingStatus();
     }
   }, [step]);
 
-  // Check onboarding status from backend
-  const checkOnboardingStatus = async () => {
-    try {
-      const response = await apiService.getBuyerProfile();
-      if (response.success && response.data.profile) {
-        const profile = response.data.profile;
-        if (profile.onboarding_completed) {
-          setIsOnboardingComplete(true);
-          localStorage.setItem('buyerOnboardingComplete', 'true');
-        } else {
-          setIsOnboardingComplete(false);
-          localStorage.removeItem('buyerOnboardingComplete');
-        }
-      }
-    } catch (error) {
-      console.error('Failed to check onboarding status:', error);
-    }
-  };
-
-  // Onboarding View
-  if (step === 'onboarding') {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-2xl">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <Image
-                src="/groupo-logo.png"
-                alt="Grupo Logo"
-                width={50}
-                height={50}
-                className="w-12 h-12"
-              />
-              <div>
-                <h1 className="text-3xl font-bold text-blue-600">Grupo</h1>
-                <p className="text-sm text-gray-500">One-Stop AI Manufacturing Platform</p>
-              </div>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Complete Your Profile</h2>
-            <p className="text-gray-600">Please provide your business information to get started</p>
-          </div>
-
-          {/* Onboarding Form */}
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Full Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.fullName}
-                  onChange={(e) => handleInputChange('fullName', e.target.value)}
-                  placeholder="Enter your full name"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                  required
-                />
-              </div>
-
-              {/* Email Address */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  placeholder="Enter your email address"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                  required
-                />
-              </div>
-
-              {/* Company Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Company Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.companyName}
-                  onChange={(e) => handleInputChange('companyName', e.target.value)}
-                  placeholder="Enter your company name"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                  required
-                />
-              </div>
-
-              {/* GST Number */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  GST Number
-                </label>
-                <input
-                  type="text"
-                  value={formData.gstNumber}
-                  onChange={(e) => handleInputChange('gstNumber', e.target.value)}
-                  placeholder="Enter GST number (optional)"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                />
-              </div>
-
-              {/* Business Address */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Business Address
-                </label>
-                <input
-                  type="text"
-                  value={formData.businessAddress}
-                  onChange={(e) => handleInputChange('businessAddress', e.target.value)}
-                  placeholder="Enter your business address"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                />
-              </div>
-
-              {/* About Your Business */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  About Your Business
-                </label>
-                <textarea
-                  value={formData.aboutBusiness}
-                  onChange={(e) => handleInputChange('aboutBusiness', e.target.value)}
-                  placeholder="Tell us about your business (optional)"
-                  rows={4}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400 resize-none"
-                />
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
-              >
-                Complete Registration
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // Dashboard View
   if (step === 'dashboard') {
@@ -1771,45 +1558,42 @@ export default function BuyerPortal() {
                     {/* Full Name */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Full Name <span className="text-red-500">*</span>
+                        Full Name
                       </label>
                       <input
                         type="text"
                         value={formData.fullName}
                         onChange={(e) => handleInputChange('fullName', e.target.value)}
-                        placeholder="Enter your full name"
+                        placeholder="Enter your full name (optional)"
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                        required
                       />
                     </div>
 
                     {/* Email Address */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Email Address <span className="text-red-500">*</span>
+                        Email Address
                       </label>
                       <input
                         type="email"
                         value={formData.email}
                         onChange={(e) => handleInputChange('email', e.target.value)}
-                        placeholder="Enter your email address"
+                        placeholder="Enter your email address (optional)"
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                        required
                       />
                     </div>
 
                     {/* Company Name */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Company Name <span className="text-red-500">*</span>
+                        Company Name
                       </label>
                       <input
                         type="text"
                         value={formData.companyName}
                         onChange={(e) => handleInputChange('companyName', e.target.value)}
-                        placeholder="Enter your company name"
+                        placeholder="Enter your company name (optional)"
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                        required
                       />
                     </div>
 
