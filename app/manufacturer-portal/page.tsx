@@ -13,6 +13,7 @@ export default function ManufacturerPortal() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'phone' | 'otp' | 'onboarding' | 'dashboard'>('phone');
+  const [isLoadingOtp, setIsLoadingOtp] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('analytics');
   const [activeAnalyticsTab, setActiveAnalyticsTab] = useState<AnalyticsTabType>('revenue-trends');
   
@@ -33,6 +34,8 @@ export default function ManufacturerPortal() {
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 4;
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,10 +43,15 @@ export default function ManufacturerPortal() {
     // Demo credentials bypass
     if (phoneNumber === '1234567890') {
       console.log('Demo credentials detected - bypassing OTP');
-      setStep('otp');
+      setIsLoadingOtp(true);
+      setTimeout(() => {
+        setIsLoadingOtp(false);
+        setStep('otp');
+      }, 1000);
       return;
     }
     
+    setIsLoadingOtp(true);
     try {
       console.log('Sending OTP to:', phoneNumber);
       const response = await apiService.sendOTP(phoneNumber, 'manufacturer');
@@ -52,6 +60,8 @@ export default function ManufacturerPortal() {
     } catch (error) {
       console.error('Failed to send OTP:', error);
       alert('Failed to send OTP. Please try again.');
+    } finally {
+      setIsLoadingOtp(false);
     }
   };
 
@@ -289,261 +299,504 @@ export default function ManufacturerPortal() {
   };
 
 
+  // Step navigation functions
+  const nextStep = () => {
+    if (currentStep < totalSteps) setCurrentStep(currentStep + 1);
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) setCurrentStep(currentStep - 1);
+  };
+
+  const steps = [
+    { id: 1, name: 'Business Info', icon: '🏢' },
+    { id: 2, name: 'Products', icon: '📦' },
+    { id: 3, name: 'Capacity', icon: '⚙️' },
+    { id: 4, name: 'Documents', icon: '📄' }
+  ];
+
   // Onboarding View
   if (step === 'onboarding') {
+
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-orange-950 to-slate-900">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-orange-600 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-amber-600 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-2000"></div>
+        </div>
+
+        {/* Grid pattern overlay */}
+        <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
+
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 shadow-sm">
+        <header className="relative z-10 bg-slate-900/50 backdrop-blur-xl border-b border-white/10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-20">
               {/* Left Side - Logo and Branding */}
-              <div className="flex items-center gap-3">
-                <Image
-                  src="/groupo-logo.png"
-                  alt="Grupo Logo"
-                  width={40}
-                  height={40}
-                  className="w-10 h-10"
-                />
+              <div className="flex items-center gap-3 animate-fade-in-down">
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl blur opacity-50 group-hover:opacity-75 transition duration-300"></div>
+                  <div className="relative bg-white rounded-xl p-2">
+                    <Image
+                      src="/groupo-logo.png"
+                      alt="Grupo Logo"
+                      width={32}
+                      height={32}
+                      className="w-8 h-8"
+                    />
+                  </div>
+                </div>
                 <div className="flex flex-col">
-                  <span className="text-xl font-bold text-blue-600">Grupo</span>
-                  <span className="text-xs text-gray-500 hidden sm:block">
+                  <span className="text-lg font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+                    Grupo
+                  </span>
+                  <span className="text-xs text-gray-400 hidden sm:block">
                     Manufacturing Partner Portal
                   </span>
                 </div>
               </div>
 
               {/* Right Side - Phone Number */}
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
-                  <div className="relative">
-                    <div className="w-2.5 h-2.5 bg-green-500 rounded-full"></div>
-                    <div className="absolute inset-0 w-2.5 h-2.5 bg-green-500 rounded-full animate-ping opacity-75"></div>
-                  </div>
-                  <span className="text-sm font-medium text-gray-700 hidden sm:inline">
-                    {phoneNumber}
-                  </span>
+              <div className="flex items-center gap-2 px-3 py-2 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 animate-fade-in-down animation-delay-200">
+                <div className="relative">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <div className="absolute inset-0 w-2 h-2 bg-green-500 rounded-full animate-ping opacity-75"></div>
                 </div>
+                <span className="text-sm font-medium text-white hidden sm:inline">
+                  {phoneNumber}
+                </span>
               </div>
             </div>
           </div>
         </header>
 
         {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="max-w-4xl mx-auto">
-            {/* Form Header */}
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Complete Your Registration</h1>
-              <p className="text-gray-600">Fill in the details below to complete your manufacturing unit registration</p>
-            </div>
-
-            {/* Registration Form */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Manufacturing Unit Name */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Manufacturing Unit Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.unitName}
-                    onChange={(e) => handleInputChange('unitName', e.target.value)}
-                    placeholder="Enter unit name"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                    required
-                  />
+        <main className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+          {/* Progress Steps */}
+          <div className="mb-8 sm:mb-12 animate-fade-in-up">
+            <div className="flex items-center justify-between max-w-3xl mx-auto">
+              {steps.map((s, idx) => (
+                <div key={s.id} className="flex items-center flex-1">
+                  {/* Step Circle */}
+                  <div className="flex flex-col items-center flex-shrink-0">
+                    <div className={`relative w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-xl sm:text-2xl transition-all duration-500 ${
+                      currentStep >= s.id 
+                        ? 'bg-gradient-to-r from-orange-500 to-amber-500 shadow-lg shadow-orange-500/50 scale-110' 
+                        : 'bg-slate-800/50 border-2 border-white/10'
+                    }`}>
+                      {currentStep > s.id ? (
+                        <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        <span>{s.icon}</span>
+                      )}
+                      {currentStep === s.id && (
+                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 animate-ping opacity-50"></div>
+                      )}
+                    </div>
+                    <span className={`mt-2 text-xs sm:text-sm font-medium transition-colors hidden sm:block ${
+                      currentStep >= s.id ? 'text-orange-400' : 'text-gray-500'
+                    }`}>
+                      {s.name}
+                    </span>
+                  </div>
+                  
+                  {/* Connector Line */}
+                  {idx < steps.length - 1 && (
+                    <div className="flex-1 h-1 mx-2 sm:mx-4 rounded-full overflow-hidden bg-slate-800/50">
+                      <div 
+                        className="h-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-500 ease-out"
+                        style={{ width: currentStep > s.id ? '100%' : '0%' }}
+                      ></div>
+                    </div>
+                  )}
                 </div>
+              ))}
+            </div>
+          </div>
 
-                {/* Business Type */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Business Type <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={formData.businessType}
-                      onChange={(e) => handleInputChange('businessType', e.target.value)}
-                      className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-700 bg-white appearance-none cursor-pointer"
-                      required
-                    >
-                      <option value="">Select your business type</option>
-                      <option value="sole-proprietorship">Sole Proprietorship</option>
-                      <option value="partnership">Partnership</option>
-                      <option value="private-limited">Private Limited</option>
-                      <option value="public-limited">Public Limited</option>
-                      <option value="llp">Limited Liability Partnership (LLP)</option>
-                      <option value="other">Other</option>
-                    </select>
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
-                      </svg>
+          {/* Form Card */}
+          <div className="relative group animate-fade-in-up animation-delay-200">
+            {/* Glowing border */}
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500 to-amber-500 rounded-3xl blur opacity-20 group-hover:opacity-30 transition duration-500"></div>
+            
+            <div className="relative bg-slate-900/90 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
+              {/* Form Header */}
+              <div className="bg-gradient-to-r from-orange-500/10 to-amber-500/10 border-b border-white/10 p-6 sm:p-8">
+                <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+                  {currentStep === 1 && "Business Information"}
+                  {currentStep === 2 && "Product Capabilities"}
+                  {currentStep === 3 && "Manufacturing Capacity"}
+                  {currentStep === 4 && "Documentation"}
+                </h1>
+                <p className="text-gray-400 text-sm sm:text-base">
+                  {currentStep === 1 && "Tell us about your manufacturing business"}
+                  {currentStep === 2 && "Select the products you manufacture"}
+                  {currentStep === 3 && "Share your production capabilities"}
+                  {currentStep === 4 && "Upload your business certificates"}
+                </p>
+              </div>
+
+              {/* Form Content */}
+              <form onSubmit={handleSubmit} className="p-6 sm:p-8">
+                {/* Step 1: Business Info */}
+                {currentStep === 1 && (
+                  <div className="space-y-6 animate-fade-in-up">
+                    {/* Manufacturing Unit Name */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Manufacturing Unit Name <span className="text-orange-500">*</span>
+                      </label>
+                      <div className="relative group">
+                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                        <input
+                          type="text"
+                          value={formData.unitName}
+                          onChange={(e) => handleInputChange('unitName', e.target.value)}
+                          placeholder="Enter your manufacturing unit name"
+                          className="relative w-full px-4 py-3.5 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all outline-none text-white placeholder:text-gray-500"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* Business Type */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Business Type <span className="text-orange-500">*</span>
+                      </label>
+                      <div className="relative group">
+                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                        <select
+                          value={formData.businessType}
+                          onChange={(e) => handleInputChange('businessType', e.target.value)}
+                          className="relative w-full px-4 py-3.5 pr-10 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all outline-none text-white appearance-none cursor-pointer"
+                          required
+                        >
+                          <option value="" className="bg-slate-800">Select your business type</option>
+                          <option value="sole-proprietorship" className="bg-slate-800">Sole Proprietorship</option>
+                          <option value="partnership" className="bg-slate-800">Partnership</option>
+                          <option value="private-limited" className="bg-slate-800">Private Limited</option>
+                          <option value="public-limited" className="bg-slate-800">Public Limited</option>
+                          <option value="llp" className="bg-slate-800">Limited Liability Partnership (LLP)</option>
+                          <option value="other" className="bg-slate-800">Other</option>
+                        </select>
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* GST Number */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        GST Number <span className="text-orange-500">*</span>
+                      </label>
+                      <div className="relative group">
+                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                        <input
+                          type="text"
+                          value={formData.gstNumber}
+                          onChange={(e) => handleInputChange('gstNumber', e.target.value)}
+                          placeholder="Enter GST number"
+                          className="relative w-full px-4 py-3.5 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all outline-none text-white placeholder:text-gray-500"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* PAN & COI Row */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          PAN Number
+                        </label>
+                        <div className="relative group">
+                          <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                          <input
+                            type="text"
+                            value={formData.panNumber}
+                            onChange={(e) => handleInputChange('panNumber', e.target.value)}
+                            placeholder="Enter PAN number"
+                            className="relative w-full px-4 py-3.5 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all outline-none text-white placeholder:text-gray-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          COI Number
+                        </label>
+                        <div className="relative group">
+                          <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                          <input
+                            type="text"
+                            value={formData.coiNumber}
+                            onChange={(e) => handleInputChange('coiNumber', e.target.value)}
+                            placeholder="Enter COI number"
+                            className="relative w-full px-4 py-3.5 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all outline-none text-white placeholder:text-gray-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Location */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Manufacturing Unit Location
+                      </label>
+                      <div className="relative group">
+                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                        <input
+                          type="text"
+                          value={formData.location}
+                          onChange={(e) => handleInputChange('location', e.target.value)}
+                          placeholder="Enter complete address"
+                          className="relative w-full px-4 py-3.5 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all outline-none text-white placeholder:text-gray-500"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
-                {/* GST Number */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    GST Number <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.gstNumber}
-                    onChange={(e) => handleInputChange('gstNumber', e.target.value)}
-                    placeholder="Enter GST number"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                    required
-                  />
-                </div>
-
-                {/* Product Types */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Product Types
-                  </label>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {[
-                      'T-Shirt', 'Shirt', 'Jeans',
-                      'Trousers', 'Jacket', 'Hoodie',
-                      'Sweater', 'Shorts', 'Skirt',
-                      'Dress', 'Activewear', 'Accessories',
-                      'Other'
-                    ].map((product) => (
-                      <label key={product} className="flex items-center space-x-3 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={formData.productTypes.includes(product)}
-                          onChange={() => handleProductTypeChange(product)}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">{product}</span>
+                {/* Step 2: Products */}
+                {currentStep === 2 && (
+                  <div className="space-y-6 animate-fade-in-up">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-4">
+                        Select Products You Manufacture
                       </label>
-                    ))}
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {[
+                          'T-Shirt', 'Shirt', 'Jeans',
+                          'Trousers', 'Jacket', 'Hoodie',
+                          'Sweater', 'Shorts', 'Skirt',
+                          'Dress', 'Activewear', 'Accessories',
+                          'Other'
+                        ].map((product) => (
+                          <label 
+                            key={product} 
+                            className={`group relative flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
+                              formData.productTypes.includes(product)
+                                ? 'bg-gradient-to-r from-orange-500/20 to-amber-500/20 border-orange-500 shadow-lg shadow-orange-500/20'
+                                : 'bg-slate-800/30 border-white/10 hover:border-orange-500/50 hover:bg-slate-800/50'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={formData.productTypes.includes(product)}
+                              onChange={() => handleProductTypeChange(product)}
+                              className="sr-only"
+                            />
+                            <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
+                              formData.productTypes.includes(product)
+                                ? 'bg-gradient-to-r from-orange-500 to-amber-500 border-orange-500'
+                                : 'border-white/20'
+                            }`}>
+                              {formData.productTypes.includes(product) && (
+                                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                            </div>
+                            <span className="text-sm font-medium text-white">{product}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
 
-                {/* Manufacturing Capacity */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Manufacturing Capacity Per Day
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.capacity}
-                    onChange={(e) => handleInputChange('capacity', e.target.value)}
-                    placeholder="Enter capacity (units per day)"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                  />
-                </div>
+                {/* Step 3: Capacity */}
+                {currentStep === 3 && (
+                  <div className="space-y-6 animate-fade-in-up">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Daily Manufacturing Capacity
+                      </label>
+                      <div className="relative group">
+                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                        <div className="relative flex items-center">
+                          <input
+                            type="number"
+                            value={formData.capacity}
+                            onChange={(e) => handleInputChange('capacity', e.target.value)}
+                            placeholder="Enter daily capacity"
+                            className="w-full px-4 py-3.5 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all outline-none text-white placeholder:text-gray-500"
+                          />
+                          <span className="absolute right-4 text-gray-400 text-sm">units/day</span>
+                        </div>
+                      </div>
+                    </div>
 
-                {/* Location */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Location of Unit
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.location}
-                    onChange={(e) => handleInputChange('location', e.target.value)}
-                    placeholder="Enter complete address of manufacturing unit"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                  />
-                </div>
+                    {/* Capacity Info Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                      <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500/10 to-amber-500/10 border border-orange-500/20">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 flex items-center justify-center text-white">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                          </div>
+                          <span className="text-sm font-medium text-gray-400">Small Scale</span>
+                        </div>
+                        <p className="text-xs text-gray-500">100-500 units/day</p>
+                      </div>
 
-                {/* PAN Number */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    PAN Number
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.panNumber}
-                    onChange={(e) => handleInputChange('panNumber', e.target.value)}
-                    placeholder="Enter PAN number"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                  />
-                </div>
+                      <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                            </svg>
+                          </div>
+                          <span className="text-sm font-medium text-gray-400">Medium Scale</span>
+                        </div>
+                        <p className="text-xs text-gray-500">500-2000 units/day</p>
+                      </div>
 
-                {/* COI Number */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Certificate of Incorporation (COI) Number
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.coiNumber}
-                    onChange={(e) => handleInputChange('coiNumber', e.target.value)}
-                    placeholder="Enter COI number"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                  />
-                </div>
+                      <div className="p-4 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center text-white">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                          </div>
+                          <span className="text-sm font-medium text-gray-400">Large Scale</span>
+                        </div>
+                        <p className="text-xs text-gray-500">2000+ units/day</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
-                {/* MSME Certificate Upload */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    MSME Certificate <span className="text-gray-500">(Optional)</span>
-                  </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-                    <label className="flex flex-col items-center justify-center py-8 cursor-pointer">
-                      <svg className="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                {/* Step 4: Documents */}
+                {currentStep === 4 && (
+                  <div className="space-y-6 animate-fade-in-up">
+                    {/* MSME Certificate */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        MSME Certificate <span className="text-gray-500">(Optional)</span>
+                      </label>
+                      <div className="relative group border-2 border-dashed border-white/10 rounded-xl bg-slate-800/30 hover:border-orange-500/50 hover:bg-slate-800/50 transition-all">
+                        <label className="flex flex-col items-center justify-center py-12 cursor-pointer">
+                          <div className="w-16 h-16 rounded-full bg-gradient-to-r from-orange-500/20 to-amber-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                            <svg className="w-8 h-8 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            </svg>
+                          </div>
+                          <span className="text-sm text-gray-300 font-medium mb-1">Click to upload MSME certificate</span>
+                          <span className="text-xs text-gray-500">PDF, JPG or PNG (Max 5MB)</span>
+                          {formData.msmeFile && (
+                            <div className="mt-3 px-4 py-2 bg-orange-500/20 border border-orange-500/30 rounded-lg">
+                              <span className="text-xs text-orange-400 font-medium">{formData.msmeFile.name}</span>
+                            </div>
+                          )}
+                          <input
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            onChange={(e) => handleFileChange('msmeFile', e.target.files?.[0] || null)}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Other Certificates */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Other Certificates <span className="text-gray-500">(Optional)</span>
+                      </label>
+                      <div className="relative group border-2 border-dashed border-white/10 rounded-xl bg-slate-800/30 hover:border-orange-500/50 hover:bg-slate-800/50 transition-all">
+                        <label className="flex flex-col items-center justify-center py-12 cursor-pointer">
+                          <div className="w-16 h-16 rounded-full bg-gradient-to-r from-orange-500/20 to-amber-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                            <svg className="w-8 h-8 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                          </div>
+                          <span className="text-sm text-gray-300 font-medium mb-1">Upload additional certificates</span>
+                          <span className="text-xs text-gray-500">ISO, Quality certificates, etc.</span>
+                          {formData.otherCertificates && (
+                            <div className="mt-3 px-4 py-2 bg-orange-500/20 border border-orange-500/30 rounded-lg">
+                              <span className="text-xs text-orange-400 font-medium">{formData.otherCertificates.name}</span>
+                            </div>
+                          )}
+                          <input
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            onChange={(e) => handleFileChange('otherCertificates', e.target.files?.[0] || null)}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Info Note */}
+                    <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                      <div className="flex items-start gap-3">
+                        <svg className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        </svg>
+                        <div>
+                          <p className="text-sm font-medium text-blue-300 mb-1">Verification Process</p>
+                          <p className="text-xs text-gray-400">
+                            Your documents will be reviewed within 24-48 hours. You'll receive an email once verification is complete.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Navigation Buttons */}
+                <div className="flex items-center justify-between gap-4 pt-6 border-t border-white/10 mt-8">
+                  {currentStep > 1 ? (
+                    <button
+                      type="button"
+                      onClick={prevStep}
+                      className="flex items-center gap-2 px-6 py-3 bg-slate-800/50 hover:bg-slate-800 border border-white/10 hover:border-white/20 text-white rounded-xl transition-all"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                       </svg>
-                      <span className="text-sm text-gray-600">Click to upload MSME certificate</span>
-                      <span className="text-xs text-gray-500 mt-1">(File upload temporarily disabled)</span>
-                      {formData.msmeFile && (
-                        <span className="text-xs text-blue-600 font-medium mt-1">
-                          {formData.msmeFile.name}
-                        </span>
-                      )}
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        onChange={(e) => handleFileChange('msmeFile', e.target.files?.[0] || null)}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
-                </div>
+                      <span className="font-medium">Previous</span>
+                    </button>
+                  ) : (
+                    <div></div>
+                  )}
 
-                {/* Other Certificates Upload */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Other Certificates (Optional)
-                  </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-                    <label className="flex flex-col items-center justify-center py-8 cursor-pointer">
-                      <svg className="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                      </svg>
-                      <span className="text-sm text-gray-600">Click to upload other certificates</span>
-                      <span className="text-xs text-gray-500 mt-1">(File upload temporarily disabled)</span>
-                      {formData.otherCertificates && (
-                        <span className="text-xs text-blue-600 font-medium mt-1">
-                          {formData.otherCertificates.name}
-                        </span>
-                      )}
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        onChange={(e) => handleFileChange('otherCertificates', e.target.files?.[0] || null)}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
-                </div>
-
-                {/* Submit Button */}
-                <div className="pt-4">
-                  <button
-                    type="submit"
-                    className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
-                  >
-                    Complete Registration & Access Portal
-                  </button>
+                  {currentStep < totalSteps ? (
+                    <button
+                      type="button"
+                      onClick={nextStep}
+                      className="relative group overflow-hidden rounded-xl ml-auto"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 transition-transform group-hover:scale-105"></div>
+                      <div className="relative px-6 py-3 font-semibold text-white flex items-center gap-2">
+                        <span>Next Step</span>
+                        <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </button>
+                  ) : (
+                    <button
+                      type="submit"
+                      className="relative group overflow-hidden rounded-xl ml-auto"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-500 transition-transform group-hover:scale-105"></div>
+                      <div className="relative px-8 py-3 font-semibold text-white flex items-center gap-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Complete Registration</span>
+                      </div>
+                    </button>
+                  )}
                 </div>
               </form>
             </div>
@@ -556,37 +809,50 @@ export default function ManufacturerPortal() {
   // Dashboard View
   if (step === 'dashboard') {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        {/* Animated background */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-96 h-96 bg-orange-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
+          <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-amber-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
+        </div>
+
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 shadow-sm">
+        <header className="relative z-50 bg-slate-900/50 backdrop-blur-xl border-b border-white/10 sticky top-0">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-20">
               {/* Left Side - Logo and Branding */}
-              <div className="flex items-center gap-3">
-                <Image
-                  src="/groupo-logo.png"
-                  alt="Grupo Logo"
-                  width={40}
-                  height={40}
-                  className="w-10 h-10"
-                />
+              <div className="flex items-center gap-3 animate-fade-in-down">
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl blur opacity-50 group-hover:opacity-75 transition duration-300"></div>
+                  <div className="relative bg-white rounded-xl p-2">
+                    <Image
+                      src="/groupo-logo.png"
+                      alt="Grupo Logo"
+                      width={32}
+                      height={32}
+                      className="w-8 h-8"
+                    />
+                  </div>
+                </div>
                 <div className="flex flex-col">
-                  <span className="text-xl font-bold text-blue-600">Grupo</span>
-                  <span className="text-xs text-gray-500 hidden sm:block">
+                  <span className="text-lg font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+                    Grupo
+                  </span>
+                  <span className="text-xs text-gray-400 hidden sm:block">
                     Manufacturing Partner Portal
                   </span>
                 </div>
               </div>
 
-              {/* Right Side - Phone, Profile, Home, Logout */}
-              <div className="flex items-center gap-4">
+              {/* Right Side - Phone, Profile, Logout */}
+              <div className="flex items-center gap-2 sm:gap-3">
                 {/* Phone Number with Online Status */}
-                <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex items-center gap-2 px-3 py-2 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10">
                   <div className="relative">
-                    <div className="w-2.5 h-2.5 bg-green-500 rounded-full"></div>
-                    <div className="absolute inset-0 w-2.5 h-2.5 bg-green-500 rounded-full animate-ping opacity-75"></div>
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <div className="absolute inset-0 w-2 h-2 bg-green-500 rounded-full animate-ping opacity-75"></div>
                   </div>
-                  <span className="text-sm font-medium text-gray-700 hidden sm:inline">
+                  <span className="text-sm font-medium text-white hidden sm:inline">
                     {phoneNumber}
                   </span>
                 </div>
@@ -597,7 +863,7 @@ export default function ManufacturerPortal() {
                     setShowProfile(true);
                     loadProfileData();
                   }}
-                  className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-all border border-gray-200"
+                  className="flex items-center gap-2 px-3 py-2 text-gray-300 hover:text-orange-400 hover:bg-white/5 rounded-lg transition-all border border-white/10 hover:border-orange-500/50"
                 >
                   <svg
                     className="w-5 h-5"
@@ -612,34 +878,13 @@ export default function ManufacturerPortal() {
                       d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                     />
                   </svg>
-                  <span className="font-medium hidden sm:inline">Profile</span>
+                  <span className="font-medium hidden lg:inline">Profile</span>
                 </button>
-
-                {/* Home Button */}
-                <Link
-                  href="/"
-                  className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-all border border-gray-200"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                    />
-                  </svg>
-                  <span className="font-medium hidden sm:inline">Home</span>
-                </Link>
 
                 {/* Logout Button */}
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all border border-gray-200"
+                  className="flex items-center gap-2 px-3 py-2 text-gray-300 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all border border-white/10 hover:border-red-500/50"
                 >
                   <svg
                     className="w-5 h-5"
@@ -654,7 +899,7 @@ export default function ManufacturerPortal() {
                       d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                     />
                   </svg>
-                  <span className="font-medium hidden sm:inline">Logout</span>
+                  <span className="font-medium hidden lg:inline">Logout</span>
                 </button>
               </div>
             </div>
@@ -662,20 +907,23 @@ export default function ManufacturerPortal() {
         </header>
 
         {/* Tab Navigation */}
-        <nav className="bg-white border-b border-gray-200">
+        <nav className="relative z-40 bg-slate-900/30 backdrop-blur-sm border-b border-white/10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center space-x-1 overflow-x-auto">
               {/* Analytics Tab */}
               <button
                 onClick={() => setActiveTab('analytics')}
-                className={`flex items-center gap-2 px-4 py-3 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
+                className={`relative flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all ${
                   activeTab === 'analytics'
-                    ? 'border-blue-500 text-blue-600 bg-blue-50'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300'
+                    ? 'text-orange-400'
+                    : 'text-gray-400 hover:text-gray-300'
                 }`}
               >
+                {activeTab === 'analytics' && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-amber-500/20 rounded-t-lg border-b-2 border-orange-500"></div>
+                )}
                 <svg
-                  className="w-5 h-5"
+                  className="relative z-10 w-5 h-5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -687,21 +935,23 @@ export default function ManufacturerPortal() {
                     d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                   />
                 </svg>
-                Analytics
+                <span className="relative z-10">Analytics</span>
               </button>
-
 
               {/* Requirements Tab */}
               <button
                 onClick={() => setActiveTab('requirements')}
-                className={`flex items-center gap-2 px-4 py-3 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
+                className={`relative flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all ${
                   activeTab === 'requirements'
-                    ? 'border-blue-500 text-blue-600 bg-blue-50'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300'
+                    ? 'text-orange-400'
+                    : 'text-gray-400 hover:text-gray-300'
                 }`}
               >
+                {activeTab === 'requirements' && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-amber-500/20 rounded-t-lg border-b-2 border-orange-500"></div>
+                )}
                 <svg
-                  className="w-5 h-5"
+                  className="relative z-10 w-5 h-5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -713,133 +963,159 @@ export default function ManufacturerPortal() {
                     d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
                   />
                 </svg>
-                Requirements
+                <span className="relative z-10">Requirements</span>
               </button>
-
             </div>
           </div>
         </nav>
 
         {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="relative z-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Tab Content */}
           {activeTab === 'analytics' && (
-            <div>
+            <div className="space-y-8">
               {/* Analytics Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in-up">
                 {/* Total Revenue Card */}
-                <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="bg-green-50 rounded-full p-3">
-                      <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd"/>
-                      </svg>
+                <div className="group relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl blur opacity-50 group-hover:opacity-75 transition duration-300"></div>
+                  <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 p-6 hover:border-green-500/50 transition-all">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg shadow-green-500/50">
+                        <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd"/>
+                        </svg>
+                      </div>
+                      <div className="px-2 py-1 bg-green-500/10 border border-green-500/20 rounded-lg">
+                        <span className="text-xs font-medium text-green-400">+0%</span>
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Total Revenue</p>
-                    <p className="text-3xl font-bold text-green-600 mb-1">$0</p>
-                    <p className="text-xs text-gray-500">From 0 accepted orders</p>
+                    <div>
+                      <p className="text-sm font-medium text-gray-400 mb-2">Total Revenue</p>
+                      <p className="text-3xl font-bold text-white mb-1">$0</p>
+                      <p className="text-xs text-gray-500">From 0 accepted orders</p>
+                    </div>
                   </div>
                 </div>
 
                 {/* Potential Revenue Card */}
-                <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="bg-orange-50 rounded-lg p-3">
-                      <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
-                      </svg>
+                <div className="group relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-amber-500/20 rounded-2xl blur opacity-50 group-hover:opacity-75 transition duration-300"></div>
+                  <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 p-6 hover:border-orange-500/50 transition-all">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="p-3 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl shadow-lg shadow-orange-500/50">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                        </svg>
+                      </div>
+                      <div className="px-2 py-1 bg-orange-500/10 border border-orange-500/20 rounded-lg">
+                        <span className="text-xs font-medium text-orange-400">Pending</span>
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Potential Revenue</p>
-                    <p className="text-3xl font-bold text-orange-600 mb-1">$0</p>
-                    <p className="text-xs text-gray-500">From 0 pending orders</p>
+                    <div>
+                      <p className="text-sm font-medium text-gray-400 mb-2">Potential Revenue</p>
+                      <p className="text-3xl font-bold text-white mb-1">$0</p>
+                      <p className="text-xs text-gray-500">From 0 pending orders</p>
+                    </div>
                   </div>
                 </div>
 
                 {/* Avg Order Value Card */}
-                <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="bg-blue-50 rounded-full p-3">
-                      <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                      </svg>
+                <div className="group relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-2xl blur opacity-50 group-hover:opacity-75 transition duration-300"></div>
+                  <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 p-6 hover:border-blue-500/50 transition-all">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl shadow-lg shadow-blue-500/50">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                      </div>
+                      <div className="px-2 py-1 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                        <span className="text-xs font-medium text-blue-400">Avg</span>
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Avg Order Value</p>
-                    <p className="text-3xl font-bold text-blue-600 mb-1">$0</p>
-                    <p className="text-xs text-gray-500">Per accepted order</p>
+                    <div>
+                      <p className="text-sm font-medium text-gray-400 mb-2">Avg Order Value</p>
+                      <p className="text-3xl font-bold text-white mb-1">$0</p>
+                      <p className="text-xs text-gray-500">Per accepted order</p>
+                    </div>
                   </div>
                 </div>
 
                 {/* Conversion Rate Card */}
-                <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="bg-purple-50 rounded-lg p-3">
-                      <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
-                      </svg>
+                <div className="group relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl blur opacity-50 group-hover:opacity-75 transition duration-300"></div>
+                  <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 p-6 hover:border-purple-500/50 transition-all">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl shadow-lg shadow-purple-500/50">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                      </div>
+                      <div className="px-2 py-1 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+                        <span className="text-xs font-medium text-purple-400">Rate</span>
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Conversion Rate</p>
-                    <p className="text-3xl font-bold text-purple-600 mb-1">0.0%</p>
-                    <p className="text-xs text-gray-500">Quote acceptance rate</p>
+                    <div>
+                      <p className="text-sm font-medium text-gray-400 mb-2">Conversion Rate</p>
+                      <p className="text-3xl font-bold text-white mb-1">0.0%</p>
+                      <p className="text-xs text-gray-500">Quote acceptance rate</p>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Order Status Overview */}
-              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm mb-8">
-                <div className="flex items-center gap-2 mb-6">
-                  <div className="bg-blue-50 rounded-lg p-2">
-                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Order Status Overview</h3>
-                    <p className="text-sm text-gray-600">Distribution of your orders by status</p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  {/* Accepted Orders */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-2">
-                        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/>
-                        </svg>
-                        <span className="font-medium text-gray-900">Accepted</span>
-                      </div>
+              <div className="relative overflow-hidden animate-fade-in-up animation-delay-200">
+                <div className="absolute inset-0 bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-2xl blur opacity-50"></div>
+                <div className="relative bg-slate-800/30 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2 bg-gradient-to-br from-orange-500/20 to-amber-500/20 rounded-xl border border-orange-500/30">
+                      <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                      </svg>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-semibold text-green-600">0 NaN%</span>
-                      <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div className="h-full bg-green-500 rounded-full" style={{width: '0%'}}></div>
-                      </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">Order Status Overview</h3>
+                      <p className="text-sm text-gray-400">Distribution of your orders by status</p>
                     </div>
                   </div>
 
-                  {/* Pending Orders */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-2">
-                        <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        <span className="font-medium text-gray-900">Pending</span>
+                  <div className="space-y-4">
+                    {/* Accepted Orders */}
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-slate-900/50 border border-white/5 hover:border-green-500/30 transition-all">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-green-500/10 rounded-lg">
+                          <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/>
+                          </svg>
+                        </div>
+                        <span className="font-medium text-white">Accepted</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-semibold text-green-400">0 (0%)</span>
+                        <div className="w-24 h-2 bg-slate-700 rounded-full overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-500" style={{width: '0%'}}></div>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-semibold text-gray-600">0 NaN%</span>
-                      <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div className="h-full bg-yellow-400 rounded-full" style={{width: '0%'}}></div>
+
+                    {/* Pending Orders */}
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-slate-900/50 border border-white/5 hover:border-orange-500/30 transition-all">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-orange-500/10 rounded-lg">
+                          <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                          </svg>
+                        </div>
+                        <span className="font-medium text-white">Pending</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-semibold text-orange-400">0 (0%)</span>
+                        <div className="w-24 h-2 bg-slate-700 rounded-full overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-orange-500 to-amber-500 rounded-full transition-all duration-500" style={{width: '0%'}}></div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -847,134 +1123,177 @@ export default function ManufacturerPortal() {
               </div>
 
               {/* Analytics Tabs */}
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-                {/* Tab Navigation */}
-                <div className="border-b border-gray-200">
-                  <nav className="flex space-x-8 px-6">
-                    <button
-                      onClick={() => setActiveAnalyticsTab('revenue-trends')}
-                      className={`flex items-center gap-2 py-4 border-b-2 font-medium text-sm transition-colors ${
-                        activeAnalyticsTab === 'revenue-trends'
-                          ? 'border-blue-500 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                      </svg>
-                      Revenue Trends
-                    </button>
-                    <button
-                      onClick={() => setActiveAnalyticsTab('product-performance')}
-                      className={`flex items-center gap-2 py-4 border-b-2 font-medium text-sm transition-colors ${
-                        activeAnalyticsTab === 'product-performance'
-                          ? 'border-blue-500 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                      </svg>
-                      Product Performance
-                    </button>
-                    <button
-                      onClick={() => setActiveAnalyticsTab('order-distribution')}
-                      className={`flex items-center gap-2 py-4 border-b-2 font-medium text-sm transition-colors ${
-                        activeAnalyticsTab === 'order-distribution'
-                          ? 'border-blue-500 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                      </svg>
-                      Order Distribution
-                    </button>
-                  </nav>
-                </div>
+              <div className="relative overflow-hidden animate-fade-in-up animation-delay-300">
+                <div className="absolute inset-0 bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-2xl blur opacity-50"></div>
+                <div className="relative bg-slate-800/30 backdrop-blur-sm rounded-2xl border border-white/10">
+                  {/* Tab Navigation */}
+                  <div className="border-b border-white/10">
+                    <nav className="flex space-x-2 px-6 overflow-x-auto">
+                      <button
+                        onClick={() => setActiveAnalyticsTab('revenue-trends')}
+                        className={`relative flex items-center gap-2 py-4 px-4 font-medium text-sm whitespace-nowrap transition-all ${
+                          activeAnalyticsTab === 'revenue-trends'
+                            ? 'text-orange-400'
+                            : 'text-gray-400 hover:text-gray-300'
+                        }`}
+                      >
+                        {activeAnalyticsTab === 'revenue-trends' && (
+                          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-orange-500 to-amber-500"></div>
+                        )}
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        Revenue Trends
+                      </button>
+                      <button
+                        onClick={() => setActiveAnalyticsTab('product-performance')}
+                        className={`relative flex items-center gap-2 py-4 px-4 font-medium text-sm whitespace-nowrap transition-all ${
+                          activeAnalyticsTab === 'product-performance'
+                            ? 'text-orange-400'
+                            : 'text-gray-400 hover:text-gray-300'
+                        }`}
+                      >
+                        {activeAnalyticsTab === 'product-performance' && (
+                          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-orange-500 to-amber-500"></div>
+                        )}
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                        </svg>
+                        Product Performance
+                      </button>
+                      <button
+                        onClick={() => setActiveAnalyticsTab('order-distribution')}
+                        className={`relative flex items-center gap-2 py-4 px-4 font-medium text-sm whitespace-nowrap transition-all ${
+                          activeAnalyticsTab === 'order-distribution'
+                            ? 'text-orange-400'
+                            : 'text-gray-400 hover:text-gray-300'
+                        }`}
+                      >
+                        {activeAnalyticsTab === 'order-distribution' && (
+                          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-orange-500 to-amber-500"></div>
+                        )}
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        Order Distribution
+                      </button>
+                    </nav>
+                  </div>
 
-                {/* Tab Content */}
-                <div className="p-6">
-                  {activeAnalyticsTab === 'revenue-trends' && (
-                    <div>
-                      <div className="mb-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Revenue by Month</h3>
-                        <p className="text-sm text-gray-600">Track your monthly earnings over time</p>
-                      </div>
-                      <div className="flex items-center justify-center py-16">
-                        <div className="text-center">
-                          <div className="bg-gray-100 rounded-lg p-8 mb-4">
-                            <svg className="w-16 h-16 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                            </svg>
+                  {/* Tab Content */}
+                  <div className="p-6">
+                    {activeAnalyticsTab === 'revenue-trends' && (
+                      <div>
+                        <div className="mb-6">
+                          <h3 className="text-lg font-semibold text-white mb-2">Revenue by Month</h3>
+                          <p className="text-sm text-gray-400">Track your monthly earnings over time</p>
+                        </div>
+                        <div className="flex items-center justify-center py-16">
+                          <div className="text-center">
+                            <div className="relative group">
+                              <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl blur opacity-50"></div>
+                              <div className="relative bg-slate-900/50 rounded-2xl p-8 mb-4 border border-white/5">
+                                <svg className="w-16 h-16 text-gray-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                </svg>
+                              </div>
+                            </div>
+                            <p className="text-lg font-medium text-gray-300 mb-2">No revenue data yet</p>
+                            <p className="text-sm text-gray-500">Accept orders to start tracking revenue</p>
                           </div>
-                          <p className="text-lg font-medium text-gray-600 mb-2">No revenue data yet</p>
-                          <p className="text-sm text-gray-500">Accept orders to start tracking revenue</p>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {activeAnalyticsTab === 'product-performance' && (
-                    <div>
-                      <div className="mb-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Product Performance</h3>
-                        <p className="text-sm text-gray-600">Analyze performance of your manufactured products</p>
-                      </div>
-                      <div className="flex items-center justify-center py-16">
-                        <div className="text-center">
-                          <div className="bg-gray-100 rounded-lg p-8 mb-4">
-                            <svg className="w-16 h-16 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                            </svg>
+                    {activeAnalyticsTab === 'product-performance' && (
+                      <div>
+                        <div className="mb-6">
+                          <h3 className="text-lg font-semibold text-white mb-2">Product Performance</h3>
+                          <p className="text-sm text-gray-400">Analyze performance of your manufactured products</p>
+                        </div>
+                        <div className="flex items-center justify-center py-16">
+                          <div className="text-center">
+                            <div className="relative group">
+                              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-amber-500/20 rounded-2xl blur opacity-50"></div>
+                              <div className="relative bg-slate-900/50 rounded-2xl p-8 mb-4 border border-white/5">
+                                <svg className="w-16 h-16 text-gray-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                </svg>
+                              </div>
+                            </div>
+                            <p className="text-lg font-medium text-gray-300 mb-2">No product data yet</p>
+                            <p className="text-sm text-gray-500">Complete orders to start tracking product performance</p>
                           </div>
-                          <p className="text-lg font-medium text-gray-600 mb-2">No product data yet</p>
-                          <p className="text-sm text-gray-500">Complete orders to start tracking product performance</p>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {activeAnalyticsTab === 'order-distribution' && (
-                    <div>
-                      <div className="mb-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Order Distribution</h3>
-                        <p className="text-sm text-gray-600">View distribution of orders across different categories</p>
-                      </div>
-                      <div className="flex items-center justify-center py-16">
-                        <div className="text-center">
-                          <div className="bg-gray-100 rounded-lg p-8 mb-4">
-                            <svg className="w-16 h-16 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                            </svg>
+                    {activeAnalyticsTab === 'order-distribution' && (
+                      <div>
+                        <div className="mb-6">
+                          <h3 className="text-lg font-semibold text-white mb-2">Order Distribution</h3>
+                          <p className="text-sm text-gray-400">View distribution of orders across different categories</p>
+                        </div>
+                        <div className="flex items-center justify-center py-16">
+                          <div className="text-center">
+                            <div className="relative group">
+                              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl blur opacity-50"></div>
+                              <div className="relative bg-slate-900/50 rounded-2xl p-8 mb-4 border border-white/5">
+                                <svg className="w-16 h-16 text-gray-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                              </div>
+                            </div>
+                            <p className="text-lg font-medium text-gray-300 mb-2">No order data yet</p>
+                            <p className="text-sm text-gray-500">Receive orders to start tracking distribution</p>
                           </div>
-                          <p className="text-lg font-medium text-gray-600 mb-2">No order data yet</p>
-                          <p className="text-sm text-gray-500">Receive orders to start tracking distribution</p>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    )}
                 </div>
               </div>
             </div>
+          </div>
           )}
           {activeTab === 'requirements' && (
             <div className="flex items-center justify-center min-h-[60vh]">
-              <div className="text-center">
+              <div className="text-center animate-fade-in-up">
                 {/* Icon */}
                 <div className="flex justify-center mb-6">
-                  <div className="bg-gray-100 rounded-full p-6">
-                    <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                    </svg>
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500/30 to-amber-500/30 rounded-full blur-xl opacity-75 group-hover:opacity-100 transition duration-300"></div>
+                    <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-full p-8 border border-white/10">
+                      <svg className="w-16 h-16 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                      </svg>
+                    </div>
                   </div>
                 </div>
                 
                 {/* Heading */}
-                <h1 className="text-2xl font-bold text-gray-800 mb-3">No Requirements Available</h1>
+                <h1 className="text-2xl font-bold text-white mb-3">No Requirements Available</h1>
                 
                 {/* Subtitle */}
-                <p className="text-gray-500">Check back later for new buyer requirements.</p>
+                <p className="text-gray-400 mb-6">Check back later for new buyer requirements.</p>
+                
+                {/* Features Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8 max-w-3xl mx-auto">
+                  <div className="p-4 rounded-xl bg-slate-800/30 border border-white/10">
+                    <div className="text-3xl mb-2">📋</div>
+                    <p className="text-sm text-gray-300 font-medium">View Quotes</p>
+                    <p className="text-xs text-gray-500 mt-1">Accept or decline</p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-slate-800/30 border border-white/10">
+                    <div className="text-3xl mb-2">⚡</div>
+                    <p className="text-sm text-gray-300 font-medium">Fast Response</p>
+                    <p className="text-xs text-gray-500 mt-1">Get notified instantly</p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-slate-800/30 border border-white/10">
+                    <div className="text-3xl mb-2">💼</div>
+                    <p className="text-sm text-gray-300 font-medium">Track Orders</p>
+                    <p className="text-xs text-gray-500 mt-1">Manage all in one place</p>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -982,63 +1301,74 @@ export default function ManufacturerPortal() {
         
         {/* Profile Modal */}
         {showProfile && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto my-8">
-              {/* Modal Header */}
-              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900">Edit Profile</h2>
-                <button
-                  onClick={() => setShowProfile(false)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto bg-black/70 backdrop-blur-sm">
+            <div className="relative group max-w-4xl w-full my-8 animate-fade-in-up">
+              {/* Glowing border */}
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500 to-amber-500 rounded-3xl blur opacity-30"></div>
+              
+              <div className="relative bg-slate-900 rounded-3xl shadow-2xl max-h-[90vh] overflow-hidden border border-white/10">
+                {/* Modal Header */}
+                <div className="sticky top-0 bg-slate-900/95 backdrop-blur-xl border-b border-white/10 px-6 py-4 flex items-center justify-between z-10">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-gradient-to-r from-orange-500/20 to-amber-500/20 rounded-xl border border-orange-500/30">
+                      <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    <h2 className="text-2xl font-bold text-white">Edit Profile</h2>
+                  </div>
+                  <button
+                    onClick={() => setShowProfile(false)}
+                    className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
 
               {/* Modal Content */}
-              <div className="p-6">
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
                 {isLoadingProfile ? (
                   <div className="flex items-center justify-center py-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
                   </div>
                 ) : (
                   <form onSubmit={handleUpdateProfile} className="space-y-6">
                     {/* Manufacturing Unit Name */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Manufacturing Unit Name <span className="text-red-500">*</span>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Manufacturing Unit Name <span className="text-orange-500">*</span>
                       </label>
                       <input
                         type="text"
                         value={formData.unitName}
                         onChange={(e) => handleInputChange('unitName', e.target.value)}
                         placeholder="Enter unit name"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                        className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 transition-all"
                         required
                       />
                     </div>
 
                     {/* Business Type */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Business Type <span className="text-red-500">*</span>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Business Type <span className="text-orange-500">*</span>
                       </label>
                       <div className="relative">
                         <select
                           value={formData.businessType}
                           onChange={(e) => handleInputChange('businessType', e.target.value)}
-                          className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-700 bg-white appearance-none cursor-pointer"
+                          className="w-full px-4 py-3 pr-10 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-white appearance-none cursor-pointer transition-all"
                           required
                         >
-                          <option value="">Select your business type</option>
-                          <option value="sole-proprietorship">Sole Proprietorship</option>
-                          <option value="partnership">Partnership</option>
-                          <option value="private-limited">Private Limited</option>
-                          <option value="public-limited">Public Limited</option>
-                          <option value="llp">Limited Liability Partnership (LLP)</option>
-                          <option value="other">Other</option>
+                          <option value="" className="bg-slate-800">Select your business type</option>
+                          <option value="sole-proprietorship" className="bg-slate-800">Sole Proprietorship</option>
+                          <option value="partnership" className="bg-slate-800">Partnership</option>
+                          <option value="private-limited" className="bg-slate-800">Private Limited</option>
+                          <option value="public-limited" className="bg-slate-800">Public Limited</option>
+                          <option value="llp" className="bg-slate-800">Limited Liability Partnership (LLP)</option>
+                          <option value="other" className="bg-slate-800">Other</option>
                         </select>
                         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                           <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1050,25 +1380,25 @@ export default function ManufacturerPortal() {
 
                     {/* GST Number */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        GST Number <span className="text-red-500">*</span>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        GST Number <span className="text-orange-500">*</span>
                       </label>
                       <input
                         type="text"
                         value={formData.gstNumber}
                         onChange={(e) => handleInputChange('gstNumber', e.target.value)}
                         placeholder="Enter GST number"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                        className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 transition-all"
                         required
                       />
                     </div>
 
                     {/* Product Types */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-3">
+                      <label className="block text-sm font-medium text-gray-300 mb-3">
                         Product Types
                       </label>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         {[
                           'T-Shirt', 'Shirt', 'Jeans',
                           'Trousers', 'Jacket', 'Hoodie',
@@ -1076,14 +1406,32 @@ export default function ManufacturerPortal() {
                           'Dress', 'Activewear', 'Accessories',
                           'Other'
                         ].map((product) => (
-                          <label key={product} className="flex items-center space-x-3 cursor-pointer">
+                          <label 
+                            key={product} 
+                            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                              formData.productTypes.includes(product)
+                                ? 'bg-orange-500/10 border-orange-500/50'
+                                : 'bg-slate-800/30 border-white/10 hover:border-orange-500/30'
+                            }`}
+                          >
                             <input
                               type="checkbox"
                               checked={formData.productTypes.includes(product)}
                               onChange={() => handleProductTypeChange(product)}
-                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              className="sr-only"
                             />
-                            <span className="text-sm text-gray-700">{product}</span>
+                            <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${
+                              formData.productTypes.includes(product)
+                                ? 'bg-orange-500 border-orange-500'
+                                : 'border-white/20'
+                            }`}>
+                              {formData.productTypes.includes(product) && (
+                                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                            </div>
+                            <span className="text-sm text-white">{product}</span>
                           </label>
                         ))}
                       </div>
@@ -1091,7 +1439,7 @@ export default function ManufacturerPortal() {
 
                     {/* Manufacturing Capacity */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
                         Manufacturing Capacity Per Day
                       </label>
                       <input
@@ -1099,13 +1447,13 @@ export default function ManufacturerPortal() {
                         value={formData.capacity}
                         onChange={(e) => handleInputChange('capacity', e.target.value)}
                         placeholder="Enter capacity (units per day)"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                        className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 transition-all"
                       />
                     </div>
 
                     {/* Location */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
                         Location of Unit
                       </label>
                       <input
@@ -1113,13 +1461,13 @@ export default function ManufacturerPortal() {
                         value={formData.location}
                         onChange={(e) => handleInputChange('location', e.target.value)}
                         placeholder="Enter complete address of manufacturing unit"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                        className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 transition-all"
                       />
                     </div>
 
                     {/* PAN Number */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
                         PAN Number
                       </label>
                       <input
@@ -1127,13 +1475,13 @@ export default function ManufacturerPortal() {
                         value={formData.panNumber}
                         onChange={(e) => handleInputChange('panNumber', e.target.value)}
                         placeholder="Enter PAN number"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                        className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 transition-all"
                       />
                     </div>
 
                     {/* COI Number */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
                         Certificate of Incorporation (COI) Number
                       </label>
                       <input
@@ -1141,26 +1489,28 @@ export default function ManufacturerPortal() {
                         value={formData.coiNumber}
                         onChange={(e) => handleInputChange('coiNumber', e.target.value)}
                         placeholder="Enter COI number"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                        className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 transition-all"
                       />
                     </div>
 
                     {/* MSME Certificate Upload */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
                         MSME Certificate <span className="text-gray-500">(Optional)</span>
                       </label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-                        <label className="flex flex-col items-center justify-center py-8 cursor-pointer">
-                          <svg className="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                          </svg>
-                          <span className="text-sm text-gray-600">Click to upload MSME certificate</span>
-                          <span className="text-xs text-gray-500 mt-1">(File upload temporarily disabled)</span>
+                      <div className="border-2 border-dashed border-white/10 rounded-xl bg-slate-800/30 hover:border-orange-500/50 transition-all">
+                        <label className="flex flex-col items-center justify-center py-8 cursor-pointer group">
+                          <div className="p-3 bg-orange-500/10 rounded-xl mb-2 group-hover:scale-110 transition-transform">
+                            <svg className="w-8 h-8 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            </svg>
+                          </div>
+                          <span className="text-sm text-gray-300 font-medium">Click to upload MSME certificate</span>
+                          <span className="text-xs text-gray-500 mt-1">PDF, JPG or PNG</span>
                           {formData.msmeFile && (
-                            <span className="text-xs text-blue-600 font-medium mt-1">
-                              {formData.msmeFile.name}
-                            </span>
+                            <div className="mt-2 px-3 py-1 bg-orange-500/20 border border-orange-500/30 rounded-lg">
+                              <span className="text-xs text-orange-400 font-medium">{formData.msmeFile.name}</span>
+                            </div>
                           )}
                           <input
                             type="file"
@@ -1174,20 +1524,22 @@ export default function ManufacturerPortal() {
 
                     {/* Other Certificates Upload */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
                         Other Certificates (Optional)
                       </label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-                        <label className="flex flex-col items-center justify-center py-8 cursor-pointer">
-                          <svg className="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                          </svg>
-                          <span className="text-sm text-gray-600">Click to upload other certificates</span>
-                          <span className="text-xs text-gray-500 mt-1">(File upload temporarily disabled)</span>
+                      <div className="border-2 border-dashed border-white/10 rounded-xl bg-slate-800/30 hover:border-orange-500/50 transition-all">
+                        <label className="flex flex-col items-center justify-center py-8 cursor-pointer group">
+                          <div className="p-3 bg-orange-500/10 rounded-xl mb-2 group-hover:scale-110 transition-transform">
+                            <svg className="w-8 h-8 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            </svg>
+                          </div>
+                          <span className="text-sm text-gray-300 font-medium">Click to upload other certificates</span>
+                          <span className="text-xs text-gray-500 mt-1">ISO, Quality certificates, etc.</span>
                           {formData.otherCertificates && (
-                            <span className="text-xs text-blue-600 font-medium mt-1">
-                              {formData.otherCertificates.name}
-                            </span>
+                            <div className="mt-2 px-3 py-1 bg-orange-500/20 border border-orange-500/30 rounded-lg">
+                              <span className="text-xs text-orange-400 font-medium">{formData.otherCertificates.name}</span>
+                            </div>
                           )}
                           <input
                             type="file"
@@ -1200,19 +1552,25 @@ export default function ManufacturerPortal() {
                     </div>
 
                     {/* Form Actions */}
-                    <div className="flex gap-4 pt-4">
+                    <div className="flex gap-4 pt-6">
                       <button
                         type="button"
                         onClick={() => setShowProfile(false)}
-                        className="flex-1 px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-colors"
+                        className="flex-1 px-4 py-3 bg-slate-800 hover:bg-slate-700 text-gray-300 hover:text-white font-semibold rounded-xl transition-all border border-white/10"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
-                        className="flex-1 px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors"
+                        className="relative flex-1 group overflow-hidden rounded-xl"
                       >
-                        Save Changes
+                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 transition-transform group-hover:scale-105"></div>
+                        <div className="relative px-4 py-3 font-semibold text-white flex items-center justify-center gap-2">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span>Save Changes</span>
+                        </div>
                       </button>
                     </div>
                   </form>
@@ -1220,269 +1578,305 @@ export default function ManufacturerPortal() {
               </div>
             </div>
           </div>
+          </div>
         )}
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
-      {/* Left Side - Blue Section */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 text-white p-6 sm:p-8 lg:p-12 flex-col justify-between">
-        {/* Logo and Title */}
-        <div>
-          <div className="flex items-center gap-3 sm:gap-4 mb-8 lg:mb-12">
-            <div className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-lg">
-              <Image
-                src="/groupo-logo.png"
-                alt="Groupo Logo"
-                width={60}
-                height={60}
-                className="w-auto h-auto"
-              />
-            </div>
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-bold">Grupo</h1>
-              <p className="text-blue-100 text-xs sm:text-sm mt-1">Manufacturing Partner Portal</p>
-            </div>
-          </div>
-
-          {/* Main Heading */}
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-4 sm:mb-6 mt-12 lg:mt-20">
-            Scale Your Manufacturing Business Globally
-          </h2>
-
-          {/* Description */}
-          <p className="text-base sm:text-lg text-blue-100 leading-relaxed mb-8 sm:mb-12 max-w-lg">
-            Join Grupo's network of verified manufacturers. Access premium buyers worldwide, 
-            streamline operations, and grow your business with our comprehensive platform.
-          </p>
-
-          {/* Features */}
-          <div className="space-y-4 sm:space-y-6">
-            <div className="flex items-start gap-3 sm:gap-4">
-              <div className="bg-white/20 rounded-full p-2 sm:p-3 backdrop-blur-sm flex-shrink-0">
-                <svg
-                  className="w-5 h-5 sm:w-6 sm:h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg sm:text-xl mb-1">More Orders</h3>
-                <p className="text-blue-100 text-sm sm:text-base">Access a network of verified buyers actively seeking manufacturers.</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3 sm:gap-4">
-              <div className="bg-white/20 rounded-full p-2 sm:p-3 backdrop-blur-sm flex-shrink-0">
-                <svg
-                  className="w-5 h-5 sm:w-6 sm:h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                  />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg sm:text-xl mb-1">Business Growth</h3>
-                <p className="text-blue-100 text-sm sm:text-base">Streamlined processes to scale your operations.</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3 sm:gap-4">
-              <div className="bg-white/20 rounded-full p-2 sm:p-3 backdrop-blur-sm flex-shrink-0">
-                <svg
-                  className="w-5 h-5 sm:w-6 sm:h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg sm:text-xl mb-1">Secure Payments</h3>
-                <p className="text-blue-100 text-sm sm:text-base">Trust and transparency in every transaction.</p>
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-orange-950 to-slate-900">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-orange-600 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-amber-600 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-yellow-600 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
       </div>
 
-      {/* Right Side - Login Form */}
-      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-gray-50">
-        <div className="w-full max-w-md">
-          {/* Mobile Logo - Only visible on small screens */}
-          <div className="lg:hidden flex items-center justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
-            <Image
-              src="/groupo-logo.png"
-              alt="Groupo Logo"
-              width={40}
-              height={40}
-              className="w-10 h-10 sm:w-12 sm:h-12"
-            />
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-blue-600">Grupo</h1>
-              <p className="text-xs text-gray-600">Manufacturing Partner Portal</p>
-            </div>
-          </div>
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
 
-          {/* Login Card */}
-          <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-6 sm:p-8">
-            {/* Manufacturing Icon */}
-            <div className="flex justify-center mb-4 sm:mb-6">
-              <div className="bg-blue-500 rounded-full p-3 sm:p-4">
-                <svg
-                  className="w-6 h-6 sm:w-8 sm:h-8 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
+      <div className="relative min-h-screen flex flex-col lg:flex-row">
+        {/* Left Side - Hero Section */}
+        <div className="hidden lg:flex lg:w-1/2 p-12 flex-col justify-between relative">
+          {/* Glassmorphism card */}
+          <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
+          
+          <div className="relative z-10">
+            {/* Logo with animation */}
+            <div className="flex items-center gap-4 mb-16 animate-fade-in-down">
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
+                <div className="relative bg-white rounded-2xl p-3 shadow-2xl">
+                  <Image
+                    src="/groupo-logo.png"
+                    alt="Groupo Logo"
+                    width={48}
+                    height={48}
+                    className="w-12 h-12"
                   />
-                </svg>
+                </div>
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+                  Grupo
+                </h1>
+                <p className="text-sm text-gray-400">Manufacturing Partner Portal</p>
               </div>
             </div>
 
-            {/* Title */}
-            <h2 className="text-xl sm:text-2xl font-bold text-center text-gray-800 mb-2">
-              Manufacturer Portal
-            </h2>
-
-            {step === 'phone' ? (
-              <>
-                <p className="text-center text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">
-                  Enter your registered phone number.
+            {/* Main content */}
+            <div className="space-y-8 animate-fade-in-up animation-delay-200">
+              <div>
+                <h2 className="text-5xl font-bold text-white leading-tight mb-4">
+                  Power Your<br />
+                  <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-yellow-400 bg-clip-text text-transparent">
+                    Manufacturing Empire
+                  </span>
+                </h2>
+                <p className="text-lg text-gray-400 leading-relaxed max-w-lg">
+                  Join 1000+ verified manufacturers on Grupo. Access premium buyers, 
+                  streamline operations, and scale your business globally.
                 </p>
+              </div>
 
-                {/* Phone Form */}
-                <form onSubmit={handleSendOTP}>
-                  <div className="mb-5 sm:mb-6">
-                    <label
-                      htmlFor="phone"
-                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-2"
-                    >
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      placeholder="+1 555 000 0000"
-                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none text-gray-900 placeholder:text-gray-400"
-                      required
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 sm:py-3 text-sm sm:text-base rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg mb-3 sm:mb-4"
+              {/* Feature cards */}
+              <div className="space-y-4">
+                {[
+                  { icon: "🏭", title: "More Orders", desc: "Access premium buyers worldwide", delay: "300" },
+                  { icon: "📈", title: "Business Growth", desc: "Scale operations with ease", delay: "400" },
+                  { icon: "💰", title: "Secure Payments", desc: "Transparent transactions guaranteed", delay: "500" }
+                ].map((feature, index) => (
+                  <div 
+                    key={index}
+                    className={`group flex items-center gap-4 p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300 animate-fade-in-right animation-delay-${feature.delay}`}
                   >
-                    Send OTP
-                  </button>
-                </form>
-              </>
-            ) : (
-              <>
-                <p className="text-center text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">
-                  Enter the OTP sent to your phone
-                </p>
-
-                {/* OTP Form */}
-                <form onSubmit={handleVerifyOTP}>
-                  <div className="mb-5 sm:mb-6">
-                    <label
-                      htmlFor="otp"
-                      className="block text-xs sm:text-sm font-medium text-gray-800 mb-2"
-                    >
-                      One-Time Password
-                    </label>
-                    <input
-                      type="text"
-                      id="otp"
-                      value={otp}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/\D/g, '');
-                        if (value.length <= 6) {
-                          setOtp(value);
-                        }
-                      }}
-                      placeholder="Enter 6-digit OTP"
-                      maxLength={6}
-                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border-2 border-blue-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-center text-base sm:text-lg tracking-widest text-gray-900 placeholder:text-gray-400"
-                      required
-                    />
+                    <div className="text-3xl group-hover:scale-110 transition-transform duration-300">
+                      {feature.icon}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white">{feature.title}</h3>
+                      <p className="text-sm text-gray-400">{feature.desc}</p>
+                    </div>
                   </div>
+                ))}
+              </div>
+            </div>
+          </div>
 
-                  <button
-                    type="submit"
-                    className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 sm:py-3 text-sm sm:text-base rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg mb-3 sm:mb-4"
-                  >
-                    Verify & Login
-                  </button>
+          {/* Stats footer */}
+          <div className="relative z-10 grid grid-cols-3 gap-6 animate-fade-in-up animation-delay-600">
+            {[
+              { value: "1K+", label: "Manufacturers" },
+              { value: "10K+", label: "Orders" },
+              { value: "95%", label: "Success Rate" }
+            ].map((stat, index) => (
+              <div key={index} className="text-center">
+                <div className="text-3xl font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+                  {stat.value}
+                </div>
+                <div className="text-sm text-gray-400">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-                  <button
-                    type="button"
-                    onClick={handleChangePhoneNumber}
-                    className="w-full text-gray-700 font-medium py-2 text-sm sm:text-base hover:text-blue-600 transition-colors duration-200"
-                  >
-                    Change Phone Number
-                  </button>
-                </form>
-              </>
-            )}
+        {/* Right Side - Login Form */}
+        <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
+          <div className="w-full max-w-md">
+            {/* Mobile Logo */}
+            <div className="lg:hidden flex items-center justify-center gap-3 mb-8 animate-fade-in-down">
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl blur opacity-75 animate-pulse"></div>
+                <div className="relative bg-white rounded-2xl p-2.5">
+                  <Image
+                    src="/groupo-logo.png"
+                    alt="Groupo Logo"
+                    width={40}
+                    height={40}
+                    className="w-10 h-10"
+                  />
+                </div>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+                  Grupo
+                </h1>
+                <p className="text-xs text-gray-400">Manufacturing Partner Portal</p>
+              </div>
+            </div>
 
-            {step === 'phone' && (
-              <>
-                {/* Divider */}
-                <div className="relative my-5 sm:my-6">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300"></div>
-                  </div>
-                  <div className="relative flex justify-center text-xs sm:text-sm">
-                    <span className="px-2 bg-white text-gray-500">OR CONTINUE AS</span>
+            {/* Login Card */}
+            <div className="relative group animate-fade-in-up animation-delay-200">
+              {/* Glowing border effect */}
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500 to-amber-500 rounded-3xl blur opacity-30 group-hover:opacity-50 transition duration-1000"></div>
+              
+              <div className="relative bg-slate-900/90 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl">
+                {/* Icon with animation */}
+                <div className="flex justify-center mb-6">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl blur-md opacity-50 animate-pulse"></div>
+                    <div className="relative bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl p-4">
+                      <svg
+                        className="w-8 h-8 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
+                        />
+                      </svg>
+                    </div>
                   </div>
                 </div>
 
-                {/* Switch to Buyer Portal */}
-                <Link
-                  href="/buyer-portal"
-                  className="block w-full text-center py-2.5 sm:py-3 text-sm sm:text-base rounded-lg border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 text-gray-700 font-medium transition-all"
-                >
-                  Switch to Buyer Portal
-                </Link>
-              </>
-            )}
+                {/* Title */}
+                <div className="text-center mb-8">
+                  <h2 className="text-2xl font-bold text-white mb-2">
+                    Welcome Manufacturer
+                  </h2>
+                  <p className="text-gray-400 text-sm">
+                    {step === 'phone' ? 'Enter your phone number to continue' : 'Verify your identity'}
+                  </p>
+                </div>
 
-            {/* Trust Message */}
-            <p className="text-center text-xs sm:text-sm text-gray-500 mt-6 sm:mt-8">
-              Join 1000+ verified manufacturers on Grupo's platform.
-            </p>
+                {step === 'phone' ? (
+                  <>
+                    {/* Phone Form */}
+                    <form onSubmit={handleSendOTP} className="space-y-6">
+                      <div>
+                        <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-2">
+                          Phone Number
+                        </label>
+                        <div className="relative group">
+                          <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl blur opacity-0 group-hover:opacity-20 transition duration-300"></div>
+                          <input
+                            type="tel"
+                            id="phone"
+                            value={phoneNumber}
+                            onChange={(e) => setPhoneNumber(e.target.value)}
+                            placeholder="+1 555 000 0000"
+                            className="relative w-full px-4 py-3.5 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all outline-none text-white placeholder:text-gray-500"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={isLoadingOtp}
+                        className="relative w-full group overflow-hidden rounded-xl disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 transition-transform group-hover:scale-105"></div>
+                        <div className="relative px-6 py-3.5 font-semibold text-white flex items-center justify-center gap-2">
+                          {isLoadingOtp ? (
+                            <>
+                              <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              <span>Sending...</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>Send OTP</span>
+                              <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                              </svg>
+                            </>
+                          )}
+                        </div>
+                      </button>
+                    </form>
+
+                    {/* Divider */}
+                    <div className="relative my-8">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-white/10"></div>
+                      </div>
+                      <div className="relative flex justify-center text-sm">
+                        <span className="px-4 bg-slate-900/90 text-gray-400">OR CONTINUE AS</span>
+                      </div>
+                    </div>
+
+                    {/* Switch to Buyer Portal */}
+                    <Link
+                      href="/buyer-portal"
+                      className="block w-full text-center py-3 rounded-xl border border-white/10 hover:border-orange-500/50 hover:bg-white/5 text-gray-300 font-medium transition-all group"
+                    >
+                      <span className="group-hover:text-orange-400 transition-colors">Switch to Buyer Portal</span>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    {/* OTP Form */}
+                    <form onSubmit={handleVerifyOTP} className="space-y-6">
+                      <div>
+                        <label htmlFor="otp" className="block text-sm font-medium text-gray-300 mb-2">
+                          Verification Code
+                        </label>
+                        <div className="relative group">
+                          <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl blur opacity-20 group-hover:opacity-30 transition duration-300"></div>
+                          <input
+                            type="text"
+                            id="otp"
+                            value={otp}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\D/g, '');
+                              if (value.length <= 6) {
+                                setOtp(value);
+                              }
+                            }}
+                            placeholder="000000"
+                            maxLength={6}
+                            className="relative w-full px-4 py-4 bg-slate-800/50 border-2 border-orange-500/50 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all outline-none text-center text-2xl tracking-[0.5em] text-white placeholder:text-gray-600 font-mono"
+                            required
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500 text-center mt-2">
+                          Enter the 6-digit code sent to your phone
+                        </p>
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="relative w-full group overflow-hidden rounded-xl"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 transition-transform group-hover:scale-105"></div>
+                        <div className="relative px-6 py-3.5 font-semibold text-white flex items-center justify-center gap-2">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span>Verify & Continue</span>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleChangePhoneNumber}
+                        className="w-full text-gray-400 hover:text-orange-400 font-medium py-2 text-sm transition-colors"
+                      >
+                        ← Change Phone Number
+                      </button>
+                    </form>
+                  </>
+                )}
+
+                {/* Trust badges */}
+                <div className="mt-8 pt-6 border-t border-white/10">
+                  <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+                    <svg className="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span>Join 1000+ verified manufacturers worldwide</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -13,6 +13,7 @@ export default function BuyerPortal() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'phone' | 'otp' | 'dashboard'>('phone');
+  const [isLoadingOtp, setIsLoadingOtp] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('designs');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -61,10 +62,15 @@ export default function BuyerPortal() {
     // Demo credentials bypass
     if (phoneNumber === '1234567890') {
       console.log('Demo credentials detected - bypassing OTP');
-      setStep('otp');
+      setIsLoadingOtp(true);
+      setTimeout(() => {
+        setIsLoadingOtp(false);
+        setStep('otp');
+      }, 1000);
       return;
     }
     
+    setIsLoadingOtp(true);
     try {
     console.log('Sending OTP to:', phoneNumber);
       const response = await apiService.sendOTP(phoneNumber, 'buyer');
@@ -73,6 +79,8 @@ export default function BuyerPortal() {
     } catch (error) {
       console.error('Failed to send OTP:', error);
       alert('Failed to send OTP. Please try again.');
+    } finally {
+      setIsLoadingOtp(false);
     }
   };
 
@@ -278,40 +286,53 @@ export default function BuyerPortal() {
   // Dashboard View
   if (step === 'dashboard') {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        {/* Animated background */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
+          <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
+        </div>
+
         {/* AI Chatbot */}
         <AIChatbot />
         
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 shadow-sm">
+        <header className="relative z-50 bg-slate-900/50 backdrop-blur-xl border-b border-white/10 sticky top-0">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-20">
               {/* Left Side - Logo and Branding */}
-              <div className="flex items-center gap-3">
-                <Image
-                  src="/groupo-logo.png"
-                  alt="Grupo Logo"
-                  width={40}
-                  height={40}
-                  className="w-10 h-10"
-                />
+              <div className="flex items-center gap-3 animate-fade-in-down">
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl blur opacity-50 group-hover:opacity-75 transition duration-300"></div>
+                  <div className="relative bg-white rounded-xl p-2">
+                    <Image
+                      src="/groupo-logo.png"
+                      alt="Grupo Logo"
+                      width={32}
+                      height={32}
+                      className="w-8 h-8"
+                    />
+                  </div>
+                </div>
                 <div className="flex flex-col">
-                  <span className="text-xl font-bold text-blue-600">Grupo</span>
-                  <span className="text-xs text-gray-500 hidden sm:block">
-                    One-Stop AI Manufacturing Platform
+                  <span className="text-lg font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                    Grupo
+                  </span>
+                  <span className="text-xs text-gray-400 hidden sm:block">
+                    AI Manufacturing Platform
                   </span>
                 </div>
               </div>
 
-              {/* Right Side - Phone, Profile, Home, Logout */}
-              <div className="flex items-center gap-4">
+              {/* Right Side - Phone, Profile, Logout */}
+              <div className="flex items-center gap-2 sm:gap-3">
                 {/* Phone Number with Online Status */}
-                <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex items-center gap-2 px-3 py-2 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10">
                   <div className="relative">
-                    <div className="w-2.5 h-2.5 bg-green-500 rounded-full"></div>
-                    <div className="absolute inset-0 w-2.5 h-2.5 bg-green-500 rounded-full animate-ping opacity-75"></div>
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <div className="absolute inset-0 w-2 h-2 bg-green-500 rounded-full animate-ping opacity-75"></div>
                   </div>
-                  <span className="text-sm font-medium text-gray-700 hidden sm:inline">
+                  <span className="text-sm font-medium text-white hidden sm:inline">
                     {phoneNumber}
                   </span>
                 </div>
@@ -322,7 +343,7 @@ export default function BuyerPortal() {
                     setShowProfile(true);
                     loadProfileData();
                   }}
-                  className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-all border border-gray-200"
+                  className="flex items-center gap-2 px-3 py-2 text-gray-300 hover:text-blue-400 hover:bg-white/5 rounded-lg transition-all border border-white/10 hover:border-blue-500/50"
                 >
                   <svg
                     className="w-5 h-5"
@@ -337,34 +358,13 @@ export default function BuyerPortal() {
                       d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                     />
                   </svg>
-                  <span className="font-medium hidden sm:inline">Profile</span>
+                  <span className="font-medium hidden lg:inline">Profile</span>
                 </button>
-
-                {/* Home Button */}
-                <Link
-                  href="/"
-                  className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-all border border-gray-200"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                    />
-                  </svg>
-                  <span className="font-medium hidden sm:inline">Home</span>
-                </Link>
 
                 {/* Logout Button */}
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all border border-gray-200"
+                  className="flex items-center gap-2 px-3 py-2 text-gray-300 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all border border-white/10 hover:border-red-500/50"
                 >
                   <svg
                     className="w-5 h-5"
@@ -387,20 +387,23 @@ export default function BuyerPortal() {
         </header>
 
         {/* Tab Navigation */}
-        <nav className="bg-white border-b border-gray-200">
+        <nav className="relative z-40 bg-slate-900/30 backdrop-blur-sm border-b border-white/10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center space-x-1 overflow-x-auto">
+            <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-1">
               {/* Designs Tab */}
               <button
                 onClick={() => setActiveTab('designs')}
-                className={`flex items-center gap-2 px-4 py-3 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
+                className={`relative flex items-center gap-2 px-3 lg:px-4 py-3 font-medium text-sm whitespace-nowrap transition-all rounded-lg ${
                   activeTab === 'designs'
-                    ? 'border-blue-500 text-blue-600 bg-blue-50'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300'
+                    ? 'text-blue-400'
+                    : 'text-gray-400 hover:text-gray-300'
                 }`}
               >
+                {activeTab === 'designs' && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg border border-blue-500/50"></div>
+                )}
                 <svg
-                  className="w-5 h-5"
+                  className="relative z-10 w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -412,20 +415,23 @@ export default function BuyerPortal() {
                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                Designs
+                <span className="relative z-10 hidden sm:inline">Designs</span>
               </button>
 
               {/* Instant Quote Tab */}
               <button
                 onClick={() => setActiveTab('instant-quote')}
-                className={`flex items-center gap-2 px-4 py-3 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
+                className={`relative flex items-center gap-2 px-3 lg:px-4 py-3 font-medium text-sm whitespace-nowrap transition-all rounded-lg ${
                   activeTab === 'instant-quote'
-                    ? 'border-blue-500 text-blue-600 bg-blue-50'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300'
+                    ? 'text-blue-400'
+                    : 'text-gray-400 hover:text-gray-300'
                 }`}
               >
+                {activeTab === 'instant-quote' && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg border border-blue-500/50"></div>
+                )}
                 <svg
-                  className="w-5 h-5"
+                  className="relative z-10 w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -437,20 +443,23 @@ export default function BuyerPortal() {
                     d="M13 10V3L4 14h7v7l9-11h-7z"
                   />
                 </svg>
-                Instant Quote
+                <span className="relative z-10 hidden sm:inline">Instant Quote</span>
               </button>
 
               {/* Custom Quote Tab */}
               <button
                 onClick={() => setActiveTab('custom-quote')}
-                className={`flex items-center gap-2 px-4 py-3 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
+                className={`relative flex items-center gap-2 px-3 lg:px-4 py-3 font-medium text-sm whitespace-nowrap transition-all rounded-lg ${
                   activeTab === 'custom-quote'
-                    ? 'border-blue-500 text-blue-600 bg-blue-50'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300'
+                    ? 'text-blue-400'
+                    : 'text-gray-400 hover:text-gray-300'
                 }`}
               >
+                {activeTab === 'custom-quote' && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg border border-blue-500/50"></div>
+                )}
                 <svg
-                  className="w-5 h-5"
+                  className="relative z-10 w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -462,20 +471,23 @@ export default function BuyerPortal() {
                     d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                   />
                 </svg>
-                Custom Quote
+                <span className="relative z-10 hidden sm:inline">Custom Quote</span>
               </button>
 
               {/* My Orders Tab */}
               <button
                 onClick={() => setActiveTab('my-orders')}
-                className={`flex items-center gap-2 px-4 py-3 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
+                className={`relative flex items-center gap-2 px-3 lg:px-4 py-3 font-medium text-sm whitespace-nowrap transition-all rounded-lg ${
                   activeTab === 'my-orders'
-                    ? 'border-blue-500 text-blue-600 bg-blue-50'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300'
+                    ? 'text-blue-400'
+                    : 'text-gray-400 hover:text-gray-300'
                 }`}
               >
+                {activeTab === 'my-orders' && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg border border-blue-500/50"></div>
+                )}
                 <svg
-                  className="w-5 h-5"
+                  className="relative z-10 w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -487,20 +499,23 @@ export default function BuyerPortal() {
                     d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
                   />
                 </svg>
-                My Orders
+                <span className="relative z-10 hidden sm:inline">My Orders</span>
               </button>
 
               {/* Chats Tab */}
               <button
                 onClick={() => setActiveTab('chats')}
-                className={`flex items-center gap-2 px-4 py-3 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
+                className={`relative flex items-center gap-2 px-3 lg:px-4 py-3 font-medium text-sm whitespace-nowrap transition-all rounded-lg ${
                   activeTab === 'chats'
-                    ? 'border-blue-500 text-blue-600 bg-blue-50'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300'
+                    ? 'text-blue-400'
+                    : 'text-gray-400 hover:text-gray-300'
                 }`}
               >
+                {activeTab === 'chats' && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg border border-blue-500/50"></div>
+                )}
                 <svg
-                  className="w-5 h-5"
+                  className="relative z-10 w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -512,20 +527,23 @@ export default function BuyerPortal() {
                     d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
                   />
                 </svg>
-                Chats
+                <span className="relative z-10 hidden sm:inline">Chats</span>
               </button>
 
               {/* Requirements Tab */}
               <button
                 onClick={() => setActiveTab('requirements')}
-                className={`flex items-center gap-2 px-4 py-3 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
+                className={`relative flex items-center gap-2 px-3 lg:px-4 py-3 font-medium text-sm whitespace-nowrap transition-all rounded-lg ${
                   activeTab === 'requirements'
-                    ? 'border-blue-500 text-blue-600 bg-blue-50'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300'
+                    ? 'text-blue-400'
+                    : 'text-gray-400 hover:text-gray-300'
                 }`}
               >
+                {activeTab === 'requirements' && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg border border-blue-500/50"></div>
+                )}
                 <svg
-                  className="w-5 h-5"
+                  className="relative z-10 w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -537,20 +555,23 @@ export default function BuyerPortal() {
                     d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
                   />
                 </svg>
-                Requirements
+                <span className="relative z-10 hidden sm:inline">Requirements</span>
               </button>
 
               {/* Cart Tab */}
               <button
                 onClick={() => setActiveTab('cart')}
-                className={`flex items-center gap-2 px-4 py-3 border-b-2 font-medium text-sm whitespace-nowrap transition-colors ${
+                className={`relative flex items-center gap-2 px-3 lg:px-4 py-3 font-medium text-sm whitespace-nowrap transition-all rounded-lg ${
                   activeTab === 'cart'
-                    ? 'border-blue-500 text-blue-600 bg-blue-50'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300'
+                    ? 'text-blue-400'
+                    : 'text-gray-400 hover:text-gray-300'
                 }`}
               >
+                {activeTab === 'cart' && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg border border-blue-500/50"></div>
+                )}
                 <svg
-                  className="w-5 h-5"
+                  className="relative z-10 w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -562,7 +583,7 @@ export default function BuyerPortal() {
                     d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
                   />
                 </svg>
-                Cart
+                <span className="relative z-10 hidden sm:inline">Cart</span>
               </button>
 
             </div>
@@ -570,76 +591,77 @@ export default function BuyerPortal() {
         </nav>
 
         {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="relative z-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Tab Content */}
           {activeTab === 'designs' && (
-            <div>
+            <div className="animate-fade-in-up">
               {/* Header Section */}
               <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">Design Marketplace</h1>
-                <p className="text-gray-600">Browse our curated collection of ready-to-manufacture designs</p>
+                <h1 className="text-3xl font-bold text-white mb-2">Design Marketplace</h1>
+                <p className="text-gray-400">Browse our curated collection of ready-to-manufacture designs</p>
               </div>
 
               {/* Search and Filter Bar */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-                <div className="flex flex-col md:flex-row gap-4">
-                  {/* Search Input */}
-                  <div className="flex-1 relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <svg
-                        className="h-5 w-5 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                        />
-                      </svg>
+              <div className="relative group mb-8">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-500"></div>
+                <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
+                  <div className="flex flex-col md:flex-row gap-4">
+                    {/* Search Input */}
+                    <div className="flex-1 relative group">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg
+                          className="h-5 w-5 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                          />
+                        </svg>
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Search designs..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-11 pr-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 transition-all"
+                      />
                     </div>
-                    <input
-                      type="text"
-                      placeholder="Search designs..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                    />
-                  </div>
 
-                  {/* Category Dropdown */}
-                  <div className="relative">
-                    <select
-                      value={selectedCategory}
-                      onChange={(e) => setSelectedCategory(e.target.value)}
-                      className="appearance-none w-full md:w-64 px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-700 bg-white cursor-pointer"
-                    >
-                      <option value="all">All Categories</option>
-                      <option value="mechanical">Mechanical Parts</option>
-                      <option value="electronics">Electronics</option>
-                      <option value="furniture">Furniture</option>
-                      <option value="automotive">Automotive</option>
-                      <option value="jewelry">Jewelry</option>
-                      <option value="home-decor">Home Decor</option>
-                      <option value="toys">Toys & Games</option>
-                      <option value="medical">Medical Devices</option>
-                    </select>
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                      <svg
-                        className="h-5 w-5 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                    {/* Category Dropdown */}
+                    <div className="relative">
+                      <select
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        className="appearance-none w-full md:w-64 px-4 py-3 pr-10 bg-slate-900/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white cursor-pointer transition-all"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
+                        <option value="all" className="bg-slate-800">All Categories</option>
+                        <option value="t-shirts" className="bg-slate-800">T-Shirts</option>
+                        <option value="shirts" className="bg-slate-800">Shirts</option>
+                        <option value="hoodies" className="bg-slate-800">Hoodies</option>
+                        <option value="sweatshirts" className="bg-slate-800">Sweatshirts</option>
+                        <option value="cargos" className="bg-slate-800">Cargos</option>
+                        <option value="trackpants" className="bg-slate-800">Trackpants</option>
+                      </select>
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <svg
+                          className="h-5 w-5 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -648,20 +670,25 @@ export default function BuyerPortal() {
               {/* Empty State */}
               <div className="flex flex-col items-center justify-center py-20">
                 <div className="text-center max-w-md">
-                  <svg
-                    className="mx-auto h-24 w-24 text-gray-300 mb-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                  <p className="text-lg text-gray-600 mb-2">No designs found matching your criteria</p>
+                  <div className="relative group mb-6">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-2xl blur opacity-50"></div>
+                    <div className="relative bg-slate-800/30 rounded-2xl p-8 border border-white/10">
+                      <svg
+                        className="mx-auto h-20 w-20 text-gray-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                  <p className="text-lg font-medium text-gray-300 mb-2">No designs found matching your criteria</p>
                   <p className="text-sm text-gray-500">
                     Try adjusting your search terms or category filter
                   </p>
@@ -670,123 +697,15 @@ export default function BuyerPortal() {
             </div>
           )}
           {activeTab === 'instant-quote' && (
-            <div>
+            <div className="animate-fade-in-up">
               {/* Header Section */}
               <div className="mb-8">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="bg-blue-500 rounded-lg p-2">
-                    <svg
-                      className="w-6 h-6 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 10V3L4 14h7v7l9-11h-7z"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h1 className="text-3xl font-bold text-gray-800">Instant Quote Generator</h1>
-                      <span className="bg-orange-500 text-white text-xs font-semibold px-2.5 py-1 rounded-md flex items-center gap-1">
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
-                        </svg>
-                        AI Powered
-                      </span>
-                    </div>
-                    <p className="text-gray-600">Get instant quotes from multiple manufacturers</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    {/* Response Time Card */}
-                    <div className="bg-white rounded-xl border border-gray-200 p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="bg-blue-50 rounded-lg p-2">
-                          <svg
-                            className="w-5 h-5 text-blue-500"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600 mb-1">Response Time</p>
-                          <p className="text-lg font-bold text-gray-900">Instant</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Accuracy Card */}
-                    <div className="bg-white rounded-xl border border-gray-200 p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="bg-green-50 rounded-lg p-2">
-                          <svg
-                            className="w-5 h-5 text-green-500"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600 mb-1">Accuracy</p>
-                          <p className="text-lg font-bold text-gray-900">98% Accurate</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Manufacturers Card */}
-                    <div className="bg-white rounded-xl border border-gray-200 p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="bg-purple-50 rounded-lg p-2">
-                          <svg
-                            className="w-5 h-5 text-purple-500"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                            />
-                          </svg>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600 mb-1">Manufacturers</p>
-                          <p className="text-lg font-bold text-gray-900">100+ Verified</p>
-                        </div>
-                      </div>
-                    </div>
-              </div>
-
-              {/* Order Requirements Form */}
-              <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-                    <div className="flex items-center gap-2 mb-2">
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl blur opacity-75 animate-pulse"></div>
+                    <div className="relative bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl p-3">
                       <svg
-                        className="w-5 h-5 text-blue-500"
+                        className="w-6 h-6 text-white"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -795,72 +714,210 @@ export default function BuyerPortal() {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                          d="M13 10V3L4 14h7v7l9-11h-7z"
                         />
                       </svg>
-                      <h2 className="text-xl font-bold text-gray-900">Order Requirements</h2>
                     </div>
-                    <p className="text-gray-600 mb-6">Fill in your requirements to get instant quotes</p>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h1 className="text-3xl font-bold text-white">Instant Quote Generator</h1>
+                      <span className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-lg shadow-orange-500/50">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                        </svg>
+                        AI Powered
+                      </span>
+                    </div>
+                    <p className="text-gray-400 mt-1">Get instant quotes from multiple manufacturers</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stats Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    {/* Response Time Card */}
+                    <div className="group relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-2xl blur opacity-50 group-hover:opacity-75 transition duration-300"></div>
+                      <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 p-4 hover:border-blue-500/50 transition-all">
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl shadow-lg shadow-blue-500/50">
+                            <svg
+                              className="w-5 h-5 text-white"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-400 mb-1">Response Time</p>
+                            <p className="text-lg font-bold text-white">Instant</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Accuracy Card */}
+                    <div className="group relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl blur opacity-50 group-hover:opacity-75 transition duration-300"></div>
+                      <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 p-4 hover:border-green-500/50 transition-all">
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg shadow-green-500/50">
+                            <svg
+                              className="w-5 h-5 text-white"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-400 mb-1">Accuracy</p>
+                            <p className="text-lg font-bold text-white">98% Accurate</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Manufacturers Card */}
+                    <div className="group relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl blur opacity-50 group-hover:opacity-75 transition duration-300"></div>
+                      <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 p-4 hover:border-purple-500/50 transition-all">
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl shadow-lg shadow-purple-500/50">
+                            <svg
+                              className="w-5 h-5 text-white"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                              />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-400 mb-1">Manufacturers</p>
+                            <p className="text-lg font-bold text-white">100+ Verified</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+              </div>
+
+              {/* Order Requirements Form */}
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl blur opacity-20"></div>
+                <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 p-6 mb-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">
+                        <svg
+                          className="w-5 h-5 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                          />
+                        </svg>
+                      </div>
+                      <h2 className="text-xl font-bold text-white">Order Requirements</h2>
+                    </div>
+                    <p className="text-gray-400 mb-6">Fill in your requirements to get instant quotes</p>
 
                     <form className="space-y-5">
                       {/* Brand Name */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Brand Name <span className="text-red-500">*</span>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Brand Name <span className="text-red-400">*</span>
                         </label>
                         <input
                           type="text"
                           value={brandName}
                           onChange={(e) => setBrandName(e.target.value)}
                           placeholder="e.g., Urban Threads"
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                          className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 transition-all"
                         />
                       </div>
 
                       {/* Product Type and Fabric Type Row */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
                             Product Type <span className="text-red-500">*</span>
                           </label>
-                          <select
-                            value={productType}
-                            onChange={(e) => setProductType(e.target.value)}
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-700 bg-white"
-                          >
-                            <option value="">Select type</option>
-                            <option value="t-shirt">T-Shirt</option>
-                            <option value="hoodie">Hoodie</option>
-                            <option value="pants">Pants</option>
-                            <option value="jacket">Jacket</option>
-                            <option value="dress">Dress</option>
-                            <option value="shirt">Shirt</option>
-                          </select>
+                          <div className="relative">
+                            <select
+                              value={productType}
+                              onChange={(e) => setProductType(e.target.value)}
+                              className="appearance-none w-full px-4 py-2.5 pr-10 bg-slate-900/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white cursor-pointer transition-all"
+                            >
+                              <option value="" className="bg-slate-800">Select type</option>
+                              <option value="t-shirt" className="bg-slate-800">T-Shirt</option>
+                              <option value="hoodie" className="bg-slate-800">Hoodie</option>
+                              <option value="pants" className="bg-slate-800">Pants</option>
+                              <option value="jacket" className="bg-slate-800">Jacket</option>
+                              <option value="dress" className="bg-slate-800">Dress</option>
+                              <option value="shirt" className="bg-slate-800">Shirt</option>
+                            </select>
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
+                              </svg>
+                            </div>
+                          </div>
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
                             Fabric Type
                           </label>
-                          <select
-                            value={fabricType}
-                            onChange={(e) => setFabricType(e.target.value)}
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-700 bg-white"
-                          >
-                            <option value="">Select fabric</option>
-                            <option value="cotton">Cotton</option>
-                            <option value="polyester">Polyester</option>
-                            <option value="blend">Cotton-Polyester Blend</option>
-                            <option value="silk">Silk</option>
-                            <option value="wool">Wool</option>
-                            <option value="linen">Linen</option>
-                          </select>
+                          <div className="relative">
+                            <select
+                              value={fabricType}
+                              onChange={(e) => setFabricType(e.target.value)}
+                              className="appearance-none w-full px-4 py-2.5 pr-10 bg-slate-900/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white cursor-pointer transition-all"
+                            >
+                              <option value="" className="bg-slate-800">Select fabric</option>
+                              <option value="cotton" className="bg-slate-800">Cotton</option>
+                              <option value="polyester" className="bg-slate-800">Polyester</option>
+                              <option value="blend" className="bg-slate-800">Cotton-Polyester Blend</option>
+                              <option value="silk" className="bg-slate-800">Silk</option>
+                              <option value="wool" className="bg-slate-800">Wool</option>
+                              <option value="linen" className="bg-slate-800">Linen</option>
+                            </select>
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
+                              </svg>
+                            </div>
+                          </div>
                         </div>
                       </div>
 
                       {/* Quantity */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
                           Quantity (units) <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -868,7 +925,7 @@ export default function BuyerPortal() {
                           value={quantity}
                           onChange={(e) => setQuantity(e.target.value)}
                           placeholder="e.g., 5000"
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                          className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 transition-all"
                         />
                         <p className="text-xs text-blue-600 mt-1">Minimum order: 100 units</p>
                       </div>
@@ -876,7 +933,7 @@ export default function BuyerPortal() {
                       {/* Colors and Sizes Row */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
                             Colors
                           </label>
                           <input
@@ -884,12 +941,12 @@ export default function BuyerPortal() {
                             value={colors}
                             onChange={(e) => setColors(e.target.value)}
                             placeholder="e.g., Black, White, Navy"
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                            className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 transition-all"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
                             Sizes
                           </label>
                           <input
@@ -897,14 +954,14 @@ export default function BuyerPortal() {
                             value={sizes}
                             onChange={(e) => setSizes(e.target.value)}
                             placeholder="e.g., S, M, L, XL"
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                            className="w-full px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 transition-all"
                           />
                         </div>
                       </div>
 
                       {/* Additional Details */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
                           Additional Details
                         </label>
                         <textarea
@@ -938,6 +995,7 @@ export default function BuyerPortal() {
                         Generate Instant Quotes
                       </button>
                   </form>
+                </div>
               </div>
 
               {/* Quotes Display Section */}
@@ -995,7 +1053,7 @@ export default function BuyerPortal() {
                           <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
-                          <span className="text-gray-600">Delivery: <span className="font-medium text-gray-900">{quote.delivery}</span></span>
+                          <span className="text-gray-400">Delivery: <span className="font-medium text-gray-900">{quote.delivery}</span></span>
                         </div>
 
                         {/* Features */}
@@ -1025,19 +1083,19 @@ export default function BuyerPortal() {
             </div>
           )}
           {activeTab === 'custom-quote' && (
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center animate-fade-in-up">
               {/* Header Section */}
               <div className="mb-8 text-center max-w-3xl">
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">Request for Quotation</h1>
-                <p className="text-blue-600">Fill in the details below and connect with verified manufacturers</p>
+                <h1 className="text-3xl font-bold text-white mb-2">Request for Quotation</h1>
+                <p className="text-blue-400">Fill in the details below and connect with verified manufacturers</p>
               </div>
 
               {/* Custom Quote Form */}
-              <div className="w-full max-w-3xl bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
+              <div className="w-full max-w-3xl bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 p-8 shadow-lg">
                 <form className="space-y-6">
                   {/* Requirement */}
                   <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    <label className="block text-sm font-semibold text-gray-300 mb-2">
                       Requirement
                     </label>
                     <textarea
@@ -1045,14 +1103,14 @@ export default function BuyerPortal() {
                       onChange={(e) => setRequirement(e.target.value)}
                       placeholder="Please describe your requirements in detail..."
                       rows={5}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400 resize-none bg-gray-50"
+                      className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 resize-none transition-all"
                     />
                   </div>
 
                   {/* Quantity and Brand Name Row */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-900 mb-2">
+                      <label className="block text-sm font-semibold text-gray-300 mb-2">
                         Quantity
                       </label>
                       <input
@@ -1060,12 +1118,12 @@ export default function BuyerPortal() {
                         value={customQuantity}
                         onChange={(e) => setCustomQuantity(e.target.value)}
                         placeholder="Enter quantity"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400 bg-gray-50"
+                        className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 transition-all"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-900 mb-2">
+                      <label className="block text-sm font-semibold text-gray-300 mb-2">
                         Brand Name
                       </label>
                       <input
@@ -1073,36 +1131,43 @@ export default function BuyerPortal() {
                         value={customBrandName}
                         onChange={(e) => setCustomBrandName(e.target.value)}
                         placeholder="Enter brand name"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400 bg-gray-50"
+                        className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 transition-all"
                       />
                     </div>
                   </div>
 
                   {/* Product Type */}
                   <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    <label className="block text-sm font-semibold text-gray-300 mb-2">
                       Product Type
                     </label>
-                    <select
-                      value={customProductType}
-                      onChange={(e) => setCustomProductType(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-700 bg-gray-50 appearance-none cursor-pointer"
-                    >
-                      <option value="">Select product type</option>
-                      <option value="t-shirt">T-Shirt</option>
-                      <option value="shirt">Shirt</option>
-                      <option value="jacket">Jacket</option>
-                      <option value="hoodie">Hoodie</option>
-                      <option value="sweater">Sweater</option>
-                      <option value="trouser">Trouser</option>
-                      <option value="shorts">Shorts</option>
-                      <option value="dress">Dress</option>
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={customProductType}
+                        onChange={(e) => setCustomProductType(e.target.value)}
+                        className="appearance-none w-full px-4 py-3 pr-10 bg-slate-900/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white cursor-pointer transition-all"
+                      >
+                        <option value="" className="bg-slate-800">Select product type</option>
+                        <option value="t-shirt" className="bg-slate-800">T-Shirt</option>
+                        <option value="shirt" className="bg-slate-800">Shirt</option>
+                        <option value="jacket" className="bg-slate-800">Jacket</option>
+                        <option value="hoodie" className="bg-slate-800">Hoodie</option>
+                        <option value="sweater" className="bg-slate-800">Sweater</option>
+                        <option value="trouser" className="bg-slate-800">Trouser</option>
+                        <option value="shorts" className="bg-slate-800">Shorts</option>
+                        <option value="dress" className="bg-slate-800">Dress</option>
+                      </select>
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
+                        </svg>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Product Link (Optional) */}
                   <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    <label className="block text-sm font-semibold text-gray-300 mb-2">
                       Product Link (Optional)
                     </label>
                     <div className="relative">
@@ -1126,36 +1191,41 @@ export default function BuyerPortal() {
                         value={productLink}
                         onChange={(e) => setProductLink(e.target.value)}
                         placeholder="https://example.com/product"
-                        className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400 bg-gray-50"
+                        className="w-full pl-11 pr-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 transition-all"
                       />
                     </div>
                   </div>
 
                   {/* Upload Image (Optional) */}
                   <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    <label className="block text-sm font-semibold text-gray-300 mb-2">
                       Upload Image (Optional)
                     </label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-                      <label className="flex flex-col items-center justify-center py-12 cursor-pointer">
-                        <svg
-                          className="w-12 h-12 text-gray-400 mb-3"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                          />
-                        </svg>
-                        <span className="text-sm text-gray-600 mb-1">Click to upload image</span>
+                    <div className="border-2 border-dashed border-white/20 rounded-xl bg-slate-900/30 hover:bg-slate-900/50 hover:border-blue-500/50 transition-all">
+                      <label className="flex flex-col items-center justify-center py-12 cursor-pointer group">
+                        <div className="p-3 bg-blue-500/10 rounded-xl mb-3 group-hover:scale-110 transition-transform">
+                          <svg
+                            className="w-10 h-10 text-blue-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                            />
+                          </svg>
+                        </div>
+                        <span className="text-sm text-gray-300 font-medium mb-1">Click to upload image</span>
+                        <span className="text-xs text-gray-500">PNG, JPG or GIF (Max 5MB)</span>
                         {uploadedImage && (
-                          <span className="text-xs text-blue-600 font-medium">
-                            {uploadedImage.name}
-                          </span>
+                          <div className="mt-3 px-4 py-2 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+                            <span className="text-xs text-blue-400 font-medium">
+                              {uploadedImage.name}
+                            </span>
+                          </div>
                         )}
                         <input
                           type="file"
@@ -1174,18 +1244,24 @@ export default function BuyerPortal() {
                   {/* Submit Button */}
                   <button
                     type="button"
-                    className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3.5 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
+                    className="relative w-full group overflow-hidden rounded-xl"
                   >
-                    Request for Quotation
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 transition-transform group-hover:scale-105"></div>
+                    <div className="relative px-6 py-3.5 font-semibold text-white flex items-center justify-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                      </svg>
+                      <span>Request for Quotation</span>
+                    </div>
                   </button>
                 </form>
               </div>
 
               {/* Info Box */}
-              <div className="w-full max-w-3xl mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="w-full max-w-3xl mt-6 bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 backdrop-blur-sm">
                 <div className="flex items-start gap-3">
                   <svg
-                    className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0"
+                    className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -1196,10 +1272,10 @@ export default function BuyerPortal() {
                     />
                   </svg>
                   <div>
-                    <p className="text-sm text-blue-900 font-medium mb-1">
+                    <p className="text-sm text-blue-300 font-medium mb-1">
                       How it works
                     </p>
-                    <p className="text-sm text-blue-800">
+                    <p className="text-sm text-gray-400">
                       Submit your custom requirements and our verified manufacturers will review them. 
                       You&apos;ll receive personalized quotes within 24-48 hours. The more details you provide, 
                       the more accurate the quotes will be.
@@ -1210,124 +1286,136 @@ export default function BuyerPortal() {
             </div>
           )}
           {activeTab === 'my-orders' && (
-            <div>
+            <div className="animate-fade-in-up">
               {/* Header Section */}
               <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">My Orders</h1>
-                <p className="text-gray-600">Track and manage all your orders in one place</p>
+                <h1 className="text-3xl font-bold text-white mb-2">My Orders</h1>
+                <p className="text-gray-400">Track and manage all your orders in one place</p>
               </div>
 
               {/* Stats Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {/* Total Orders Card */}
-                <div className="bg-white rounded-xl border border-gray-200 p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">Total Orders</p>
-                      <p className="text-3xl font-bold text-gray-900">56</p>
-                    </div>
-                    <div className="bg-gray-100 rounded-lg p-3">
-                      <svg
-                        className="w-8 h-8 text-gray-700"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                        />
-                      </svg>
+                <div className="group relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-slate-600/20 to-gray-600/20 rounded-2xl blur opacity-50 group-hover:opacity-75 transition duration-300"></div>
+                  <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 p-6 hover:border-slate-500/50 transition-all">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-400 mb-1">Total Orders</p>
+                        <p className="text-3xl font-bold text-white">56</p>
+                      </div>
+                      <div className="p-3 bg-gradient-to-br from-slate-600 to-gray-700 rounded-xl shadow-lg shadow-slate-500/50">
+                        <svg
+                          className="w-8 h-8 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                          />
+                        </svg>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Accepted Card */}
-                <div className="bg-white rounded-xl border border-gray-200 p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">Accepted</p>
-                      <p className="text-3xl font-bold text-green-600">0</p>
-                    </div>
-                    <div className="bg-green-100 rounded-lg p-3">
-                      <svg
-                        className="w-8 h-8 text-green-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
+                <div className="group relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl blur opacity-50 group-hover:opacity-75 transition duration-300"></div>
+                  <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 p-6 hover:border-green-500/50 transition-all">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-400 mb-1">Accepted</p>
+                        <p className="text-3xl font-bold text-green-400">0</p>
+                      </div>
+                      <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg shadow-green-500/50">
+                        <svg
+                          className="w-8 h-8 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Pending Review Card */}
-                <div className="bg-white rounded-xl border border-gray-200 p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">Pending Review</p>
-                      <p className="text-3xl font-bold text-orange-600">0</p>
-                    </div>
-                    <div className="bg-orange-100 rounded-lg p-3">
-                      <svg
-                        className="w-8 h-8 text-orange-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
+                <div className="group relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-amber-500/20 rounded-2xl blur opacity-50 group-hover:opacity-75 transition duration-300"></div>
+                  <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 p-6 hover:border-orange-500/50 transition-all">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-400 mb-1">Pending Review</p>
+                        <p className="text-3xl font-bold text-orange-400">0</p>
+                      </div>
+                      <div className="p-3 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl shadow-lg shadow-orange-500/50">
+                        <svg
+                          className="w-8 h-8 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* In Negotiation Card */}
-                <div className="bg-white rounded-xl border border-gray-200 p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">In Negotiation</p>
-                      <p className="text-3xl font-bold text-blue-600">0</p>
-                    </div>
-                    <div className="bg-blue-100 rounded-lg p-3">
-                      <svg
-                        className="w-8 h-8 text-blue-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                        />
-                      </svg>
+                <div className="group relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-2xl blur opacity-50 group-hover:opacity-75 transition duration-300"></div>
+                  <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 p-6 hover:border-blue-500/50 transition-all">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-400 mb-1">In Negotiation</p>
+                        <p className="text-3xl font-bold text-blue-400">0</p>
+                      </div>
+                      <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg shadow-blue-500/50">
+                        <svg
+                          className="w-8 h-8 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                          />
+                        </svg>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Search and Filter Bar */}
-              <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+              <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 p-4 mb-6">
                 <div className="flex flex-col md:flex-row gap-4">
                   {/* Search Input */}
-                  <div className="flex-1 relative">
+                  <div className="flex-1 relative group">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                       <svg
-                        className="h-5 w-5 text-gray-400"
+                        className="h-5 w-5 text-gray-400 group-focus-within:text-blue-400 transition-colors"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -1345,7 +1433,7 @@ export default function BuyerPortal() {
                       placeholder="Search orders by product, brand, or order ID..."
                       value={orderSearchQuery}
                       onChange={(e) => setOrderSearchQuery(e.target.value)}
-                      className="w-full pl-11 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                      className="w-full pl-11 pr-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 transition-all"
                     />
                   </div>
 
@@ -1354,14 +1442,14 @@ export default function BuyerPortal() {
                     <select
                       value={orderFilter}
                       onChange={(e) => setOrderFilter(e.target.value)}
-                      className="appearance-none w-full md:w-48 px-4 py-2.5 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-700 bg-white cursor-pointer"
+                      className="appearance-none w-full md:w-48 px-4 py-2.5 pr-10 bg-slate-900/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white cursor-pointer transition-all"
                     >
-                      <option value="all">All Orders</option>
-                      <option value="accepted">Accepted</option>
-                      <option value="pending">Pending Review</option>
-                      <option value="negotiation">In Negotiation</option>
-                      <option value="completed">Completed</option>
-                      <option value="cancelled">Cancelled</option>
+                      <option value="all" className="bg-slate-800">All Orders</option>
+                      <option value="accepted" className="bg-slate-800">Accepted</option>
+                      <option value="pending" className="bg-slate-800">Pending Review</option>
+                      <option value="negotiation" className="bg-slate-800">In Negotiation</option>
+                      <option value="completed" className="bg-slate-800">Completed</option>
+                      <option value="cancelled" className="bg-slate-800">Cancelled</option>
                     </select>
                     <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                       <svg
@@ -1383,27 +1471,30 @@ export default function BuyerPortal() {
               </div>
 
               {/* Orders List / Empty State */}
-              <div className="bg-white rounded-xl border border-gray-200 p-12">
+              <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 p-12">
                 <div className="flex flex-col items-center justify-center text-center">
                   {/* Package Icon */}
-                  <div className="bg-gray-100 rounded-full p-6 mb-6">
-                    <svg
-                      className="w-16 h-16 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                      />
-                    </svg>
+                  <div className="relative mb-6">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-xl opacity-30"></div>
+                    <div className="relative bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full p-6 border border-blue-500/30">
+                      <svg
+                        className="w-16 h-16 text-blue-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                        />
+                      </svg>
+                    </div>
                   </div>
                   
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No orders found</h3>
-                  <p className="text-gray-600 max-w-md">
+                  <h3 className="text-xl font-semibold text-white mb-2">No orders found</h3>
+                  <p className="text-gray-400 max-w-md">
                     Your orders will appear here once manufacturers respond to your requirements
                   </p>
                 </div>
@@ -1411,19 +1502,19 @@ export default function BuyerPortal() {
             </div>
           )}
           {activeTab === 'chats' && (
-            <div>
+            <div className="animate-fade-in-up">
               {/* Header Section */}
               <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">Messages</h1>
-                <p className="text-gray-600">All your conversations in one place</p>
+                <h1 className="text-3xl font-bold text-white mb-2">Messages</h1>
+                <p className="text-gray-400">All your conversations in one place</p>
               </div>
 
               {/* Search Bar */}
-              <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
-                <div className="relative">
+              <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 p-4 mb-6">
+                <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <svg
-                      className="h-5 w-5 text-gray-400"
+                      className="h-5 w-5 text-gray-400 group-focus-within:text-blue-400 transition-colors"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -1441,33 +1532,36 @@ export default function BuyerPortal() {
                     placeholder="Search conversations..."
                     value={chatSearchQuery}
                     onChange={(e) => setChatSearchQuery(e.target.value)}
-                    className="w-full pl-11 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                    className="w-full pl-11 pr-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 transition-all"
                   />
                 </div>
               </div>
 
               {/* Conversations List / Empty State */}
-              <div className="bg-white rounded-xl border border-gray-200 p-12">
+              <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 p-12">
                 <div className="flex flex-col items-center justify-center text-center">
                   {/* Chat Icon */}
-                  <div className="bg-blue-50 rounded-full p-6 mb-6">
-                    <svg
-                      className="w-16 h-16 text-blue-500"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                      />
-                    </svg>
+                  <div className="relative mb-6">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-xl opacity-30"></div>
+                    <div className="relative bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full p-6 border border-blue-500/30">
+                      <svg
+                        className="w-16 h-16 text-blue-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                        />
+                      </svg>
+                    </div>
                   </div>
                   
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No conversations yet</h3>
-                  <p className="text-gray-600 max-w-md">
+                  <h3 className="text-xl font-semibold text-white mb-2">No conversations yet</h3>
+                  <p className="text-gray-400 max-w-md">
                     Start by submitting a quotation request or browsing the design marketplace
                   </p>
                 </div>
@@ -1475,56 +1569,108 @@ export default function BuyerPortal() {
             </div>
           )}
           {activeTab === 'requirements' && (
-            <div className="flex items-center justify-center min-h-[60vh]">
-              <div className="text-center">
-                {/* Package Icon */}
-                <div className="flex justify-center mb-6">
-                  <svg
-                    className="w-16 h-16 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+            <div className="animate-fade-in-up">
+              {/* Header Section */}
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold text-white mb-2">My Requirements</h1>
+                <p className="text-gray-400">Track all your submitted requirements and their status</p>
+              </div>
+
+              {/* Empty State */}
+              <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 p-12">
+                <div className="flex flex-col items-center justify-center text-center">
+                  {/* Package Icon */}
+                  <div className="relative mb-6">
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-xl opacity-30"></div>
+                    <div className="relative bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full p-6 border border-purple-500/30">
+                      <svg
+                        className="w-16 h-16 text-purple-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                  
+                  <h3 className="text-xl font-semibold text-white mb-2">No Requirements Yet</h3>
+                  <p className="text-gray-400 max-w-md">
+                    Submit your first requirement to get started and connect with manufacturers
+                  </p>
+                  
+                  {/* CTA Button */}
+                  <button
+                    onClick={() => setActiveTab('custom-quote')}
+                    className="mt-6 relative group overflow-hidden rounded-xl"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                    />
-                  </svg>
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 transition-transform group-hover:scale-105"></div>
+                    <div className="relative px-6 py-3 font-semibold text-white flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      <span>Submit Requirement</span>
+                    </div>
+                  </button>
                 </div>
-                
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No Requirements Yet</h3>
-                <p className="text-gray-600">
-                  Submit your first requirement to get started
-                </p>
               </div>
             </div>
           )}
           {activeTab === 'cart' && (
-            <div className="flex items-center justify-center min-h-[60vh]">
-              <div className="text-center">
-                {/* Shopping Bag Icon */}
-                <div className="flex justify-center mb-6">
-                  <svg
-                    className="w-16 h-16 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+            <div className="animate-fade-in-up">
+              {/* Header Section */}
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold text-white mb-2">Shopping Cart</h1>
+                <p className="text-gray-400">Review your selected designs before checkout</p>
+              </div>
+
+              {/* Empty State */}
+              <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 p-12">
+                <div className="flex flex-col items-center justify-center text-center">
+                  {/* Shopping Bag Icon */}
+                  <div className="relative mb-6">
+                    <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full blur-xl opacity-30"></div>
+                    <div className="relative bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-full p-6 border border-green-500/30">
+                      <svg
+                        className="w-16 h-16 text-green-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                  
+                  <h3 className="text-xl font-semibold text-white mb-2">Your cart is empty</h3>
+                  <p className="text-gray-400 max-w-md">
+                    Browse our design marketplace to discover and add products to your cart
+                  </p>
+                  
+                  {/* CTA Button */}
+                  <button
+                    onClick={() => setActiveTab('designs')}
+                    className="mt-6 relative group overflow-hidden rounded-xl"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                    />
-                  </svg>
+                    <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-500 transition-transform group-hover:scale-105"></div>
+                    <div className="relative px-6 py-3 font-semibold text-white flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span>Browse Designs</span>
+                    </div>
+                  </button>
                 </div>
-                
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Your cart is empty</h3>
-                <p className="text-gray-600">
-                  Browse our design marketplace to add products
-                </p>
               </div>
             </div>
           )}
@@ -1533,130 +1679,177 @@ export default function BuyerPortal() {
         {/* Profile Modal */}
         {showProfile && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto my-8">
-              {/* Modal Header */}
-              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900">Edit Profile</h2>
-                <button
-                  onClick={() => setShowProfile(false)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
+            {/* Backdrop with blur */}
+            <div 
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setShowProfile(false)}
+            ></div>
 
-              {/* Modal Content */}
-              <div className="p-6">
-                {isLoadingProfile ? (
-                  <div className="flex items-center justify-center py-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            {/* Modal Container */}
+            <div className="relative max-w-2xl w-full my-8 animate-fade-in-up">
+              {/* Glowing border effect */}
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl blur opacity-30"></div>
+              
+              <div className="relative bg-slate-900/95 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
+                {/* Modal Header */}
+                <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-xl border-b border-white/10 px-6 py-5 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    <h2 className="text-2xl font-bold text-white">Edit Profile</h2>
                   </div>
-                ) : (
-                  <form onSubmit={handleUpdateProfile} className="space-y-6">
-                    {/* Full Name */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Full Name
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.fullName}
-                        onChange={(e) => handleInputChange('fullName', e.target.value)}
-                        placeholder="Enter your full name (optional)"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                      />
-                    </div>
+                  <button
+                    onClick={() => setShowProfile(false)}
+                    className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
 
-                    {/* Email Address */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Email Address
-                      </label>
-                      <input
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
-                        placeholder="Enter your email address (optional)"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                      />
+                {/* Modal Content */}
+                <div className="p-6 overflow-y-auto">
+                  {isLoadingProfile ? (
+                    <div className="flex flex-col items-center justify-center py-12">
+                      <div className="relative">
+                        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+                        <div className="absolute inset-0 animate-ping rounded-full h-16 w-16 border border-blue-500 opacity-20"></div>
+                      </div>
+                      <p className="mt-4 text-gray-400">Loading your profile...</p>
                     </div>
+                  ) : (
+                    <form onSubmit={handleUpdateProfile} className="space-y-6">
+                      {/* Full Name */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Full Name
+                        </label>
+                        <div className="relative group">
+                          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                          <input
+                            type="text"
+                            value={formData.fullName}
+                            onChange={(e) => handleInputChange('fullName', e.target.value)}
+                            placeholder="Enter your full name (optional)"
+                            className="relative w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 transition-all"
+                          />
+                        </div>
+                      </div>
 
-                    {/* Company Name */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Company Name
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.companyName}
-                        onChange={(e) => handleInputChange('companyName', e.target.value)}
-                        placeholder="Enter your company name (optional)"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                      />
-                    </div>
+                      {/* Email Address */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Email Address
+                        </label>
+                        <div className="relative group">
+                          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                          <input
+                            type="email"
+                            value={formData.email}
+                            onChange={(e) => handleInputChange('email', e.target.value)}
+                            placeholder="Enter your email address (optional)"
+                            className="relative w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 transition-all"
+                          />
+                        </div>
+                      </div>
 
-                    {/* GST Number */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        GST Number
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.gstNumber}
-                        onChange={(e) => handleInputChange('gstNumber', e.target.value)}
-                        placeholder="Enter GST number (optional)"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                      />
-                    </div>
+                      {/* Company Name */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Company Name
+                        </label>
+                        <div className="relative group">
+                          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                          <input
+                            type="text"
+                            value={formData.companyName}
+                            onChange={(e) => handleInputChange('companyName', e.target.value)}
+                            placeholder="Enter your company name (optional)"
+                            className="relative w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 transition-all"
+                          />
+                        </div>
+                      </div>
 
-                    {/* Business Address */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Business Address
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.businessAddress}
-                        onChange={(e) => handleInputChange('businessAddress', e.target.value)}
-                        placeholder="Enter your business address"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
-                      />
-                    </div>
+                      {/* GST Number */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          GST Number
+                        </label>
+                        <div className="relative group">
+                          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                          <input
+                            type="text"
+                            value={formData.gstNumber}
+                            onChange={(e) => handleInputChange('gstNumber', e.target.value)}
+                            placeholder="Enter GST number (optional)"
+                            className="relative w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 transition-all"
+                          />
+                        </div>
+                      </div>
 
-                    {/* About Your Business */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        About Your Business
-                      </label>
-                      <textarea
-                        value={formData.aboutBusiness}
-                        onChange={(e) => handleInputChange('aboutBusiness', e.target.value)}
-                        placeholder="Tell us about your business (optional)"
-                        rows={4}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400 resize-none"
-                      />
-                    </div>
+                      {/* Business Address */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Business Address
+                        </label>
+                        <div className="relative group">
+                          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                          <input
+                            type="text"
+                            value={formData.businessAddress}
+                            onChange={(e) => handleInputChange('businessAddress', e.target.value)}
+                            placeholder="Enter your business address"
+                            className="relative w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 transition-all"
+                          />
+                        </div>
+                      </div>
 
-                    {/* Form Actions */}
-                    <div className="flex gap-4 pt-4">
-                      <button
-                        type="button"
-                        onClick={() => setShowProfile(false)}
-                        className="flex-1 px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-colors"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        className="flex-1 px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors"
-                      >
-                        Save Changes
-                      </button>
-                    </div>
-                  </form>
-                )}
+                      {/* About Your Business */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          About Your Business
+                        </label>
+                        <div className="relative group">
+                          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                          <textarea
+                            value={formData.aboutBusiness}
+                            onChange={(e) => handleInputChange('aboutBusiness', e.target.value)}
+                            placeholder="Tell us about your business (optional)"
+                            rows={4}
+                            className="relative w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 resize-none transition-all"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Form Actions */}
+                      <div className="flex gap-4 pt-4">
+                        <button
+                          type="button"
+                          onClick={() => setShowProfile(false)}
+                          className="flex-1 px-4 py-3 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 text-white font-semibold rounded-xl transition-all"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="relative flex-1 group overflow-hidden rounded-xl"
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 transition-transform group-hover:scale-105"></div>
+                          <div className="relative px-4 py-3 font-semibold text-white flex items-center justify-center gap-2">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Save Changes</span>
+                          </div>
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -1666,251 +1859,307 @@ export default function BuyerPortal() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
-      {/* Left Side - Blue Section */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 text-white p-6 sm:p-8 lg:p-12 flex-col justify-between">
-        {/* Logo and Title */}
-        <div>
-          <div className="flex items-center gap-3 sm:gap-4 mb-8 lg:mb-12">
-            <div className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-lg">
-              <Image
-                src="/groupo-logo.png"
-                alt="Groupo Logo"
-                width={60}
-                height={60}
-                className="w-auto h-auto"
-              />
-            </div>
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-bold">Grupo</h1>
-              <p className="text-blue-100 text-xs sm:text-sm mt-1">One-Stop AI Manufacturing Platform</p>
-            </div>
-          </div>
-
-          {/* Main Heading */}
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-4 sm:mb-6 mt-12 lg:mt-20">
-            Your Global Manufacturing Partner
-          </h2>
-
-          {/* Description */}
-          <p className="text-base sm:text-lg text-blue-100 leading-relaxed mb-8 sm:mb-12 max-w-lg">
-            Connect with verified manufacturers worldwide. Get competitive
-            quotes, track orders in real-time, and streamline your entire
-            production process on one platform.
-          </p>
-
-          {/* Features */}
-          <div className="space-y-4 sm:space-y-6">
-            <div className="flex items-start gap-3 sm:gap-4">
-              <div className="bg-white/20 rounded-full p-2 sm:p-3 backdrop-blur-sm flex-shrink-0">
-                <svg
-                  className="w-5 h-5 sm:w-6 sm:h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg sm:text-xl mb-1">Real-time Quotes</h3>
-                <p className="text-blue-100 text-sm sm:text-base">Get instant quotes from verified manufacturers</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3 sm:gap-4">
-              <div className="bg-white/20 rounded-full p-2 sm:p-3 backdrop-blur-sm flex-shrink-0">
-                <svg
-                  className="w-5 h-5 sm:w-6 sm:h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                  />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg sm:text-xl mb-1">Order Tracking</h3>
-                <p className="text-blue-100 text-sm sm:text-base">Monitor your orders from production to delivery</p>
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
       </div>
 
-      {/* Right Side - Login Form */}
-      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-gray-50">
-        <div className="w-full max-w-md">
-          {/* Mobile Logo - Only visible on small screens */}
-          <div className="lg:hidden flex items-center justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
-            <Image
-              src="/groupo-logo.png"
-              alt="Groupo Logo"
-              width={40}
-              height={40}
-              className="w-10 h-10 sm:w-12 sm:h-12"
-            />
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-blue-600">Grupo</h1>
-              <p className="text-xs text-gray-600">One-Stop AI Manufacturing Platform</p>
-            </div>
-          </div>
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
 
-          {/* Login Card */}
-          <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-6 sm:p-8">
-            {/* Phone Icon */}
-            <div className="flex justify-center mb-4 sm:mb-6">
-              <div className="bg-blue-500 rounded-full p-3 sm:p-4">
-                <svg
-                  className="w-6 h-6 sm:w-8 sm:h-8 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+      <div className="relative min-h-screen flex flex-col lg:flex-row">
+        {/* Left Side - Hero Section */}
+        <div className="hidden lg:flex lg:w-1/2 p-12 flex-col justify-between relative">
+          {/* Glassmorphism card */}
+          <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
+          
+          <div className="relative z-10">
+            {/* Logo with animation */}
+            <div className="flex items-center gap-4 mb-16 animate-fade-in-down">
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
+                <div className="relative bg-white rounded-2xl p-3 shadow-2xl">
+                  <Image
+                    src="/groupo-logo.png"
+                    alt="Groupo Logo"
+                    width={48}
+                    height={48}
+                    className="w-12 h-12"
                   />
-                </svg>
+                </div>
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                  Grupo
+                </h1>
+                <p className="text-sm text-gray-400">AI Manufacturing Platform</p>
               </div>
             </div>
 
-            {/* Title */}
-            <h2 className="text-xl sm:text-2xl font-bold text-center text-gray-800 mb-2">
-              Buyer Portal
-            </h2>
-
-            {step === 'phone' ? (
-              <>
-                <p className="text-center text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">
-                  Enter your phone number to get started
+            {/* Main content */}
+            <div className="space-y-8 animate-fade-in-up animation-delay-200">
+              <div>
+                <h2 className="text-5xl font-bold text-white leading-tight mb-4">
+                  Manufacture<br />
+                  <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                    Anything, Anywhere
+                  </span>
+                </h2>
+                <p className="text-lg text-gray-400 leading-relaxed max-w-lg">
+                  Connect with 1000+ verified manufacturers worldwide. Get instant quotes, 
+                  AI-powered matching, and real-time order tracking.
                 </p>
+              </div>
 
-                {/* Phone Form */}
-                <form onSubmit={handleSendOTP}>
-                  <div className="mb-5 sm:mb-6">
-                    <label
-                      htmlFor="phone"
-                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-2"
-                    >
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      placeholder="+1 (555) 000-0000"
-                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none text-gray-900 placeholder:text-gray-400"
-                      required
-                    />
+              {/* Feature cards */}
+              <div className="space-y-4">
+                {[
+                  { icon: "⚡", title: "Instant Quotes", desc: "AI-powered matching in seconds", delay: "300" },
+                  { icon: "🌍", title: "Global Network", desc: "50+ countries, 1000+ manufacturers", delay: "400" },
+                  { icon: "🔒", title: "Secure & Verified", desc: "All manufacturers QC certified", delay: "500" }
+                ].map((feature, index) => (
+                  <div 
+                    key={index}
+                    className={`group flex items-center gap-4 p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300 animate-fade-in-right animation-delay-${feature.delay}`}
+                  >
+                    <div className="text-3xl group-hover:scale-110 transition-transform duration-300">
+                      {feature.icon}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white">{feature.title}</h3>
+                      <p className="text-sm text-gray-400">{feature.desc}</p>
+                    </div>
                   </div>
-
-                  <button
-                    type="submit"
-                    className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 sm:py-3 text-sm sm:text-base rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
-                  >
-                    Send OTP
-                  </button>
-                </form>
-              </>
-            ) : (
-              <>
-                <p className="text-center text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">
-                  Enter the OTP sent to your phone
-                </p>
-
-                {/* OTP Form */}
-                <form onSubmit={handleVerifyOTP}>
-                  <div className="mb-5 sm:mb-6">
-                    <label
-                      htmlFor="otp"
-                      className="block text-xs sm:text-sm font-medium text-gray-800 mb-2"
-                    >
-                      One-Time Password
-                    </label>
-                    <input
-                      type="text"
-                      id="otp"
-                      value={otp}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/\D/g, '');
-                        if (value.length <= 6) {
-                          setOtp(value);
-                        }
-                      }}
-                      placeholder="Enter 6-digit OTP"
-                      maxLength={6}
-                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border-2 border-blue-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-center text-base sm:text-lg tracking-widest text-gray-900 placeholder:text-gray-400"
-                      required
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 sm:py-3 text-sm sm:text-base rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg mb-3 sm:mb-4"
-                  >
-                    Verify & Login
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleChangePhoneNumber}
-                    className="w-full text-gray-700 font-medium py-2 text-sm sm:text-base hover:text-blue-600 transition-colors duration-200"
-                  >
-                    Change Phone Number
-                  </button>
-                </form>
-              </>
-            )}
-
-            {step === 'phone' && (
-              <>
-                {/* Divider */}
-                <div className="relative my-5 sm:my-6">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300"></div>
-                  </div>
-                  <div className="relative flex justify-center text-xs sm:text-sm">
-                    <span className="px-2 bg-white text-gray-500">OR CONTINUE AS</span>
-                  </div>
-                </div>
-
-                {/* Other Portal Links */}
-                <div className="space-y-2.5 sm:space-y-3">
-                  <Link
-                    href="/manufacturer-portal"
-                    className="block w-full text-center py-2.5 sm:py-3 text-sm sm:text-base rounded-lg border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 text-gray-700 font-medium transition-all"
-                  >
-                    Manufacturer Portal
-                  </Link>
-                  <Link
-                    href="/admin-portal"
-                    className="block w-full text-center py-2.5 sm:py-3 text-sm sm:text-base rounded-lg border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 text-gray-700 font-medium transition-all"
-                  >
-                    Admin Portal
-                  </Link>
-                </div>
-              </>
-            )}
+                ))}
+              </div>
+            </div>
           </div>
 
-          {/* Trust Message */}
-          <p className="text-center text-xs sm:text-sm text-gray-500 mt-6 sm:mt-8">
-            Trusted by manufacturers and buyers in 50+ countries
-          </p>
+          {/* Stats footer */}
+          <div className="relative z-10 grid grid-cols-3 gap-6 animate-fade-in-up animation-delay-600">
+            {[
+              { value: "10K+", label: "Orders" },
+              { value: "1K+", label: "Buyers" },
+              { value: "50+", label: "Countries" }
+            ].map((stat, index) => (
+              <div key={index} className="text-center">
+                <div className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                  {stat.value}
+                </div>
+                <div className="text-sm text-gray-400">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right Side - Login Form */}
+        <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
+          <div className="w-full max-w-md">
+            {/* Mobile Logo */}
+            <div className="lg:hidden flex items-center justify-center gap-3 mb-8 animate-fade-in-down">
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl blur opacity-75 animate-pulse"></div>
+                <div className="relative bg-white rounded-2xl p-2.5">
+                  <Image
+                    src="/groupo-logo.png"
+                    alt="Groupo Logo"
+                    width={40}
+                    height={40}
+                    className="w-10 h-10"
+                  />
+                </div>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                  Grupo
+                </h1>
+                <p className="text-xs text-gray-400">AI Manufacturing Platform</p>
+              </div>
+            </div>
+
+            {/* Login Card */}
+            <div className="relative group animate-fade-in-up animation-delay-200">
+              {/* Glowing border effect */}
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl blur opacity-30 group-hover:opacity-50 transition duration-1000"></div>
+              
+              <div className="relative bg-slate-900/90 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl">
+                {/* Icon with animation */}
+                <div className="flex justify-center mb-6">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl blur-md opacity-50 animate-pulse"></div>
+                    <div className="relative bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl p-4">
+                      <svg
+                        className="w-8 h-8 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Title */}
+                <div className="text-center mb-8">
+                  <h2 className="text-2xl font-bold text-white mb-2">
+                    Welcome to Buyer Portal
+                  </h2>
+                  <p className="text-gray-400 text-sm">
+                    {step === 'phone' ? 'Enter your phone number to continue' : 'Verify your identity'}
+                  </p>
+                </div>
+
+                {step === 'phone' ? (
+                  <>
+                    {/* Phone Form */}
+                    <form onSubmit={handleSendOTP} className="space-y-6">
+                      <div>
+                        <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-2">
+                          Phone Number
+                        </label>
+                        <div className="relative group">
+                          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl blur opacity-0 group-hover:opacity-20 transition duration-300"></div>
+                          <input
+                            type="tel"
+                            id="phone"
+                            value={phoneNumber}
+                            onChange={(e) => setPhoneNumber(e.target.value)}
+                            placeholder="+1 (555) 000-0000"
+                            className="relative w-full px-4 py-3.5 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none text-white placeholder:text-gray-500"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={isLoadingOtp}
+                        className="relative w-full group overflow-hidden rounded-xl disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 transition-transform group-hover:scale-105"></div>
+                        <div className="relative px-6 py-3.5 font-semibold text-white flex items-center justify-center gap-2">
+                          {isLoadingOtp ? (
+                            <>
+                              <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              <span>Sending...</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>Send OTP</span>
+                              <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                              </svg>
+                            </>
+                          )}
+                        </div>
+                      </button>
+                    </form>
+
+                    {/* Divider */}
+                    <div className="relative my-8">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-white/10"></div>
+                      </div>
+                      <div className="relative flex justify-center text-sm">
+                        <span className="px-4 bg-slate-900/90 text-gray-400">OR CONTINUE AS</span>
+                      </div>
+                    </div>
+
+                    {/* Other Portal Links */}
+                    <div className="space-y-3">
+                      <Link
+                        href="/manufacturer-portal"
+                        className="block w-full text-center py-3 rounded-xl border border-white/10 hover:border-purple-500/50 hover:bg-white/5 text-gray-300 font-medium transition-all group"
+                      >
+                        <span className="group-hover:text-purple-400 transition-colors">Manufacturer Portal</span>
+                      </Link>
+                      <Link
+                        href="/admin-portal"
+                        className="block w-full text-center py-3 rounded-xl border border-white/10 hover:border-purple-500/50 hover:bg-white/5 text-gray-300 font-medium transition-all group"
+                      >
+                        <span className="group-hover:text-purple-400 transition-colors">Admin Portal</span>
+                      </Link>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* OTP Form */}
+                    <form onSubmit={handleVerifyOTP} className="space-y-6">
+                      <div>
+                        <label htmlFor="otp" className="block text-sm font-medium text-gray-300 mb-2">
+                          Verification Code
+                        </label>
+                        <div className="relative group">
+                          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl blur opacity-20 group-hover:opacity-30 transition duration-300"></div>
+                          <input
+                            type="text"
+                            id="otp"
+                            value={otp}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\D/g, '');
+                              if (value.length <= 6) {
+                                setOtp(value);
+                              }
+                            }}
+                            placeholder="000000"
+                            maxLength={6}
+                            className="relative w-full px-4 py-4 bg-slate-800/50 border-2 border-purple-500/50 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all outline-none text-center text-2xl tracking-[0.5em] text-white placeholder:text-gray-600 font-mono"
+                            required
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500 text-center mt-2">
+                          Enter the 6-digit code sent to your phone
+                        </p>
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="relative w-full group overflow-hidden rounded-xl"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 transition-transform group-hover:scale-105"></div>
+                        <div className="relative px-6 py-3.5 font-semibold text-white flex items-center justify-center gap-2">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span>Verify & Continue</span>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleChangePhoneNumber}
+                        className="w-full text-gray-400 hover:text-purple-400 font-medium py-2 text-sm transition-colors"
+                      >
+                        ← Change Phone Number
+                      </button>
+                    </form>
+                  </>
+                )}
+
+                {/* Trust badges */}
+                <div className="mt-8 pt-6 border-t border-white/10">
+                  <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+                    <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span>Trusted by 1000+ brands in 50+ countries</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
