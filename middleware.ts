@@ -10,6 +10,7 @@ export default function middleware(request: NextRequest) {
     '/',
     '/buyer-portal',
     '/manufacturer-portal',
+    '/admin',
     '/api',
     '/login',
     '/auth'

@@ -1803,13 +1803,21 @@ export default function ManufacturerPortal() {
                       </div>
                     </div>
 
-                    {/* Switch to Buyer Portal */}
-                    <Link
-                      href="/buyer-portal"
-                      className="block w-full text-center py-3 rounded-xl border border-white/10 hover:border-orange-500/50 hover:bg-white/5 text-gray-300 font-medium transition-all group"
-                    >
-                      <span className="group-hover:text-orange-400 transition-colors">Switch to Buyer Portal</span>
-                    </Link>
+                    {/* Other Portal Links */}
+                    <div className="space-y-3">
+                      <Link
+                        href="/buyer-portal"
+                        className="block w-full text-center py-3 rounded-xl border border-white/10 hover:border-orange-500/50 hover:bg-white/5 text-gray-300 font-medium transition-all group"
+                      >
+                        <span className="group-hover:text-orange-400 transition-colors">Buyer Portal</span>
+                      </Link>
+                      <Link
+                        href="/admin"
+                        className="block w-full text-center py-3 rounded-xl border border-white/10 hover:border-orange-500/50 hover:bg-white/5 text-gray-300 font-medium transition-all group"
+                      >
+                        <span className="group-hover:text-orange-400 transition-colors">Admin Portal</span>
+                      </Link>
+                    </div>
                   </>
                 ) : (
                   <>

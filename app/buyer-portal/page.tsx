@@ -2198,7 +2198,7 @@ export default function BuyerPortal() {
                         <span className="group-hover:text-purple-400 transition-colors">Manufacturer Portal</span>
                       </Link>
                       <Link
-                        href="/admin-portal"
+                        href="/admin"
                         className="block w-full text-center py-3 rounded-xl border border-white/10 hover:border-purple-500/50 hover:bg-white/5 text-gray-300 font-medium transition-all group"
                       >
                         <span className="group-hover:text-purple-400 transition-colors">Admin Portal</span>
