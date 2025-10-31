@@ -193,7 +193,7 @@ export default function BuyerPortal() {
           if (manufacturer.product_types && manufacturer.product_types.length > 0) {
             features.push(`Specializes in ${manufacturer.product_types[0]}`);
           }
-          if (manufacturer.daily_capacity > 500) {
+          if ((manufacturer.daily_capacity ?? 0) > 500) {
             features.push('Large Volume Capacity');
           }
           if (features.length < 3) {
