@@ -9,6 +9,18 @@ import apiService from '../lib/apiService';
 
 type TabType = 'designs' | 'instant-quote' | 'custom-quote' | 'my-orders' | 'chats' | 'requirements' | 'cart';
 
+type Manufacturer = {
+  id: string | number;
+  unit_name?: string;
+  verification_status?: string;
+  msme_number?: string;
+  product_types?: string[];
+  daily_capacity?: number;
+  is_verified?: boolean;
+  location?: string;
+  business_type?: string;
+};
+
 export default function BuyerPortal() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
@@ -162,10 +174,10 @@ export default function BuyerPortal() {
       });
 
       if (response.success && response.data.manufacturers && response.data.manufacturers.length > 0) {
-        const manufacturerList = response.data.manufacturers;
+        const manufacturerList: Manufacturer[] = response.data.manufacturers as Manufacturer[];
         
         // Map real manufacturers to quote format with mock pricing
-        const mappedQuotes = manufacturerList.map((manufacturer, index) => {
+        const mappedQuotes = manufacturerList.map((manufacturer: Manufacturer, index: number) => {
           // Calculate mock pricing based on manufacturer data
           const dailyCapacity = manufacturer.daily_capacity || 1000;
           const basePrice = Math.max(10, 30 - (dailyCapacity / 500)); // Higher capacity = lower price
