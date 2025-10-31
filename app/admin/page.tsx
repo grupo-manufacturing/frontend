@@ -2,11 +2,35 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import apiService from '../lib/apiService';
 
 type TabType = 'buyers' | 'manufacturers' | 'analytics' | 'settings';
+
+interface Manufacturer {
+  id: number;
+  phone_number: string;
+  unit_name?: string;
+  business_name?: string;
+  business_type?: string;
+  contact_person_name?: string;
+  verified: boolean;
+  verification_status?: string;
+  onboarding_completed: boolean;
+  created_at: string;
+}
+
+interface Buyer {
+  id: number;
+  phone_number: string;
+  full_name?: string;
+  business_name?: string;
+  verified: boolean;
+  verification_status?: string;
+  onboarding_completed: boolean;
+  created_at: string;
+}
 
 export default function AdminPortal() {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -15,6 +39,12 @@ export default function AdminPortal() {
   const [isLoadingOtp, setIsLoadingOtp] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('buyers');
   const router = useRouter();
+  
+  // Data states
+  const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
+  const [buyers, setBuyers] = useState<Buyer[]>([]);
+  const [isLoadingData, setIsLoadingData] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,6 +114,51 @@ export default function AdminPortal() {
     setPhoneNumber('');
     setOtp('');
   };
+
+  // Fetch data when tab changes or dashboard loads
+  useEffect(() => {
+    if (step === 'dashboard') {
+      fetchData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, activeTab]);
+
+  const fetchData = async () => {
+    setIsLoadingData(true);
+    try {
+      if (activeTab === 'manufacturers') {
+        const response = await apiService.getAllManufacturers({
+          sortBy: 'created_at',
+          sortOrder: 'desc'
+        });
+        setManufacturers(response.data?.manufacturers || []);
+      } else if (activeTab === 'buyers') {
+        const response = await apiService.getAllBuyers({
+          sortBy: 'created_at',
+          sortOrder: 'desc'
+        });
+        setBuyers(response.data?.buyers || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch data:', error);
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
+  // Filter data based on search query
+  const filteredManufacturers = manufacturers.filter((m) =>
+    m.unit_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    m.business_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    m.phone_number.includes(searchQuery) ||
+    m.contact_person_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredBuyers = buyers.filter((b) =>
+    b.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    b.business_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    b.phone_number.includes(searchQuery)
+  );
 
   // Dashboard View
   if (step === 'dashboard') {
@@ -291,10 +366,320 @@ export default function AdminPortal() {
 
         {/* Main Content */}
         <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center text-white">
-            <h1 className="text-3xl font-bold mb-4">Welcome to Admin Portal</h1>
-            <p className="text-gray-400">Dashboard content coming soon...</p>
-          </div>
+          {/* Buyers Tab Content */}
+          {activeTab === 'buyers' && (
+            <div className="space-y-6 animate-fade-in">
+              {/* Header with Stats */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h1 className="text-3xl font-bold text-white mb-2">Buyers Management</h1>
+                  <p className="text-gray-400">Manage and monitor all registered buyers</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="px-4 py-2 bg-gradient-to-r from-red-500/20 to-orange-500/20 border border-red-500/30 rounded-lg">
+                    <div className="text-sm text-gray-400">Total Buyers</div>
+                    <div className="text-2xl font-bold text-white">{buyers.length}</div>
+                  </div>
+                  <div className="px-4 py-2 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-lg">
+                    <div className="text-sm text-gray-400">Verified</div>
+                    <div className="text-2xl font-bold text-white">{buyers.filter(b => b.verified).length}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Search Bar */}
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 rounded-xl blur opacity-0 group-hover:opacity-20 transition duration-300"></div>
+                <div className="relative flex items-center">
+                  <svg className="absolute left-4 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Search by name, business, or phone number..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all outline-none text-white placeholder:text-gray-500"
+                  />
+                </div>
+              </div>
+
+              {/* Buyers List */}
+              {isLoadingData ? (
+                <div className="flex items-center justify-center py-20">
+                  <div className="text-center">
+                    <svg className="animate-spin h-12 w-12 text-red-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p className="text-gray-400">Loading buyers...</p>
+                  </div>
+                </div>
+              ) : filteredBuyers.length === 0 ? (
+                <div className="text-center py-20">
+                  <div className="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold text-white mb-2">No buyers found</h3>
+                  <p className="text-gray-400">
+                    {searchQuery ? 'Try adjusting your search query' : 'No buyers have registered yet'}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {filteredBuyers.map((buyer) => (
+                    <div key={buyer.id} className="relative group">
+                      <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                      <div className="relative bg-slate-800/50 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:border-red-500/50 transition-all">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-start gap-4 flex-1">
+                            {/* Avatar */}
+                            <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-red-500 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                              {buyer.full_name ? buyer.full_name.charAt(0).toUpperCase() : buyer.phone_number.charAt(0)}
+                            </div>
+                            
+                            {/* Info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="text-lg font-semibold text-white truncate">
+                                  {buyer.full_name || 'Unnamed Buyer'}
+                                </h3>
+                                {buyer.verified && (
+                                  <svg className="w-5 h-5 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                  </svg>
+                                )}
+                              </div>
+                              
+                              <div className="space-y-1">
+                                {buyer.business_name && (
+                                  <p className="text-sm text-gray-400">
+                                    <span className="text-gray-500">Business:</span> {buyer.business_name}
+                                  </p>
+                                )}
+                                <p className="text-sm text-gray-400">
+                                  <span className="text-gray-500">Phone:</span> {buyer.phone_number}
+                                </p>
+                                <p className="text-sm text-gray-400">
+                                  <span className="text-gray-500">Joined:</span> {new Date(buyer.created_at).toLocaleDateString()}
+                                </p>
+                              </div>
+
+                              {/* Status Badges */}
+                              <div className="flex flex-wrap gap-2 mt-3">
+                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                                  buyer.verified 
+                                    ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                                    : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                                }`}>
+                                  {buyer.verified ? 'Verified' : 'Unverified'}
+                                </span>
+                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                                  buyer.onboarding_completed
+                                    ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                                    : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+                                }`}>
+                                  {buyer.onboarding_completed ? 'Onboarded' : 'Pending Onboarding'}
+                                </span>
+                                {buyer.verification_status && (
+                                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                                    {buyer.verification_status}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Action Button */}
+                          <button className="flex-shrink-0 p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Manufacturers Tab Content */}
+          {activeTab === 'manufacturers' && (
+            <div className="space-y-6 animate-fade-in">
+              {/* Header with Stats */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h1 className="text-3xl font-bold text-white mb-2">Manufacturers Management</h1>
+                  <p className="text-gray-400">Manage and monitor all registered manufacturers</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="px-4 py-2 bg-gradient-to-r from-red-500/20 to-orange-500/20 border border-red-500/30 rounded-lg">
+                    <div className="text-sm text-gray-400">Total Manufacturers</div>
+                    <div className="text-2xl font-bold text-white">{manufacturers.length}</div>
+                  </div>
+                  <div className="px-4 py-2 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-lg">
+                    <div className="text-sm text-gray-400">Verified</div>
+                    <div className="text-2xl font-bold text-white">{manufacturers.filter(m => m.verified).length}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Search Bar */}
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 rounded-xl blur opacity-0 group-hover:opacity-20 transition duration-300"></div>
+                <div className="relative flex items-center">
+                  <svg className="absolute left-4 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Search by unit name, contact person, or phone number..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all outline-none text-white placeholder:text-gray-500"
+                  />
+                </div>
+              </div>
+
+              {/* Manufacturers List */}
+              {isLoadingData ? (
+                <div className="flex items-center justify-center py-20">
+                  <div className="text-center">
+                    <svg className="animate-spin h-12 w-12 text-red-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p className="text-gray-400">Loading manufacturers...</p>
+                  </div>
+                </div>
+              ) : filteredManufacturers.length === 0 ? (
+                <div className="text-center py-20">
+                  <div className="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold text-white mb-2">No manufacturers found</h3>
+                  <p className="text-gray-400">
+                    {searchQuery ? 'Try adjusting your search query' : 'No manufacturers have registered yet'}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {filteredManufacturers.map((manufacturer) => (
+                    <div key={manufacturer.id} className="relative group">
+                      <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                      <div className="relative bg-slate-800/50 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:border-red-500/50 transition-all">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-start gap-4 flex-1">
+                            {/* Avatar */}
+                            <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                              {(manufacturer.unit_name || manufacturer.business_name || manufacturer.phone_number).charAt(0).toUpperCase()
+                              }
+                            </div>
+                            
+                            {/* Info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="text-lg font-semibold text-white truncate">
+                                  {manufacturer.unit_name || manufacturer.business_name || 'Unnamed Manufacturer'}
+                                </h3>
+                                {manufacturer.verified && (
+                                  <svg className="w-5 h-5 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                  </svg>
+                                )}
+                              </div>
+                              
+                              <div className="space-y-1">
+                                {manufacturer.contact_person_name && (
+                                  <p className="text-sm text-gray-400">
+                                    <span className="text-gray-500">Contact:</span> {manufacturer.contact_person_name}
+                                  </p>
+                                )}
+                                {manufacturer.business_type && (
+                                  <p className="text-sm text-gray-400">
+                                    <span className="text-gray-500">Type:</span> {manufacturer.business_type}
+                                  </p>
+                                )}
+                                <p className="text-sm text-gray-400">
+                                  <span className="text-gray-500">Phone:</span> {manufacturer.phone_number}
+                                </p>
+                                <p className="text-sm text-gray-400">
+                                  <span className="text-gray-500">Joined:</span> {new Date(manufacturer.created_at).toLocaleDateString()}
+                                </p>
+                              </div>
+
+                              {/* Status Badges */}
+                              <div className="flex flex-wrap gap-2 mt-3">
+                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                                  manufacturer.verified 
+                                    ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                                    : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                                }`}>
+                                  {manufacturer.verified ? 'Verified' : 'Unverified'}
+                                </span>
+                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                                  manufacturer.onboarding_completed
+                                    ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                                    : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+                                }`}>
+                                  {manufacturer.onboarding_completed ? 'Onboarded' : 'Pending Onboarding'}
+                                </span>
+                                {manufacturer.verification_status && (
+                                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                                    {manufacturer.verification_status}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Action Button */}
+                          <button className="flex-shrink-0 p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Analytics Tab Content */}
+          {activeTab === 'analytics' && (
+            <div className="text-center text-white py-20">
+              <div className="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <h1 className="text-3xl font-bold mb-4">Analytics Dashboard</h1>
+              <p className="text-gray-400">Analytics features coming soon...</p>
+            </div>
+          )}
+
+          {/* Settings Tab Content */}
+          {activeTab === 'settings' && (
+            <div className="text-center text-white py-20">
+              <div className="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <h1 className="text-3xl font-bold mb-4">Settings</h1>
+              <p className="text-gray-400">Settings panel coming soon...</p>
+            </div>
+          )}
         </main>
       </div>
     );
