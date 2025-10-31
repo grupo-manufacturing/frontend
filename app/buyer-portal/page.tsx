@@ -27,6 +27,7 @@ export default function BuyerPortal() {
   const [sizes, setSizes] = useState('');
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [quotes, setQuotes] = useState<any[]>([]);
+  const [isLoadingQuotes, setIsLoadingQuotes] = useState(false);
   
   // Custom Quote Form States
   const [requirement, setRequirement] = useState('');
@@ -144,69 +145,136 @@ export default function BuyerPortal() {
     setOtp('');
   };
 
-  const handleGenerateQuotes = () => {
+  const handleGenerateQuotes = async () => {
     // Validate required fields
     if (!brandName || !productType || !quantity) {
       alert('Please fill in Brand Name, Product Type, and Quantity');
       return;
     }
 
-    // Mock quotes data
-    const mockQuotes = [
-      {
-        id: 1,
-        manufacturer: 'Premium Manufacturer',
-        badge: 'Premium',
-        rating: 4.8,
-        totalPrice: 5760,
-        pricePerUnit: 19.2,
-        delivery: '20-25 days',
-        features: [
-          'GOTS Certified Materials',
-          'Premium Quality Control',
-          'Custom Packaging Available',
-          'Free Sample Before Order',
-          'Eco-Friendly Production'
-        ],
-        bestValue: true
-      },
-      {
-        id: 2,
-        manufacturer: 'Standard Manufacturer',
-        badge: 'Standard',
-        rating: 4.5,
-        totalPrice: 4800,
-        pricePerUnit: 16,
-        delivery: '25-30 days',
-        features: [
-          'Quality Certified Materials',
-          'Standard Quality Control',
-          'Bulk Order Discounts',
-          'Fast Turnaround',
-          'Reliable Shipping'
-        ],
-        bestValue: false
-      },
-      {
-        id: 3,
-        manufacturer: 'Budget Manufacturer',
-        badge: 'Standard',
-        rating: 4.2,
-        totalPrice: 4080,
-        pricePerUnit: 13.6,
-        delivery: '30-35 days',
-        features: [
-          'Cost-Effective Solution',
-          'Basic Quality Control',
-          'Flexible Payment Terms',
-          'Large Volume Capacity',
-          'Competitive Pricing'
-        ],
-        bestValue: false
-      }
-    ];
+    setIsLoadingQuotes(true);
+    
+    try {
+      // Fetch real manufacturers from backend
+      const response = await apiService.getAllManufacturers({
+        onboarding_completed: true,
+        limit: 3
+      });
 
-    setQuotes(mockQuotes);
+      if (response.success && response.data.manufacturers && response.data.manufacturers.length > 0) {
+        const manufacturerList = response.data.manufacturers;
+        
+        // Map real manufacturers to quote format with mock pricing
+        const mappedQuotes = manufacturerList.map((manufacturer, index) => {
+          // Calculate mock pricing based on manufacturer data
+          const dailyCapacity = manufacturer.daily_capacity || 1000;
+          const basePrice = Math.max(10, 30 - (dailyCapacity / 500)); // Higher capacity = lower price
+          const adjustedPrice = basePrice * (1 + (index * 0.15)); // Slight price variation
+          const totalPrice = parseFloat(adjustedPrice.toFixed(2)) * parseInt(quantity);
+          const pricePerUnit = parseFloat(adjustedPrice.toFixed(2));
+          
+          // Generate mock features based on manufacturer data
+          const features = [];
+          if (manufacturer.is_verified) features.push('Verified Manufacturer');
+          if (manufacturer.verification_status === 'approved') features.push('Approved by Grupo');
+          if (manufacturer.msme_number) features.push('MSME Certified');
+          if (manufacturer.product_types && manufacturer.product_types.length > 0) {
+            features.push(`Specializes in ${manufacturer.product_types[0]}`);
+          }
+          if (manufacturer.daily_capacity > 500) {
+            features.push('Large Volume Capacity');
+          }
+          if (features.length < 3) {
+            features.push('Quality Assured', 'On-Time Delivery', 'Competitive Pricing');
+          }
+          
+          // Generate delivery estimate based on capacity
+          let deliveryDays = '25-30';
+          if (dailyCapacity > 2000) deliveryDays = '20-25';
+          else if (dailyCapacity < 500) deliveryDays = '30-35';
+
+          return {
+            id: manufacturer.id,
+            manufacturer: manufacturer.unit_name || `Manufacturer ${index + 1}`,
+            badge: manufacturer.verification_status === 'approved' ? 'Premium' : 'Standard',
+            rating: parseFloat((4.2 + (index * 0.2)).toFixed(1)), // Mock ratings from 4.2 to 4.6, rounded to 1 decimal
+            totalPrice: Math.round(totalPrice),
+            pricePerUnit: pricePerUnit,
+            delivery: `${deliveryDays} days`,
+            features: features.slice(0, 5), // Limit to 5 features
+            bestValue: index === 1, // Middle manufacturer as best value
+            location: manufacturer.location || 'Location not specified',
+            businessType: manufacturer.business_type || 'Manufacturing',
+            capacity: manufacturer.daily_capacity || 0
+          };
+        });
+
+        setQuotes(mappedQuotes);
+      } else {
+        // Fallback to mock data if no manufacturers found
+        console.warn('No manufacturers found, using mock data');
+        const mockQuotes = [
+          {
+            id: 1,
+            manufacturer: 'Premium Manufacturer',
+            badge: 'Premium',
+            rating: 4.8,
+            totalPrice: 5760,
+            pricePerUnit: 19.2,
+            delivery: '20-25 days',
+            features: [
+              'GOTS Certified Materials',
+              'Premium Quality Control',
+              'Custom Packaging Available',
+              'Free Sample Before Order',
+              'Eco-Friendly Production'
+            ],
+            bestValue: true
+          },
+          {
+            id: 2,
+            manufacturer: 'Standard Manufacturer',
+            badge: 'Standard',
+            rating: 4.5,
+            totalPrice: 4800,
+            pricePerUnit: 16,
+            delivery: '25-30 days',
+            features: [
+              'Quality Certified Materials',
+              'Standard Quality Control',
+              'Bulk Order Discounts',
+              'Fast Turnaround',
+              'Reliable Shipping'
+            ],
+            bestValue: false
+          },
+          {
+            id: 3,
+            manufacturer: 'Budget Manufacturer',
+            badge: 'Standard',
+            rating: 4.2,
+            totalPrice: 4080,
+            pricePerUnit: 13.6,
+            delivery: '30-35 days',
+            features: [
+              'Cost-Effective Solution',
+              'Basic Quality Control',
+              'Flexible Payment Terms',
+              'Large Volume Capacity',
+              'Competitive Pricing'
+            ],
+            bestValue: false
+          }
+        ];
+        setQuotes(mockQuotes);
+      }
+    } catch (error) {
+      console.error('Failed to fetch manufacturers:', error);
+      alert('Failed to load manufacturers. Please try again.');
+      setQuotes([]);
+    } finally {
+      setIsLoadingQuotes(false);
+    }
   };
 
 
@@ -977,22 +1045,35 @@ export default function BuyerPortal() {
                       <button
                         type="button"
                         onClick={handleGenerateQuotes}
-                        className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                        disabled={isLoadingQuotes}
+                        className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M13 10V3L4 14h7v7l9-11h-7z"
-                          />
-                        </svg>
-                        Generate Instant Quotes
+                        {isLoadingQuotes ? (
+                          <>
+                            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Loading Manufacturers...
+                          </>
+                        ) : (
+                          <>
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M13 10V3L4 14h7v7l9-11h-7z"
+                              />
+                            </svg>
+                            Generate Instant Quotes
+                          </>
+                        )}
                       </button>
                   </form>
                 </div>
