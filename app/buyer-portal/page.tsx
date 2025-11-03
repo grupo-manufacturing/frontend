@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import AIChatbot from '../components/AIChatbot';
 import apiService from '../lib/apiService';
@@ -59,6 +59,8 @@ export default function BuyerPortal() {
   const [selectedManufacturer, setSelectedManufacturer] = useState<any | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [isManufacturerTyping, setIsManufacturerTyping] = useState(false);
   
   // Profile form states
   const [formData, setFormData] = useState({
@@ -368,6 +370,7 @@ export default function BuyerPortal() {
     ));
     
     // Simulate manufacturer response after 2 seconds
+    setIsManufacturerTyping(true);
     setTimeout(() => {
       const response = {
         id: messages.length + 2,
@@ -376,7 +379,49 @@ export default function BuyerPortal() {
         timestamp: new Date().toISOString()
       };
       setMessages(prev => [...prev, response]);
+      setIsManufacturerTyping(false);
     }, 2000);
+  };
+
+  // Mock attachment handlers
+  const handleAttachClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelected = (e: any) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file || !selectedManufacturer) return;
+
+    const objectUrl = URL.createObjectURL(file);
+    const isImage = file.type.startsWith('image/');
+
+    const attachmentMessage: any = {
+      id: messages.length + 1,
+      sender: 'buyer',
+      timestamp: new Date().toISOString(),
+      attachment: {
+        type: isImage ? 'image' : 'file',
+        url: objectUrl,
+        name: file.name,
+        size: file.size,
+        mime: file.type
+      }
+    };
+
+    setMessages(prev => [...prev, attachmentMessage]);
+    setConversations(prev => prev.map(conv => 
+      conv.manufacturerId === selectedManufacturer.id 
+        ? { 
+            ...conv, 
+            lastMessage: isImage ? '📷 Image' : `📎 ${file.name}`, 
+            timestamp: new Date().toISOString() 
+          }
+        : conv
+    ));
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   // Form handlers
@@ -1929,7 +1974,44 @@ export default function BuyerPortal() {
                                     : 'bg-slate-700/50 text-white'
                                 }`}
                               >
-                                <p className="text-sm">{message.text}</p>
+                                {message.attachment ? (
+                                  message.attachment.type === 'image' ? (
+                                    <div className="space-y-2">
+                                      <img
+                                        src={message.attachment.url}
+                                        alt={message.attachment.name || 'Image attachment'}
+                                        className="rounded-lg max-h-64 w-auto object-cover"
+                                      />
+                                      {message.attachment.name && (
+                                        <p className={`text-xs ${message.sender === 'buyer' ? 'text-blue-100' : 'text-gray-300'}`}>
+                                          {message.attachment.name}
+                                        </p>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <a
+                                      href={message.attachment.url}
+                                      download={message.attachment.name}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="flex items-center gap-3 px-3 py-2 rounded-lg bg-black/10 hover:bg-black/20 transition-colors"
+                                    >
+                                      <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828L20 7m-4.828 0H21m-5.828 0V2" />
+                                      </svg>
+                                      <div className="min-w-0">
+                                        <p className="text-sm truncate">{message.attachment.name || 'Attachment'}</p>
+                                        {typeof message.attachment.size === 'number' && (
+                                          <p className={`text-xs ${message.sender === 'buyer' ? 'text-blue-100' : 'text-gray-300'}`}>
+                                            {Math.round(message.attachment.size / 1024)} KB
+                                          </p>
+                                        )}
+                                      </div>
+                                    </a>
+                                  )
+                                ) : (
+                                  <p className="text-sm">{message.text}</p>
+                                )}
                                 <p className={`text-xs mt-1 ${
                                   message.sender === 'buyer' ? 'text-blue-100' : 'text-gray-400'
                                 }`}>
@@ -1938,6 +2020,17 @@ export default function BuyerPortal() {
                               </div>
                             </div>
                           ))}
+                          {isManufacturerTyping && (
+                            <div className="flex justify-start">
+                              <div className="max-w-[70%] rounded-2xl px-4 py-2.5 bg-slate-700/50 text-white">
+                                <div className="flex items-center gap-2">
+                                  <span className="inline-block w-2 h-2 rounded-full bg-gray-300 animate-pulse" style={{ animationDelay: '0ms' }}></span>
+                                  <span className="inline-block w-2 h-2 rounded-full bg-gray-300 animate-pulse" style={{ animationDelay: '150ms' }}></span>
+                                  <span className="inline-block w-2 h-2 rounded-full bg-gray-300 animate-pulse" style={{ animationDelay: '300ms' }}></span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
 
                         {/* Message Input */}
@@ -1953,7 +2046,7 @@ export default function BuyerPortal() {
                             />
                             <button
                               type="button"
-                              onClick={() => {/* TODO: open file picker */}}
+                              onClick={handleAttachClick}
                               aria-label="Add attachment"
                               title="Add attachment"
                               className="px-3 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl hover:border-blue-500/40 text-gray-300 hover:text-white transition-colors flex items-center justify-center"
@@ -1962,6 +2055,13 @@ export default function BuyerPortal() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12.79V7a5 5 0 00-9.9-1m-.1 0v12a4 4 0 008 0V8a3 3 0 00-6 0v9" />
                               </svg>
                             </button>
+                            <input
+                              ref={fileInputRef}
+                              type="file"
+                              accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.zip"
+                              className="hidden"
+                              onChange={handleFileSelected}
+                            />
                             <button
                               onClick={handleSendMessage}
                               disabled={!newMessage.trim()}
