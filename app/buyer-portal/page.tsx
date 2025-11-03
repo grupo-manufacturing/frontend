@@ -55,6 +55,10 @@ export default function BuyerPortal() {
   
   // Chats States
   const [chatSearchQuery, setChatSearchQuery] = useState('');
+  const [conversations, setConversations] = useState<any[]>([]);
+  const [selectedManufacturer, setSelectedManufacturer] = useState<any | null>(null);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [newMessage, setNewMessage] = useState('');
   
   // Profile form states
   const [formData, setFormData] = useState({
@@ -289,6 +293,91 @@ export default function BuyerPortal() {
     }
   };
 
+  const handleOpenChat = (quote: any) => {
+    // Check if conversation already exists with this manufacturer
+    const existingConversation = conversations.find(conv => conv.manufacturerId === quote.id);
+    
+    if (!existingConversation) {
+      // Create a new conversation
+      const newConversation = {
+        id: Date.now(),
+        manufacturerId: quote.id,
+        manufacturerName: quote.manufacturer,
+        lastMessage: 'Start a conversation',
+        timestamp: new Date().toISOString(),
+        unread: 0,
+        rating: quote.rating,
+        location: quote.location,
+        badge: quote.badge
+      };
+      
+      setConversations(prev => [newConversation, ...prev]);
+      setSelectedManufacturer({
+        ...quote,
+        conversationId: newConversation.id
+      });
+      
+      // Initialize with a welcome message
+      setMessages([{
+        id: 1,
+        sender: 'manufacturer',
+        text: `Hi! Thank you for your interest. I'm from ${quote.manufacturer}. How can I help you with your order?`,
+        timestamp: new Date().toISOString()
+      }]);
+    } else {
+      // Open existing conversation
+      setSelectedManufacturer({
+        ...quote,
+        conversationId: existingConversation.id
+      });
+      
+      // Load messages for this conversation (in a real app, fetch from backend)
+      // For now, we'll just show a welcome message if no messages exist
+      if (messages.length === 0) {
+        setMessages([{
+          id: 1,
+          sender: 'manufacturer',
+          text: `Hi! Thank you for your interest. I'm from ${quote.manufacturer}. How can I help you with your order?`,
+          timestamp: new Date().toISOString()
+        }]);
+      }
+    }
+    
+    // Switch to chats tab
+    setActiveTab('chats');
+  };
+
+  const handleSendMessage = () => {
+    if (!newMessage.trim() || !selectedManufacturer) return;
+    
+    const message = {
+      id: messages.length + 1,
+      sender: 'buyer',
+      text: newMessage,
+      timestamp: new Date().toISOString()
+    };
+    
+    setMessages(prev => [...prev, message]);
+    setNewMessage('');
+    
+    // Update conversation's last message
+    setConversations(prev => prev.map(conv => 
+      conv.manufacturerId === selectedManufacturer.id 
+        ? { ...conv, lastMessage: newMessage, timestamp: new Date().toISOString() }
+        : conv
+    ));
+    
+    // Simulate manufacturer response after 2 seconds
+    setTimeout(() => {
+      const response = {
+        id: messages.length + 2,
+        sender: 'manufacturer',
+        text: 'Thank you for your message. We will get back to you shortly with more details.',
+        timestamp: new Date().toISOString()
+      };
+      setMessages(prev => [...prev, response]);
+    }, 2000);
+  };
 
   // Form handlers
   const handleInputChange = (field: string, value: string) => {
@@ -1178,13 +1267,16 @@ export default function BuyerPortal() {
                         </div>
 
                         {/* Action Button */}
-                        <button className="relative w-full group/btn overflow-hidden rounded-xl mt-auto">
+                        <button 
+                          onClick={() => handleOpenChat(quote)}
+                          className="relative w-full group/btn overflow-hidden rounded-xl mt-auto"
+                        >
                           <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 transition-transform group-hover/btn:scale-105"></div>
                           <div className="relative px-6 py-3 font-semibold text-white flex items-center justify-center gap-2">
-                            <span>Select Quote</span>
-                            <svg className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                             </svg>
+                            <span>Chat</span>
                           </div>
                         </button>
                       </div>
@@ -1621,63 +1713,284 @@ export default function BuyerPortal() {
                 <p className="text-gray-400">All your conversations in one place</p>
               </div>
 
-              {/* Search Bar */}
-              <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 p-4 mb-6">
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <svg
-                      className="h-5 w-5 text-gray-400 group-focus-within:text-blue-400 transition-colors"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              {conversations.length === 0 ? (
+                <>
+                  {/* Search Bar - Only shown when there are no conversations */}
+                  <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 p-4 mb-6">
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg
+                          className="h-5 w-5 text-gray-400 group-focus-within:text-blue-400 transition-colors"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                          />
+                        </svg>
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Search conversations..."
+                        value={chatSearchQuery}
+                        onChange={(e) => setChatSearchQuery(e.target.value)}
+                        className="w-full pl-11 pr-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 transition-all"
                       />
-                    </svg>
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Search conversations..."
-                    value={chatSearchQuery}
-                    onChange={(e) => setChatSearchQuery(e.target.value)}
-                    className="w-full pl-11 pr-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 transition-all"
-                  />
-                </div>
-              </div>
-
-              {/* Conversations List / Empty State */}
-              <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 p-12">
-                <div className="flex flex-col items-center justify-center text-center">
-                  {/* Chat Icon */}
-                  <div className="relative mb-6">
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-xl opacity-30"></div>
-                    <div className="relative bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full p-6 border border-blue-500/30">
-                      <svg
-                        className="w-16 h-16 text-blue-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                        />
-                      </svg>
                     </div>
                   </div>
-                  
-                  <h3 className="text-xl font-semibold text-white mb-2">No conversations yet</h3>
-                  <p className="text-gray-400 max-w-md">
-                    Start by submitting a quotation request or browsing the design marketplace
-                  </p>
+
+                  {/* Empty State */}
+                  <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 p-12">
+                    <div className="flex flex-col items-center justify-center text-center">
+                      {/* Chat Icon */}
+                      <div className="relative mb-6">
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-xl opacity-30"></div>
+                        <div className="relative bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full p-6 border border-blue-500/30">
+                          <svg
+                            className="w-16 h-16 text-blue-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1.5}
+                              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                      
+                      <h3 className="text-xl font-semibold text-white mb-2">No conversations yet</h3>
+                      <p className="text-gray-400 max-w-md mb-6">
+                        Start by getting quotes from manufacturers in the Instant Quote Generator
+                      </p>
+                      <button
+                        onClick={() => setActiveTab('instant-quote')}
+                        className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-500/50 transition-all"
+                      >
+                        Get Instant Quote
+                      </button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Conversations List */}
+                  <div className="lg:col-span-1">
+                    {/* Search Bar */}
+                    <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 p-4 mb-4">
+                      <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                          <svg
+                            className="h-5 w-5 text-gray-400 group-focus-within:text-blue-400 transition-colors"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                            />
+                          </svg>
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="Search..."
+                          value={chatSearchQuery}
+                          onChange={(e) => setChatSearchQuery(e.target.value)}
+                          className="w-full pl-11 pr-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Conversations */}
+                    <div className="space-y-2">
+                      {conversations
+                        .filter(conv => 
+                          chatSearchQuery === '' || 
+                          conv.manufacturerName.toLowerCase().includes(chatSearchQuery.toLowerCase())
+                        )
+                        .map((conv) => (
+                          <button
+                            key={conv.id}
+                            onClick={() => {
+                              setSelectedManufacturer({
+                                id: conv.manufacturerId,
+                                manufacturer: conv.manufacturerName,
+                                rating: conv.rating,
+                                location: conv.location,
+                                badge: conv.badge,
+                                conversationId: conv.id
+                              });
+                            }}
+                            className={`w-full text-left p-4 rounded-xl transition-all ${
+                              selectedManufacturer?.conversationId === conv.id
+                                ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 border-2 border-blue-500/50'
+                                : 'bg-slate-800/50 border border-white/10 hover:border-blue-500/30'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                  </svg>
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold text-white">{conv.manufacturerName}</h4>
+                                  <div className="flex items-center gap-1">
+                                    <span className={`text-xs px-2 py-0.5 rounded ${
+                                      conv.badge === 'Premium' 
+                                        ? 'bg-orange-500/20 text-orange-400' 
+                                        : 'bg-blue-500/20 text-blue-400'
+                                    }`}>
+                                      {conv.badge}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              {conv.unread > 0 && (
+                                <span className="bg-blue-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                  {conv.unread}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-400 truncate">{conv.lastMessage}</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {new Date(conv.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </button>
+                        ))}
+                    </div>
+                  </div>
+
+                  {/* Chat Interface */}
+                  <div className="lg:col-span-2">
+                    {selectedManufacturer ? (
+                      <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 h-[600px] flex flex-col">
+                        {/* Chat Header */}
+                        <div className="p-4 border-b border-white/10">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                </svg>
+                              </div>
+                              <div>
+                                <h3 className="font-bold text-white">{selectedManufacturer.manufacturer}</h3>
+                                <div className="flex items-center gap-2">
+                                  <span className={`text-xs px-2 py-0.5 rounded ${
+                                    selectedManufacturer.badge === 'Premium' 
+                                      ? 'bg-orange-500/20 text-orange-400' 
+                                      : 'bg-blue-500/20 text-blue-400'
+                                  }`}>
+                                    {selectedManufacturer.badge}
+                                  </span>
+                                  <div className="flex items-center gap-1">
+                                    <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                    <span className="text-sm text-gray-400">{selectedManufacturer.rating}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => setSelectedManufacturer(null)}
+                              className="lg:hidden p-2 text-gray-400 hover:text-white transition-colors"
+                            >
+                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Messages Area */}
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                          {messages.map((message) => (
+                            <div
+                              key={message.id}
+                              className={`flex ${message.sender === 'buyer' ? 'justify-end' : 'justify-start'}`}
+                            >
+                              <div
+                                className={`max-w-[70%] rounded-2xl px-4 py-2.5 ${
+                                  message.sender === 'buyer'
+                                    ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+                                    : 'bg-slate-700/50 text-white'
+                                }`}
+                              >
+                                <p className="text-sm">{message.text}</p>
+                                <p className={`text-xs mt-1 ${
+                                  message.sender === 'buyer' ? 'text-blue-100' : 'text-gray-400'
+                                }`}>
+                                  {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Message Input */}
+                        <div className="p-4 border-t border-white/10">
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={newMessage}
+                              onChange={(e) => setNewMessage(e.target.value)}
+                              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                              placeholder="Type your message..."
+                              className="flex-1 px-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white placeholder:text-gray-500 transition-all"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {/* TODO: open file picker */}}
+                              aria-label="Add attachment"
+                              title="Add attachment"
+                              className="px-3 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl hover:border-blue-500/40 text-gray-300 hover:text-white transition-colors flex items-center justify-center"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12.79V7a5 5 0 00-9.9-1m-.1 0v12a4 4 0 008 0V8a3 3 0 00-6 0v9" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={handleSendMessage}
+                              disabled={!newMessage.trim()}
+                              className="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-blue-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                              <span>Send</span>
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 h-[600px] flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="w-20 h-20 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg className="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
+                          </div>
+                          <h3 className="text-lg font-semibold text-white mb-2">Select a conversation</h3>
+                          <p className="text-gray-400">Choose a manufacturer to start chatting</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
           {activeTab === 'requirements' && (
