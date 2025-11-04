@@ -13,6 +13,13 @@ export default function ManufacturerPortal() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'phone' | 'otp' | 'onboarding' | 'dashboard'>('phone');
+  // On initial load, if a token exists, persist state across refresh
+  useEffect(() => {
+    if (typeof window !== 'undefined' && apiService.isAuthenticated()) {
+      const onboardingComplete = localStorage.getItem('manufacturerOnboardingComplete');
+      setStep(onboardingComplete === 'true' ? 'dashboard' : 'onboarding');
+    }
+  }, []);
   const [isLoadingOtp, setIsLoadingOtp] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('analytics');
   const [activeAnalyticsTab, setActiveAnalyticsTab] = useState<AnalyticsTabType>('revenue-trends');

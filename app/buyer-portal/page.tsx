@@ -25,6 +25,15 @@ export default function BuyerPortal() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'phone' | 'otp' | 'dashboard'>('phone');
+  // On initial load, if a token exists, persist dashboard state across refresh
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hasToken = apiService.isAuthenticated();
+      if (hasToken) {
+        setStep('dashboard');
+      }
+    }
+  }, []);
   const [isLoadingOtp, setIsLoadingOtp] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('designs');
   const [searchQuery, setSearchQuery] = useState('');
