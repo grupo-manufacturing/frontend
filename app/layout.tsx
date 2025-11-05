@@ -30,7 +30,6 @@ export default function RootLayout({
       >
         {children}
         {/* Global chat dock for portals */}
-        {/* @ts-expect-error Server Component imports Client Component */}
         <ChatDock />
       </body>
     </html>
