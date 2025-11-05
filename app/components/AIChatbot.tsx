@@ -357,7 +357,6 @@ What can I help you with?`;
                         successRate="92% Success Rate"
                         capacity="Capacity: 10,000 units/day"
                         priceRange="$8-12 per unit"
-                        onChat={handleManufacturerChat}
                         onOrder={() => handleManufacturerOrder("Manufacturer A", "$8-12 per unit", "Mumbai, India")}
                       />
                     ) : msg.manufacturerType === 'denim' ? (
@@ -369,7 +368,6 @@ What can I help you with?`;
                         successRate="88% Success Rate"
                         capacity="Capacity: 5,000 units/day"
                         priceRange="$15-25 per unit"
-                        onChat={handleManufacturerChat}
                         onOrder={() => handleManufacturerOrder("Manufacturer B", "$15-25 per unit", "Guangzhou, China")}
                       />
                     ) : null}

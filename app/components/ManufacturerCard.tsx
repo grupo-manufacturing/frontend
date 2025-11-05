@@ -1,5 +1,7 @@
 'use client';
 
+import React, { useState } from 'react';
+
 interface ManufacturerCardProps {
   name: string;
   rating: number;
@@ -8,8 +10,10 @@ interface ManufacturerCardProps {
   successRate: string;
   capacity: string;
   priceRange: string;
-  onChat: () => void;
+  onChat?: () => void;
   onOrder: () => void;
+  manufacturerId?: string;
+  buyerId?: string;
 }
 
 export default function ManufacturerCard({
@@ -21,8 +25,29 @@ export default function ManufacturerCard({
   capacity,
   priceRange,
   onChat,
-  onOrder
+  onOrder,
+  manufacturerId,
+  buyerId
 }: ManufacturerCardProps) {
+  const [openChat, setOpenChat] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+
+  async function handleChatClick() {
+    if (onChat) return onChat();
+    if (!buyerId || !manufacturerId) return;
+    const api = (await import('../lib/apiService')).default;
+    try {
+      const res = await api.ensureConversation(buyerId, manufacturerId);
+      const id = res.data?.conversation?.id;
+      if (id) {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('open-chat', { detail: { conversationId: id, buyerId, manufacturerId } }));
+        }
+      }
+    } catch (e) {
+      console.error('Failed to start conversation', e);
+    }
+  }
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
       {/* Header */}
@@ -95,7 +120,7 @@ export default function ManufacturerCard({
       {/* Action Buttons */}
       <div className="flex gap-3">
         <button
-          onClick={onChat}
+          onClick={handleChatClick}
           className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
         >
           <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,6 +139,13 @@ export default function ManufacturerCard({
           <span className="text-sm font-medium">Order</span>
         </button>
       </div>
+      {openChat && conversationId && buyerId && manufacturerId ? (
+        // @ts-ignore - dynamic import path resolution
+        (() => {
+          const ChatWindow = require('./chat/ChatWindow').default;
+          return <ChatWindow conversationId={conversationId} buyerId={buyerId} manufacturerId={manufacturerId} onClose={() => setOpenChat(false)} />;
+        })()
+      ) : null}
     </div>
   );
 }

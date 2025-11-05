@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import apiService from '../lib/apiService';
+import ChatList from '../components/chat/ChatList';
+import ChatWindow from '../components/chat/ChatWindow';
 
 type TabType = 'analytics' | 'requirements' | 'profile';
 type AnalyticsTabType = 'revenue-trends' | 'product-performance' | 'order-distribution';
@@ -23,6 +25,11 @@ export default function ManufacturerPortal() {
   const [isLoadingOtp, setIsLoadingOtp] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('analytics');
   const [activeAnalyticsTab, setActiveAnalyticsTab] = useState<AnalyticsTabType>('revenue-trends');
+  // Chat state (requirements inbox)
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [activeBuyerId, setActiveBuyerId] = useState<string | null>(null);
+  const [activeManufacturerId, setActiveManufacturerId] = useState<string | null>(null);
+  const [activeTitle, setActiveTitle] = useState<string | undefined>(undefined);
   
   // Onboarding form states
   const [formData, setFormData] = useState({
@@ -1263,43 +1270,44 @@ export default function ManufacturerPortal() {
           </div>
           )}
           {activeTab === 'requirements' && (
-            <div className="flex items-center justify-center min-h-[60vh]">
-              <div className="text-center animate-fade-in-up">
-                {/* Icon */}
-                <div className="flex justify-center mb-6">
-                  <div className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500/30 to-amber-500/30 rounded-full blur-xl opacity-75 group-hover:opacity-100 transition duration-300"></div>
-                    <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-full p-8 border border-white/10">
-                      <svg className="w-16 h-16 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                      </svg>
-                    </div>
-                  </div>
+            <div className="animate-fade-in-up">
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold text-white mb-2">Buyer Requirements</h1>
+                <p className="text-gray-400">Conversations initiated by buyers</p>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-1">
+                  <ChatList onOpenConversation={(cid, bid, mid, title) => {
+                    setActiveConversationId(cid);
+                    setActiveBuyerId(bid);
+                    setActiveManufacturerId(mid);
+                    setActiveTitle(title);
+                  }} />
                 </div>
-                
-                {/* Heading */}
-                <h1 className="text-2xl font-bold text-white mb-3">No Requirements Available</h1>
-                
-                {/* Subtitle */}
-                <p className="text-gray-400 mb-6">Check back later for new buyer requirements.</p>
-                
-                {/* Features Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8 max-w-3xl mx-auto">
-                  <div className="p-4 rounded-xl bg-slate-800/30 border border-white/10">
-                    <div className="text-3xl mb-2">📋</div>
-                    <p className="text-sm text-gray-300 font-medium">View Quotes</p>
-                    <p className="text-xs text-gray-500 mt-1">Accept or decline</p>
-                  </div>
-                  <div className="p-4 rounded-xl bg-slate-800/30 border border-white/10">
-                    <div className="text-3xl mb-2">⚡</div>
-                    <p className="text-sm text-gray-300 font-medium">Fast Response</p>
-                    <p className="text-xs text-gray-500 mt-1">Get notified instantly</p>
-                  </div>
-                  <div className="p-4 rounded-xl bg-slate-800/30 border border-white/10">
-                    <div className="text-3xl mb-2">💼</div>
-                    <p className="text-sm text-gray-300 font-medium">Track Orders</p>
-                    <p className="text-xs text-gray-500 mt-1">Manage all in one place</p>
-                  </div>
+                <div className="lg:col-span-2">
+                  {activeConversationId && activeBuyerId && activeManufacturerId ? (
+                    <ChatWindow
+                      conversationId={activeConversationId}
+                      buyerId={activeBuyerId}
+                      manufacturerId={activeManufacturerId}
+                      title={activeTitle}
+                      inline
+                      selfRole={'manufacturer'}
+                      onClose={() => setActiveConversationId(null)}
+                    />
+                  ) : (
+                    <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 h-[600px] flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="w-20 h-20 bg-gradient-to-br from-orange-500/20 to-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <svg className="w-10 h-10 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                          </svg>
+                        </div>
+                        <h3 className="text-lg font-semibold text-white mb-2">Select a requirement</h3>
+                        <p className="text-gray-400">Choose a conversation to reply to</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

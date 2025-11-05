@@ -1,6 +1,6 @@
 // API service for Grupo frontend
-// const API_BASE_URL = 'http://localhost:5000/api';
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://grupo-backend.onrender.com/api';
+const API_BASE_URL = 'http://localhost:5000/api';
+// const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://grupo-backend.onrender.com/api';
 
 class ApiService {
   constructor() {
@@ -42,6 +42,52 @@ class ApiService {
       console.error('API request failed:', error);
       throw error;
     }
+  }
+
+  // =====================
+  // Chat API
+  // =====================
+
+  async listConversations({ search, limit = 50, cursor, offset } = {}) {
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (limit) params.append('limit', String(limit));
+    if (cursor) params.append('cursor', cursor);
+    if (offset !== undefined) params.append('offset', String(offset));
+    const qs = params.toString();
+    return this.request(`/chat/conversations${qs ? `?${qs}` : ''}`, { method: 'GET' });
+  }
+
+  async ensureConversation(buyerId, manufacturerId) {
+    return this.request('/chat/conversations', {
+      method: 'POST',
+      body: JSON.stringify({ buyerId, manufacturerId })
+    });
+  }
+
+  async listMessages(conversationId, { before, limit = 50 } = {}) {
+    const params = new URLSearchParams();
+    if (before) params.append('before', before);
+    if (limit) params.append('limit', String(limit));
+    const qs = params.toString();
+    return this.request(`/chat/conversations/${conversationId}/messages${qs ? `?${qs}` : ''}`, { method: 'GET' });
+  }
+
+  async sendMessage(conversationId, { body, clientTempId }) {
+    return this.request(`/chat/conversations/${conversationId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ body, clientTempId })
+    });
+  }
+
+  async markRead(conversationId, { upTo, upToMessageId } = {}) {
+    const payload = {};
+    if (upTo) payload.upTo = upTo;
+    if (upToMessageId) payload.upToMessageId = upToMessageId;
+    return this.request(`/chat/conversations/${conversationId}/read`, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
   }
 
   /**
@@ -289,3 +335,10 @@ class ApiService {
 const apiService = new ApiService();
 
 export default apiService;
+export const getApiBaseOrigin = () => {
+  try {
+    return new URL(API_BASE_URL).origin;
+  } catch {
+    return '';
+  }
+};
