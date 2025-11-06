@@ -37,6 +37,7 @@ export default function AdminPortal() {
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'phone' | 'otp' | 'dashboard'>('phone');
   const [isLoadingOtp, setIsLoadingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('buyers');
   const router = useRouter();
   
@@ -76,7 +77,9 @@ export default function AdminPortal() {
 
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsVerifyingOtp(true);
     
+    try {
     // Demo credentials bypass
     if (phoneNumber === '9999999999' && otp === '999999') {
       console.log('Admin demo credentials verified - bypassing API call');
@@ -89,7 +92,6 @@ export default function AdminPortal() {
       return;
     }
     
-    try {
       console.log('Verifying admin OTP:', otp);
       const response = await apiService.verifyOTP(phoneNumber, otp, 'admin');
       console.log('OTP verified successfully:', response);
@@ -104,6 +106,8 @@ export default function AdminPortal() {
     } catch (error) {
       console.error('Failed to verify OTP:', error);
       alert('Invalid OTP. Please try again.');
+    } finally {
+      setIsVerifyingOtp(false);
     }
   };
 
@@ -1619,14 +1623,28 @@ export default function AdminPortal() {
 
                       <button
                         type="submit"
-                        className="relative w-full group overflow-hidden rounded-xl"
+                        disabled={isVerifyingOtp}
+                        className={`relative w-full group overflow-hidden rounded-xl ${isVerifyingOtp ? 'cursor-not-allowed opacity-70' : ''}`}
+                        aria-busy={isVerifyingOtp}
                       >
-                        <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 transition-transform group-hover:scale-105"></div>
+                        <div className={`absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 transition-transform ${isVerifyingOtp ? '' : 'group-hover:scale-105'}`}></div>
                         <div className="relative px-6 py-3.5 font-semibold text-white flex items-center justify-center gap-2">
+                          {isVerifyingOtp ? (
+                            <>
+                              <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              <span>Verifying...</span>
+                            </>
+                          ) : (
+                            <>
                           <span>Verify & Login</span>
                           <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
+                            </>
+                          )}
                         </div>
                       </button>
 
