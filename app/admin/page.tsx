@@ -1395,29 +1395,14 @@ export default function AdminPortal() {
 
   // Login View
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-red-900 to-slate-900">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-red-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-orange-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
-      </div>
-
-      {/* Grid pattern overlay */}
-      <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
-
+    <div className="min-h-screen relative overflow-hidden bg-white">
       <div className="relative min-h-screen flex flex-col lg:flex-row">
         {/* Left Side - Hero Section */}
-        <div className="hidden lg:flex lg:w-1/2 p-12 flex-col justify-between relative">
-          {/* Glassmorphism card */}
-          <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
-          
+        <div className="hidden lg:flex lg:w-1/2 bg-black p-12 flex-col justify-between relative">
           <div className="relative z-10">
-            {/* Logo with animation */}
-            <div className="flex items-center gap-4 mb-16 animate-fade-in-down">
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
-                <div className="relative bg-white rounded-2xl p-3 shadow-2xl">
+            {/* Logo */}
+            <div className="flex items-center gap-4 mb-16">
+              <div className="relative bg-white rounded-2xl p-3">
                   <Image
                     src="/groupo-logo.png"
                     alt="Groupo Logo"
@@ -1425,19 +1410,18 @@ export default function AdminPortal() {
                     height={48}
                     className="w-12 h-12"
                   />
-                </div>
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-white">Grupo Admin</h1>
-                <p className="text-gray-300">Management Portal</p>
+                <p className="text-gray-400">Management Portal</p>
               </div>
             </div>
 
             {/* Feature highlights */}
-            <div className="space-y-8 animate-fade-in-up">
+            <div className="space-y-8">
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex-shrink-0 w-12 h-12 bg-white rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                   </svg>
                 </div>
@@ -1448,8 +1432,8 @@ export default function AdminPortal() {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-xl flex items-center justify-center shadow-lg">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex-shrink-0 w-12 h-12 bg-white rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </div>
@@ -1460,8 +1444,8 @@ export default function AdminPortal() {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-yellow-500 to-red-500 rounded-xl flex items-center justify-center shadow-lg">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex-shrink-0 w-12 h-12 bg-white rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                 </div>
@@ -1474,7 +1458,7 @@ export default function AdminPortal() {
           </div>
 
           {/* Bottom text */}
-          <div className="relative z-10 animate-fade-in-up animation-delay-1000">
+          <div className="relative z-10">
             <p className="text-gray-400 text-sm">
               © 2024 Grupo. All rights reserved.
             </p>
@@ -1482,13 +1466,11 @@ export default function AdminPortal() {
         </div>
 
         {/* Right Side - Login Form */}
-        <div className="flex-1 flex items-center justify-center p-6 lg:p-12 relative z-10">
+        <div className="flex-1 flex items-center justify-center p-6 lg:p-12 bg-white relative z-10">
           <div className="w-full max-w-md">
             {/* Mobile Logo */}
             <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 rounded-xl blur opacity-75 group-hover:opacity-100 transition duration-300"></div>
-                <div className="relative bg-white rounded-xl p-2">
+              <div className="relative bg-black rounded-xl p-2">
                   <Image
                     src="/groupo-logo.png"
                     alt="Groupo Logo"
@@ -1497,22 +1479,18 @@ export default function AdminPortal() {
                     className="w-10 h-10"
                   />
                 </div>
-              </div>
-              <span className="text-2xl font-bold text-white">Grupo Admin</span>
+              <span className="text-2xl font-bold text-black">Grupo Admin</span>
             </div>
 
             {/* Login Card */}
-            <div className="relative group">
-              {/* Animated border gradient */}
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-1000 animate-pulse"></div>
-              
-              <div className="relative bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
+            <div className="relative">
+              <div className="relative bg-white border-2 border-black rounded-2xl p-8 shadow-xl">
                 {/* Header */}
                 <div className="text-center mb-8">
-                  <h2 className="text-3xl font-bold text-white mb-2">
+                  <h2 className="text-3xl font-bold text-black mb-2">
                     Admin Login
                   </h2>
-                  <p className="text-gray-400">
+                  <p className="text-gray-600">
                     {step === 'phone' ? 'Enter your admin credentials to continue' : 'Verify your identity'}
                   </p>
                 </div>
@@ -1522,18 +1500,17 @@ export default function AdminPortal() {
                     {/* Phone Form */}
                     <form onSubmit={handleSendOTP} className="space-y-6">
                       <div>
-                        <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-2">
+                        <label htmlFor="phone" className="block text-sm font-medium text-black mb-2">
                           Admin Phone Number
                         </label>
-                        <div className="relative group">
-                          <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 rounded-xl blur opacity-0 group-hover:opacity-20 transition duration-300"></div>
+                        <div className="relative">
                           <input
                             type="tel"
                             id="phone"
                             value={phoneNumber}
                             onChange={(e) => setPhoneNumber(e.target.value)}
                             placeholder="9999999999"
-                            className="relative w-full px-4 py-3.5 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all outline-none text-white placeholder:text-gray-500"
+                            className="relative w-full px-4 py-3.5 bg-white border-2 border-gray-300 rounded-xl focus:border-black transition-all outline-none text-black placeholder:text-gray-400"
                             required
                           />
                         </div>
@@ -1545,10 +1522,8 @@ export default function AdminPortal() {
                       <button
                         type="submit"
                         disabled={isLoadingOtp}
-                        className="relative w-full group overflow-hidden rounded-xl disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="w-full bg-black text-white px-6 py-3.5 rounded-xl font-semibold hover:bg-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
-                        <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 transition-transform group-hover:scale-105"></div>
-                        <div className="relative px-6 py-3.5 font-semibold text-white flex items-center justify-center gap-2">
                           {isLoadingOtp ? (
                             <>
                               <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -1560,51 +1535,23 @@ export default function AdminPortal() {
                           ) : (
                             <>
                               <span>Send OTP</span>
-                              <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                               </svg>
                             </>
                           )}
-                        </div>
                       </button>
                     </form>
-
-                    {/* Divider */}
-                    <div className="relative my-8">
-                      <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-white/10"></div>
-                      </div>
-                      <div className="relative flex justify-center text-sm">
-                        <span className="px-4 bg-slate-900/90 text-gray-400">OR CONTINUE AS</span>
-                      </div>
-                    </div>
-
-                    {/* Other Portal Links */}
-                    <div className="space-y-3">
-                      <Link
-                        href="/buyer-portal"
-                        className="block w-full text-center py-3 rounded-xl border border-white/10 hover:border-red-500/50 hover:bg-white/5 text-gray-300 font-medium transition-all group"
-                      >
-                        <span className="group-hover:text-red-400 transition-colors">Buyer Portal</span>
-                      </Link>
-                      <Link
-                        href="/manufacturer-portal"
-                        className="block w-full text-center py-3 rounded-xl border border-white/10 hover:border-red-500/50 hover:bg-white/5 text-gray-300 font-medium transition-all group"
-                      >
-                        <span className="group-hover:text-red-400 transition-colors">Manufacturer Portal</span>
-                      </Link>
-                    </div>
                   </>
                 ) : (
                   <>
                     {/* OTP Form */}
                     <form onSubmit={handleVerifyOTP} className="space-y-6">
                       <div>
-                        <label htmlFor="otp" className="block text-sm font-medium text-gray-300 mb-2">
+                        <label htmlFor="otp" className="block text-sm font-medium text-black mb-2">
                           Enter OTP
                         </label>
-                        <div className="relative group">
-                          <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 rounded-xl blur opacity-0 group-hover:opacity-20 transition duration-300"></div>
+                        <div className="relative">
                           <input
                             type="text"
                             id="otp"
@@ -1612,7 +1559,7 @@ export default function AdminPortal() {
                             onChange={(e) => setOtp(e.target.value)}
                             placeholder="000000"
                             maxLength={6}
-                            className="relative w-full px-4 py-3.5 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all outline-none text-white placeholder:text-gray-500 text-center text-2xl tracking-widest"
+                            className="relative w-full px-4 py-3.5 bg-white border-2 border-black rounded-xl focus:border-black transition-all outline-none text-black placeholder:text-gray-400 text-center text-2xl tracking-widest"
                             required
                           />
                         </div>
@@ -1624,11 +1571,9 @@ export default function AdminPortal() {
                       <button
                         type="submit"
                         disabled={isVerifyingOtp}
-                        className={`relative w-full group overflow-hidden rounded-xl ${isVerifyingOtp ? 'cursor-not-allowed opacity-70' : ''}`}
+                        className="w-full bg-black text-white px-6 py-3.5 rounded-xl font-semibold hover:bg-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         aria-busy={isVerifyingOtp}
                       >
-                        <div className={`absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 transition-transform ${isVerifyingOtp ? '' : 'group-hover:scale-105'}`}></div>
-                        <div className="relative px-6 py-3.5 font-semibold text-white flex items-center justify-center gap-2">
                           {isVerifyingOtp ? (
                             <>
                               <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -1640,12 +1585,11 @@ export default function AdminPortal() {
                           ) : (
                             <>
                           <span>Verify & Login</span>
-                          <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                             </>
                           )}
-                        </div>
                       </button>
 
                       <button
@@ -1654,7 +1598,7 @@ export default function AdminPortal() {
                           setStep('phone');
                           setOtp('');
                         }}
-                        className="w-full text-center text-sm text-gray-400 hover:text-red-400 transition-colors"
+                        className="w-full text-center text-sm text-gray-600 hover:text-black transition-colors"
                       >
                         ← Back to phone number
                       </button>

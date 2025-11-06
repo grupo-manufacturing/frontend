@@ -24,6 +24,7 @@ type Manufacturer = {
 };
 
 export default function BuyerPortal() {
+  const [countryCode, setCountryCode] = useState('+91');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'phone' | 'otp' | 'dashboard'>('phone');
@@ -152,6 +153,8 @@ export default function BuyerPortal() {
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const fullPhoneNumber = countryCode + phoneNumber;
+    
     // Demo credentials bypass
     if (phoneNumber === '1234567890') {
       console.log('Demo credentials detected - bypassing OTP');
@@ -165,8 +168,8 @@ export default function BuyerPortal() {
     
     setIsLoadingOtp(true);
     try {
-    console.log('Sending OTP to:', phoneNumber);
-      const response = await apiService.sendOTP(phoneNumber, 'buyer');
+    console.log('Sending OTP to:', fullPhoneNumber);
+      const response = await apiService.sendOTP(fullPhoneNumber, 'buyer');
       console.log('OTP sent successfully:', response);
     setStep('otp');
     } catch (error) {
@@ -207,8 +210,9 @@ export default function BuyerPortal() {
         return;
       }
       
+      const fullPhoneNumber = countryCode + phoneNumber;
       console.log('Verifying OTP:', otp);
-      const response = await apiService.verifyOTP(phoneNumber, otp, 'buyer');
+      const response = await apiService.verifyOTP(fullPhoneNumber, otp, 'buyer');
       console.log('OTP verified successfully:', response);
       
       // Store token and user data
@@ -2138,29 +2142,14 @@ export default function BuyerPortal() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
-      </div>
-
-      {/* Grid pattern overlay */}
-      <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
-
+    <div className="min-h-screen relative overflow-hidden bg-white">
       <div className="relative min-h-screen flex flex-col lg:flex-row">
         {/* Left Side - Hero Section */}
-        <div className="hidden lg:flex lg:w-1/2 p-12 flex-col justify-between relative">
-          {/* Glassmorphism card */}
-          <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
-          
+        <div className="hidden lg:flex lg:w-1/2 bg-black p-12 flex-col justify-between relative">
           <div className="relative z-10">
-            {/* Logo with animation */}
-            <div className="flex items-center gap-4 mb-16 animate-fade-in-down">
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
-                <div className="relative bg-white rounded-2xl p-3 shadow-2xl">
+            {/* Logo */}
+            <div className="flex items-center gap-4 mb-16">
+              <div className="relative bg-white rounded-2xl p-3">
                   <Image
                     src="/groupo-logo.png"
                     alt="Groupo Logo"
@@ -2168,10 +2157,9 @@ export default function BuyerPortal() {
                     height={48}
                     className="w-12 h-12"
                   />
-                </div>
               </div>
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <h1 className="text-3xl font-bold text-white">
                   Grupo
                 </h1>
                 <p className="text-sm text-gray-400">AI Manufacturing Platform</p>
@@ -2179,11 +2167,11 @@ export default function BuyerPortal() {
             </div>
 
             {/* Main content */}
-            <div className="space-y-8 animate-fade-in-up animation-delay-200">
+            <div className="space-y-8">
               <div>
                 <h2 className="text-5xl font-bold text-white leading-tight mb-4">
                   Manufacture<br />
-                  <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  <span className="text-white">
                     Anything, Anywhere
                   </span>
                 </h2>
@@ -2196,13 +2184,13 @@ export default function BuyerPortal() {
               {/* Feature cards */}
               <div className="space-y-4">
                 {[
-                  { icon: "⚡", title: "Instant Quotes", desc: "AI-powered matching in seconds", delay: "300" },
-                  { icon: "🌍", title: "Global Network", desc: "50+ countries, 1000+ manufacturers", delay: "400" },
-                  { icon: "🔒", title: "Secure & Verified", desc: "All manufacturers QC certified", delay: "500" }
+                  { icon: "⚡", title: "Instant Quotes", desc: "AI-powered matching in seconds" },
+                  { icon: "🌍", title: "Global Network", desc: "50+ countries, 1000+ manufacturers" },
+                  { icon: "🔒", title: "Secure & Verified", desc: "All manufacturers QC certified" }
                 ].map((feature, index) => (
                   <div 
                     key={index}
-                    className={`group flex items-center gap-4 p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300 animate-fade-in-right animation-delay-${feature.delay}`}
+                    className="group flex items-center gap-4 p-4 rounded-xl border border-gray-800 hover:border-gray-700 transition-all duration-300"
                   >
                     <div className="text-3xl group-hover:scale-110 transition-transform duration-300">
                       {feature.icon}
@@ -2216,32 +2204,14 @@ export default function BuyerPortal() {
               </div>
             </div>
           </div>
-
-          {/* Stats footer */}
-          <div className="relative z-10 grid grid-cols-3 gap-6 animate-fade-in-up animation-delay-600">
-            {[
-              { value: "10K+", label: "Orders" },
-              { value: "1K+", label: "Buyers" },
-              { value: "50+", label: "Countries" }
-            ].map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  {stat.value}
-                </div>
-                <div className="text-sm text-gray-400">{stat.label}</div>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Right Side - Login Form */}
-        <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
+        <div className="flex-1 flex items-center justify-center p-6 lg:p-12 bg-white">
           <div className="w-full max-w-md">
             {/* Mobile Logo */}
-            <div className="lg:hidden flex items-center justify-center gap-3 mb-8 animate-fade-in-down">
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl blur opacity-75 animate-pulse"></div>
-                <div className="relative bg-white rounded-2xl p-2.5">
+            <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
+              <div className="relative bg-black rounded-2xl p-2.5">
                   <Image
                     src="/groupo-logo.png"
                     alt="Groupo Logo"
@@ -2249,27 +2219,21 @@ export default function BuyerPortal() {
                     height={40}
                     className="w-10 h-10"
                   />
-                </div>
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-bold text-black">
                   Grupo
                 </h1>
-                <p className="text-xs text-gray-400">AI Manufacturing Platform</p>
+                <p className="text-xs text-gray-600">AI Manufacturing Platform</p>
               </div>
             </div>
 
             {/* Login Card */}
-            <div className="relative group animate-fade-in-up animation-delay-200">
-              {/* Glowing border effect */}
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl blur opacity-30 group-hover:opacity-50 transition duration-1000"></div>
-              
-              <div className="relative bg-slate-900/90 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl">
-                {/* Icon with animation */}
-                <div className="flex justify-center mb-6">
                   <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl blur-md opacity-50 animate-pulse"></div>
-                    <div className="relative bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl p-4">
+              <div className="relative bg-white rounded-3xl p-8 border-2 border-black shadow-xl">
+                {/* Icon */}
+                <div className="flex justify-center mb-6">
+                  <div className="relative bg-black rounded-2xl p-4">
                       <svg
                         className="w-8 h-8 text-white"
                         fill="none"
@@ -2283,16 +2247,15 @@ export default function BuyerPortal() {
                           d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                         />
                       </svg>
-                    </div>
                   </div>
                 </div>
 
                 {/* Title */}
                 <div className="text-center mb-8">
-                  <h2 className="text-2xl font-bold text-white mb-2">
+                  <h2 className="text-2xl font-bold text-black mb-2">
                     Welcome to Buyer Portal
                   </h2>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-600 text-sm">
                     {step === 'phone' ? 'Enter your phone number to continue' : 'Verify your identity'}
                   </p>
                 </div>
@@ -2302,18 +2265,27 @@ export default function BuyerPortal() {
                     {/* Phone Form */}
                     <form onSubmit={handleSendOTP} className="space-y-6">
                       <div>
-                        <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-2">
+                        <label htmlFor="phone" className="block text-sm font-medium text-black mb-2">
                           Phone Number
                         </label>
-                        <div className="relative group">
-                          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl blur opacity-0 group-hover:opacity-20 transition duration-300"></div>
+                        <div className="relative flex gap-2">
+                          <select
+                            value={countryCode}
+                            onChange={(e) => setCountryCode(e.target.value)}
+                            className="w-32 px-3 py-3.5 bg-white border-2 border-gray-300 rounded-xl focus:border-black transition-all outline-none text-black font-medium"
+                          >
+                            <option value="+91">🇮🇳 +91</option>
+                            <option value="+1">🇺🇸 +1</option>
+                            <option value="+44">🇬🇧 +44</option>
+                            <option value="+971">🇦🇪 +971</option>
+                          </select>
                           <input
                             type="tel"
                             id="phone"
                             value={phoneNumber}
-                            onChange={(e) => setPhoneNumber(e.target.value)}
-                            placeholder="+1 (555) 000-0000"
-                            className="relative w-full px-4 py-3.5 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none text-white placeholder:text-gray-500"
+                            onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
+                            placeholder="1234567890"
+                            className="flex-1 px-4 py-3.5 bg-white border-2 border-gray-300 rounded-xl focus:border-black transition-all outline-none text-black placeholder:text-gray-400"
                             required
                           />
                         </div>
@@ -2322,10 +2294,8 @@ export default function BuyerPortal() {
                       <button
                         type="submit"
                         disabled={isLoadingOtp}
-                        className="relative w-full group overflow-hidden rounded-xl disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="w-full bg-black text-white px-6 py-3.5 rounded-xl font-semibold hover:bg-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 transition-transform group-hover:scale-105"></div>
-                        <div className="relative px-6 py-3.5 font-semibold text-white flex items-center justify-center gap-2">
                           {isLoadingOtp ? (
                             <>
                               <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -2337,51 +2307,23 @@ export default function BuyerPortal() {
                           ) : (
                             <>
                               <span>Send OTP</span>
-                              <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                               </svg>
                             </>
                           )}
-                        </div>
                       </button>
                     </form>
-
-                    {/* Divider */}
-                    <div className="relative my-8">
-                      <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-white/10"></div>
-                      </div>
-                      <div className="relative flex justify-center text-sm">
-                        <span className="px-4 bg-slate-900/90 text-gray-400">OR CONTINUE AS</span>
-                      </div>
-                    </div>
-
-                    {/* Other Portal Links */}
-                    <div className="space-y-3">
-                      <Link
-                        href="/manufacturer-portal"
-                        className="block w-full text-center py-3 rounded-xl border border-white/10 hover:border-purple-500/50 hover:bg-white/5 text-gray-300 font-medium transition-all group"
-                      >
-                        <span className="group-hover:text-purple-400 transition-colors">Manufacturer Portal</span>
-                      </Link>
-                      <Link
-                        href="/admin"
-                        className="block w-full text-center py-3 rounded-xl border border-white/10 hover:border-purple-500/50 hover:bg-white/5 text-gray-300 font-medium transition-all group"
-                      >
-                        <span className="group-hover:text-purple-400 transition-colors">Admin Portal</span>
-                      </Link>
-                    </div>
                   </>
                 ) : (
                   <>
                     {/* OTP Form */}
                     <form onSubmit={handleVerifyOTP} className="space-y-6">
                       <div>
-                        <label htmlFor="otp" className="block text-sm font-medium text-gray-300 mb-2">
+                        <label htmlFor="otp" className="block text-sm font-medium text-black mb-2">
                           Verification Code
                         </label>
-                        <div className="relative group">
-                          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl blur opacity-20 group-hover:opacity-30 transition duration-300"></div>
+                        <div className="relative">
                           <input
                             type="text"
                             id="otp"
@@ -2394,7 +2336,7 @@ export default function BuyerPortal() {
                             }}
                             placeholder="000000"
                             maxLength={6}
-                            className="relative w-full px-4 py-4 bg-slate-800/50 border-2 border-purple-500/50 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all outline-none text-center text-2xl tracking-[0.5em] text-white placeholder:text-gray-600 font-mono"
+                            className="relative w-full px-4 py-4 bg-white border-2 border-black rounded-xl focus:border-black transition-all outline-none text-center text-2xl tracking-[0.5em] text-black placeholder:text-gray-400 font-mono"
                             required
                           />
                         </div>
@@ -2406,11 +2348,9 @@ export default function BuyerPortal() {
                       <button
                         type="submit"
                         disabled={isVerifyingOtp}
-                        className={`relative w-full group overflow-hidden rounded-xl ${isVerifyingOtp ? 'cursor-not-allowed opacity-70' : ''}`}
+                        className="w-full bg-black text-white px-6 py-3.5 rounded-xl font-semibold hover:bg-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         aria-busy={isVerifyingOtp}
                       >
-                        <div className={`absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 transition-transform ${isVerifyingOtp ? '' : 'group-hover:scale-105'}`}></div>
-                        <div className="relative px-6 py-3.5 font-semibold text-white flex items-center justify-center gap-2">
                           {isVerifyingOtp ? (
                             <>
                               <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -2427,13 +2367,12 @@ export default function BuyerPortal() {
                               <span>Verify & Continue</span>
                             </>
                           )}
-                        </div>
                       </button>
 
                       <button
                         type="button"
                         onClick={handleChangePhoneNumber}
-                        className="w-full text-gray-400 hover:text-purple-400 font-medium py-2 text-sm transition-colors"
+                        className="w-full text-gray-600 hover:text-black font-medium py-2 text-sm transition-colors"
                       >
                         ← Change Phone Number
                       </button>
@@ -2442,9 +2381,9 @@ export default function BuyerPortal() {
                 )}
 
                 {/* Trust badges */}
-                <div className="mt-8 pt-6 border-t border-white/10">
+                <div className="mt-8 pt-6 border-t border-gray-300">
                   <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
-                    <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-4 h-4 text-black" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                     <span>Trusted by 1000+ brands in 50+ countries</span>

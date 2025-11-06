@@ -12,6 +12,7 @@ type TabType = 'analytics' | 'requirements' | 'profile';
 type AnalyticsTabType = 'revenue-trends' | 'product-performance' | 'order-distribution';
 
 export default function ManufacturerPortal() {
+  const [countryCode, setCountryCode] = useState('+91');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'phone' | 'otp' | 'onboarding' | 'dashboard'>('phone');
@@ -55,6 +56,8 @@ export default function ManufacturerPortal() {
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const fullPhoneNumber = countryCode + phoneNumber;
+    
     // Demo credentials bypass
     if (phoneNumber === '1234567890') {
       console.log('Demo credentials detected - bypassing OTP');
@@ -68,8 +71,8 @@ export default function ManufacturerPortal() {
     
     setIsLoadingOtp(true);
     try {
-      console.log('Sending OTP to:', phoneNumber);
-      const response = await apiService.sendOTP(phoneNumber, 'manufacturer');
+      console.log('Sending OTP to:', fullPhoneNumber);
+      const response = await apiService.sendOTP(fullPhoneNumber, 'manufacturer');
       console.log('OTP sent successfully:', response);
       setStep('otp');
     } catch (error) {
@@ -110,8 +113,9 @@ export default function ManufacturerPortal() {
         return;
       }
       
+      const fullPhoneNumber = countryCode + phoneNumber;
       console.log('Verifying OTP:', otp);
-      const response = await apiService.verifyOTP(phoneNumber, otp, 'manufacturer');
+      const response = await apiService.verifyOTP(fullPhoneNumber, otp, 'manufacturer');
       console.log('OTP verified successfully:', response);
       
       // Store token and user data
@@ -1625,40 +1629,24 @@ export default function ManufacturerPortal() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-orange-950 to-slate-900">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-orange-600 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-amber-600 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-yellow-600 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
-      </div>
-
-      {/* Grid pattern overlay */}
-      <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
-
+    <div className="min-h-screen relative overflow-hidden bg-white">
       <div className="relative min-h-screen flex flex-col lg:flex-row">
         {/* Left Side - Hero Section */}
-        <div className="hidden lg:flex lg:w-1/2 p-12 flex-col justify-between relative">
-          {/* Glassmorphism card */}
-          <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
-          
+        <div className="hidden lg:flex lg:w-1/2 bg-black p-12 flex-col justify-between relative">
           <div className="relative z-10">
-            {/* Logo with animation */}
-            <div className="flex items-center gap-4 mb-16 animate-fade-in-down">
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
-                <div className="relative bg-white rounded-2xl p-3 shadow-2xl">
-                  <Image
-                    src="/groupo-logo.png"
-                    alt="Groupo Logo"
-                    width={48}
-                    height={48}
-                    className="w-12 h-12"
-                  />
-                </div>
+            {/* Logo */}
+            <div className="flex items-center gap-4 mb-16">
+              <div className="relative bg-white rounded-2xl p-3">
+                <Image
+                  src="/groupo-logo.png"
+                  alt="Groupo Logo"
+                  width={48}
+                  height={48}
+                  className="w-12 h-12"
+                />
               </div>
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+                <h1 className="text-3xl font-bold text-white">
                   Grupo
                 </h1>
                 <p className="text-sm text-gray-400">Manufacturing Partner Portal</p>
@@ -1666,11 +1654,11 @@ export default function ManufacturerPortal() {
             </div>
 
             {/* Main content */}
-            <div className="space-y-8 animate-fade-in-up animation-delay-200">
+            <div className="space-y-8">
               <div>
                 <h2 className="text-5xl font-bold text-white leading-tight mb-4">
                   Power Your<br />
-                  <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-yellow-400 bg-clip-text text-transparent">
+                  <span className="text-white">
                     Manufacturing Empire
                   </span>
                 </h2>
@@ -1683,13 +1671,13 @@ export default function ManufacturerPortal() {
               {/* Feature cards */}
               <div className="space-y-4">
                 {[
-                  { icon: "🏭", title: "More Orders", desc: "Access premium buyers worldwide", delay: "300" },
-                  { icon: "📈", title: "Business Growth", desc: "Scale operations with ease", delay: "400" },
-                  { icon: "💰", title: "Secure Payments", desc: "Transparent transactions guaranteed", delay: "500" }
+                  { icon: "🏭", title: "More Orders", desc: "Access premium buyers worldwide" },
+                  { icon: "📈", title: "Business Growth", desc: "Scale operations with ease" },
+                  { icon: "💰", title: "Secure Payments", desc: "Transparent transactions guaranteed" }
                 ].map((feature, index) => (
                   <div 
                     key={index}
-                    className={`group flex items-center gap-4 p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300 animate-fade-in-right animation-delay-${feature.delay}`}
+                    className="group flex items-center gap-4 p-4 rounded-xl border border-gray-800 hover:border-gray-700 transition-all duration-300"
                   >
                     <div className="text-3xl group-hover:scale-110 transition-transform duration-300">
                       {feature.icon}
@@ -1703,83 +1691,58 @@ export default function ManufacturerPortal() {
               </div>
             </div>
           </div>
-
-          {/* Stats footer */}
-          <div className="relative z-10 grid grid-cols-3 gap-6 animate-fade-in-up animation-delay-600">
-            {[
-              { value: "1K+", label: "Manufacturers" },
-              { value: "10K+", label: "Orders" },
-              { value: "95%", label: "Success Rate" }
-            ].map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-3xl font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
-                  {stat.value}
-                </div>
-                <div className="text-sm text-gray-400">{stat.label}</div>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Right Side - Login Form */}
-        <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
+        <div className="flex-1 flex items-center justify-center p-6 lg:p-12 bg-white">
           <div className="w-full max-w-md">
             {/* Mobile Logo */}
-            <div className="lg:hidden flex items-center justify-center gap-3 mb-8 animate-fade-in-down">
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl blur opacity-75 animate-pulse"></div>
-                <div className="relative bg-white rounded-2xl p-2.5">
-                  <Image
-                    src="/groupo-logo.png"
-                    alt="Groupo Logo"
-                    width={40}
-                    height={40}
-                    className="w-10 h-10"
-                  />
-                </div>
+            <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
+              <div className="relative bg-black rounded-2xl p-2.5">
+                <Image
+                  src="/groupo-logo.png"
+                  alt="Groupo Logo"
+                  width={40}
+                  height={40}
+                  className="w-10 h-10"
+                />
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-bold text-black">
                   Grupo
                 </h1>
-                <p className="text-xs text-gray-400">Manufacturing Partner Portal</p>
+                <p className="text-xs text-gray-600">Manufacturing Partner Portal</p>
               </div>
             </div>
 
             {/* Login Card */}
-            <div className="relative group animate-fade-in-up animation-delay-200">
-              {/* Glowing border effect */}
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500 to-amber-500 rounded-3xl blur opacity-30 group-hover:opacity-50 transition duration-1000"></div>
-              
-              <div className="relative bg-slate-900/90 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl">
-                {/* Icon with animation */}
+            <div className="relative">
+              <div className="relative bg-white rounded-3xl p-8 border-2 border-black shadow-xl">
+                {/* Icon */}
                 <div className="flex justify-center mb-6">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl blur-md opacity-50 animate-pulse"></div>
-                    <div className="relative bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl p-4">
-                      <svg
-                        className="w-8 h-8 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
-                        />
-                      </svg>
-                    </div>
+                  <div className="relative bg-black rounded-2xl p-4">
+                    <svg
+                      className="w-8 h-8 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
+                      />
+                    </svg>
                   </div>
                 </div>
 
                 {/* Title */}
                 <div className="text-center mb-8">
-                  <h2 className="text-2xl font-bold text-white mb-2">
+                  <h2 className="text-2xl font-bold text-black mb-2">
                     Welcome Manufacturer
                   </h2>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-600 text-sm">
                     {step === 'phone' ? 'Enter your phone number to continue' : 'Verify your identity'}
                   </p>
                 </div>
@@ -1789,18 +1752,27 @@ export default function ManufacturerPortal() {
                     {/* Phone Form */}
                     <form onSubmit={handleSendOTP} className="space-y-6">
                       <div>
-                        <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-2">
+                        <label htmlFor="phone" className="block text-sm font-medium text-black mb-2">
                           Phone Number
                         </label>
-                        <div className="relative group">
-                          <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl blur opacity-0 group-hover:opacity-20 transition duration-300"></div>
+                        <div className="relative flex gap-2">
+                          <select
+                            value={countryCode}
+                            onChange={(e) => setCountryCode(e.target.value)}
+                            className="w-32 px-3 py-3.5 bg-white border-2 border-gray-300 rounded-xl focus:border-black transition-all outline-none text-black font-medium"
+                          >
+                            <option value="+91">🇮🇳 +91</option>
+                            <option value="+1">🇺🇸 +1</option>
+                            <option value="+44">🇬🇧 +44</option>
+                            <option value="+971">🇦🇪 +971</option>
+                          </select>
                           <input
                             type="tel"
                             id="phone"
                             value={phoneNumber}
-                            onChange={(e) => setPhoneNumber(e.target.value)}
-                            placeholder="+1 555 000 0000"
-                            className="relative w-full px-4 py-3.5 bg-slate-800/50 border border-white/10 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all outline-none text-white placeholder:text-gray-500"
+                            onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
+                            placeholder="1234567890"
+                            className="flex-1 px-4 py-3.5 bg-white border-2 border-gray-300 rounded-xl focus:border-black transition-all outline-none text-black placeholder:text-gray-400"
                             required
                           />
                         </div>
@@ -1809,66 +1781,36 @@ export default function ManufacturerPortal() {
                       <button
                         type="submit"
                         disabled={isLoadingOtp}
-                        className="relative w-full group overflow-hidden rounded-xl disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="w-full bg-black text-white px-6 py-3.5 rounded-xl font-semibold hover:bg-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
-                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 transition-transform group-hover:scale-105"></div>
-                        <div className="relative px-6 py-3.5 font-semibold text-white flex items-center justify-center gap-2">
-                          {isLoadingOtp ? (
-                            <>
-                              <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                              </svg>
-                              <span>Sending...</span>
-                            </>
-                          ) : (
-                            <>
-                              <span>Send OTP</span>
-                              <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                              </svg>
-                            </>
-                          )}
-                        </div>
+                        {isLoadingOtp ? (
+                          <>
+                            <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span>Sending...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Send OTP</span>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
+                          </>
+                        )}
                       </button>
                     </form>
-
-                    {/* Divider */}
-                    <div className="relative my-8">
-                      <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-white/10"></div>
-                      </div>
-                      <div className="relative flex justify-center text-sm">
-                        <span className="px-4 bg-slate-900/90 text-gray-400">OR CONTINUE AS</span>
-                      </div>
-                    </div>
-
-                    {/* Other Portal Links */}
-                    <div className="space-y-3">
-                      <Link
-                        href="/buyer-portal"
-                        className="block w-full text-center py-3 rounded-xl border border-white/10 hover:border-orange-500/50 hover:bg-white/5 text-gray-300 font-medium transition-all group"
-                      >
-                        <span className="group-hover:text-orange-400 transition-colors">Buyer Portal</span>
-                      </Link>
-                      <Link
-                        href="/admin"
-                        className="block w-full text-center py-3 rounded-xl border border-white/10 hover:border-orange-500/50 hover:bg-white/5 text-gray-300 font-medium transition-all group"
-                      >
-                        <span className="group-hover:text-orange-400 transition-colors">Admin Portal</span>
-                      </Link>
-                    </div>
                   </>
                 ) : (
                   <>
                     {/* OTP Form */}
                     <form onSubmit={handleVerifyOTP} className="space-y-6">
                       <div>
-                        <label htmlFor="otp" className="block text-sm font-medium text-gray-300 mb-2">
+                        <label htmlFor="otp" className="block text-sm font-medium text-black mb-2">
                           Verification Code
                         </label>
-                        <div className="relative group">
-                          <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl blur opacity-20 group-hover:opacity-30 transition duration-300"></div>
+                        <div className="relative">
                           <input
                             type="text"
                             id="otp"
@@ -1881,7 +1823,7 @@ export default function ManufacturerPortal() {
                             }}
                             placeholder="000000"
                             maxLength={6}
-                            className="relative w-full px-4 py-4 bg-slate-800/50 border-2 border-orange-500/50 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all outline-none text-center text-2xl tracking-[0.5em] text-white placeholder:text-gray-600 font-mono"
+                            className="relative w-full px-4 py-4 bg-white border-2 border-black rounded-xl focus:border-black transition-all outline-none text-center text-2xl tracking-[0.5em] text-black placeholder:text-gray-400 font-mono"
                             required
                           />
                         </div>
@@ -1893,34 +1835,31 @@ export default function ManufacturerPortal() {
                       <button
                         type="submit"
                         disabled={isVerifyingOtp}
-                        className={`relative w-full group overflow-hidden rounded-xl ${isVerifyingOtp ? 'cursor-not-allowed opacity-70' : ''}`}
+                        className="w-full bg-black text-white px-6 py-3.5 rounded-xl font-semibold hover:bg-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         aria-busy={isVerifyingOtp}
                       >
-                        <div className={`absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 transition-transform ${isVerifyingOtp ? '' : 'group-hover:scale-105'}`}></div>
-                        <div className="relative px-6 py-3.5 font-semibold text-white flex items-center justify-center gap-2">
-                          {isVerifyingOtp ? (
-                            <>
-                              <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                              </svg>
-                              <span>Verifying...</span>
-                            </>
-                          ) : (
-                            <>
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              <span>Verify & Continue</span>
-                            </>
-                          )}
-                        </div>
+                        {isVerifyingOtp ? (
+                          <>
+                            <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span>Verifying...</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Verify & Continue</span>
+                          </>
+                        )}
                       </button>
 
                       <button
                         type="button"
                         onClick={handleChangePhoneNumber}
-                        className="w-full text-gray-400 hover:text-orange-400 font-medium py-2 text-sm transition-colors"
+                        className="w-full text-gray-600 hover:text-black font-medium py-2 text-sm transition-colors"
                       >
                         ← Change Phone Number
                       </button>
@@ -1929,9 +1868,9 @@ export default function ManufacturerPortal() {
                 )}
 
                 {/* Trust badges */}
-                <div className="mt-8 pt-6 border-t border-white/10">
+                <div className="mt-8 pt-6 border-t border-gray-300">
                   <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
-                    <svg className="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-4 h-4 text-black" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                     <span>Join 1000+ verified manufacturers worldwide</span>
