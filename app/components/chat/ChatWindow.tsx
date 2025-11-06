@@ -161,16 +161,16 @@ export default function ChatWindow({ conversationId, buyerId, manufacturerId, on
   // Typing indicator disabled
 
   const containerClass = inline
-    ? 'h-[600px] bg-slate-800/50 rounded-xl border border-white/10 flex flex-col overflow-hidden'
+    ? 'h-full bg-white rounded-xl border border-gray-200 flex flex-col overflow-hidden shadow-sm'
     : 'fixed bottom-4 right-4 w-96 max-w-[95vw] bg-white rounded-xl shadow-lg border border-gray-200 flex flex-col overflow-hidden z-50';
 
   const headerClass = inline
-    ? 'flex items-center justify-between px-4 py-3 border-b border-white/10 bg-slate-800/60'
+    ? 'flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50'
     : 'flex items-center justify-between px-4 py-3 border-b border-gray-200';
 
-  const titleClass = inline ? 'font-semibold text-white' : 'font-semibold text-gray-900';
-  const closeClass = inline ? 'text-gray-300 hover:text-white' : 'text-gray-500 hover:text-gray-700';
-  const listClass = inline ? 'flex-1 overflow-y-auto p-3 space-y-2 bg-slate-900/30' : 'flex-1 overflow-y-auto p-3 space-y-2 bg-gray-50';
+  const titleClass = inline ? 'font-semibold text-black' : 'font-semibold text-gray-900';
+  const closeClass = inline ? 'text-gray-500 hover:text-black' : 'text-gray-500 hover:text-gray-700';
+  const listClass = inline ? 'flex-1 overflow-y-auto p-3 space-y-2 bg-gray-50' : 'flex-1 overflow-y-auto p-3 space-y-2 bg-gray-50';
 
   return (
     <div className={containerClass}>
@@ -184,8 +184,8 @@ export default function ChatWindow({ conversationId, buyerId, manufacturerId, on
         {!loading && messages.map((m) => {
           const isSelf = m.sender_role === selfRole;
           const bubbleClass = isSelf
-            ? 'ml-auto bg-blue-500 text-white'
-            : (inline ? 'mr-auto bg-slate-700/70 text-white' : 'mr-auto bg-white border border-gray-200 text-gray-900');
+            ? 'ml-auto bg-black text-white'
+            : (inline ? 'mr-auto bg-gray-200 text-gray-900' : 'mr-auto bg-white border border-gray-200 text-gray-900');
           return (
             <div key={m.id || m.client_temp_id} className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${bubbleClass}`}>
             {m.body}
@@ -195,7 +195,7 @@ export default function ChatWindow({ conversationId, buyerId, manufacturerId, on
         {/* Typing indicator disabled */}
       </div>
 
-      <div className={inline ? 'p-3 border-t border-white/10 bg-slate-800/60' : 'p-3 border-t border-gray-200'}>
+      <div className={inline ? 'p-3 border-t border-gray-200 bg-white' : 'p-3 border-t border-gray-200'}>
         <div className="flex items-center gap-2">
           <input
             value={input}
@@ -204,9 +204,11 @@ export default function ChatWindow({ conversationId, buyerId, manufacturerId, on
               if (e.key === 'Enter') handleSend();
             }}
             placeholder="Type a message"
-            className={inline ? 'flex-1 bg-slate-900/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500' : 'flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'}
+            className={inline
+              ? 'flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black'
+              : 'flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500'}
           />
-          <button onClick={handleSend} disabled={sending || !input.trim()} className={inline ? 'px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm' : 'px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm'}>
+          <button onClick={handleSend} disabled={sending || !input.trim()} className={inline ? 'px-3 py-2 bg-black hover:bg-gray-900 disabled:opacity-50 text-white rounded-lg text-sm' : 'px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm'}>
             Send
           </button>
         </div>
