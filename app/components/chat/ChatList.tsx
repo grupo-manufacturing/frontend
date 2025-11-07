@@ -168,7 +168,10 @@ export default function ChatList({ onOpenConversation, selectedConversationId }:
         
         {!error && items.map((c) => {
           const title = c?.peer?.displayName || 'Conversation';
-          const lastMessage = c.last_message_text || 'No messages yet';
+          const lastMessageTrimmed = typeof c.last_message_text === 'string' ? c.last_message_text.trim() : '';
+          const lastMessage = lastMessageTrimmed
+            ? lastMessageTrimmed
+            : (c.last_message_at ? '[Attachment]' : 'No messages yet');
           const timeAgo = formatTime(c.last_message_at);
           const isActive = selectedConversationId === c.id;
           

@@ -73,11 +73,85 @@ class ApiService {
     return this.request(`/chat/conversations/${conversationId}/messages${qs ? `?${qs}` : ''}`, { method: 'GET' });
   }
 
-  async sendMessage(conversationId, { body, clientTempId }) {
+  async sendMessage(conversationId, { body, clientTempId, attachments }) {
     return this.request(`/chat/conversations/${conversationId}/messages`, {
       method: 'POST',
-      body: JSON.stringify({ body, clientTempId })
+      body: JSON.stringify({ body, clientTempId, attachments })
     });
+  }
+
+  /**
+   * Upload a file for chat
+   * @param {File} file - File to upload
+   * @param {string} conversationId - Conversation ID
+   * @returns {Promise} Upload result with file URL and metadata
+   */
+  async uploadChatFile(file, conversationId) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('conversationId', conversationId);
+
+    const token = this.getToken();
+    const url = `${this.baseURL}/upload/chat-file`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: token ? `Bearer ${token}` : ''
+        },
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || `Upload failed! status: ${response.status}`);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('File upload failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Upload multiple files for chat
+   * @param {FileList|File[]} files - Files to upload
+   * @param {string} conversationId - Conversation ID
+   * @returns {Promise} Upload results
+   */
+  async uploadMultipleChatFiles(files, conversationId) {
+    const formData = new FormData();
+    Array.from(files).forEach(file => {
+      formData.append('files', file);
+    });
+    formData.append('conversationId', conversationId);
+
+    const token = this.getToken();
+    const url = `${this.baseURL}/upload/multiple`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: token ? `Bearer ${token}` : ''
+        },
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || `Upload failed! status: ${response.status}`);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Multiple file upload failed:', error);
+      throw error;
+    }
   }
 
   async markRead(conversationId, { upTo, upToMessageId } = {}) {

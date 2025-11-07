@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import apiService, { getApiBaseOrigin } from '../../lib/apiService';
+import MessageAttachment from './MessageAttachment';
 
 interface ChatWindowProps {
   conversationId: string;
@@ -14,6 +15,19 @@ interface ChatWindowProps {
   selfRole?: 'buyer' | 'manufacturer';
 }
 
+interface Attachment {
+  id?: string;
+  file_url: string;
+  file_type?: string;
+  mime_type?: string;
+  original_name?: string;
+  thumbnail_url?: string;
+  size_bytes?: number;
+  width?: number;
+  height?: number;
+  duration?: number;
+}
+
 interface ChatMessage {
   id?: string;
   client_temp_id?: string;
@@ -23,6 +37,7 @@ interface ChatMessage {
   body: string;
   created_at?: string;
   is_read?: boolean;
+  attachments?: Attachment[];
 }
 
 export default function ChatWindow({ conversationId, buyerId, manufacturerId, onClose, title, inline, selfRole = 'buyer' }: ChatWindowProps) {
@@ -35,6 +50,9 @@ export default function ChatWindow({ conversationId, buyerId, manufacturerId, on
   const [sending, setSending] = useState(false);
   const socketRef = useRef<Socket | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [uploadingFiles, setUploadingFiles] = useState<boolean>(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   const token = useMemo(() => apiService.getToken(), []);
   const wsUrl = useMemo(() => process.env.NEXT_PUBLIC_WS_URL || getApiBaseOrigin(), []);
@@ -123,36 +141,75 @@ export default function ChatWindow({ conversationId, buyerId, manufacturerId, on
     scrollToBottom();
   }, [messages.length]);
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setSelectedFiles(Array.from(e.target.files));
+    }
+  };
+
+  const removeSelectedFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSend = async () => {
-    if (!input.trim() || sending) return;
+    const hasText = input.trim().length > 0;
+    const hasFiles = selectedFiles.length > 0;
+
+    if ((!hasText && !hasFiles) || sending) return;
+
     const body = input.trim();
     const clientTempId = crypto.randomUUID();
     setSending(true);
     setInput('');
 
-    // optimistic append
-    const optimistic: ChatMessage = {
-      client_temp_id: clientTempId,
-      conversation_id: conversationId,
-      sender_role: 'buyer', // actual role will be set on server; optimistic is fine for UI
-      sender_id: 'me',
-      body,
-      created_at: new Date().toISOString(),
-      is_read: false
-    };
-    setMessages((prev) => [...prev, optimistic]);
-    scrollToBottom();
+    let uploadedAttachments: any[] = [];
 
     try {
+      // Upload files if any
+      if (hasFiles) {
+        setUploadingFiles(true);
+        const uploadPromises = selectedFiles.map(file => 
+          apiService.uploadChatFile(file, conversationId)
+        );
+        const uploadResults = await Promise.all(uploadPromises);
+        uploadedAttachments = uploadResults.map(result => result.data);
+        setSelectedFiles([]);
+        setUploadingFiles(false);
+      }
+
+      // optimistic append
+      const optimistic: ChatMessage = {
+        client_temp_id: clientTempId,
+        conversation_id: conversationId,
+        sender_role: selfRole,
+        sender_id: 'me',
+        body,
+        created_at: new Date().toISOString(),
+        is_read: false,
+        attachments: uploadedAttachments
+      };
+      setMessages((prev) => [...prev, optimistic]);
+      scrollToBottom();
+
       // Prefer WebSocket
       if (socketRef.current?.connected) {
-        socketRef.current.emit('message:send', { conversationId, body, clientTempId });
+        socketRef.current.emit('message:send', { 
+          conversationId, 
+          body, 
+          clientTempId,
+          attachments: uploadedAttachments
+        });
       } else {
         // fallback to REST
-        await apiService.sendMessage(conversationId, { body, clientTempId });
+        await apiService.sendMessage(conversationId, { 
+          body, 
+          clientTempId,
+          attachments: uploadedAttachments
+        });
       }
     } catch (err) {
       console.error('Send failed', err);
+      setUploadingFiles(false);
     } finally {
       setSending(false);
     }
@@ -188,7 +245,14 @@ export default function ChatWindow({ conversationId, buyerId, manufacturerId, on
             : (inline ? 'mr-auto bg-gray-200 text-gray-900' : 'mr-auto bg-white border border-gray-200 text-gray-900');
           return (
             <div key={m.id || m.client_temp_id} className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${bubbleClass}`}>
-            {m.body}
+              {m.attachments && m.attachments.length > 0 && (
+                <div className="space-y-2 mb-2">
+                  {m.attachments.map((att, idx) => (
+                    <MessageAttachment key={att.id || idx} attachment={att} />
+                  ))}
+                </div>
+              )}
+              {m.body && <div>{m.body}</div>}
             </div>
           );
         })}
@@ -196,20 +260,74 @@ export default function ChatWindow({ conversationId, buyerId, manufacturerId, on
       </div>
 
       <div className={inline ? 'p-3 border-t border-gray-200 bg-white' : 'p-3 border-t border-gray-200'}>
+        {/* File preview */}
+        {selectedFiles.length > 0 && (
+          <div className="mb-3 flex flex-wrap gap-2">
+            {selectedFiles.map((file, idx) => (
+              <div
+                key={idx}
+                className="flex items-center gap-2 rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs text-gray-800 shadow-sm"
+              >
+                <span className="truncate max-w-[160px] font-medium text-gray-900">{file.name}</span>
+                <span className="text-[11px] text-gray-500">
+                  {(file.size / 1024).toFixed(0)}KB
+                </span>
+                <button
+                  onClick={() => removeSelectedFile(idx)}
+                  className="ml-1 rounded-full p-1 text-gray-500 transition-colors hover:bg-gray-200 hover:text-red-600"
+                  aria-label="Remove file"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
         <div className="flex items-center gap-2">
+          {/* File upload button */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileSelect}
+            multiple
+            accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar"
+            className="hidden"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={sending || uploadingFiles}
+            className="p-2 text-gray-500 hover:text-gray-700 disabled:opacity-50 rounded-lg hover:bg-gray-100"
+            title="Attach file"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+            </svg>
+          </button>
+
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') handleSend();
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
             }}
-            placeholder="Type a message"
+            placeholder={uploadingFiles ? "Uploading..." : "Type a message"}
+            disabled={uploadingFiles}
             className={inline
-              ? 'flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black'
-              : 'flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500'}
+              ? 'flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black disabled:opacity-50'
+              : 'flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50'}
           />
-          <button onClick={handleSend} disabled={sending || !input.trim()} className={inline ? 'px-3 py-2 bg-black hover:bg-gray-900 disabled:opacity-50 text-white rounded-lg text-sm' : 'px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm'}>
-            Send
+          <button 
+            onClick={handleSend} 
+            disabled={sending || uploadingFiles || (!input.trim() && selectedFiles.length === 0)} 
+            className={inline 
+              ? 'px-3 py-2 bg-black hover:bg-gray-900 disabled:opacity-50 text-white rounded-lg text-sm' 
+              : 'px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm'}
+          >
+            {uploadingFiles ? 'Uploading...' : 'Send'}
           </button>
         </div>
       </div>
