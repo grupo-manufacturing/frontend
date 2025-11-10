@@ -8,7 +8,7 @@ import apiService from '../lib/apiService';
 import ChatList from '../components/chat/ChatList';
 import ChatWindow from '../components/chat/ChatWindow';
 
-type TabType = 'analytics' | 'requirements' | 'profile';
+type TabType = 'analytics' | 'chats' | 'requirements' | 'profile';
 type AnalyticsTabType = 'revenue-trends' | 'product-performance' | 'order-distribution';
 
 export default function ManufacturerPortal() {
@@ -27,11 +27,24 @@ export default function ManufacturerPortal() {
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('analytics');
   const [activeAnalyticsTab, setActiveAnalyticsTab] = useState<AnalyticsTabType>('revenue-trends');
-  // Chat state (requirements inbox)
+  // Chat state (chats inbox)
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [activeBuyerId, setActiveBuyerId] = useState<string | null>(null);
   const [activeManufacturerId, setActiveManufacturerId] = useState<string | null>(null);
   const [activeTitle, setActiveTitle] = useState<string | undefined>(undefined);
+  
+  // Requirements states
+  const [requirements, setRequirements] = useState<any[]>([]);
+  const [isLoadingRequirements, setIsLoadingRequirements] = useState(false);
+  const [selectedRequirement, setSelectedRequirement] = useState<any | null>(null);
+  const [showResponseModal, setShowResponseModal] = useState(false);
+  const [responseForm, setResponseForm] = useState({
+    quotedPrice: '',
+    pricePerUnit: '',
+    deliveryTime: '',
+    notes: ''
+  });
+  const [isSubmittingResponse, setIsSubmittingResponse] = useState(false);
   
   // Onboarding form states
   const [formData, setFormData] = useState({
@@ -320,6 +333,86 @@ export default function ManufacturerPortal() {
     }
   };
 
+  // Fetch Requirements
+  const fetchRequirements = async () => {
+    setIsLoadingRequirements(true);
+    
+    try {
+      const response = await apiService.getRequirements();
+      
+      if (response.success && response.data) {
+        setRequirements(response.data);
+      } else {
+        console.error('Failed to fetch requirements');
+        setRequirements([]);
+      }
+    } catch (error) {
+      console.error('Failed to fetch requirements:', error);
+      setRequirements([]);
+    } finally {
+      setIsLoadingRequirements(false);
+    }
+  };
+
+  // Fetch requirements when requirements tab is active
+  useEffect(() => {
+    if (activeTab === 'requirements' && step === 'dashboard') {
+      fetchRequirements();
+    }
+  }, [activeTab, step]);
+
+  // Handle respond to requirement
+  const handleRespondToRequirement = (requirement: any) => {
+    setSelectedRequirement(requirement);
+    setResponseForm({
+      quotedPrice: '',
+      pricePerUnit: '',
+      deliveryTime: '',
+      notes: ''
+    });
+    setShowResponseModal(true);
+  };
+
+  // Handle submit response
+  const handleSubmitResponse = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedRequirement) return;
+
+    // Validate required fields
+    if (!responseForm.quotedPrice || !responseForm.pricePerUnit || !responseForm.deliveryTime) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    setIsSubmittingResponse(true);
+    
+    try {
+      const responseData = {
+        quoted_price: parseFloat(responseForm.quotedPrice),
+        price_per_unit: parseFloat(responseForm.pricePerUnit),
+        delivery_time: responseForm.deliveryTime,
+        notes: responseForm.notes || null
+      };
+
+      const response = await apiService.createRequirementResponse(selectedRequirement.id, responseData);
+
+      if (response.success) {
+        alert('Response submitted successfully!');
+        setShowResponseModal(false);
+        setSelectedRequirement(null);
+        // Refresh requirements list
+        fetchRequirements();
+      } else {
+        alert(response.message || 'Failed to submit response. Please try again.');
+      }
+    } catch (error: any) {
+      console.error('Failed to submit response:', error);
+      alert(error.message || 'Failed to submit response. Please try again.');
+    } finally {
+      setIsSubmittingResponse(false);
+    }
+  };
 
   // Step navigation functions
   const nextStep = () => {
@@ -939,6 +1032,34 @@ export default function ManufacturerPortal() {
                 <span className="relative z-10">Analytics</span>
               </button>
 
+              {/* Chats Tab */}
+              <button
+                onClick={() => setActiveTab('chats')}
+                className={`relative flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all ${
+                  activeTab === 'chats'
+                    ? 'text-[#22a2f2]'
+                    : 'text-gray-500 hover:text-[#22a2f2]'
+                }`}
+              >
+                {activeTab === 'chats' && (
+                  <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-t-lg border-b-2 border-[#22a2f2]"></div>
+                )}
+                <svg
+                  className="relative z-10 w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                  />
+                </svg>
+                <span className="relative z-10">Chats</span>
+              </button>
+
               {/* Requirements Tab */}
               <button
                 onClick={() => setActiveTab('requirements')}
@@ -1275,7 +1396,7 @@ export default function ManufacturerPortal() {
             </div>
           </div>
           )}
-          {activeTab === 'requirements' && (
+          {activeTab === 'chats' && (
             <div className="animate-fade-in-up h-full flex flex-col">
               {/* Header */}
               <div className="mb-6">
@@ -1285,10 +1406,10 @@ export default function ManufacturerPortal() {
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2m-6 0a2 2 0 012-2h2a2 2 0 012 2m-4 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                       </svg>
-                      <span>Buyer requirements</span>
+                      <span>Chats</span>
                     </div>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-black mb-1">Buyer Requirements</h1>
-                    <p className="text-sm text-gray-600">View and respond to buyer inquiries and conversations</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-black mb-1">Buyer Conversations</h1>
+                    <p className="text-sm text-gray-600">View and respond to buyer inquiries and chat threads</p>
                   </div>
                   <div className="flex items-center gap-2 px-4 py-2 bg-[#22a2f2]/10 border border-[#22a2f2]/20 text-[#22a2f2] rounded-xl text-sm font-medium">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1352,7 +1473,258 @@ export default function ManufacturerPortal() {
               </div>
             </div>
           )}
+          {activeTab === 'requirements' && (
+            <div>
+              {/* Header Section */}
+              <div className="mb-8">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22a2f2]/10 text-[#22a2f2] text-sm font-semibold mb-3">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                  </svg>
+                  <span>Buyer requirements</span>
+                </div>
+                <h1 className="text-3xl font-bold text-black mb-2">Requirements</h1>
+                <p className="text-gray-500">View and respond to buyer requirements</p>
+              </div>
+
+              {/* Loading State */}
+              {isLoadingRequirements && (
+                <div className="bg-white rounded-xl border border-[#22a2f2]/30 p-12">
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <svg className="animate-spin w-12 h-12 text-[#22a2f2] mb-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p className="text-gray-500">Loading requirements...</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Requirements List */}
+              {!isLoadingRequirements && requirements.length > 0 && (
+                <div className="space-y-4">
+                  {requirements.map((req: any) => (
+                    <div key={req.id} className="bg-white rounded-xl border border-[#22a2f2]/30 p-6 hover:shadow-md transition-shadow">
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              req.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                              req.status === 'quoted' ? 'bg-blue-100 text-blue-700' :
+                              req.status === 'accepted' ? 'bg-green-100 text-green-700' :
+                              req.status === 'completed' ? 'bg-purple-100 text-purple-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {new Date(req.created_at).toLocaleDateString('en-US', { 
+                                year: 'numeric', 
+                                month: 'short', 
+                                day: 'numeric' 
+                              })}
+                            </span>
+                          </div>
+                          <p className="text-gray-800 mb-3 leading-relaxed">{req.requirement_text}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-gray-100 mb-4">
+                        {req.buyer && req.buyer.company_name && (
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1">Company</p>
+                            <p className="text-sm font-semibold text-black">{req.buyer.company_name}</p>
+                          </div>
+                        )}
+                        {req.quantity && (
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1">Quantity</p>
+                            <p className="text-sm font-semibold text-black">{req.quantity.toLocaleString()}</p>
+                          </div>
+                        )}
+                        {req.brand_name && (
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1">Brand</p>
+                            <p className="text-sm font-semibold text-black">{req.brand_name}</p>
+                          </div>
+                        )}
+                        {req.product_type && (
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1">Product Type</p>
+                            <p className="text-sm font-semibold text-black capitalize">{req.product_type}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={() => handleRespondToRequirement(req)}
+                        className="w-full bg-[#22a2f2] hover:bg-[#1b8bd0] text-white px-6 py-3 font-semibold rounded-xl transition-all flex items-center justify-center gap-2"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span>Submit Quote</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Empty State */}
+              {!isLoadingRequirements && requirements.length === 0 && (
+                <div className="bg-white rounded-xl border border-[#22a2f2]/30 p-12">
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <div className="relative mb-6">
+                      <div className="absolute inset-0 bg-[#22a2f2]/30 rounded-full blur-xl opacity-40"></div>
+                      <div className="relative bg-[#22a2f2]/10 rounded-full p-6 border border-[#22a2f2]/30">
+                        <svg
+                          className="w-16 h-16 text-[#22a2f2]"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                    
+                    <h3 className="text-xl font-semibold text-black mb-2">No Requirements Yet</h3>
+                    <p className="text-gray-400 max-w-md">
+                      No buyer requirements are available at the moment. Check back later for new opportunities.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </main>
+
+        {/* Response Modal */}
+        {showResponseModal && selectedRequirement && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h3 className="text-xl font-bold text-black">Submit Quote</h3>
+                <button
+                  onClick={() => setShowResponseModal(false)}
+                  className="p-2 text-gray-500 hover:text-black hover:bg-gray-100 rounded-lg transition-all"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="p-6">
+                <div className="mb-6 p-4 bg-gray-50 rounded-xl">
+                  <p className="text-sm font-semibold text-gray-700 mb-2">Requirement:</p>
+                  <p className="text-gray-800">{selectedRequirement.requirement_text}</p>
+                  {selectedRequirement.quantity && (
+                    <p className="text-sm text-gray-600 mt-2">Quantity: {selectedRequirement.quantity.toLocaleString()}</p>
+                  )}
+                </div>
+
+                <form onSubmit={handleSubmitResponse} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Total Quoted Price <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={responseForm.quotedPrice}
+                        onChange={(e) => setResponseForm({...responseForm, quotedPrice: e.target.value})}
+                        placeholder="e.g., 50000"
+                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Price Per Unit <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={responseForm.pricePerUnit}
+                        onChange={(e) => setResponseForm({...responseForm, pricePerUnit: e.target.value})}
+                        placeholder="e.g., 50"
+                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Delivery Time <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={responseForm.deliveryTime}
+                      onChange={(e) => setResponseForm({...responseForm, deliveryTime: e.target.value})}
+                      placeholder="e.g., 20-25 days"
+                      className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Additional Notes (Optional)
+                    </label>
+                    <textarea
+                      value={responseForm.notes}
+                      onChange={(e) => setResponseForm({...responseForm, notes: e.target.value})}
+                      placeholder="Any additional details or terms..."
+                      rows={4}
+                      className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 resize-none"
+                    />
+                  </div>
+
+                  <div className="flex gap-4 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowResponseModal(false)}
+                      className="flex-1 px-4 py-3 bg-white hover:bg-gray-100 border border-gray-300 text-black font-semibold rounded-xl transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmittingResponse}
+                      className={`flex-1 px-4 py-3 ${isSubmittingResponse ? 'bg-gray-400' : 'bg-[#22a2f2] hover:bg-[#1b8bd0]'} text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2`}
+                    >
+                      {isSubmittingResponse ? (
+                        <>
+                          <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          <span>Submitting...</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span>Submit Quote</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Profile Modal */}
         {showProfile && (

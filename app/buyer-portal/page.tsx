@@ -61,6 +61,11 @@ export default function BuyerPortal() {
   const [customProductType, setCustomProductType] = useState('');
   const [productLink, setProductLink] = useState('');
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [isSubmittingRequirement, setIsSubmittingRequirement] = useState(false);
+  
+  // Requirements States
+  const [requirements, setRequirements] = useState<any[]>([]);
+  const [isLoadingRequirements, setIsLoadingRequirements] = useState(false);
   
   // My Orders States
   const [orderSearchQuery, setOrderSearchQuery] = useState('');
@@ -383,6 +388,89 @@ export default function BuyerPortal() {
       setIsLoadingQuotes(false);
     }
   };
+
+  // Handle Custom Quote Submission
+  const handleSubmitRequirement = async () => {
+    // Validate required field
+    if (!requirement || requirement.trim().length === 0) {
+      alert('Please enter your requirement details');
+      return;
+    }
+
+    setIsSubmittingRequirement(true);
+    
+    try {
+      // TODO: Handle image upload if uploadedImage exists
+      let imageUrl = null;
+      if (uploadedImage) {
+        // For now, we'll skip image upload - can be implemented later with cloudinary
+        console.log('Image upload not yet implemented:', uploadedImage.name);
+      }
+
+      // Create requirement data
+      const requirementData = {
+        requirement_text: requirement.trim(),
+        quantity: customQuantity ? parseInt(customQuantity) : null,
+        brand_name: customBrandName.trim() || null,
+        product_type: customProductType || null,
+        product_link: productLink.trim() || null,
+        image_url: imageUrl
+      };
+
+      // Submit to backend
+      const response = await apiService.createRequirement(requirementData);
+
+      if (response.success) {
+        alert('Requirement submitted successfully! Manufacturers will review and respond shortly.');
+        
+        // Clear form
+        setRequirement('');
+        setCustomQuantity('');
+        setCustomBrandName('');
+        setCustomProductType('');
+        setProductLink('');
+        setUploadedImage(null);
+        
+        // Switch to requirements tab to show the newly created requirement
+        setActiveTab('requirements');
+      } else {
+        alert('Failed to submit requirement. Please try again.');
+      }
+    } catch (error) {
+      console.error('Failed to submit requirement:', error);
+      alert('Failed to submit requirement. Please try again.');
+    } finally {
+      setIsSubmittingRequirement(false);
+    }
+  };
+
+  // Fetch Requirements
+  const fetchRequirements = async () => {
+    setIsLoadingRequirements(true);
+    
+    try {
+      const response = await apiService.getRequirements();
+      
+      if (response.success && response.data) {
+        setRequirements(response.data);
+      } else {
+        console.error('Failed to fetch requirements');
+        setRequirements([]);
+      }
+    } catch (error) {
+      console.error('Failed to fetch requirements:', error);
+      setRequirements([]);
+    } finally {
+      setIsLoadingRequirements(false);
+    }
+  };
+
+  // Fetch requirements when tab changes to requirements
+  useEffect(() => {
+    if (activeTab === 'requirements' && step === 'dashboard') {
+      fetchRequirements();
+    }
+  }, [activeTab, step]);
 
   // removed legacy mock handleOpenChat
 
@@ -1540,13 +1628,27 @@ export default function BuyerPortal() {
                   {/* Submit Button */}
                   <button
                     type="button"
+                    onClick={handleSubmitRequirement}
+                    disabled={isSubmittingRequirement}
                     className="relative w-full group overflow-hidden rounded-xl"
                   >
-                  <div className="bg-[#22a2f2] hover:bg-[#1b8bd0] text-white px-6 py-3.5 font-semibold rounded-xl transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                      </svg>
-                      <span>Request for Quotation</span>
+                  <div className={`${isSubmittingRequirement ? 'bg-gray-400' : 'bg-[#22a2f2] hover:bg-[#1b8bd0]'} text-white px-6 py-3.5 font-semibold rounded-xl transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg`}>
+                      {isSubmittingRequirement ? (
+                        <>
+                          <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          <span>Submitting...</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                          </svg>
+                          <span>Request for Quotation</span>
+                        </>
+                      )}
                     </div>
                   </button>
                 </form>
@@ -1895,49 +1997,138 @@ export default function BuyerPortal() {
                 <p className="text-gray-500">Track all your submitted requirements and their status</p>
               </div>
 
-              {/* Empty State */}
-              <div className="bg-white rounded-xl border border-[#22a2f2]/30 p-12">
-                <div className="flex flex-col items-center justify-center text-center">
-                  {/* Package Icon */}
-                  <div className="relative mb-6">
-                    <div className="absolute inset-0 bg-[#22a2f2]/30 rounded-full blur-xl opacity-40"></div>
-                    <div className="relative bg-[#22a2f2]/10 rounded-full p-6 border border-[#22a2f2]/30">
-                      <svg
-                        className="w-16 h-16 text-[#22a2f2]"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                        />
-                      </svg>
-                    </div>
+              {/* Loading State */}
+              {isLoadingRequirements && (
+                <div className="bg-white rounded-xl border border-[#22a2f2]/30 p-12">
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <svg className="animate-spin w-12 h-12 text-[#22a2f2] mb-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p className="text-gray-500">Loading requirements...</p>
                   </div>
-                  
-                  <h3 className="text-xl font-semibold text-black mb-2">No Requirements Yet</h3>
-                  <p className="text-gray-400 max-w-md">
-                    Submit your first requirement to get started and connect with manufacturers
-                  </p>
-                  
-                  {/* CTA Button */}
-                  <button
-                    onClick={() => setActiveTab('custom-quote')}
-                    className="mt-6 relative group overflow-hidden rounded-xl"
-                  >
-                    <div className="absolute inset-0 bg-[#22a2f2] transition-transform group-hover:scale-105 rounded-xl"></div>
-                    <div className="relative px-6 py-3 font-semibold text-white flex items-center gap-2">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                      </svg>
-                      <span>Submit Requirement</span>
-                    </div>
-                  </button>
                 </div>
-              </div>
+              )}
+
+              {/* Requirements List */}
+              {!isLoadingRequirements && requirements.length > 0 && (
+                <div className="space-y-4">
+                  {requirements.map((req: any) => (
+                    <div key={req.id} className="bg-white rounded-xl border border-[#22a2f2]/30 p-6 hover:shadow-md transition-shadow">
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              req.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                              req.status === 'quoted' ? 'bg-blue-100 text-blue-700' :
+                              req.status === 'accepted' ? 'bg-green-100 text-green-700' :
+                              req.status === 'completed' ? 'bg-purple-100 text-purple-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {new Date(req.created_at).toLocaleDateString('en-US', { 
+                                year: 'numeric', 
+                                month: 'short', 
+                                day: 'numeric' 
+                              })}
+                            </span>
+                          </div>
+                          <p className="text-gray-800 mb-3 leading-relaxed">{req.requirement_text}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-gray-100">
+                        {req.quantity && (
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1">Quantity</p>
+                            <p className="text-sm font-semibold text-black">{req.quantity.toLocaleString()}</p>
+                          </div>
+                        )}
+                        {req.brand_name && (
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1">Brand</p>
+                            <p className="text-sm font-semibold text-black">{req.brand_name}</p>
+                          </div>
+                        )}
+                        {req.product_type && (
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1">Product Type</p>
+                            <p className="text-sm font-semibold text-black capitalize">{req.product_type}</p>
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Responses</p>
+                          <p className="text-sm font-semibold text-[#22a2f2]">{req.manufacturer_count || 0} manufacturer{req.manufacturer_count !== 1 ? 's' : ''}</p>
+                        </div>
+                      </div>
+
+                      {req.product_link && (
+                        <div className="mt-4 pt-4 border-t border-gray-100">
+                          <a 
+                            href={req.product_link} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-sm text-[#22a2f2] hover:underline flex items-center gap-1"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                            </svg>
+                            View Reference Product
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Empty State */}
+              {!isLoadingRequirements && requirements.length === 0 && (
+                <div className="bg-white rounded-xl border border-[#22a2f2]/30 p-12">
+                  <div className="flex flex-col items-center justify-center text-center">
+                    {/* Package Icon */}
+                    <div className="relative mb-6">
+                      <div className="absolute inset-0 bg-[#22a2f2]/30 rounded-full blur-xl opacity-40"></div>
+                      <div className="relative bg-[#22a2f2]/10 rounded-full p-6 border border-[#22a2f2]/30">
+                        <svg
+                          className="w-16 h-16 text-[#22a2f2]"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                    
+                    <h3 className="text-xl font-semibold text-black mb-2">No Requirements Yet</h3>
+                    <p className="text-gray-400 max-w-md">
+                      Submit your first requirement to get started and connect with manufacturers
+                    </p>
+                    
+                    {/* CTA Button */}
+                    <button
+                      onClick={() => setActiveTab('custom-quote')}
+                      className="mt-6 relative group overflow-hidden rounded-xl"
+                    >
+                      <div className="absolute inset-0 bg-[#22a2f2] transition-transform group-hover:scale-105 rounded-xl"></div>
+                      <div className="relative px-6 py-3 font-semibold text-white flex items-center gap-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span>Submit Requirement</span>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
           {activeTab === 'cart' && (

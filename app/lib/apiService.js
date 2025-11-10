@@ -403,6 +403,123 @@ class ApiService {
       }
     }
   }
+
+  // =============================================
+  // REQUIREMENTS API
+  // =============================================
+
+  /**
+   * Create a new requirement
+   * @param {Object} requirementData - Requirement data
+   * @returns {Promise} Response data
+   */
+  async createRequirement(requirementData) {
+    return this.request('/requirements', {
+      method: 'POST',
+      body: JSON.stringify(requirementData)
+    });
+  }
+
+  /**
+   * Get all requirements (buyer gets their own, manufacturer gets all)
+   * @param {Object} filters - Optional filters (status, limit, offset, sortBy, sortOrder)
+   * @returns {Promise} Response data
+   */
+  async getRequirements(filters = {}) {
+    const queryParams = new URLSearchParams();
+    if (filters.status) queryParams.append('status', filters.status);
+    if (filters.limit) queryParams.append('limit', filters.limit);
+    if (filters.offset) queryParams.append('offset', filters.offset);
+    if (filters.sortBy) queryParams.append('sortBy', filters.sortBy);
+    if (filters.sortOrder) queryParams.append('sortOrder', filters.sortOrder);
+
+    const queryString = queryParams.toString();
+    const endpoint = `/requirements${queryString ? `?${queryString}` : ''}`;
+    
+    return this.request(endpoint, {
+      method: 'GET'
+    });
+  }
+
+  /**
+   * Get a single requirement by ID
+   * @param {string} requirementId - Requirement ID
+   * @returns {Promise} Response data
+   */
+  async getRequirement(requirementId) {
+    return this.request(`/requirements/${requirementId}`, {
+      method: 'GET'
+    });
+  }
+
+  /**
+   * Update a requirement
+   * @param {string} requirementId - Requirement ID
+   * @param {Object} updateData - Data to update
+   * @returns {Promise} Response data
+   */
+  async updateRequirement(requirementId, updateData) {
+    return this.request(`/requirements/${requirementId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData)
+    });
+  }
+
+  /**
+   * Delete a requirement
+   * @param {string} requirementId - Requirement ID
+   * @returns {Promise} Response data
+   */
+  async deleteRequirement(requirementId) {
+    return this.request(`/requirements/${requirementId}`, {
+      method: 'DELETE'
+    });
+  }
+
+  /**
+   * Create a response to a requirement (manufacturer responds)
+   * @param {string} requirementId - Requirement ID
+   * @param {Object} responseData - Response data (quoted_price, price_per_unit, delivery_time, notes)
+   * @returns {Promise} Response data
+   */
+  async createRequirementResponse(requirementId, responseData) {
+    return this.request(`/requirements/${requirementId}/responses`, {
+      method: 'POST',
+      body: JSON.stringify(responseData)
+    });
+  }
+
+  /**
+   * Get responses for a requirement
+   * @param {string} requirementId - Requirement ID
+   * @returns {Promise} Response data
+   */
+  async getRequirementResponses(requirementId) {
+    return this.request(`/requirements/${requirementId}/responses`, {
+      method: 'GET'
+    });
+  }
+
+  /**
+   * Get manufacturer's own responses
+   * @param {Object} filters - Optional filters
+   * @returns {Promise} Response data
+   */
+  async getMyRequirementResponses(filters = {}) {
+    const queryParams = new URLSearchParams();
+    if (filters.status) queryParams.append('status', filters.status);
+    if (filters.limit) queryParams.append('limit', filters.limit);
+    if (filters.offset) queryParams.append('offset', filters.offset);
+    if (filters.sortBy) queryParams.append('sortBy', filters.sortBy);
+    if (filters.sortOrder) queryParams.append('sortOrder', filters.sortOrder);
+
+    const queryString = queryParams.toString();
+    const endpoint = `/requirements/responses/my-responses${queryString ? `?${queryString}` : ''}`;
+    
+    return this.request(endpoint, {
+      method: 'GET'
+    });
+  }
 }
 
 // Create singleton instance
