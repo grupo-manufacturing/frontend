@@ -469,7 +469,7 @@ export default function ManufacturerPortal() {
                           value={formData.unitName}
                           onChange={(e) => handleInputChange('unitName', e.target.value)}
                           placeholder="Enter your manufacturing unit name"
-                          className="relative w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 transition-all outline-none text-black placeholder:text-gray-400"
+                          className="relative w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 transition-all outline-none text-black placeholder:text-gray-400"
                           required
                         />
                       </div>
@@ -485,7 +485,7 @@ export default function ManufacturerPortal() {
                         <select
                           value={formData.businessType}
                           onChange={(e) => handleInputChange('businessType', e.target.value)}
-                          className="relative w-full px-4 py-3.5 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 transition-all outline-none text-black appearance-none cursor-pointer"
+                          className="relative w-full px-4 py-3.5 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 transition-all outline-none text-black appearance-none cursor-pointer"
                           required
                         >
                           <option value="" className="bg-white text-black">Select your business type</option>
@@ -516,7 +516,7 @@ export default function ManufacturerPortal() {
                           value={formData.gstNumber}
                           onChange={(e) => handleInputChange('gstNumber', e.target.value)}
                           placeholder="Enter GST number"
-                          className="relative w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 transition-all outline-none text-black placeholder:text-gray-400"
+                          className="relative w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 transition-all outline-none text-black placeholder:text-gray-400"
                           required
                         />
                       </div>
@@ -535,7 +535,7 @@ export default function ManufacturerPortal() {
                             value={formData.panNumber}
                             onChange={(e) => handleInputChange('panNumber', e.target.value)}
                             placeholder="Enter PAN number"
-                            className="relative w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 transition-all outline-none text-black placeholder:text-gray-400"
+                            className="relative w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 transition-all outline-none text-black placeholder:text-gray-400"
                           />
                         </div>
                       </div>
@@ -551,7 +551,7 @@ export default function ManufacturerPortal() {
                             value={formData.coiNumber}
                             onChange={(e) => handleInputChange('coiNumber', e.target.value)}
                             placeholder="Enter COI number"
-                            className="relative w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 transition-all outline-none text-black placeholder:text-gray-400"
+                            className="relative w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 transition-all outline-none text-black placeholder:text-gray-400"
                           />
                         </div>
                       </div>
@@ -569,7 +569,7 @@ export default function ManufacturerPortal() {
                           value={formData.location}
                           onChange={(e) => handleInputChange('location', e.target.value)}
                           placeholder="Enter complete address"
-                          className="relative w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 transition-all outline-none text-black placeholder:text-gray-400"
+                          className="relative w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 transition-all outline-none text-black placeholder:text-gray-400"
                         />
                       </div>
                     </div>
@@ -639,7 +639,7 @@ export default function ManufacturerPortal() {
                             value={formData.capacity}
                             onChange={(e) => handleInputChange('capacity', e.target.value)}
                             placeholder="Enter daily capacity"
-                            className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 transition-all outline-none text-black placeholder:text-gray-400"
+                            className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 transition-all outline-none text-black placeholder:text-gray-400"
                           />
                           <span className="absolute right-4 text-gray-500 text-sm">units/day</span>
                         </div>
@@ -916,12 +916,12 @@ export default function ManufacturerPortal() {
                 onClick={() => setActiveTab('analytics')}
                 className={`relative flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all ${
                   activeTab === 'analytics'
-                    ? 'text-black'
-                    : 'text-gray-500 hover:text-black'
+                    ? 'text-[#22a2f2]'
+                    : 'text-gray-500 hover:text-[#22a2f2]'
                 }`}
               >
                 {activeTab === 'analytics' && (
-                  <div className="absolute inset-0 bg-gray-100 rounded-t-lg border-b-2 border-black"></div>
+                  <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-t-lg border-b-2 border-[#22a2f2]"></div>
                 )}
                 <svg
                   className="relative z-10 w-5 h-5"
@@ -944,12 +944,12 @@ export default function ManufacturerPortal() {
                 onClick={() => setActiveTab('requirements')}
                 className={`relative flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all ${
                   activeTab === 'requirements'
-                    ? 'text-black'
-                    : 'text-gray-500 hover:text-black'
+                    ? 'text-[#22a2f2]'
+                    : 'text-gray-500 hover:text-[#22a2f2]'
                 }`}
               >
                 {activeTab === 'requirements' && (
-                  <div className="absolute inset-0 bg-gray-100 rounded-t-lg border-b-2 border-black"></div>
+                  <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-t-lg border-b-2 border-[#22a2f2]"></div>
                 )}
                 <svg
                   className="relative z-10 w-5 h-5"
@@ -975,21 +975,40 @@ export default function ManufacturerPortal() {
           {/* Tab Content */}
           {activeTab === 'analytics' && (
             <div className="space-y-8">
+              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                <div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22a2f2]/10 text-[#22a2f2] text-sm font-semibold mb-3">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm6 0V7a2 2 0 00-2-2h-2a2 2 0 00-2 2v10m6 0a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2h-2a2 2 0 00-2 2z" />
+                    </svg>
+                    <span>Analytics overview</span>
+                  </div>
+                  <h1 className="text-3xl font-bold text-black">Performance Dashboard</h1>
+                  <p className="text-sm text-gray-500 mt-1">Monitor revenue, conversion, and order health at a glance.</p>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 bg-[#22a2f2]/10 border border-[#22a2f2]/20 text-[#22a2f2] rounded-xl text-sm font-medium">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12A9 9 0 113 12a9 9 0 0118 0z" />
+                  </svg>
+                  Live metrics update as orders progress
+                </div>
+              </div>
+
               {/* Analytics Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in-up">
                 {/* Total Revenue Card */}
                 <div className="group relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-2xl opacity-0 group-hover:opacity-10 transition duration-300"></div>
-                  <div className="relative bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow transition-all">
+                  <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-2xl opacity-0 group-hover:opacity-100 transition duration-300"></div>
+                  <div className="relative bg-white rounded-2xl border border-[#22a2f2]/30 p-6 shadow-sm group-hover:shadow-lg transition-all">
                     <div className="flex items-start justify-between mb-4">
-                      <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg shadow-green-500/50">
-                        <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <div className="p-3 bg-[#22a2f2]/15 text-[#22a2f2] rounded-xl border border-[#22a2f2]/30 shadow-sm">
+                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd"/>
                         </svg>
                       </div>
-                      <div className="px-2 py-1 bg-green-500/10 border border-green-500/20 rounded-lg">
-                        <span className="text-xs font-medium text-green-400">+0%</span>
+                      <div className="px-2 py-1 bg-[#22a2f2]/10 border border-[#22a2f2]/30 rounded-lg text-xs font-medium text-[#22a2f2]">
+                        +0%
                       </div>
                     </div>
                     <div>
@@ -1002,16 +1021,16 @@ export default function ManufacturerPortal() {
 
                 {/* Potential Revenue Card */}
                 <div className="group relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-amber-500/10 rounded-2xl opacity-0 group-hover:opacity-10 transition duration-300"></div>
-                  <div className="relative bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow transition-all">
+                  <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-2xl opacity-0 group-hover:opacity-100 transition duration-300"></div>
+                  <div className="relative bg-white rounded-2xl border border-[#22a2f2]/30 p-6 shadow-sm group-hover:shadow-lg transition-all">
                     <div className="flex items-start justify-between mb-4">
-                      <div className="p-3 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl shadow-lg shadow-orange-500/50">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="p-3 bg-[#22a2f2]/15 text-[#22a2f2] rounded-xl border border-[#22a2f2]/30 shadow-sm">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                         </svg>
                       </div>
-                      <div className="px-2 py-1 bg-orange-500/10 border border-orange-500/20 rounded-lg">
-                        <span className="text-xs font-medium text-orange-400">Pending</span>
+                      <div className="px-2 py-1 bg-[#22a2f2]/10 border border-[#22a2f2]/30 rounded-lg text-xs font-medium text-[#22a2f2]">
+                        Pending
                       </div>
                     </div>
                     <div>
@@ -1024,16 +1043,16 @@ export default function ManufacturerPortal() {
 
                 {/* Avg Order Value Card */}
                 <div className="group relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-2xl opacity-0 group-hover:opacity-10 transition duration-300"></div>
-                  <div className="relative bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow transition-all">
+                  <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-2xl opacity-0 group-hover:opacity-100 transition duration-300"></div>
+                  <div className="relative bg-white rounded-2xl border border-[#22a2f2]/30 p-6 shadow-sm group-hover:shadow-lg transition-all">
                     <div className="flex items-start justify-between mb-4">
-                      <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl shadow-lg shadow-blue-500/50">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="p-3 bg-[#22a2f2]/15 text-[#22a2f2] rounded-xl border border-[#22a2f2]/30 shadow-sm">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                       </div>
-                      <div className="px-2 py-1 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                        <span className="text-xs font-medium text-blue-400">Avg</span>
+                      <div className="px-2 py-1 bg-[#22a2f2]/10 border border-[#22a2f2]/30 rounded-lg text-xs font-medium text-[#22a2f2]">
+                        Avg
                       </div>
                     </div>
                     <div>
@@ -1046,16 +1065,16 @@ export default function ManufacturerPortal() {
 
                 {/* Conversion Rate Card */}
                 <div className="group relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-2xl opacity-0 group-hover:opacity-10 transition duration-300"></div>
-                  <div className="relative bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow transition-all">
+                  <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-2xl opacity-0 group-hover:opacity-100 transition duration-300"></div>
+                  <div className="relative bg-white rounded-2xl border border-[#22a2f2]/30 p-6 shadow-sm group-hover:shadow-lg transition-all">
                     <div className="flex items-start justify-between mb-4">
-                      <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl shadow-lg shadow-purple-500/50">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="p-3 bg-[#22a2f2]/15 text-[#22a2f2] rounded-xl border border-[#22a2f2]/30 shadow-sm">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z"/>
                         </svg>
                       </div>
-                      <div className="px-2 py-1 bg-purple-500/10 border border-purple-500/20 rounded-lg">
-                        <span className="text-xs font-medium text-purple-400">Rate</span>
+                      <div className="px-2 py-1 bg-[#22a2f2]/10 border border-[#22a2f2]/30 rounded-lg text-xs font-medium text-[#22a2f2]">
+                        Rate
                       </div>
                     </div>
                     <div>
@@ -1070,10 +1089,10 @@ export default function ManufacturerPortal() {
               {/* Order Status Overview */}
               <div className="relative overflow-hidden animate-fade-in-up animation-delay-200">
                 <div className="absolute inset-0 rounded-2xl opacity-0"></div>
-                <div className="relative bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+                <div className="relative bg-white rounded-2xl border border-[#22a2f2]/30 p-6 shadow-sm">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-orange-100 rounded-xl border border-orange-200">
-                      <svg className="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="p-2 bg-[#22a2f2]/15 text-[#22a2f2] rounded-xl border border-[#22a2f2]/30">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                       </svg>
                     </div>
@@ -1085,37 +1104,37 @@ export default function ManufacturerPortal() {
 
                   <div className="space-y-4">
                     {/* Accepted Orders */}
-                    <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-gray-200 transition-all">
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-[#22a2f2]/5 border border-[#22a2f2]/20 transition-all">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-green-100 rounded-lg">
-                          <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="p-2 bg-white rounded-lg border border-[#22a2f2]/30 text-[#22a2f2]">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/>
                           </svg>
                         </div>
                         <span className="font-medium text-black">Accepted</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-sm font-semibold text-green-600">0 (0%)</span>
-                        <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-500" style={{width: '0%'}}></div>
+                        <span className="text-sm font-semibold text-[#22a2f2]">0 (0%)</span>
+                        <div className="w-24 h-2 bg-white border border-[#22a2f2]/30 rounded-full overflow-hidden">
+                          <div className="h-full bg-[#22a2f2] rounded-full transition-all duration-500" style={{width: '0%'}}></div>
                         </div>
                       </div>
                     </div>
 
                     {/* Pending Orders */}
-                    <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-gray-200 transition-all">
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-[#22a2f2]/5 border border-[#22a2f2]/20 transition-all">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-orange-100 rounded-lg">
-                          <svg className="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="p-2 bg-white rounded-lg border border-[#22a2f2]/30 text-[#22a2f2]">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                           </svg>
                         </div>
                         <span className="font-medium text-black">Pending</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-sm font-semibold text-orange-500">0 (0%)</span>
-                        <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-orange-500 to-amber-500 rounded-full transition-all duration-500" style={{width: '0%'}}></div>
+                        <span className="text-sm font-semibold text-[#1b8bd0]">0 (0%)</span>
+                        <div className="w-24 h-2 bg-white border border-[#22a2f2]/30 rounded-full overflow-hidden">
+                          <div className="h-full bg-[#1b8bd0] rounded-full transition-all duration-500" style={{width: '0%'}}></div>
                         </div>
                       </div>
                     </div>
@@ -1126,20 +1145,20 @@ export default function ManufacturerPortal() {
               {/* Analytics Tabs */}
               <div className="relative overflow-hidden animate-fade-in-up animation-delay-300">
                 <div className="absolute inset-0 rounded-2xl opacity-0"></div>
-                <div className="relative bg-white rounded-2xl border border-gray-200 shadow-sm">
+                <div className="relative bg-white rounded-2xl border border-[#22a2f2]/30 shadow-sm">
                   {/* Tab Navigation */}
-                  <div className="border-b border-gray-200">
+                  <div className="border-b border-[#22a2f2]/20">
                     <nav className="flex space-x-2 px-6 overflow-x-auto">
                       <button
                         onClick={() => setActiveAnalyticsTab('revenue-trends')}
-                        className={`relative flex items-center gap-2 py-4 px-4 font-medium text-sm whitespace-nowrap transition-all ${
+                        className={`relative flex items-center gap-2 py-4 px-4 font-medium text-sm whitespace-nowrap transition-all rounded-xl ${
                           activeAnalyticsTab === 'revenue-trends'
-                            ? 'text-black'
-                            : 'text-gray-500 hover:text-black'
+                            ? 'text-[#22a2f2] bg-[#22a2f2]/10'
+                            : 'text-gray-500 hover:text-[#22a2f2]'
                         }`}
                       >
                         {activeAnalyticsTab === 'revenue-trends' && (
-                          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black"></div>
+                          <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-[#22a2f2] rounded-full"></div>
                         )}
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
@@ -1148,14 +1167,14 @@ export default function ManufacturerPortal() {
                       </button>
                       <button
                         onClick={() => setActiveAnalyticsTab('product-performance')}
-                        className={`relative flex items-center gap-2 py-4 px-4 font-medium text-sm whitespace-nowrap transition-all ${
+                        className={`relative flex items-center gap-2 py-4 px-4 font-medium text-sm whitespace-nowrap transition-all rounded-xl ${
                           activeAnalyticsTab === 'product-performance'
-                            ? 'text-black'
-                            : 'text-gray-500 hover:text-black'
+                            ? 'text-[#22a2f2] bg-[#22a2f2]/10'
+                            : 'text-gray-500 hover:text-[#22a2f2]'
                         }`}
                       >
                         {activeAnalyticsTab === 'product-performance' && (
-                          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black"></div>
+                          <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-[#22a2f2] rounded-full"></div>
                         )}
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
@@ -1164,14 +1183,14 @@ export default function ManufacturerPortal() {
                       </button>
                       <button
                         onClick={() => setActiveAnalyticsTab('order-distribution')}
-                        className={`relative flex items-center gap-2 py-4 px-4 font-medium text-sm whitespace-nowrap transition-all ${
+                        className={`relative flex items-center gap-2 py-4 px-4 font-medium text-sm whitespace-nowrap transition-all rounded-xl ${
                           activeAnalyticsTab === 'order-distribution'
-                            ? 'text-black'
-                            : 'text-gray-500 hover:text-black'
+                            ? 'text-[#22a2f2] bg-[#22a2f2]/10'
+                            : 'text-gray-500 hover:text-[#22a2f2]'
                         }`}
                       >
                         {activeAnalyticsTab === 'order-distribution' && (
-                          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-black"></div>
+                          <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-[#22a2f2] rounded-full"></div>
                         )}
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
@@ -1192,9 +1211,9 @@ export default function ManufacturerPortal() {
                         <div className="flex items-center justify-center py-16">
                           <div className="text-center">
                             <div className="relative group">
-                              <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-2xl opacity-0 group-hover:opacity-10 transition"></div>
-                              <div className="relative bg-gray-50 rounded-2xl p-8 mb-4 border border-gray-200">
-                                <svg className="w-16 h-16 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <div className="absolute inset-0 bg-[#22a2f2]/15 rounded-2xl opacity-0 group-hover:opacity-100 transition"></div>
+                              <div className="relative bg-white rounded-2xl p-8 mb-4 border border-[#22a2f2]/30">
+                                <svg className="w-16 h-16 text-[#22a2f2] mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                                 </svg>
                               </div>
@@ -1215,9 +1234,9 @@ export default function ManufacturerPortal() {
                         <div className="flex items-center justify-center py-16">
                           <div className="text-center">
                             <div className="relative group">
-                              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-amber-500/10 rounded-2xl opacity-0 group-hover:opacity-10 transition"></div>
-                              <div className="relative bg-gray-50 rounded-2xl p-8 mb-4 border border-gray-200">
-                                <svg className="w-16 h-16 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <div className="absolute inset-0 bg-[#22a2f2]/15 rounded-2xl opacity-0 group-hover:opacity-100 transition"></div>
+                              <div className="relative bg-white rounded-2xl p-8 mb-4 border border-[#22a2f2]/30">
+                                <svg className="w-16 h-16 text-[#22a2f2] mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                                 </svg>
                               </div>
@@ -1238,9 +1257,9 @@ export default function ManufacturerPortal() {
                         <div className="flex items-center justify-center py-16">
                           <div className="text-center">
                             <div className="relative group">
-                              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-2xl opacity-0 group-hover:opacity-10 transition"></div>
-                              <div className="relative bg-gray-50 rounded-2xl p-8 mb-4 border border-gray-200">
-                                <svg className="w-16 h-16 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <div className="absolute inset-0 bg-[#22a2f2]/15 rounded-2xl opacity-0 group-hover:opacity-100 transition"></div>
+                              <div className="relative bg-white rounded-2xl p-8 mb-4 border border-[#22a2f2]/30">
+                                <svg className="w-16 h-16 text-[#22a2f2] mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                 </svg>
                               </div>
@@ -1260,10 +1279,23 @@ export default function ManufacturerPortal() {
             <div className="animate-fade-in-up h-full flex flex-col">
               {/* Header */}
               <div className="mb-6">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                   <div>
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22a2f2]/10 text-[#22a2f2] text-sm font-semibold mb-3">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2m-6 0a2 2 0 012-2h2a2 2 0 012 2m-4 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                      </svg>
+                      <span>Buyer requirements</span>
+                    </div>
                     <h1 className="text-2xl sm:text-3xl font-bold text-black mb-1">Buyer Requirements</h1>
                     <p className="text-sm text-gray-600">View and respond to buyer inquiries and conversations</p>
+                  </div>
+                  <div className="flex items-center gap-2 px-4 py-2 bg-[#22a2f2]/10 border border-[#22a2f2]/20 text-[#22a2f2] rounded-xl text-sm font-medium">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 00-9.33-5" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2 8a6 6 0 0111.33-1" />
+                    </svg>
+                    Stay responsive to convert requests faster
                   </div>
                 </div>
               </div>
@@ -1271,7 +1303,7 @@ export default function ManufacturerPortal() {
               {/* Chat Layout */}
               <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 min-h-0">
                 {/* Conversations Sidebar */}
-                <div className="lg:col-span-4 xl:col-span-3 h-[300px] lg:h-[calc(100vh-280px)] min-h-[400px]">
+                <div className="lg:col-span-4 xl:col-span-3 h-[300px] lg:h-[calc(100vh-280px)] min-h-[400px] bg-white border border-[#22a2f2]/30 rounded-xl shadow-sm">
                   <ChatList 
                     selectedConversationId={activeConversationId}
                     onOpenConversation={(cid, bid, mid, title) => {
@@ -1301,18 +1333,18 @@ export default function ManufacturerPortal() {
                       }}
                     />
                   ) : (
-                    <div className="h-full bg-white rounded-xl border border-gray-200 flex items-center justify-center p-6 shadow-sm">
+                    <div className="h-full bg-white rounded-xl border border-[#22a2f2]/30 flex items-center justify-center p-6 shadow-sm">
                       <div className="text-center max-w-sm">
                         <div className="relative mx-auto mb-6 w-20 h-20">
-                          <div className="absolute inset-0 bg-orange-100 rounded-full blur-xl"></div>
-                          <div className="relative bg-orange-50 rounded-full flex items-center justify-center w-full h-full border border-orange-200">
-                            <svg className="w-10 h-10 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <div className="absolute inset-0 bg-[#22a2f2]/25 rounded-full blur-xl opacity-60"></div>
+                          <div className="relative bg-[#22a2f2]/10 rounded-full flex items-center justify-center w-full h-full border border-[#22a2f2]/30">
+                            <svg className="w-10 h-10 text-[#22a2f2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                             </svg>
                           </div>
                         </div>
                         <h3 className="text-lg font-semibold text-black mb-2">Select a requirement</h3>
-                        <p className="text-sm text-gray-600">Choose a conversation from the list to view and respond</p>
+                        <p className="text-sm text-gray-500">Choose a conversation from the list to view and respond</p>
                       </div>
                     </div>
                   )}
@@ -1327,14 +1359,14 @@ export default function ManufacturerPortal() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto bg-black/60 backdrop-blur-sm">
             <div className="relative group max-w-4xl w-full my-8 animate-fade-in-up">
               {/* Glowing border */}
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-black to-gray-700 rounded-3xl blur opacity-10"></div>
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-[#22a2f2] to-transparent rounded-3xl blur opacity-20"></div>
               
-              <div className="relative bg-white rounded-3xl shadow-2xl max-h-[90vh] overflow-hidden border border-gray-200">
+              <div className="relative bg-white rounded-3xl shadow-2xl max-h-[90vh] overflow-hidden border-2 border-[#22a2f2]/50">
                 {/* Modal Header */}
-                <div className="sticky top-0 bg-white/95 backdrop-blur px-6 py-4 flex items-center justify-between z-10 border-b border-gray-200">
+                <div className="sticky top-0 bg-white/95 backdrop-blur px-6 py-4 flex items-center justify-between z-10 border-b border-[#22a2f2]/20">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-gray-100 rounded-xl border border-gray-200">
-                      <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="p-2 bg-[#22a2f2]/15 text-[#22a2f2] rounded-xl border border-[#22a2f2]/30">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                     </div>
@@ -1354,7 +1386,7 @@ export default function ManufacturerPortal() {
               <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
                 {isLoadingProfile ? (
                   <div className="flex items-center justify-center py-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#22a2f2]"></div>
                   </div>
                 ) : (
                   <form onSubmit={handleUpdateProfile} className="space-y-6">
@@ -1368,7 +1400,7 @@ export default function ManufacturerPortal() {
                         value={formData.unitName}
                         onChange={(e) => handleInputChange('unitName', e.target.value)}
                         placeholder="Enter unit name"
-                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black placeholder:text-gray-400 transition-all"
+                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-400 transition-all"
                         required
                       />
                     </div>
@@ -1382,7 +1414,7 @@ export default function ManufacturerPortal() {
                         <select
                           value={formData.businessType}
                           onChange={(e) => handleInputChange('businessType', e.target.value)}
-                          className="w-full px-4 py-3 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black appearance-none cursor-pointer transition-all"
+                          className="w-full px-4 py-3 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black appearance-none cursor-pointer transition-all"
                           required
                         >
                           <option value="" className="bg-white">Select your business type</option>
@@ -1411,7 +1443,7 @@ export default function ManufacturerPortal() {
                         value={formData.gstNumber}
                         onChange={(e) => handleInputChange('gstNumber', e.target.value)}
                         placeholder="Enter GST number"
-                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black placeholder:text-gray-400 transition-all"
+                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-400 transition-all"
                         required
                       />
                     </div>
@@ -1433,8 +1465,8 @@ export default function ManufacturerPortal() {
                             key={product} 
                             className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
                               formData.productTypes.includes(product)
-                                ? 'bg-black border-black text-white shadow-lg shadow-black/10'
-                                : 'bg-white border-gray-200 hover:border-black hover:bg-gray-50'
+                                ? 'bg-[#22a2f2] border-[#22a2f2] text-white shadow-lg shadow-[#22a2f2]/20'
+                                : 'bg-white border-gray-200 hover:border-[#22a2f2] hover:bg-[#22a2f2]/10'
                             }`}
                           >
                             <input
@@ -1445,11 +1477,11 @@ export default function ManufacturerPortal() {
                             />
                             <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
                               formData.productTypes.includes(product)
-                                ? 'bg-white text-black border-white'
+                                ? 'bg-white text-[#22a2f2] border-white'
                                 : 'border-gray-300 text-transparent'
                             }`}>
                               {formData.productTypes.includes(product) && (
-                                <svg className="w-3 h-3 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-3 h-3 text-[#22a2f2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                 </svg>
                               )}
@@ -1470,7 +1502,7 @@ export default function ManufacturerPortal() {
                         value={formData.capacity}
                         onChange={(e) => handleInputChange('capacity', e.target.value)}
                         placeholder="Enter capacity (units per day)"
-                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black placeholder:text-gray-400 transition-all"
+                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-400 transition-all"
                       />
                     </div>
 
@@ -1484,7 +1516,7 @@ export default function ManufacturerPortal() {
                         value={formData.location}
                         onChange={(e) => handleInputChange('location', e.target.value)}
                         placeholder="Enter complete address of manufacturing unit"
-                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black placeholder:text-gray-400 transition-all"
+                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-400 transition-all"
                       />
                     </div>
 
@@ -1498,7 +1530,7 @@ export default function ManufacturerPortal() {
                         value={formData.panNumber}
                         onChange={(e) => handleInputChange('panNumber', e.target.value)}
                         placeholder="Enter PAN number"
-                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black placeholder:text-gray-400 transition-all"
+                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-400 transition-all"
                       />
                     </div>
 
@@ -1512,7 +1544,7 @@ export default function ManufacturerPortal() {
                         value={formData.coiNumber}
                         onChange={(e) => handleInputChange('coiNumber', e.target.value)}
                         placeholder="Enter COI number"
-                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black placeholder:text-gray-400 transition-all"
+                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-400 transition-all"
                       />
                     </div>
 
@@ -1521,9 +1553,9 @@ export default function ManufacturerPortal() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         MSME Certificate <span className="text-gray-500">(Optional)</span>
                       </label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 hover:border-black hover:bg-gray-100 transition-all">
+                      <div className="border-2 border-dashed border-[#22a2f2]/40 rounded-xl bg-[#22a2f2]/5 hover:border-[#22a2f2] hover:bg-[#22a2f2]/10 transition-all">
                         <label className="flex flex-col items-center justify-center py-8 cursor-pointer group">
-                          <div className="p-3 bg-black text-white rounded-xl mb-2 group-hover:scale-105 transition-transform">
+                          <div className="p-3 bg-[#22a2f2]/15 text-[#22a2f2] rounded-xl mb-2 group-hover:scale-105 transition-transform border border-[#22a2f2]/30">
                             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                             </svg>
@@ -1531,8 +1563,8 @@ export default function ManufacturerPortal() {
                           <span className="text-sm text-gray-700 font-medium">Click to upload MSME certificate</span>
                           <span className="text-xs text-gray-500 mt-1">PDF, JPG or PNG</span>
                           {formData.msmeFile && (
-                            <div className="mt-2 px-3 py-1 bg-gray-200 border border-gray-300 rounded-lg">
-                              <span className="text-xs text-gray-700 font-medium">{formData.msmeFile.name}</span>
+                            <div className="mt-2 px-3 py-1 bg-[#22a2f2]/10 border border-[#22a2f2]/30 rounded-lg">
+                              <span className="text-xs text-[#22a2f2] font-medium">{formData.msmeFile.name}</span>
                             </div>
                           )}
                           <input
@@ -1550,9 +1582,9 @@ export default function ManufacturerPortal() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Other Certificates (Optional)
                       </label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 hover:border-black hover:bg-gray-100 transition-all">
+                      <div className="border-2 border-dashed border-[#22a2f2]/40 rounded-xl bg-[#22a2f2]/5 hover:border-[#22a2f2] hover:bg-[#22a2f2]/10 transition-all">
                         <label className="flex flex-col items-center justify-center py-8 cursor-pointer group">
-                          <div className="p-3 bg-black text-white rounded-xl mb-2 group-hover:scale-105 transition-transform">
+                          <div className="p-3 bg-[#22a2f2]/15 text-[#22a2f2] rounded-xl mb-2 group-hover:scale-105 transition-transform border border-[#22a2f2]/30">
                             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                             </svg>
@@ -1560,8 +1592,8 @@ export default function ManufacturerPortal() {
                           <span className="text-sm text-gray-700 font-medium">Click to upload other certificates</span>
                           <span className="text-xs text-gray-500 mt-1">ISO, Quality certificates, etc.</span>
                           {formData.otherCertificates && (
-                            <div className="mt-2 px-3 py-1 bg-gray-200 border border-gray-300 rounded-lg">
-                              <span className="text-xs text-gray-700 font-medium">{formData.otherCertificates.name}</span>
+                            <div className="mt-2 px-3 py-1 bg-[#22a2f2]/10 border border-[#22a2f2]/30 rounded-lg">
+                              <span className="text-xs text-[#22a2f2] font-medium">{formData.otherCertificates.name}</span>
                             </div>
                           )}
                           <input
@@ -1579,13 +1611,13 @@ export default function ManufacturerPortal() {
                       <button
                         type="button"
                         onClick={() => setShowProfile(false)}
-                        className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-black font-semibold rounded-xl transition-all border border-gray-200"
+                        className="flex-1 px-4 py-3 bg-white hover:bg-[#22a2f2]/10 text-[#22a2f2] font-semibold rounded-xl transition-all border border-[#22a2f2]/30"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
-                        className="flex-1 rounded-xl bg-black text-white font-semibold px-4 py-3 flex items-center justify-center gap-2 hover:bg-gray-900 transition-colors"
+                        className="flex-1 rounded-xl bg-[#22a2f2] hover:bg-[#1b8bd0] text-white font-semibold px-4 py-3 flex items-center justify-center gap-2 transition-colors shadow-sm hover:shadow-md"
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
