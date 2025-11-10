@@ -839,16 +839,32 @@ export default function BuyerPortal() {
         <main className="relative z-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Tab Content */}
           {activeTab === 'designs' && (
-            <div className="animate-fade-in-up">
+            <div>
               {/* Header Section */}
               <div className="mb-8">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22a2f2]/10 text-[#22a2f2] text-sm font-semibold mb-3">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <span>Curated designs</span>
+                </div>
                 <h1 className="text-3xl font-bold text-black mb-2">Design Marketplace</h1>
                 <p className="text-gray-600">Browse our curated collection of ready-to-manufacture designs</p>
               </div>
 
               {/* Search and Filter Bar */}
               <div className="mb-8">
-                <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+                <div className="bg-white rounded-2xl border border-[#22a2f2]/30 p-6 shadow-sm">
                   <div className="flex flex-col md:flex-row gap-4">
                     {/* Search Input */}
                     <div className="flex-1 relative group">
@@ -872,7 +888,7 @@ export default function BuyerPortal() {
                         placeholder="Search designs..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black placeholder:text-gray-400 transition-all"
+                        className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-400 transition-all"
                       />
                     </div>
 
@@ -881,7 +897,7 @@ export default function BuyerPortal() {
                       <select
                         value={selectedCategory}
                         onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="appearance-none w-full md:w-64 px-4 py-3 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black cursor-pointer transition-all"
+                        className="appearance-none w-full md:w-64 px-4 py-3 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black cursor-pointer transition-all"
                       >
                         <option value="all" className="bg-white">All Categories</option>
                         <option value="t-shirts" className="bg-white">T-Shirts</option>
@@ -915,9 +931,9 @@ export default function BuyerPortal() {
               <div className="flex flex-col items-center justify-center py-20">
                 <div className="text-center max-w-md">
                   <div className="relative group mb-6">
-                    <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
+                    <div className="bg-[#22a2f2]/10 rounded-2xl p-8 border border-[#22a2f2]/30 shadow-sm">
                       <svg
-                        className="mx-auto h-20 w-20 text-gray-500"
+                        className="mx-auto h-20 w-20 text-[#22a2f2]"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -931,7 +947,7 @@ export default function BuyerPortal() {
                       </svg>
                     </div>
                   </div>
-                  <p className="text-lg font-medium text-gray-700 mb-2">No designs found matching your criteria</p>
+                  <p className="text-lg font-semibold text-[#22a2f2] mb-2">No designs found matching your criteria</p>
                   <p className="text-sm text-gray-500">
                     Try adjusting your search terms or category filter
                   </p>
@@ -940,11 +956,17 @@ export default function BuyerPortal() {
             </div>
           )}
           {activeTab === 'instant-quote' && (
-            <div className="animate-fade-in-up">
+            <div>
               {/* Header Section */}
               <div className="mb-8">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="bg-black rounded-xl p-3 shadow-sm">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22a2f2]/10 text-[#22a2f2] text-sm font-semibold mb-3">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span>Instant quotes</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="bg-[#22a2f2] rounded-xl p-3 shadow-sm">
                     <svg
                       className="w-6 h-6 text-white"
                       fill="none"
@@ -962,7 +984,7 @@ export default function BuyerPortal() {
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <h1 className="text-3xl font-bold text-black">Instant Quote Generator</h1>
-                      <span className="bg-orange-500 text-white text-xs font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-sm">
+                      <span className="bg-[#22a2f2]/10 text-[#22a2f2] text-xs font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-sm border border-[#22a2f2]/20">
                         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
                         </svg>
@@ -978,11 +1000,11 @@ export default function BuyerPortal() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     {/* Response Time Card */}
                     <div className="group relative overflow-hidden">
-                      <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm hover:shadow transition-all">
+                      <div className="bg-white rounded-2xl border border-[#22a2f2]/30 p-4 shadow-sm hover:shadow-lg hover:border-[#22a2f2]/60 transition-all">
                         <div className="flex items-start gap-3">
-                          <div className="p-2 bg-blue-600 rounded-xl shadow-sm">
+                          <div className="p-2 bg-[#22a2f2]/15 rounded-xl shadow-sm text-[#22a2f2]">
                             <svg
-                              className="w-5 h-5 text-black"
+                              className="w-5 h-5"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -996,7 +1018,7 @@ export default function BuyerPortal() {
                             </svg>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600 mb-1">Response Time</p>
+                            <p className="text-sm text-[#22a2f2] font-semibold mb-1">Response Time</p>
                             <p className="text-lg font-bold text-black">Instant</p>
                           </div>
                         </div>
@@ -1005,11 +1027,11 @@ export default function BuyerPortal() {
 
                     {/* Accuracy Card */}
                     <div className="group relative overflow-hidden">
-                      <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm hover:shadow transition-all">
+                      <div className="bg-white rounded-2xl border border-[#22a2f2]/30 p-4 shadow-sm hover:shadow-lg hover:border-[#22a2f2]/60 transition-all">
                         <div className="flex items-start gap-3">
-                          <div className="p-2 bg-green-600 rounded-xl shadow-sm">
+                          <div className="p-2 bg-[#22a2f2]/15 rounded-xl shadow-sm text-[#22a2f2]">
                             <svg
-                              className="w-5 h-5 text-black"
+                              className="w-5 h-5"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -1023,7 +1045,7 @@ export default function BuyerPortal() {
                             </svg>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600 mb-1">Accuracy</p>
+                            <p className="text-sm text-[#22a2f2] font-semibold mb-1">Accuracy</p>
                             <p className="text-lg font-bold text-black">98% Accurate</p>
                           </div>
                         </div>
@@ -1032,11 +1054,11 @@ export default function BuyerPortal() {
 
                     {/* Manufacturers Card */}
                     <div className="group relative overflow-hidden">
-                      <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm hover:shadow transition-all">
+                      <div className="bg-white rounded-2xl border border-[#22a2f2]/30 p-4 shadow-sm hover:shadow-lg hover:border-[#22a2f2]/60 transition-all">
                         <div className="flex items-start gap-3">
-                          <div className="p-2 bg-purple-600 rounded-xl shadow-sm">
+                          <div className="p-2 bg-[#22a2f2]/15 rounded-xl shadow-sm text-[#22a2f2]">
                             <svg
-                              className="w-5 h-5 text-black"
+                              className="w-5 h-5"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -1050,7 +1072,7 @@ export default function BuyerPortal() {
                             </svg>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600 mb-1">Manufacturers</p>
+                            <p className="text-sm text-[#22a2f2] font-semibold mb-1">Manufacturers</p>
                             <p className="text-lg font-bold text-black">100+ Verified</p>
                           </div>
                         </div>
@@ -1060,11 +1082,11 @@ export default function BuyerPortal() {
 
               {/* Order Requirements Form */}
               <div className="mb-6">
-                <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+                <div className="bg-white rounded-2xl border border-[#22a2f2]/30 p-6 shadow-sm">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="p-2 bg-black rounded-lg">
+                      <div className="p-2 bg-[#22a2f2]/15 rounded-lg text-[#22a2f2]">
                         <svg
-                          className="w-5 h-5 text-white"
+                          className="w-5 h-5"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -1079,7 +1101,7 @@ export default function BuyerPortal() {
                       </div>
                       <h2 className="text-xl font-bold text-black">Order Requirements</h2>
                     </div>
-                    <p className="text-gray-400 mb-6">Fill in your requirements to get instant quotes</p>
+                    <p className="text-gray-500 mb-6">Fill in your requirements to get instant quotes</p>
 
                     <form className="space-y-5">
                       {/* Brand Name */}
@@ -1092,7 +1114,7 @@ export default function BuyerPortal() {
                           value={brandName}
                           onChange={(e) => setBrandName(e.target.value)}
                           placeholder="e.g., Urban Threads"
-                          className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black placeholder:text-gray-500 transition-all"
+                          className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 transition-all"
                         />
                       </div>
 
@@ -1106,7 +1128,7 @@ export default function BuyerPortal() {
                             <select
                               value={productType}
                               onChange={(e) => setProductType(e.target.value)}
-                              className="appearance-none w-full px-4 py-2.5 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black cursor-pointer transition-all"
+                              className="appearance-none w-full px-4 py-2.5 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black cursor-pointer transition-all"
                             >
                               <option value="" className="bg-white">Select type</option>
                               <option value="t-shirt" className="bg-white">T-Shirt</option>
@@ -1132,7 +1154,7 @@ export default function BuyerPortal() {
                             <select
                               value={fabricType}
                               onChange={(e) => setFabricType(e.target.value)}
-                              className="appearance-none w-full px-4 py-2.5 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black cursor-pointer transition-all"
+                              className="appearance-none w-full px-4 py-2.5 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black cursor-pointer transition-all"
                             >
                               <option value="" className="bg-white">Select fabric</option>
                               <option value="cotton" className="bg-white">Cotton</option>
@@ -1161,9 +1183,9 @@ export default function BuyerPortal() {
                           value={quantity}
                           onChange={(e) => setQuantity(e.target.value)}
                           placeholder="e.g., 5000"
-                          className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black placeholder:text-gray-500 transition-all"
+                          className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 transition-all"
                         />
-                        <p className="text-xs text-blue-600 mt-1">Minimum order: 100 units</p>
+                        <p className="text-xs text-[#22a2f2] font-medium mt-1">Minimum order: 100 units</p>
                       </div>
 
                       {/* Colors and Sizes Row */}
@@ -1177,7 +1199,7 @@ export default function BuyerPortal() {
                             value={colors}
                             onChange={(e) => setColors(e.target.value)}
                             placeholder="e.g., Black, White, Navy"
-                            className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black placeholder:text-gray-500 transition-all"
+                            className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 transition-all"
                           />
                         </div>
 
@@ -1190,7 +1212,7 @@ export default function BuyerPortal() {
                             value={sizes}
                             onChange={(e) => setSizes(e.target.value)}
                             placeholder="e.g., S, M, L, XL"
-                            className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black placeholder:text-gray-500 transition-all"
+                            className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 transition-all"
                           />
                         </div>
                       </div>
@@ -1205,7 +1227,7 @@ export default function BuyerPortal() {
                           onChange={(e) => setAdditionalDetails(e.target.value)}
                           placeholder="Any specific requirements, printing, embroidery, etc."
                           rows={4}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-gray-900 placeholder:text-gray-400 resize-none"
+                          className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-gray-900 placeholder:text-gray-400 resize-none transition-all"
                         />
                       </div>
 
@@ -1214,7 +1236,7 @@ export default function BuyerPortal() {
                         type="button"
                         onClick={handleGenerateQuotes}
                         disabled={isLoadingQuotes}
-                        className="w-full bg-black hover:bg-gray-800 text-white font-semibold py-3 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full bg-[#22a2f2] hover:bg-[#1b8bd0] text-white font-semibold py-3 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isLoadingQuotes ? (
                           <>
@@ -1251,14 +1273,14 @@ export default function BuyerPortal() {
               {quotes.length > 0 && (
                 <div className="mt-8">
                   <h3 className="text-2xl font-bold text-black mb-6 flex items-center gap-2">
-                    <svg className="w-7 h-7 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-7 h-7 text-[#22a2f2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                     Available Quotes
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {quotes.map((quote) => (
-                      <div key={quote.id} className="group bg-white rounded-2xl border border-gray-200 p-6 hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/10 transition-all relative flex flex-col">
+                      <div key={quote.id} className="group bg-white rounded-2xl border border-gray-200 p-6 hover:border-[#22a2f2]/50 hover:shadow-xl hover:shadow-[#22a2f2]/10 transition-all relative flex flex-col">
                         {/* Best Value Badge */}
                         {quote.bestValue && (
                           <div className="absolute -top-3 -right-3">
@@ -1280,7 +1302,7 @@ export default function BuyerPortal() {
                             <span className={`text-xs font-semibold px-3 py-1 rounded-lg ${
                               quote.badge === 'Premium' 
                                 ? 'bg-orange-50 text-orange-600 border border-orange-200' 
-                                : 'bg-blue-50 text-blue-600 border border-blue-200'
+                                : 'bg-[#22a2f2]/10 text-[#22a2f2] border border-[#22a2f2]/30'
                             }`}>
                               {quote.badge}
                             </span>
@@ -1307,7 +1329,7 @@ export default function BuyerPortal() {
 
                         {/* Delivery */}
                         <div className="flex items-center gap-2 mb-4 text-sm bg-gray-50 rounded-lg p-3">
-                          <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-5 h-5 text-[#22a2f2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                           <span className="text-gray-600">Delivery: <span className="font-semibold text-black">{quote.delivery}</span></span>
@@ -1316,7 +1338,7 @@ export default function BuyerPortal() {
                         {/* Features */}
                         <div className="mb-5 flex-grow">
                           <p className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                            <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 text-[#22a2f2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                             </svg>
                             Features:
@@ -1336,7 +1358,7 @@ export default function BuyerPortal() {
                         {/* Action Button */}
                         <button 
                           onClick={() => openChatFromQuote(quote)}
-                          className="w-full bg-black hover:bg-gray-800 text-white px-6 py-3 font-semibold rounded-xl transition-all mt-auto flex items-center justify-center gap-2"
+                          className="w-full bg-[#22a2f2] hover:bg-[#1b8bd0] text-white px-6 py-3 font-semibold rounded-xl transition-all mt-auto flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -1351,15 +1373,21 @@ export default function BuyerPortal() {
             </div>
           )}
           {activeTab === 'custom-quote' && (
-            <div className="flex flex-col items-center animate-fade-in-up">
+            <div className="flex flex-col items-center">
               {/* Header Section */}
-              <div className="mb-8 text-center max-w-3xl">
+            <div className="mb-8 text-center max-w-3xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22a2f2]/10 text-[#22a2f2] text-sm font-semibold mb-3">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <span>Custom quote</span>
+              </div>
                 <h1 className="text-3xl font-bold text-black mb-2">Request for Quotation</h1>
-                <p className="text-blue-400">Fill in the details below and connect with verified manufacturers</p>
+              <p className="text-[#22a2f2]">Fill in the details below and connect with verified manufacturers</p>
               </div>
 
               {/* Custom Quote Form */}
-              <div className="w-full max-w-3xl bg-white rounded-2xl border border-gray-200 p-8 shadow-lg">
+            <div className="w-full max-w-3xl bg-white rounded-2xl border border-[#22a2f2]/30 p-8 shadow-lg">
                 <form className="space-y-6">
                   {/* Requirement */}
                   <div>
@@ -1371,7 +1399,7 @@ export default function BuyerPortal() {
                       onChange={(e) => setRequirement(e.target.value)}
                       placeholder="Please describe your requirements in detail..."
                       rows={5}
-                      className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black placeholder:text-gray-500 resize-none transition-all"
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 resize-none transition-all"
                     />
                   </div>
 
@@ -1386,7 +1414,7 @@ export default function BuyerPortal() {
                         value={customQuantity}
                         onChange={(e) => setCustomQuantity(e.target.value)}
                         placeholder="Enter quantity"
-                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black placeholder:text-gray-500 transition-all"
+                      className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 transition-all"
                       />
                     </div>
 
@@ -1399,7 +1427,7 @@ export default function BuyerPortal() {
                         value={customBrandName}
                         onChange={(e) => setCustomBrandName(e.target.value)}
                         placeholder="Enter brand name"
-                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black placeholder:text-gray-500 transition-all"
+                      className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 transition-all"
                       />
                     </div>
                   </div>
@@ -1413,7 +1441,7 @@ export default function BuyerPortal() {
                       <select
                         value={customProductType}
                         onChange={(e) => setCustomProductType(e.target.value)}
-                        className="appearance-none w-full px-4 py-3 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black cursor-pointer transition-all"
+                      className="appearance-none w-full px-4 py-3 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black cursor-pointer transition-all"
                       >
                         <option value="" className="bg-white">Select product type</option>
                         <option value="t-shirt" className="bg-white">T-Shirt</option>
@@ -1459,7 +1487,7 @@ export default function BuyerPortal() {
                         value={productLink}
                         onChange={(e) => setProductLink(e.target.value)}
                         placeholder="https://example.com/product"
-                        className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black placeholder:text-gray-500 transition-all"
+                      className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 transition-all"
                       />
                     </div>
                   </div>
@@ -1469,11 +1497,11 @@ export default function BuyerPortal() {
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Upload Image (Optional)
                     </label>
-                    <div className="border-2 border-dashed border-white/20 rounded-xl bg-slate-900/30 hover:bg-slate-900/50 hover:border-blue-500/50 transition-all">
+                  <div className="border-2 border-dashed border-[#22a2f2]/30 rounded-xl bg-[#22a2f2]/5 hover:bg-[#22a2f2]/10 hover:border-[#22a2f2]/60 transition-all">
                       <label className="flex flex-col items-center justify-center py-12 cursor-pointer group">
-                        <div className="p-3 bg-blue-500/10 rounded-xl mb-3 group-hover:scale-110 transition-transform">
+                      <div className="p-3 bg-[#22a2f2]/15 rounded-xl mb-3 group-hover:scale-110 transition-transform text-[#22a2f2]">
                           <svg
-                            className="w-10 h-10 text-blue-400"
+                          className="w-10 h-10"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -1489,8 +1517,8 @@ export default function BuyerPortal() {
                         <span className="text-sm text-gray-700 font-medium mb-1">Click to upload image</span>
                         <span className="text-xs text-gray-500">PNG, JPG or GIF (Max 5MB)</span>
                         {uploadedImage && (
-                          <div className="mt-3 px-4 py-2 bg-blue-500/20 border border-blue-500/30 rounded-lg">
-                            <span className="text-xs text-blue-400 font-medium">
+                          <div className="mt-3 px-4 py-2 bg-[#22a2f2]/15 border border-[#22a2f2]/40 rounded-lg">
+                            <span className="text-xs text-[#22a2f2] font-medium">
                               {uploadedImage.name}
                             </span>
                           </div>
@@ -1514,7 +1542,7 @@ export default function BuyerPortal() {
                     type="button"
                     className="relative w-full group overflow-hidden rounded-xl"
                   >
-                    <div className="bg-black hover:bg-gray-800 text-white px-6 py-3.5 font-semibold rounded-xl transition-all flex items-center justify-center gap-2">
+                  <div className="bg-[#22a2f2] hover:bg-[#1b8bd0] text-white px-6 py-3.5 font-semibold rounded-xl transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                       </svg>
@@ -1525,10 +1553,10 @@ export default function BuyerPortal() {
               </div>
 
               {/* Info Box */}
-              <div className="w-full max-w-3xl mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <div className="w-full max-w-3xl mt-6 bg-[#22a2f2]/10 border border-[#22a2f2]/30 rounded-xl p-4">
                 <div className="flex items-start gap-3">
                   <svg
-                    className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0"
+                  className="w-5 h-5 text-[#22a2f2] mt-0.5 flex-shrink-0"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -1539,7 +1567,7 @@ export default function BuyerPortal() {
                     />
                   </svg>
                   <div>
-                    <p className="text-sm text-blue-700 font-medium mb-1">
+                  <p className="text-sm text-[#22a2f2] font-medium mb-1">
                       How it works
                     </p>
                     <p className="text-sm text-gray-600">
@@ -1553,27 +1581,33 @@ export default function BuyerPortal() {
             </div>
           )}
           {activeTab === 'my-orders' && (
-            <div className="animate-fade-in-up">
+            <div>
               {/* Header Section */}
               <div className="mb-8">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22a2f2]/10 text-[#22a2f2] text-sm font-semibold mb-3">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-9 8h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span>Order timeline</span>
+                </div>
                 <h1 className="text-3xl font-bold text-black mb-2">My Orders</h1>
-                <p className="text-gray-400">Track and manage all your orders in one place</p>
+                <p className="text-gray-500">Track and manage all your orders in one place</p>
               </div>
 
               {/* Stats Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {/* Total Orders Card */}
                 <div className="group relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-slate-600/20 to-gray-600/20 rounded-2xl blur opacity-50 group-hover:opacity-75 transition duration-300"></div>
-                  <div className="relative bg-white rounded-2xl border border-gray-200 p-6 hover:border-slate-500/50 transition-all">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#22a2f2]/15 to-[#1b8bd0]/10 rounded-2xl blur opacity-40 group-hover:opacity-70 transition duration-300"></div>
+                  <div className="relative bg-white rounded-2xl border border-[#22a2f2]/30 p-6 hover:border-[#22a2f2]/60 transition-all">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-400 mb-1">Total Orders</p>
+                        <p className="text-sm text-[#22a2f2] font-semibold mb-1">Total Orders</p>
                         <p className="text-3xl font-bold text-black">56</p>
                       </div>
-                      <div className="p-3 bg-gradient-to-br from-slate-600 to-gray-700 rounded-xl shadow-lg shadow-slate-500/50">
+                      <div className="p-3 bg-[#22a2f2]/15 rounded-xl shadow-lg shadow-[#22a2f2]/20 text-[#22a2f2]">
                         <svg
-                          className="w-8 h-8 text-black"
+                          className="w-8 h-8"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -1592,16 +1626,16 @@ export default function BuyerPortal() {
 
                 {/* Accepted Card */}
                 <div className="group relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl blur opacity-50 group-hover:opacity-75 transition duration-300"></div>
-                  <div className="relative bg-white rounded-2xl border border-gray-200 p-6 hover:border-green-500/50 transition-all">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#22a2f2]/15 to-[#1b8bd0]/10 rounded-2xl blur opacity-40 group-hover:opacity-70 transition duration-300"></div>
+                  <div className="relative bg-white rounded-2xl border border-[#22a2f2]/30 p-6 hover:border-[#22a2f2]/60 transition-all">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-400 mb-1">Accepted</p>
-                        <p className="text-3xl font-bold text-green-400">0</p>
+                        <p className="text-sm text-[#1b8bd0] font-semibold mb-1">Accepted</p>
+                        <p className="text-3xl font-bold text-[#22a2f2]">0</p>
                       </div>
-                      <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg shadow-green-500/50">
+                      <div className="p-3 bg-[#22a2f2]/15 rounded-xl shadow-lg shadow-[#22a2f2]/20 text-[#22a2f2]">
                         <svg
-                          className="w-8 h-8 text-black"
+                          className="w-8 h-8"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -1620,16 +1654,16 @@ export default function BuyerPortal() {
 
                 {/* Pending Review Card */}
                 <div className="group relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-amber-500/20 rounded-2xl blur opacity-50 group-hover:opacity-75 transition duration-300"></div>
-                  <div className="relative bg-white rounded-2xl border border-gray-200 p-6 hover:border-orange-500/50 transition-all">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#22a2f2]/15 to-[#1b8bd0]/10 rounded-2xl blur opacity-40 group-hover:opacity-70 transition duration-300"></div>
+                  <div className="relative bg-white rounded-2xl border border-[#22a2f2]/30 p-6 hover:border-[#22a2f2]/60 transition-all">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-400 mb-1">Pending Review</p>
-                        <p className="text-3xl font-bold text-orange-400">0</p>
+                        <p className="text-sm text-[#1b8bd0] font-semibold mb-1">Pending Review</p>
+                        <p className="text-3xl font-bold text-[#22a2f2]">0</p>
                       </div>
-                      <div className="p-3 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl shadow-lg shadow-orange-500/50">
+                      <div className="p-3 bg-[#22a2f2]/15 rounded-xl shadow-lg shadow-[#22a2f2]/20 text-[#22a2f2]">
                         <svg
-                          className="w-8 h-8 text-black"
+                          className="w-8 h-8"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -1648,16 +1682,16 @@ export default function BuyerPortal() {
 
                 {/* In Negotiation Card */}
                 <div className="group relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-2xl blur opacity-50 group-hover:opacity-75 transition duration-300"></div>
-                  <div className="relative bg-white rounded-2xl border border-gray-200 p-6 hover:border-blue-500/50 transition-all">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#22a2f2]/15 to-[#1b8bd0]/10 rounded-2xl blur opacity-40 group-hover:opacity-70 transition duration-300"></div>
+                  <div className="relative bg-white rounded-2xl border border-[#22a2f2]/30 p-6 hover:border-[#22a2f2]/60 transition-all">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-400 mb-1">In Negotiation</p>
-                        <p className="text-3xl font-bold text-blue-400">0</p>
+                        <p className="text-sm text-[#1b8bd0] font-semibold mb-1">In Negotiation</p>
+                        <p className="text-3xl font-bold text-[#22a2f2]">0</p>
                       </div>
-                      <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg shadow-blue-500/50">
+                      <div className="p-3 bg-[#22a2f2]/15 rounded-xl shadow-lg shadow-[#22a2f2]/20 text-[#22a2f2]">
                         <svg
-                          className="w-8 h-8 text-black"
+                          className="w-8 h-8"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -1676,13 +1710,13 @@ export default function BuyerPortal() {
               </div>
 
               {/* Search and Filter Bar */}
-              <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+              <div className="bg-white rounded-xl border border-[#22a2f2]/30 p-4 mb-6">
                 <div className="flex flex-col md:flex-row gap-4">
                   {/* Search Input */}
                   <div className="flex-1 relative group">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                       <svg
-                        className="h-5 w-5 text-gray-400 group-focus-within:text-blue-400 transition-colors"
+                        className="h-5 w-5 text-gray-400 group-focus-within:text-[#22a2f2] transition-colors"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -1700,7 +1734,7 @@ export default function BuyerPortal() {
                       placeholder="Search orders by product, brand, or order ID..."
                       value={orderSearchQuery}
                       onChange={(e) => setOrderSearchQuery(e.target.value)}
-                      className="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black placeholder:text-gray-500 transition-all"
+                      className="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 transition-all"
                     />
                   </div>
 
@@ -1709,7 +1743,7 @@ export default function BuyerPortal() {
                     <select
                       value={orderFilter}
                       onChange={(e) => setOrderFilter(e.target.value)}
-                      className="appearance-none w-full md:w-48 px-4 py-2.5 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black cursor-pointer transition-all"
+                      className="appearance-none w-full md:w-48 px-4 py-2.5 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black cursor-pointer transition-all"
                     >
                       <option value="all" className="bg-white">All Orders</option>
                       <option value="accepted" className="bg-white">Accepted</option>
@@ -1738,14 +1772,14 @@ export default function BuyerPortal() {
               </div>
 
               {/* Orders List / Empty State */}
-              <div className="bg-white rounded-xl border border-gray-200 p-12">
+              <div className="bg-white rounded-xl border border-[#22a2f2]/30 p-12">
                 <div className="flex flex-col items-center justify-center text-center">
                   {/* Package Icon */}
                   <div className="relative mb-6">
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-xl opacity-30"></div>
-                    <div className="relative bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full p-6 border border-blue-500/30">
+                    <div className="absolute inset-0 bg-[#22a2f2]/30 rounded-full blur-xl opacity-40"></div>
+                    <div className="relative bg-[#22a2f2]/10 rounded-full p-6 border border-[#22a2f2]/30">
                       <svg
-                        className="w-16 h-16 text-blue-400"
+                        className="w-16 h-16 text-[#22a2f2]"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -1769,13 +1803,19 @@ export default function BuyerPortal() {
             </div>
           )}
           {activeTab === 'chats' && (
-            <div className="animate-fade-in-up h-full flex flex-col">
+            <div className="h-full flex flex-col">
               {/* Header */}
               <div className="mb-6">
                 <div className="flex items-center justify-between">
                   <div>
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22a2f2]/10 text-[#22a2f2] text-sm font-semibold mb-3">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12.79V12a9 9 0 10-18 0v.79A2 2 0 003.22 14l1.05.7a2 2 0 01.73.76l.38.76a2 2 0 001.79 1.11h9.66a2 2 0 001.79-1.11l.38-.76a2 2 0 01.73-.76l1.05-.7A2 2 0 0021 12.79z" />
+                      </svg>
+                      <span>Conversations</span>
+                    </div>
                     <h1 className="text-2xl sm:text-3xl font-bold text-black mb-1">Messages</h1>
-                    <p className="text-sm text-gray-400">View and manage your conversations with manufacturers</p>
+                    <p className="text-sm text-gray-500">View and manage your conversations with manufacturers</p>
                   </div>
                 </div>
               </div>
@@ -1783,7 +1823,7 @@ export default function BuyerPortal() {
               {/* Chat Layout */}
               <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 min-h-0">
                 {/* Conversations Sidebar */}
-                <div className="lg:col-span-4 xl:col-span-3 h-[300px] lg:h-[calc(100vh-280px)] min-h-[400px]">
+                <div className="lg:col-span-4 xl:col-span-3 h-[300px] lg:h-[calc(100vh-280px)] min-h-[400px] bg-white border border-[#22a2f2]/30 rounded-xl shadow-sm">
                   <ChatList 
                     selectedConversationId={activeConversationId}
                     onOpenConversation={(cid, bid, mid, title) => {
@@ -1813,18 +1853,27 @@ export default function BuyerPortal() {
                       }}
                     />
                   ) : (
-                    <div className="h-full bg-white rounded-xl border border-gray-200 flex items-center justify-center p-6">
+                    <div className="h-full bg-white rounded-xl border border-[#22a2f2]/30 flex items-center justify-center p-6 shadow-sm">
                       <div className="text-center max-w-sm">
                         <div className="relative mx-auto mb-6 w-20 h-20">
-                          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full blur-xl"></div>
-                          <div className="relative bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full flex items-center justify-center w-full h-full border border-blue-500/20">
-                            <svg className="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <div className="absolute inset-0 bg-[#22a2f2]/25 rounded-full blur-xl opacity-60"></div>
+                          <div className="relative bg-[#22a2f2]/10 rounded-full flex items-center justify-center w-full h-full border border-[#22a2f2]/30">
+                            <svg className="w-10 h-10 text-[#22a2f2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                             </svg>
                           </div>
                         </div>
                         <h3 className="text-lg font-semibold text-black mb-2">Select a conversation</h3>
-                        <p className="text-sm text-gray-400">Choose a manufacturer from the list to start chatting</p>
+                        <p className="text-sm text-gray-500">Choose a manufacturer from the list to start chatting</p>
+                        <button
+                          onClick={() => setShowChatInbox(true)}
+                          className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-[#22a2f2] hover:bg-[#1b8bd0] text-white rounded-lg font-medium transition-colors shadow-sm hover:shadow-md"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v7a2 2 0 01-2 2h-6l-4 4v-4H7a2 2 0 01-2-2v-1" />
+                          </svg>
+                          Open Inbox
+                        </button>
                       </div>
                     </div>
                   )}
@@ -1833,22 +1882,28 @@ export default function BuyerPortal() {
             </div>
           )}
           {activeTab === 'requirements' && (
-            <div className="animate-fade-in-up">
+            <div>
               {/* Header Section */}
               <div className="mb-8">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22a2f2]/10 text-[#22a2f2] text-sm font-semibold mb-3">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2m-6 0a2 2 0 012-2h2a2 2 0 012 2m-4 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                  </svg>
+                  <span>Requirement tracker</span>
+                </div>
                 <h1 className="text-3xl font-bold text-black mb-2">My Requirements</h1>
-                <p className="text-gray-400">Track all your submitted requirements and their status</p>
+                <p className="text-gray-500">Track all your submitted requirements and their status</p>
               </div>
 
               {/* Empty State */}
-              <div className="bg-white rounded-xl border border-gray-200 p-12">
+              <div className="bg-white rounded-xl border border-[#22a2f2]/30 p-12">
                 <div className="flex flex-col items-center justify-center text-center">
                   {/* Package Icon */}
                   <div className="relative mb-6">
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-xl opacity-30"></div>
-                    <div className="relative bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full p-6 border border-purple-500/30">
+                    <div className="absolute inset-0 bg-[#22a2f2]/30 rounded-full blur-xl opacity-40"></div>
+                    <div className="relative bg-[#22a2f2]/10 rounded-full p-6 border border-[#22a2f2]/30">
                       <svg
-                        className="w-16 h-16 text-purple-400"
+                        className="w-16 h-16 text-[#22a2f2]"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -1873,8 +1928,8 @@ export default function BuyerPortal() {
                     onClick={() => setActiveTab('custom-quote')}
                     className="mt-6 relative group overflow-hidden rounded-xl"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 transition-transform group-hover:scale-105"></div>
-                    <div className="relative px-6 py-3 font-semibold text-black flex items-center gap-2">
+                    <div className="absolute inset-0 bg-[#22a2f2] transition-transform group-hover:scale-105 rounded-xl"></div>
+                    <div className="relative px-6 py-3 font-semibold text-white flex items-center gap-2">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                       </svg>
@@ -1886,22 +1941,28 @@ export default function BuyerPortal() {
             </div>
           )}
           {activeTab === 'cart' && (
-            <div className="animate-fade-in-up">
+            <div>
               {/* Header Section */}
               <div className="mb-8">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22a2f2]/10 text-[#22a2f2] text-sm font-semibold mb-3">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  <span>Saved selections</span>
+                </div>
                 <h1 className="text-3xl font-bold text-black mb-2">Shopping Cart</h1>
-                <p className="text-gray-400">Review your selected designs before checkout</p>
+                <p className="text-gray-500">Review your selected designs before checkout</p>
               </div>
 
               {/* Empty State */}
-              <div className="bg-white rounded-xl border border-gray-200 p-12">
+              <div className="bg-white rounded-xl border border-[#22a2f2]/30 p-12">
                 <div className="flex flex-col items-center justify-center text-center">
                   {/* Shopping Bag Icon */}
                   <div className="relative mb-6">
-                    <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full blur-xl opacity-30"></div>
-                    <div className="relative bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-full p-6 border border-green-500/30">
+                    <div className="absolute inset-0 bg-[#22a2f2]/30 rounded-full blur-xl opacity-40"></div>
+                    <div className="relative bg-[#22a2f2]/10 rounded-full p-6 border border-[#22a2f2]/30">
                       <svg
-                        className="w-16 h-16 text-green-400"
+                        className="w-16 h-16 text-[#22a2f2]"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -1926,8 +1987,8 @@ export default function BuyerPortal() {
                     onClick={() => setActiveTab('designs')}
                     className="mt-6 relative group overflow-hidden rounded-xl"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-500 transition-transform group-hover:scale-105"></div>
-                    <div className="relative px-6 py-3 font-semibold text-black flex items-center gap-2">
+                    <div className="absolute inset-0 bg-[#22a2f2] transition-transform group-hover:scale-105 rounded-xl"></div>
+                    <div className="relative px-6 py-3 font-semibold text-white flex items-center gap-2">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
@@ -1952,12 +2013,12 @@ export default function BuyerPortal() {
             {/* Modal Container */}
             <div className="relative max-w-2xl w-full my-8 animate-fade-in-up">
               
-              <div className="relative bg-white rounded-3xl border-2 border-black shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
+              <div className="relative bg-white rounded-3xl border-2 border-[#22a2f2] shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
                 {/* Modal Header */}
-                <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-5 flex items-center justify-between">
+                <div className="sticky top-0 z-10 bg-white border-b border-[#22a2f2]/20 px-6 py-5 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-black rounded-xl">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="p-2 bg-[#22a2f2]/15 text-[#22a2f2] rounded-xl border border-[#22a2f2]/30">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                     </div>
@@ -1974,12 +2035,12 @@ export default function BuyerPortal() {
                 </div>
 
                 {/* Modal Content */}
-                <div className="p-6 overflow-y-auto">
+                <div className="p-6 overflow-y-auto bg-white">
                   {isLoadingProfile ? (
                     <div className="flex flex-col items-center justify-center py-12">
                       <div className="relative">
-                        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
-                        <div className="absolute inset-0 animate-ping rounded-full h-16 w-16 border border-blue-500 opacity-20"></div>
+                        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[#22a2f2]"></div>
+                        <div className="absolute inset-0 animate-ping rounded-full h-16 w-16 border border-[#22a2f2] opacity-20"></div>
                       </div>
                       <p className="mt-4 text-gray-400">Loading your profile...</p>
                     </div>
@@ -1991,13 +2052,13 @@ export default function BuyerPortal() {
                           Full Name
                         </label>
                         <div className="relative group">
-                          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                          <div className="absolute inset-0 bg-[#22a2f2]/15 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
                           <input
                             type="text"
                             value={formData.fullName}
                             onChange={(e) => handleInputChange('fullName', e.target.value)}
                             placeholder="Enter your full name (optional)"
-                            className="relative w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black placeholder:text-gray-500 transition-all"
+                            className="relative w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-500 transition-all"
                           />
                         </div>
                       </div>
@@ -2008,13 +2069,13 @@ export default function BuyerPortal() {
                           Email Address
                         </label>
                         <div className="relative group">
-                          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                          <div className="absolute inset-0 bg-[#22a2f2]/15 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
                           <input
                             type="email"
                             value={formData.email}
                             onChange={(e) => handleInputChange('email', e.target.value)}
                             placeholder="Enter your email address (optional)"
-                            className="relative w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black placeholder:text-gray-500 transition-all"
+                            className="relative w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-500 transition-all"
                           />
                         </div>
                       </div>
@@ -2025,13 +2086,13 @@ export default function BuyerPortal() {
                           Company Name
                         </label>
                         <div className="relative group">
-                          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                          <div className="absolute inset-0 bg-[#22a2f2]/15 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
                           <input
                             type="text"
                             value={formData.companyName}
                             onChange={(e) => handleInputChange('companyName', e.target.value)}
                             placeholder="Enter your company name (optional)"
-                            className="relative w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black placeholder:text-gray-500 transition-all"
+                            className="relative w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-500 transition-all"
                           />
                         </div>
                       </div>
@@ -2042,13 +2103,13 @@ export default function BuyerPortal() {
                           GST Number
                         </label>
                         <div className="relative group">
-                          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                          <div className="absolute inset-0 bg-[#22a2f2]/15 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
                           <input
                             type="text"
                             value={formData.gstNumber}
                             onChange={(e) => handleInputChange('gstNumber', e.target.value)}
                             placeholder="Enter GST number (optional)"
-                            className="relative w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black placeholder:text-gray-500 transition-all"
+                            className="relative w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-500 transition-all"
                           />
                         </div>
                       </div>
@@ -2059,13 +2120,13 @@ export default function BuyerPortal() {
                           Business Address
                         </label>
                         <div className="relative group">
-                          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                          <div className="absolute inset-0 bg-[#22a2f2]/15 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
                           <input
                             type="text"
                             value={formData.businessAddress}
                             onChange={(e) => handleInputChange('businessAddress', e.target.value)}
                             placeholder="Enter your business address"
-                            className="relative w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black placeholder:text-gray-500 transition-all"
+                            className="relative w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-500 transition-all"
                           />
                         </div>
                       </div>
@@ -2076,13 +2137,13 @@ export default function BuyerPortal() {
                           About Your Business
                         </label>
                         <div className="relative group">
-                          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                          <div className="absolute inset-0 bg-[#22a2f2]/15 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
                           <textarea
                             value={formData.aboutBusiness}
                             onChange={(e) => handleInputChange('aboutBusiness', e.target.value)}
                             placeholder="Tell us about your business (optional)"
                             rows={4}
-                            className="relative w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-black/20 outline-none text-black placeholder:text-gray-500 resize-none transition-all"
+                            className="relative w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-500 resize-none transition-all"
                           />
                         </div>
                       </div>
@@ -2092,7 +2153,7 @@ export default function BuyerPortal() {
                         <button
                           type="button"
                           onClick={() => setShowProfile(false)}
-                          className="flex-1 px-4 py-3 bg-white/50 hover:bg-slate-700/50 border border-gray-200 text-black font-semibold rounded-xl transition-all"
+                          className="flex-1 px-4 py-3 bg-white hover:bg-[#22a2f2]/10 border border-[#22a2f2]/30 text-black font-semibold rounded-xl transition-all"
                         >
                           Cancel
                         </button>
@@ -2100,8 +2161,8 @@ export default function BuyerPortal() {
                           type="submit"
                           className="relative flex-1 group overflow-hidden rounded-xl"
                         >
-                          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 transition-transform group-hover:scale-105"></div>
-                          <div className="relative px-4 py-3 font-semibold text-black flex items-center justify-center gap-2">
+                          <div className="absolute inset-0 bg-[#22a2f2] transition-transform group-hover:scale-105"></div>
+                          <div className="relative px-4 py-3 font-semibold text-white flex items-center justify-center gap-2">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                             </svg>
@@ -2164,7 +2225,7 @@ export default function BuyerPortal() {
               <div className="space-y-4">
                 {[
                   { icon: "⚡", title: "Instant Quotes", desc: "AI-powered matching in seconds" },
-                  { icon: "🌍", title: "Global Network", desc: "50+ countries, 1000+ manufacturers" },
+                  { icon: "🌍", title: "Global Network", desc: "10+ countries, 100+ manufacturers, 1000+ brands" },
                   { icon: "🔒", title: "Secure & Verified", desc: "All manufacturers QC certified" }
                 ].map((feature, index) => (
                   <div 
@@ -2209,10 +2270,10 @@ export default function BuyerPortal() {
 
             {/* Login Card */}
                   <div className="relative">
-              <div className="relative bg-white rounded-3xl p-8 border-2 border-black shadow-xl">
+              <div className="relative bg-white rounded-3xl p-8 border-2 border-[#22a2f2] shadow-xl">
                 {/* Icon */}
                 <div className="flex justify-center mb-6">
-                  <div className="relative bg-black rounded-2xl p-4">
+                  <div className="relative bg-[#22a2f2] rounded-2xl p-4">
                       <svg
                         className="w-8 h-8 text-white"
                         fill="none"
@@ -2251,7 +2312,7 @@ export default function BuyerPortal() {
                           <select
                             value={countryCode}
                             onChange={(e) => setCountryCode(e.target.value)}
-                            className="w-full sm:w-32 px-3 py-3.5 bg-white border-2 border-gray-300 rounded-xl focus:border-black transition-all outline-none text-black font-medium"
+                            className="w-full sm:w-32 px-3 py-3.5 bg-white border-2 border-gray-300 rounded-xl focus:border-[#22a2f2] transition-all outline-none text-black font-medium"
                           >
                             <option value="+91">🇮🇳 +91</option>
                             <option value="+1">🇺🇸 +1</option>
@@ -2264,7 +2325,7 @@ export default function BuyerPortal() {
                             value={phoneNumber}
                             onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
                             placeholder="1234567890"
-                            className="flex-1 w-full px-4 py-3.5 bg-white border-2 border-gray-300 rounded-xl focus:border-black transition-all outline-none text-black placeholder:text-gray-400"
+                            className="flex-1 w-full px-4 py-3.5 bg-white border-2 border-gray-300 rounded-xl focus:border-[#22a2f2] transition-all outline-none text-black placeholder:text-gray-400"
                             required
                           />
                         </div>
@@ -2273,7 +2334,7 @@ export default function BuyerPortal() {
                       <button
                         type="submit"
                         disabled={isLoadingOtp}
-                        className="w-full bg-black text-white px-6 py-3.5 rounded-xl font-semibold hover:bg-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full bg-[#22a2f2] text-white px-6 py-3.5 rounded-xl font-semibold hover:bg-[#1b8bd0] transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
                           {isLoadingOtp ? (
                             <>
@@ -2315,7 +2376,7 @@ export default function BuyerPortal() {
                             }}
                             placeholder="000000"
                             maxLength={6}
-                            className="relative w-full px-4 py-4 bg-white border-2 border-black rounded-xl focus:border-black transition-all outline-none text-center text-2xl tracking-[0.5em] text-black placeholder:text-gray-400 font-mono"
+                            className="relative w-full px-4 py-4 bg-white border-2 border-[#22a2f2] rounded-xl focus:border-[#22a2f2] transition-all outline-none text-center text-2xl tracking-[0.5em] text-black placeholder:text-gray-400 font-mono"
                             required
                           />
                         </div>
@@ -2327,7 +2388,7 @@ export default function BuyerPortal() {
                       <button
                         type="submit"
                         disabled={isVerifyingOtp}
-                        className="w-full bg-black text-white px-6 py-3.5 rounded-xl font-semibold hover:bg-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full bg-[#22a2f2] text-white px-6 py-3.5 rounded-xl font-semibold hover:bg-[#1b8bd0] transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         aria-busy={isVerifyingOtp}
                       >
                           {isVerifyingOtp ? (

@@ -240,19 +240,26 @@ export default function ChatWindow({ conversationId, buyerId, manufacturerId, on
         {loading && <div className={inline ? 'text-sm text-gray-400' : 'text-sm text-gray-500'}>Loading...</div>}
         {!loading && messages.map((m) => {
           const isSelf = m.sender_role === selfRole;
-          const bubbleClass = isSelf
-            ? 'ml-auto bg-black text-white'
-            : (inline ? 'mr-auto bg-gray-200 text-gray-900' : 'mr-auto bg-white border border-gray-200 text-gray-900');
+          const wrapperClass = isSelf ? 'flex justify-end' : 'flex justify-start';
+          const bubbleTone = isSelf
+            ? 'bg-[#22a2f2] text-white shadow-[#22a2f2]/20'
+            : (inline
+                ? 'bg-gray-100 text-gray-900 border border-[#22a2f2]/10 shadow-sm'
+                : 'bg-white text-gray-900 border border-[#22a2f2]/20 shadow-sm');
           return (
-            <div key={m.id || m.client_temp_id} className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${bubbleClass}`}>
-              {m.attachments && m.attachments.length > 0 && (
-                <div className="space-y-2 mb-2">
-                  {m.attachments.map((att, idx) => (
-                    <MessageAttachment key={att.id || idx} attachment={att} />
-                  ))}
-                </div>
-              )}
-              {m.body && <div>{m.body}</div>}
+            <div key={m.id || m.client_temp_id} className={wrapperClass}>
+              <div
+                className={`inline-flex max-w-[80%] w-fit flex-col gap-2 whitespace-pre-wrap break-words rounded-lg px-3 py-2 text-sm shadow-sm ${bubbleTone}`}
+              >
+                {m.attachments && m.attachments.length > 0 && (
+                  <div className="space-y-2">
+                    {m.attachments.map((att, idx) => (
+                      <MessageAttachment key={att.id || idx} attachment={att} />
+                    ))}
+                  </div>
+                )}
+                {m.body && <div>{m.body}</div>}
+              </div>
             </div>
           );
         })}
@@ -323,9 +330,7 @@ export default function ChatWindow({ conversationId, buyerId, manufacturerId, on
           <button 
             onClick={handleSend} 
             disabled={sending || uploadingFiles || (!input.trim() && selectedFiles.length === 0)} 
-            className={inline 
-              ? 'px-3 py-2 bg-black hover:bg-gray-900 disabled:opacity-50 text-white rounded-lg text-sm' 
-              : 'px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm'}
+            className='px-3 py-2 bg-[#22a2f2] hover:bg-[#1b8bd0] disabled:opacity-50 text-white rounded-lg text-sm shadow-sm transition-colors'
           >
             {uploadingFiles ? 'Uploading...' : 'Send'}
           </button>
