@@ -122,6 +122,13 @@ export default function BuyerPortal() {
     }
   };
 
+  const formatCurrency = (value: number | null | undefined) => {
+    if (value === null || value === undefined) return '—';
+    const numericValue = Number(value);
+    if (Number.isNaN(numericValue)) return '—';
+    return `INR ${numericValue.toLocaleString('en-IN')}`;
+  };
+
   // Open chat from a quote card (instant quotes section)
   async function openChatFromQuote(quote: any) {
     try {
@@ -449,7 +456,31 @@ export default function BuyerPortal() {
       const response = await apiService.getRequirements();
       
       if (response.success && response.data) {
-        setRequirements(response.data);
+        const requirementsWithResponses = await Promise.all(
+          response.data.map(async (requirement: any) => {
+            try {
+              const responsesResult = await apiService.getRequirementResponses(requirement.id);
+              const responses = responsesResult.success && responsesResult.data
+                ? responsesResult.data
+                : [];
+              
+              return {
+                ...requirement,
+                responses,
+                manufacturer_count: responses.length
+              };
+            } catch (responsesError) {
+              console.error(`Failed to fetch responses for requirement ${requirement.id}:`, responsesError);
+              return {
+                ...requirement,
+                responses: requirement.responses || [],
+                manufacturer_count: requirement.responses ? requirement.responses.length : (requirement.manufacturer_count || 0)
+              };
+            }
+          })
+        );
+
+        setRequirements(requirementsWithResponses);
       } else {
         console.error('Failed to fetch requirements');
         setRequirements([]);
@@ -2118,6 +2149,87 @@ export default function BuyerPortal() {
                           </a>
                         </div>
                       )}
+
+                      <div className="mt-6">
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                          <p className="text-sm font-semibold text-black">Manufacturer Responses</p>
+                          <p className="text-xs text-gray-500">
+                            {req.responses && req.responses.length > 0
+                              ? `${req.responses.length} response${req.responses.length === 1 ? '' : 's'} received`
+                              : 'Awaiting responses'}
+                          </p>
+                        </div>
+
+                        {req.responses && req.responses.length > 0 ? (
+                          <div className="mt-4 space-y-3">
+                            {req.responses.map((response: any) => (
+                              <div
+                                key={response.id}
+                                className="border border-gray-200 rounded-lg p-4 bg-gray-50"
+                              >
+                                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+                                  <div>
+                                    <p className="text-sm font-semibold text-black">
+                                      {response.manufacturer?.unit_name || 'Manufacturer'}
+                                    </p>
+                                    {(response.manufacturer?.location || response.manufacturer?.business_type) && (
+                                      <p className="text-xs text-gray-500">
+                                        {[response.manufacturer?.location, response.manufacturer?.business_type]
+                                          .filter(Boolean)
+                                          .join(' | ')}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div className="text-sm text-right">
+                                    <p className="font-semibold text-[#22a2f2]">
+                                      {formatCurrency(response.quoted_price)}
+                                    </p>
+                                    <p className="text-xs text-gray-500">Total quote</p>
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                                  <div>
+                                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Price / unit</p>
+                                    <p className="text-sm font-medium text-black">
+                                      {formatCurrency(response.price_per_unit)}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Delivery time</p>
+                                    <p className="text-sm font-medium text-black">
+                                      {response.delivery_time || '—'}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Submitted</p>
+                                    <p className="text-sm font-medium text-black">
+                                      {response.created_at
+                                        ? new Date(response.created_at).toLocaleDateString('en-US', {
+                                            year: 'numeric',
+                                            month: 'short',
+                                            day: 'numeric'
+                                          })
+                                        : '—'}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {response.notes && (
+                                  <div className="mt-4 bg-white border border-gray-200 rounded-lg p-3">
+                                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Notes</p>
+                                    <p className="text-sm text-gray-700 leading-relaxed">{response.notes}</p>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="mt-4 border border-dashed border-gray-200 rounded-lg p-4 text-sm text-gray-500 bg-gray-50">
+                            No manufacturer responses yet. We'll notify you once someone responds.
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
