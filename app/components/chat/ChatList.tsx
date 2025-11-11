@@ -7,9 +7,18 @@ import { useSocket } from '../../hooks/useSocket';
 interface ChatListProps {
   onOpenConversation: (conversationId: string, buyerId: string, manufacturerId: string, title?: string) => void;
   selectedConversationId?: string | null;
+  onUnreadCountChange?: (totalUnread: number) => void;
+  selfRole?: 'buyer' | 'manufacturer';
+  clearUnreadSignal?: { conversationId: string; at: number } | null;
 }
 
-export default function ChatList({ onOpenConversation, selectedConversationId }: ChatListProps) {
+export default function ChatList({
+  onOpenConversation,
+  selectedConversationId,
+  onUnreadCountChange,
+  selfRole = 'buyer',
+  clearUnreadSignal
+}: ChatListProps) {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +56,7 @@ export default function ChatList({ onOpenConversation, selectedConversationId }:
 
     const handleNewMessage = (data: any) => {
       console.log('[ChatList] Received new message:', data);
-      const { conversationSummary } = data;
+      const { conversationSummary, message } = data;
       
       if (conversationSummary) {
         setItems((prevItems) => {
@@ -57,12 +66,24 @@ export default function ChatList({ onOpenConversation, selectedConversationId }:
           if (existingIndex !== -1) {
             // Update existing conversation
             const updatedItems = [...prevItems];
-            updatedItems[existingIndex] = {
+            const updatedConversation = {
               ...updatedItems[existingIndex],
               last_message_at: conversationSummary.last_message_at,
               last_message_text: conversationSummary.last_message_text,
               is_archived: conversationSummary.is_archived,
             };
+
+            if (message) {
+              const isSelfMessage = message.sender_role === selfRole;
+              const isActiveConversation = selectedConversationId === message.conversation_id;
+              const currentUnread = Number(updatedConversation.unread_count || 0);
+
+              updatedConversation.unread_count = isSelfMessage || isActiveConversation
+                ? 0
+                : currentUnread + 1;
+            }
+
+            updatedItems[existingIndex] = updatedConversation;
             
             // Move to top (sort by last_message_at)
             return updatedItems.sort((a, b) => {
@@ -84,7 +105,7 @@ export default function ChatList({ onOpenConversation, selectedConversationId }:
     return () => {
       off('message:new', handleNewMessage);
     };
-  }, [isConnected, on, off]);
+  }, [isConnected, on, off, selfRole, selectedConversationId]);
 
   // Helper to format relative time
   const formatTime = (timestamp: string | null) => {
@@ -102,6 +123,37 @@ export default function ChatList({ onOpenConversation, selectedConversationId }:
     if (diffDays < 7) return `${diffDays}d ago`;
     return date.toLocaleDateString();
   };
+
+  // Whenever items change, inform parent about total unread
+  useEffect(() => {
+    if (!onUnreadCountChange) return;
+    const total = items.reduce((sum, conversation) => sum + (conversation.unread_count || 0), 0);
+    onUnreadCountChange(total);
+  }, [items, onUnreadCountChange]);
+
+  // Clear unread counts when requested externally
+  useEffect(() => {
+    if (!clearUnreadSignal?.conversationId) return;
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === clearUnreadSignal.conversationId
+          ? { ...item, unread_count: 0 }
+          : item
+      )
+    );
+  }, [clearUnreadSignal]);
+
+  // Also clear unread count when the selected conversation changes
+  useEffect(() => {
+    if (!selectedConversationId) return;
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === selectedConversationId
+          ? { ...item, unread_count: 0 }
+          : item
+      )
+    );
+  }, [selectedConversationId]);
 
   return (
     <div className="h-full flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
@@ -174,6 +226,7 @@ export default function ChatList({ onOpenConversation, selectedConversationId }:
             : (c.last_message_at ? '[Attachment]' : 'No messages yet');
           const timeAgo = formatTime(c.last_message_at);
           const isActive = selectedConversationId === c.id;
+          const unreadCount = Number(c.unread_count || 0);
           
           return (
             <button 
@@ -205,9 +258,16 @@ export default function ChatList({ onOpenConversation, selectedConversationId }:
                     }`}>
                       {title}
                     </h4>
-                    {timeAgo && (
-                      <span className="text-xs text-gray-500 ml-2 flex-shrink-0">{timeAgo}</span>
-                    )}
+                    <div className="flex items-center gap-2 ml-2 flex-shrink-0">
+                      {timeAgo && (
+                        <span className="text-xs text-gray-500">{timeAgo}</span>
+                      )}
+                      {unreadCount > 0 && (
+                        <span className="inline-flex items-center justify-center rounded-full bg-[#22a2f2] text-white text-[10px] font-semibold min-w-[18px] h-[18px] px-1">
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <p className={`text-xs truncate ${
                     isActive ? 'text-gray-600' : 'text-gray-500'

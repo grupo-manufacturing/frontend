@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import apiService, { getApiBaseOrigin } from '../../lib/apiService';
 import MessageAttachment from './MessageAttachment';
@@ -13,6 +13,7 @@ interface ChatWindowProps {
   title?: string;
   inline?: boolean;
   selfRole?: 'buyer' | 'manufacturer';
+  onConversationRead?: (conversationId: string) => void;
 }
 
 interface Attachment {
@@ -40,7 +41,16 @@ interface ChatMessage {
   attachments?: Attachment[];
 }
 
-export default function ChatWindow({ conversationId, buyerId, manufacturerId, onClose, title, inline, selfRole = 'buyer' }: ChatWindowProps) {
+export default function ChatWindow({
+  conversationId,
+  buyerId,
+  manufacturerId,
+  onClose,
+  title,
+  inline,
+  selfRole = 'buyer',
+  onConversationRead
+}: ChatWindowProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -58,6 +68,18 @@ export default function ChatWindow({ conversationId, buyerId, manufacturerId, on
   const wsUrl = useMemo(() => process.env.NEXT_PUBLIC_WS_URL || getApiBaseOrigin(), []);
   const wsPath = useMemo(() => process.env.NEXT_PUBLIC_WS_PATH || '/socket.io', []);
 
+  const markConversationRead = useCallback(
+    async (latestMessageId?: string) => {
+      try {
+        await apiService.markRead(conversationId, latestMessageId ? { upToMessageId: latestMessageId } : {});
+        onConversationRead?.(conversationId);
+      } catch (err) {
+        console.error('[ChatWindow] Failed to mark conversation read:', err);
+      }
+    },
+    [conversationId, onConversationRead]
+  );
+
   useEffect(() => {
     let mounted = true;
 
@@ -65,7 +87,10 @@ export default function ChatWindow({ conversationId, buyerId, manufacturerId, on
       try {
         const res = await apiService.listMessages(conversationId, { limit: 50 });
         if (!mounted) return;
-        setMessages(res.data.messages || []);
+        const loadedMessages = res.data.messages || [];
+        setMessages(loadedMessages);
+        const lastMessage = loadedMessages.length ? loadedMessages[loadedMessages.length - 1] : null;
+        await markConversationRead(lastMessage?.id);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -75,7 +100,7 @@ export default function ChatWindow({ conversationId, buyerId, manufacturerId, on
     return () => {
       mounted = false;
     };
-  }, [conversationId]);
+  }, [conversationId, markConversationRead]);
 
   useEffect(() => {
     if (!token || !wsUrl) return;
@@ -86,7 +111,7 @@ export default function ChatWindow({ conversationId, buyerId, manufacturerId, on
       // no-op
     });
 
-    socket.on('message:new', ({ message }) => {
+    socket.on('message:new', async ({ message }) => {
       if (message.conversation_id !== conversationId) return;
       setMessages((prev) => {
         // Replace optimistic by client_temp_id if present
@@ -101,6 +126,9 @@ export default function ChatWindow({ conversationId, buyerId, manufacturerId, on
         return [...prev, message];
       });
       scrollToBottom();
+      if (message.sender_role !== selfRole) {
+        await markConversationRead(message.id);
+      }
     });
 
     socket.on('typing', ({ conversationId: cid, isTyping: typing }) => {
@@ -118,7 +146,7 @@ export default function ChatWindow({ conversationId, buyerId, manufacturerId, on
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [token, wsUrl, wsPath, conversationId]);
+  }, [token, wsUrl, wsPath, conversationId, selfRole, markConversationRead]);
 
   // Reset typing indicator when switching conversations
   useEffect(() => {

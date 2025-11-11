@@ -32,6 +32,8 @@ export default function ManufacturerPortal() {
   const [activeBuyerId, setActiveBuyerId] = useState<string | null>(null);
   const [activeManufacturerId, setActiveManufacturerId] = useState<string | null>(null);
   const [activeTitle, setActiveTitle] = useState<string | undefined>(undefined);
+  const [totalUnreadChats, setTotalUnreadChats] = useState<number>(0);
+  const [chatUnreadClearSignal, setChatUnreadClearSignal] = useState<{ conversationId: string; at: number } | null>(null);
   
   // Requirements states
   const [requirements, setRequirements] = useState<any[]>([]);
@@ -1071,6 +1073,11 @@ export default function ManufacturerPortal() {
                   />
                 </svg>
                 <span className="relative z-10">Chats</span>
+                {totalUnreadChats > 0 && (
+                  <span className="absolute -top-1 right-1 inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-[#22a2f2] text-white text-[10px] font-semibold px-1">
+                    {totalUnreadChats > 99 ? '99+' : totalUnreadChats}
+                  </span>
+                )}
               </button>
 
               {/* Requirements Tab */}
@@ -1440,11 +1447,15 @@ export default function ManufacturerPortal() {
                 <div className="lg:col-span-4 xl:col-span-3 h-[300px] lg:h-[calc(100vh-280px)] min-h-[400px] bg-white border border-[#22a2f2]/30 rounded-xl shadow-sm">
                   <ChatList 
                     selectedConversationId={activeConversationId}
+                    onUnreadCountChange={setTotalUnreadChats}
+                    selfRole="manufacturer"
+                    clearUnreadSignal={chatUnreadClearSignal}
                     onOpenConversation={(cid, bid, mid, title) => {
                       setActiveConversationId(cid);
                       setActiveBuyerId(bid);
                       setActiveManufacturerId(mid);
                       setActiveTitle(title);
+                      setChatUnreadClearSignal({ conversationId: cid, at: Date.now() });
                     }} 
                   />
                 </div>
@@ -1459,6 +1470,7 @@ export default function ManufacturerPortal() {
                       title={activeTitle}
                       inline
                       selfRole={'manufacturer'}
+                      onConversationRead={(cid) => setChatUnreadClearSignal({ conversationId: cid, at: Date.now() })}
                       onClose={() => {
                         setActiveConversationId(null);
                         setActiveBuyerId(null);
