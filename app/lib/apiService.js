@@ -383,8 +383,9 @@ class ApiService {
 
   /**
    * Logout user (calls backend logout endpoint)
+   * @param {string} [redirectPath='/'] - Path to navigate to after logout
    */
-  async logout() {
+  async logout(redirectPath = '/') {
     try {
       // Call backend logout endpoint if token exists
       if (this.getToken()) {
@@ -399,7 +400,7 @@ class ApiService {
       // Always clear local storage
       this.removeToken();
       if (typeof window !== 'undefined') {
-        window.location.href = '/';
+        window.location.href = redirectPath;
       }
     }
   }

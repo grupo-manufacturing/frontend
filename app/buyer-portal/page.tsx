@@ -154,6 +154,7 @@ export default function BuyerPortal() {
   const [showProfile, setShowProfile] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [userPhoneNumber, setUserPhoneNumber] = useState('');
+  const [displayName, setDisplayName] = useState('');
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -237,7 +238,7 @@ export default function BuyerPortal() {
 
   const handleLogout = async () => {
     // Clear localStorage and reset to phone step
-    apiService.logout();
+    apiService.logout('/buyer-portal');
     localStorage.removeItem('buyerPhoneNumber');
     setPhoneNumber('');
     setOtp('');
@@ -570,6 +571,10 @@ export default function BuyerPortal() {
           businessAddress: profile.business_address || '',
           aboutBusiness: profile.about_business || ''
         });
+        const resolvedName = (profile.full_name || profile.business_name || '').trim();
+        if (resolvedName) {
+          setDisplayName(resolvedName);
+        }
       }
     } catch (error) {
       console.error('Failed to load profile data:', error);
@@ -600,6 +605,10 @@ export default function BuyerPortal() {
       if (response.success) {
         console.log('Profile updated successfully:', response.data);
         alert('Profile updated successfully!');
+        const resolvedName = (formData.fullName || formData.companyName || '').trim();
+        if (resolvedName) {
+          setDisplayName(resolvedName);
+        }
         setShowProfile(false);
       } else {
         throw new Error(response.message || 'Failed to update profile');
@@ -612,13 +621,37 @@ export default function BuyerPortal() {
 
   // Load phone number from localStorage on component mount
   useEffect(() => {
-    if (step === 'dashboard' && apiService.isAuthenticated()) {
-      const storedPhone = localStorage.getItem('buyerPhoneNumber');
-      if (storedPhone) {
-        setUserPhoneNumber(storedPhone);
-        setPhoneNumber(storedPhone);
-      }
+    if (step !== 'dashboard' || !apiService.isAuthenticated()) {
+      return;
     }
+
+    const storedPhone = localStorage.getItem('buyerPhoneNumber');
+    if (storedPhone) {
+      setUserPhoneNumber(storedPhone);
+      setPhoneNumber(storedPhone);
+    }
+
+    let cancelled = false;
+    const fetchProfileSummary = async () => {
+      try {
+        const response = await apiService.getBuyerProfile();
+        if (!cancelled && response.success && response.data.profile) {
+          const profile = response.data.profile;
+          const resolvedName = (profile.full_name || profile.business_name || '').trim();
+          if (resolvedName) {
+            setDisplayName(resolvedName);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch buyer profile summary:', error);
+      }
+    };
+
+    fetchProfileSummary();
+
+    return () => {
+      cancelled = true;
+    };
   }, [step]);
 
 
@@ -657,16 +690,16 @@ export default function BuyerPortal() {
                 </div>
               </div>
 
-              {/* Right Side - Phone, Profile, Logout */}
+              {/* Right Side - Profile Info & Actions */}
               <div className="flex items-center gap-2 sm:gap-3">
-                {/* Phone Number with Online Status */}
+                {/* User Name with Online Status */}
                 <div className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow-sm">
                   <div className="relative">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     <div className="absolute inset-0 w-2 h-2 bg-green-500 rounded-full animate-ping opacity-75"></div>
                   </div>
                   <span className="text-sm font-medium text-black hidden sm:inline">
-                    {phoneNumber}
+                    {displayName || userPhoneNumber || phoneNumber}
                   </span>
                 </div>
 

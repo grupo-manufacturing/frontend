@@ -229,6 +229,56 @@ export default function ChatWindow({ conversationId, buyerId, manufacturerId, on
   const closeClass = inline ? 'text-gray-500 hover:text-black' : 'text-gray-500 hover:text-gray-700';
   const listClass = inline ? 'flex-1 overflow-y-auto p-3 space-y-2 bg-gray-50' : 'flex-1 overflow-y-auto p-3 space-y-2 bg-gray-50';
 
+  function formatDateLabel(date: Date) {
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const diffDays = Math.round((startOfToday.getTime() - startOfDate.getTime()) / (24 * 60 * 60 * 1000));
+
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+
+    const formatter = new Intl.DateTimeFormat(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+    });
+
+    return formatter.format(date);
+  }
+
+  const timelineItems = useMemo(() => {
+    const items: Array<
+      | { type: 'date'; id: string; label: string }
+      | { type: 'message'; id: string; data: ChatMessage; timestamp: Date }
+    > = [];
+
+    let lastDateKey: string | null = null;
+
+    for (const message of messages) {
+      const timestamp = message.created_at ? new Date(message.created_at) : new Date();
+      const dateKey = timestamp.toDateString();
+
+      if (dateKey !== lastDateKey) {
+        items.push({
+          type: 'date',
+          id: `date-${dateKey}`,
+          label: formatDateLabel(timestamp)
+        });
+        lastDateKey = dateKey;
+      }
+
+      items.push({
+        type: 'message',
+        id: message.id || message.client_temp_id || `${timestamp.getTime()}`,
+        data: message,
+        timestamp
+      });
+    }
+
+    return items;
+  }, [messages]);
+
   return (
     <div className={containerClass}>
       <div className={headerClass}>
@@ -238,27 +288,39 @@ export default function ChatWindow({ conversationId, buyerId, manufacturerId, on
 
       <div ref={listRef} className={listClass}>
         {loading && <div className={inline ? 'text-sm text-gray-400' : 'text-sm text-gray-500'}>Loading...</div>}
-        {!loading && messages.map((m) => {
-          const isSelf = m.sender_role === selfRole;
+        {!loading && timelineItems.map((item) => {
+          if (item.type === 'date') {
+            return (
+              <div key={item.id} className="flex justify-center my-3">
+                <span className="text-xs font-medium text-gray-500 bg-white/70 backdrop-blur border border-gray-200 rounded-full px-3 py-1 shadow-sm">
+                  {item.label}
+                </span>
+              </div>
+            );
+          }
+
+          const message = item.data;
+          const isSelf = message.sender_role === selfRole;
           const wrapperClass = isSelf ? 'flex justify-end' : 'flex justify-start';
           const bubbleTone = isSelf
             ? 'bg-[#22a2f2] text-white shadow-[#22a2f2]/20'
             : (inline
                 ? 'bg-gray-100 text-gray-900 border border-[#22a2f2]/10 shadow-sm'
                 : 'bg-white text-gray-900 border border-[#22a2f2]/20 shadow-sm');
+
           return (
-            <div key={m.id || m.client_temp_id} className={wrapperClass}>
+            <div key={item.id} className={wrapperClass}>
               <div
                 className={`inline-flex max-w-[80%] w-fit flex-col gap-2 whitespace-pre-wrap break-words rounded-lg px-3 py-2 text-sm shadow-sm ${bubbleTone}`}
               >
-                {m.attachments && m.attachments.length > 0 && (
+                {message.attachments && message.attachments.length > 0 && (
                   <div className="space-y-2">
-                    {m.attachments.map((att, idx) => (
+                    {message.attachments.map((att, idx) => (
                       <MessageAttachment key={att.id || idx} attachment={att} />
                     ))}
                   </div>
                 )}
-                {m.body && <div>{m.body}</div>}
+                {message.body && <div>{message.body}</div>}
               </div>
             </div>
           );

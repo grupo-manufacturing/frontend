@@ -63,6 +63,7 @@ export default function ManufacturerPortal() {
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  const [displayName, setDisplayName] = useState('');
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
 
@@ -169,7 +170,7 @@ export default function ManufacturerPortal() {
 
   const handleLogout = async () => {
     // Clear localStorage and reset to phone step
-    apiService.logout();
+    apiService.logout('/manufacturer-portal');
     localStorage.removeItem('manufacturerPhoneNumber');
     setPhoneNumber('');
     setOtp('');
@@ -200,6 +201,10 @@ export default function ManufacturerPortal() {
       const response = await apiService.getManufacturerProfile();
       if (response.success && response.data.profile) {
         const profile = response.data.profile;
+        const resolvedName = (profile.contact_person_name || profile.unit_name || profile.business_name || '').trim();
+        if (resolvedName) {
+          setDisplayName(resolvedName);
+        }
         if (profile.onboarding_completed) {
           setIsOnboardingComplete(true);
           localStorage.setItem('manufacturerOnboardingComplete', 'true');
@@ -232,6 +237,10 @@ export default function ManufacturerPortal() {
           msmeFile: null,
           otherCertificates: null
         });
+        const resolvedName = (profile.contact_person_name || profile.unit_name || profile.business_name || '').trim();
+        if (resolvedName) {
+          setDisplayName(resolvedName);
+        }
       }
     } catch (error) {
       console.error('Failed to load profile data:', error);
@@ -264,6 +273,10 @@ export default function ManufacturerPortal() {
       if (response.success) {
         console.log('Profile updated successfully:', response.data);
         alert('Profile updated successfully!');
+        const resolvedName = (formData.unitName || '').trim();
+        if (resolvedName) {
+          setDisplayName(resolvedName);
+        }
         setShowProfile(false);
       } else {
         throw new Error(response.message || 'Failed to update profile');
@@ -938,16 +951,16 @@ export default function ManufacturerPortal() {
                 </div>
               </div>
 
-              {/* Right Side - Phone, Profile, Logout */}
+              {/* Right Side - Profile Info & Actions */}
               <div className="flex items-center gap-2 sm:gap-3">
-                {/* Phone Number with Online Status */}
+                {/* Contact Name with Online Status */}
                 <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg border border-gray-200">
                   <div className="relative">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     <div className="absolute inset-0 w-2 h-2 bg-green-500 rounded-full animate-ping opacity-75"></div>
                   </div>
                   <span className="text-sm font-medium text-gray-700 hidden sm:inline">
-                    {phoneNumber}
+                    {displayName || phoneNumber}
                   </span>
                 </div>
 
@@ -1134,7 +1147,7 @@ export default function ManufacturerPortal() {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-600 mb-2">Total Revenue</p>
-                      <p className="text-3xl font-bold text-black mb-1">$0</p>
+                      <p className="text-3xl font-bold text-black mb-1">₹0</p>
                       <p className="text-xs text-gray-500">From 0 accepted orders</p>
                     </div>
                   </div>
@@ -1156,7 +1169,7 @@ export default function ManufacturerPortal() {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-600 mb-2">Potential Revenue</p>
-                      <p className="text-3xl font-bold text-black mb-1">$0</p>
+                      <p className="text-3xl font-bold text-black mb-1">₹0</p>
                       <p className="text-xs text-gray-500">From 0 pending orders</p>
                     </div>
                   </div>
@@ -1178,7 +1191,7 @@ export default function ManufacturerPortal() {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-600 mb-2">Avg Order Value</p>
-                      <p className="text-3xl font-bold text-black mb-1">$0</p>
+                      <p className="text-3xl font-bold text-black mb-1">₹0</p>
                       <p className="text-xs text-gray-500">Per accepted order</p>
                     </div>
                   </div>
