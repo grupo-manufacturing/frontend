@@ -490,6 +490,32 @@ export default function BuyerPortal() {
     }
   }, [activeTab, step]);
 
+  // Handle Accept/Reject Response
+  const handleUpdateResponseStatus = async (responseId: string, status: 'accepted' | 'rejected', manufacturerName: string) => {
+    const confirmMessage = status === 'accepted' 
+      ? `Are you sure you want to accept the quote from ${manufacturerName}?`
+      : `Are you sure you want to reject the quote from ${manufacturerName}?`;
+    
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      const response = await apiService.updateRequirementResponseStatus(responseId, status);
+      
+      if (response.success) {
+        alert(`Quote ${status} successfully!`);
+        // Refresh requirements to show updated status
+        fetchRequirements();
+      } else {
+        alert(response.message || `Failed to ${status} quote. Please try again.`);
+      }
+    } catch (error: any) {
+      console.error(`Failed to ${status} response:`, error);
+      alert(error.message || `Failed to ${status} quote. Please try again.`);
+    }
+  };
+
   // removed legacy mock handleOpenChat
 
   const handleSendMessage = () => {
@@ -2088,10 +2114,19 @@ export default function BuyerPortal() {
                                 className="border border-gray-200 rounded-lg p-4 bg-gray-50"
                               >
                                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-                                  <div>
-                                    <p className="text-sm font-semibold text-black">
-                                      {response.manufacturer?.unit_name || 'Manufacturer'}
-                                    </p>
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <p className="text-sm font-semibold text-black">
+                                        {response.manufacturer?.unit_name || 'Manufacturer'}
+                                      </p>
+                                      {response.status && response.status !== 'submitted' && (
+                                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                                          response.status === 'accepted' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                        }`}>
+                                          {response.status.charAt(0).toUpperCase() + response.status.slice(1)}
+                                        </span>
+                                      )}
+                                    </div>
                                     {(response.manufacturer?.location || response.manufacturer?.business_type) && (
                                       <p className="text-xs text-gray-500">
                                         {[response.manufacturer?.location, response.manufacturer?.business_type]
@@ -2139,6 +2174,30 @@ export default function BuyerPortal() {
                                   <div className="mt-4 bg-white border border-gray-200 rounded-lg p-3">
                                     <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Notes</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{response.notes}</p>
+                                  </div>
+                                )}
+
+                                {/* Action Buttons */}
+                                {(!response.status || response.status === 'submitted') && (
+                                  <div className="mt-4 flex flex-col sm:flex-row gap-2">
+                                    <button
+                                      onClick={() => handleUpdateResponseStatus(response.id, 'accepted', response.manufacturer?.unit_name || 'this manufacturer')}
+                                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-all"
+                                    >
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                      </svg>
+                                      Accept Quote
+                                    </button>
+                                    <button
+                                      onClick={() => handleUpdateResponseStatus(response.id, 'rejected', response.manufacturer?.unit_name || 'this manufacturer')}
+                                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-all"
+                                    >
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                      </svg>
+                                      Reject Quote
+                                    </button>
                                   </div>
                                 )}
                               </div>

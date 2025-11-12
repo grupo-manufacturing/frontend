@@ -1562,12 +1562,18 @@ export default function ManufacturerPortal() {
                             }`}>
                               {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
                             </span>
-                            {req.hasResponse && (
-                              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 flex items-center gap-1">
+                            {req.hasResponse && req.myResponse && (req.myResponse.status === 'accepted' || req.myResponse.status === 'rejected') && (
+                              <span className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${
+                                req.myResponse.status === 'accepted' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                              }`}>
                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  {req.myResponse.status === 'accepted' ? (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  ) : (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  )}
                                 </svg>
-                                You Responded
+                                {req.myResponse.status === 'accepted' ? 'Accepted' : 'Rejected'}
                               </span>
                             )}
                             <span className="text-xs text-gray-500">

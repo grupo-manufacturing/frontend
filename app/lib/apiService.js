@@ -521,6 +521,19 @@ class ApiService {
       method: 'GET'
     });
   }
+
+  /**
+   * Update requirement response status (accept/reject)
+   * @param {string} responseId - Response ID
+   * @param {string} status - New status ('accepted' or 'rejected')
+   * @returns {Promise} Response data
+   */
+  async updateRequirementResponseStatus(responseId, status) {
+    return this.request(`/requirements/responses/${responseId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status })
+    });
+  }
 }
 
 // Create singleton instance
