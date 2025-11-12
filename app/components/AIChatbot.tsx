@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import ManufacturerCard from './ManufacturerCard';
 import OrderForm from './OrderForm';
 
@@ -31,6 +31,93 @@ export default function AIChatbot() {
       timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
     }
   ]);
+
+  // Draggable button state
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  // Initialize position on mount (bottom-right)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedPosition = localStorage.getItem('chatButtonPosition');
+      if (savedPosition) {
+        setPosition(JSON.parse(savedPosition));
+      } else {
+        // Default position: bottom-right with some padding
+        setPosition({ 
+          x: window.innerWidth - 100, 
+          y: window.innerHeight - 100 
+        });
+      }
+    }
+  }, []);
+
+  // Handle drag start
+  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    e.stopPropagation();
+    setIsDragging(true);
+    
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    
+    setDragStart({
+      x: clientX - position.x,
+      y: clientY - position.y
+    });
+  };
+
+  // Handle drag move
+  useEffect(() => {
+    const handleDragMove = (e: MouseEvent | TouchEvent) => {
+      if (!isDragging) return;
+
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+      const newX = clientX - dragStart.x;
+      const newY = clientY - dragStart.y;
+
+      // Constrain to viewport
+      const maxX = window.innerWidth - 80;
+      const maxY = window.innerHeight - 80;
+
+      setPosition({
+        x: Math.max(20, Math.min(newX, maxX)),
+        y: Math.max(20, Math.min(newY, maxY))
+      });
+    };
+
+    const handleDragEnd = () => {
+      if (isDragging) {
+        setIsDragging(false);
+        // Save position to localStorage
+        localStorage.setItem('chatButtonPosition', JSON.stringify(position));
+      }
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleDragMove);
+      document.addEventListener('mouseup', handleDragEnd);
+      document.addEventListener('touchmove', handleDragMove);
+      document.addEventListener('touchend', handleDragEnd);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleDragMove);
+      document.removeEventListener('mouseup', handleDragEnd);
+      document.removeEventListener('touchmove', handleDragMove);
+      document.removeEventListener('touchend', handleDragEnd);
+    };
+  }, [isDragging, dragStart, position]);
+
+  // Handle button click (only if not dragging)
+  const handleButtonClick = () => {
+    if (!isDragging) {
+      setIsOpen(!isOpen);
+    }
+  };
 
   const handleSendMessage = () => {
     if (!message.trim()) return;
@@ -209,20 +296,32 @@ What can I help you with?`;
 
   return (
     <>
-      {/* Floating Chat Button - Responsive */}
+      {/* Draggable Floating Chat Button */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 transition-all duration-300 ${
+        ref={buttonRef}
+        onClick={handleButtonClick}
+        onMouseDown={handleDragStart}
+        onTouchStart={handleDragStart}
+        style={{
+          left: `${position.x}px`,
+          top: `${position.y}px`,
+          cursor: isDragging ? 'grabbing' : 'grab'
+        }}
+        className={`fixed z-50 transition-all duration-300 ${
           isOpen ? 'scale-0' : 'scale-100'
-        }`}
+        } ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         aria-label="Open AI Chatbot"
       >
         <div className="relative">
           {/* Pulsing Ring Animation */}
-          <div className="absolute inset-0 bg-blue-500 rounded-full animate-ping opacity-75"></div>
+          {!isDragging && (
+            <div className="absolute inset-0 bg-blue-500 rounded-full animate-ping opacity-75"></div>
+          )}
           
           {/* Button */}
-          <div className="relative bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-full p-3 sm:p-4 shadow-2xl transition-all duration-200 hover:scale-110">
+          <div className={`relative bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-full p-3 sm:p-4 shadow-2xl transition-all duration-200 ${
+            !isDragging && 'hover:scale-110'
+          }`}>
             <svg
               className="w-6 h-6 sm:w-7 sm:h-7"
               fill="none"
