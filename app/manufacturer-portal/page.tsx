@@ -356,7 +356,24 @@ export default function ManufacturerPortal() {
       const response = await apiService.getRequirements();
       
       if (response.success && response.data) {
-        setRequirements(response.data);
+        // Fetch manufacturer's own responses to check which requirements they've already responded to
+        const myResponsesResult = await apiService.getMyRequirementResponses();
+        const myResponses = myResponsesResult.success ? myResponsesResult.data : [];
+        
+        // Create a map of requirement IDs to response status
+        const responseMap = new Map();
+        myResponses.forEach((resp: any) => {
+          responseMap.set(resp.requirement_id, resp);
+        });
+        
+        // Add hasResponse flag to each requirement
+        const enrichedRequirements = response.data.map((req: any) => ({
+          ...req,
+          hasResponse: responseMap.has(req.id),
+          myResponse: responseMap.get(req.id)
+        }));
+        
+        setRequirements(enrichedRequirements);
       } else {
         console.error('Failed to fetch requirements');
         setRequirements([]);
@@ -378,6 +395,12 @@ export default function ManufacturerPortal() {
 
   // Handle respond to requirement
   const handleRespondToRequirement = (requirement: any) => {
+    // Check if manufacturer has already responded to this requirement
+    if (requirement.hasResponse) {
+      alert('You have already submitted a quote for this requirement.');
+      return;
+    }
+    
     setSelectedRequirement(requirement);
     setResponseForm({
       quotedPrice: '',
@@ -1539,6 +1562,14 @@ export default function ManufacturerPortal() {
                             }`}>
                               {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
                             </span>
+                            {req.hasResponse && (
+                              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 flex items-center gap-1">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                You Responded
+                              </span>
+                            )}
                             <span className="text-xs text-gray-500">
                               {new Date(req.created_at).toLocaleDateString('en-US', { 
                                 year: 'numeric', 
@@ -1578,15 +1609,24 @@ export default function ManufacturerPortal() {
                         )}
                       </div>
 
-                      <button
-                        onClick={() => handleRespondToRequirement(req)}
-                        className="w-full bg-[#22a2f2] hover:bg-[#1b8bd0] text-white px-6 py-3 font-semibold rounded-xl transition-all flex items-center justify-center gap-2"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                        </svg>
-                        <span>Submit Quote</span>
-                      </button>
+                      {req.hasResponse ? (
+                        <div className="w-full bg-gray-100 border-2 border-gray-300 text-gray-600 px-6 py-3 font-semibold rounded-xl flex items-center justify-center gap-2 cursor-not-allowed">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span>Quote Already Submitted</span>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleRespondToRequirement(req)}
+                          className="w-full bg-[#22a2f2] hover:bg-[#1b8bd0] text-white px-6 py-3 font-semibold rounded-xl transition-all flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                          </svg>
+                          <span>Submit Quote</span>
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
