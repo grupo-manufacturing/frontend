@@ -153,17 +153,7 @@ export default function BuyerPortal() {
     }
   }
   
-  // Profile form states
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    companyName: '',
-    gstNumber: '',
-    businessAddress: '',
-    aboutBusiness: ''
-  });
-  const [showProfile, setShowProfile] = useState(false);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  // Profile display states
   const [userPhoneNumber, setUserPhoneNumber] = useState('');
   const [displayName, setDisplayName] = useState('');
 
@@ -578,73 +568,6 @@ export default function BuyerPortal() {
   };
 
   // Form handlers
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-
-  // Load profile data when profile modal is opened
-  const loadProfileData = async () => {
-    setIsLoadingProfile(true);
-    try {
-      const response = await apiService.getBuyerProfile();
-      if (response.success && response.data.profile) {
-        const profile = response.data.profile;
-        setFormData({
-          fullName: profile.full_name || '',
-          email: profile.email || '',
-          companyName: profile.company_name || '',
-          gstNumber: profile.gst_number || '',
-          businessAddress: profile.business_address || '',
-          aboutBusiness: profile.about_business || ''
-        });
-        const resolvedName = (profile.full_name || profile.business_name || '').trim();
-        if (resolvedName) {
-          setDisplayName(resolvedName);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load profile data:', error);
-      alert('Failed to load profile data. Please try again.');
-    } finally {
-      setIsLoadingProfile(false);
-    }
-  };
-
-  // Handle profile update
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      // Convert form data to backend format
-      const profileData = {
-        full_name: formData.fullName,
-        email: formData.email,
-        company_name: formData.companyName,
-        gst_number: formData.gstNumber,
-        business_address: formData.businessAddress,
-        about_business: formData.aboutBusiness
-      };
-      
-      // Update profile data
-      const response = await apiService.updateBuyerProfile(profileData);
-      
-      if (response.success) {
-        console.log('Profile updated successfully:', response.data);
-        alert('Profile updated successfully!');
-        const resolvedName = (formData.fullName || formData.companyName || '').trim();
-        if (resolvedName) {
-          setDisplayName(resolvedName);
-        }
-        setShowProfile(false);
-      } else {
-        throw new Error(response.message || 'Failed to update profile');
-      }
-    } catch (error) {
-      console.error('Failed to update profile:', error);
-      alert('Failed to update profile. Please try again.');
-    }
-  };
 
   // Load phone number from localStorage on component mount
   useEffect(() => {
@@ -712,7 +635,7 @@ export default function BuyerPortal() {
                     Grupo
                   </span>
                   <span className="text-xs text-gray-600 hidden sm:block">
-                    Buyer Portal
+                    Your Manufacturing Partner
                   </span>
                 </div>
               </div>
@@ -731,11 +654,8 @@ export default function BuyerPortal() {
                 </div>
 
                 {/* Profile Button */}
-                <button
-                  onClick={() => {
-                    setShowProfile(true);
-                    loadProfileData();
-                  }}
+                <Link
+                  href="/buyer-portal/profile"
                   className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:text-black hover:bg-gray-50 rounded-lg transition-all border border-gray-200"
                 >
                   <svg
@@ -752,7 +672,7 @@ export default function BuyerPortal() {
                     />
                   </svg>
                   <span className="font-medium hidden lg:inline">Profile</span>
-                </button>
+                </Link>
 
                 {/* Logout Button */}
                 <button
@@ -2342,183 +2262,6 @@ export default function BuyerPortal() {
             </div>
           )}
         </main>
-        
-        {/* Profile Modal */}
-        {showProfile && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-            {/* Backdrop with blur */}
-            <div 
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-              onClick={() => setShowProfile(false)}
-            ></div>
-
-            {/* Modal Container */}
-            <div className="relative max-w-2xl w-full my-8 animate-fade-in-up">
-              
-              <div className="relative bg-white rounded-3xl border-2 border-[#22a2f2] shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
-                {/* Modal Header */}
-                <div className="sticky top-0 z-10 bg-white border-b border-[#22a2f2]/20 px-6 py-5 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-[#22a2f2]/15 text-[#22a2f2] rounded-xl border border-[#22a2f2]/30">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                    </div>
-                    <h2 className="text-2xl font-bold text-black">Edit Profile</h2>
-                  </div>
-                  <button
-                    onClick={() => setShowProfile(false)}
-                    className="p-2 text-gray-400 hover:text-black hover:bg-white/10 rounded-xl transition-all"
-                  >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-
-                {/* Modal Content */}
-                <div className="p-6 overflow-y-auto bg-white">
-                  {isLoadingProfile ? (
-                    <div className="flex flex-col items-center justify-center py-12">
-                      <div className="relative">
-                        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[#22a2f2]"></div>
-                        <div className="absolute inset-0 animate-ping rounded-full h-16 w-16 border border-[#22a2f2] opacity-20"></div>
-                      </div>
-                      <p className="mt-4 text-gray-400">Loading your profile...</p>
-                    </div>
-                  ) : (
-                    <form onSubmit={handleUpdateProfile} className="space-y-6">
-                      {/* Full Name */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Full Name
-                        </label>
-                        <div className="relative group">
-                          <div className="absolute inset-0 bg-[#22a2f2]/15 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
-                          <input
-                            type="text"
-                            value={formData.fullName}
-                            onChange={(e) => handleInputChange('fullName', e.target.value)}
-                            placeholder="Enter your full name (optional)"
-                            className="relative w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-500 transition-all"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Email Address */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Email Address
-                        </label>
-                        <div className="relative group">
-                          <div className="absolute inset-0 bg-[#22a2f2]/15 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
-                          <input
-                            type="email"
-                            value={formData.email}
-                            onChange={(e) => handleInputChange('email', e.target.value)}
-                            placeholder="Enter your email address (optional)"
-                            className="relative w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-500 transition-all"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Company Name */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Company Name
-                        </label>
-                        <div className="relative group">
-                          <div className="absolute inset-0 bg-[#22a2f2]/15 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
-                          <input
-                            type="text"
-                            value={formData.companyName}
-                            onChange={(e) => handleInputChange('companyName', e.target.value)}
-                            placeholder="Enter your company name (optional)"
-                            className="relative w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-500 transition-all"
-                          />
-                        </div>
-                      </div>
-
-                      {/* GST Number */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          GST Number
-                        </label>
-                        <div className="relative group">
-                          <div className="absolute inset-0 bg-[#22a2f2]/15 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
-                          <input
-                            type="text"
-                            value={formData.gstNumber}
-                            onChange={(e) => handleInputChange('gstNumber', e.target.value)}
-                            placeholder="Enter GST number (optional)"
-                            className="relative w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-500 transition-all"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Business Address */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Business Address
-                        </label>
-                        <div className="relative group">
-                          <div className="absolute inset-0 bg-[#22a2f2]/15 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
-                          <input
-                            type="text"
-                            value={formData.businessAddress}
-                            onChange={(e) => handleInputChange('businessAddress', e.target.value)}
-                            placeholder="Enter your business address"
-                            className="relative w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-500 transition-all"
-                          />
-                        </div>
-                      </div>
-
-                      {/* About Your Business */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          About Your Business
-                        </label>
-                        <div className="relative group">
-                          <div className="absolute inset-0 bg-[#22a2f2]/15 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
-                          <textarea
-                            value={formData.aboutBusiness}
-                            onChange={(e) => handleInputChange('aboutBusiness', e.target.value)}
-                            placeholder="Tell us about your business (optional)"
-                            rows={4}
-                            className="relative w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-500 resize-none transition-all"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Form Actions */}
-                      <div className="flex gap-4 pt-4">
-                        <button
-                          type="button"
-                          onClick={() => setShowProfile(false)}
-                          className="flex-1 px-4 py-3 bg-white hover:bg-[#22a2f2]/10 border border-[#22a2f2]/30 text-black font-semibold rounded-xl transition-all"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="submit"
-                          className="relative flex-1 group overflow-hidden rounded-xl"
-                        >
-                          <div className="absolute inset-0 bg-[#22a2f2] transition-transform group-hover:scale-105"></div>
-                          <div className="relative px-4 py-3 font-semibold text-white flex items-center justify-center gap-2">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                            <span>Save Changes</span>
-                          </div>
-                        </button>
-                      </div>
-                    </form>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     );
   }
@@ -2761,6 +2504,15 @@ export default function BuyerPortal() {
                     </form>
                   </>
                 )}
+
+                <div className="mt-6 text-center">
+                  <Link
+                    href="/manufacturer-portal"
+                    className="text-sm font-semibold text-[#22a2f2] hover:text-[#1b8bd0] transition-colors"
+                  >
+                    Sign in with Manufacturer
+                  </Link>
+                </div>
 
                 {/* Trust badges */}
                 <div className="mt-8 pt-6 border-t border-gray-300">

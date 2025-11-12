@@ -8,7 +8,7 @@ import apiService from '../lib/apiService';
 import ChatList from '../components/chat/ChatList';
 import ChatWindow from '../components/chat/ChatWindow';
 
-type TabType = 'analytics' | 'chats' | 'requirements' | 'profile';
+type TabType = 'chats' | 'requirements' | 'analytics' | 'profile';
 type AnalyticsTabType = 'revenue-trends' | 'product-performance' | 'order-distribution';
 
 export default function ManufacturerPortal() {
@@ -25,7 +25,7 @@ export default function ManufacturerPortal() {
   }, []);
   const [isLoadingOtp, setIsLoadingOtp] = useState(false);
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabType>('analytics');
+  const [activeTab, setActiveTab] = useState<TabType>('chats');
   const [activeAnalyticsTab, setActiveAnalyticsTab] = useState<AnalyticsTabType>('revenue-trends');
   // Chat state (chats inbox)
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
@@ -473,7 +473,7 @@ export default function ManufacturerPortal() {
                     Grupo
                   </span>
                   <span className="text-xs text-gray-500 hidden sm:block">
-                    Manufacturing Partner Portal
+                    Your Manufacturing Partner
                   </span>
                 </div>
               </div>
@@ -948,7 +948,7 @@ export default function ManufacturerPortal() {
                     Grupo
                   </span>
                   <span className="text-xs text-gray-500 hidden sm:block">
-                    Manufacturing Partner Portal
+                    Your Manufacturing Partner
                   </span>
                 </div>
               </div>
@@ -967,11 +967,8 @@ export default function ManufacturerPortal() {
                 </div>
 
                 {/* Profile Button */}
-                <button
-                  onClick={() => {
-                    setShowProfile(true);
-                    loadProfileData();
-                  }}
+                <Link
+                  href="/manufacturer-portal/profile"
                   className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:text-black hover:bg-gray-100 rounded-lg transition-all border border-gray-200"
                 >
                   <svg
@@ -988,7 +985,7 @@ export default function ManufacturerPortal() {
                     />
                   </svg>
                   <span className="font-medium hidden lg:inline">Profile</span>
-                </button>
+                </Link>
 
                 {/* Logout Button */}
                 <button
@@ -1019,34 +1016,6 @@ export default function ManufacturerPortal() {
         <nav className="relative z-40 bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center space-x-1 overflow-x-auto">
-              {/* Analytics Tab */}
-              <button
-                onClick={() => setActiveTab('analytics')}
-                className={`relative flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all ${
-                  activeTab === 'analytics'
-                    ? 'text-[#22a2f2]'
-                    : 'text-gray-500 hover:text-[#22a2f2]'
-                }`}
-              >
-                {activeTab === 'analytics' && (
-                  <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-t-lg border-b-2 border-[#22a2f2]"></div>
-                )}
-                <svg
-                  className="relative z-10 w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                  />
-                </svg>
-                <span className="relative z-10">Analytics</span>
-              </button>
-
               {/* Chats Tab */}
               <button
                 onClick={() => setActiveTab('chats')}
@@ -1106,6 +1075,34 @@ export default function ManufacturerPortal() {
                   />
                 </svg>
                 <span className="relative z-10">Requirements</span>
+              </button>
+
+              {/* Analytics Tab */}
+              <button
+                onClick={() => setActiveTab('analytics')}
+                className={`relative flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all ${
+                  activeTab === 'analytics'
+                    ? 'text-[#22a2f2]'
+                    : 'text-gray-500 hover:text-[#22a2f2]'
+                }`}
+              >
+                {activeTab === 'analytics' && (
+                  <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-t-lg border-b-2 border-[#22a2f2]"></div>
+                )}
+                <svg
+                  className="relative z-10 w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
+                </svg>
+                <span className="relative z-10">Analytics</span>
               </button>
             </div>
           </div>
@@ -1750,285 +1747,6 @@ export default function ManufacturerPortal() {
             </div>
           </div>
         )}
-        
-        {/* Profile Modal */}
-        {showProfile && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto bg-black/60 backdrop-blur-sm">
-            <div className="relative group max-w-4xl w-full my-8 animate-fade-in-up">
-              {/* Glowing border */}
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-[#22a2f2] to-transparent rounded-3xl blur opacity-20"></div>
-              
-              <div className="relative bg-white rounded-3xl shadow-2xl max-h-[90vh] overflow-hidden border-2 border-[#22a2f2]/50">
-                {/* Modal Header */}
-                <div className="sticky top-0 bg-white/95 backdrop-blur px-6 py-4 flex items-center justify-between z-10 border-b border-[#22a2f2]/20">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-[#22a2f2]/15 text-[#22a2f2] rounded-xl border border-[#22a2f2]/30">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                    </div>
-                    <h2 className="text-2xl font-bold text-black">Edit Profile</h2>
-                  </div>
-                  <button
-                    onClick={() => setShowProfile(false)}
-                    className="p-2 text-gray-500 hover:text-black hover:bg-gray-100 rounded-lg transition-all"
-                  >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-
-              {/* Modal Content */}
-              <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
-                {isLoadingProfile ? (
-                  <div className="flex items-center justify-center py-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#22a2f2]"></div>
-                  </div>
-                ) : (
-                  <form onSubmit={handleUpdateProfile} className="space-y-6">
-                    {/* Manufacturing Unit Name */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Manufacturing Unit Name <span className="text-orange-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.unitName}
-                        onChange={(e) => handleInputChange('unitName', e.target.value)}
-                        placeholder="Enter unit name"
-                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-400 transition-all"
-                        required
-                      />
-                    </div>
-
-                    {/* Business Type */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Business Type <span className="text-orange-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <select
-                          value={formData.businessType}
-                          onChange={(e) => handleInputChange('businessType', e.target.value)}
-                          className="w-full px-4 py-3 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black appearance-none cursor-pointer transition-all"
-                          required
-                        >
-                          <option value="" className="bg-white">Select your business type</option>
-                          <option value="sole-proprietorship" className="bg-white">Sole Proprietorship</option>
-                          <option value="partnership" className="bg-white">Partnership</option>
-                          <option value="private-limited" className="bg-white">Private Limited</option>
-                          <option value="public-limited" className="bg-white">Public Limited</option>
-                          <option value="llp" className="bg-white">Limited Liability Partnership (LLP)</option>
-                          <option value="other" className="bg-white">Other</option>
-                        </select>
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* GST Number */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        GST Number <span className="text-orange-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.gstNumber}
-                        onChange={(e) => handleInputChange('gstNumber', e.target.value)}
-                        placeholder="Enter GST number"
-                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-400 transition-all"
-                        required
-                      />
-                    </div>
-
-                    {/* Product Types */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-3">
-                        Product Types
-                      </label>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        {[
-                          'T-Shirt', 'Shirt', 'Jeans',
-                          'Trousers', 'Jacket', 'Hoodie',
-                          'Sweater', 'Shorts', 'Skirt',
-                          'Dress', 'Activewear', 'Accessories',
-                          'Other'
-                        ].map((product) => (
-                          <label 
-                            key={product} 
-                            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
-                              formData.productTypes.includes(product)
-                                ? 'bg-[#22a2f2] border-[#22a2f2] text-white shadow-lg shadow-[#22a2f2]/20'
-                                : 'bg-white border-gray-200 hover:border-[#22a2f2] hover:bg-[#22a2f2]/10'
-                            }`}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={formData.productTypes.includes(product)}
-                              onChange={() => handleProductTypeChange(product)}
-                              className="sr-only"
-                            />
-                            <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
-                              formData.productTypes.includes(product)
-                                ? 'bg-white text-[#22a2f2] border-white'
-                                : 'border-gray-300 text-transparent'
-                            }`}>
-                              {formData.productTypes.includes(product) && (
-                                <svg className="w-3 h-3 text-[#22a2f2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                </svg>
-                              )}
-                            </div>
-                            <span className={`text-sm ${formData.productTypes.includes(product) ? 'text-white' : 'text-gray-700'}`}>{product}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Manufacturing Capacity */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Manufacturing Capacity Per Day
-                      </label>
-                      <input
-                        type="number"
-                        value={formData.capacity}
-                        onChange={(e) => handleInputChange('capacity', e.target.value)}
-                        placeholder="Enter capacity (units per day)"
-                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-400 transition-all"
-                      />
-                    </div>
-
-                    {/* Location */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Location of Unit
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.location}
-                        onChange={(e) => handleInputChange('location', e.target.value)}
-                        placeholder="Enter complete address of manufacturing unit"
-                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-400 transition-all"
-                      />
-                    </div>
-
-                    {/* PAN Number */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        PAN Number
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.panNumber}
-                        onChange={(e) => handleInputChange('panNumber', e.target.value)}
-                        placeholder="Enter PAN number"
-                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-400 transition-all"
-                      />
-                    </div>
-
-                    {/* COI Number */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Certificate of Incorporation (COI) Number
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.coiNumber}
-                        onChange={(e) => handleInputChange('coiNumber', e.target.value)}
-                        placeholder="Enter COI number"
-                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-400 transition-all"
-                      />
-                    </div>
-
-                    {/* MSME Certificate Upload */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        MSME Certificate <span className="text-gray-500">(Optional)</span>
-                      </label>
-                      <div className="border-2 border-dashed border-[#22a2f2]/40 rounded-xl bg-[#22a2f2]/5 hover:border-[#22a2f2] hover:bg-[#22a2f2]/10 transition-all">
-                        <label className="flex flex-col items-center justify-center py-8 cursor-pointer group">
-                          <div className="p-3 bg-[#22a2f2]/15 text-[#22a2f2] rounded-xl mb-2 group-hover:scale-105 transition-transform border border-[#22a2f2]/30">
-                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                            </svg>
-                          </div>
-                          <span className="text-sm text-gray-700 font-medium">Click to upload MSME certificate</span>
-                          <span className="text-xs text-gray-500 mt-1">PDF, JPG or PNG</span>
-                          {formData.msmeFile && (
-                            <div className="mt-2 px-3 py-1 bg-[#22a2f2]/10 border border-[#22a2f2]/30 rounded-lg">
-                              <span className="text-xs text-[#22a2f2] font-medium">{formData.msmeFile.name}</span>
-                            </div>
-                          )}
-                          <input
-                            type="file"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            onChange={(e) => handleFileChange('msmeFile', e.target.files?.[0] || null)}
-                            className="hidden"
-                          />
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Other Certificates Upload */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Other Certificates (Optional)
-                      </label>
-                      <div className="border-2 border-dashed border-[#22a2f2]/40 rounded-xl bg-[#22a2f2]/5 hover:border-[#22a2f2] hover:bg-[#22a2f2]/10 transition-all">
-                        <label className="flex flex-col items-center justify-center py-8 cursor-pointer group">
-                          <div className="p-3 bg-[#22a2f2]/15 text-[#22a2f2] rounded-xl mb-2 group-hover:scale-105 transition-transform border border-[#22a2f2]/30">
-                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                            </svg>
-                          </div>
-                          <span className="text-sm text-gray-700 font-medium">Click to upload other certificates</span>
-                          <span className="text-xs text-gray-500 mt-1">ISO, Quality certificates, etc.</span>
-                          {formData.otherCertificates && (
-                            <div className="mt-2 px-3 py-1 bg-[#22a2f2]/10 border border-[#22a2f2]/30 rounded-lg">
-                              <span className="text-xs text-[#22a2f2] font-medium">{formData.otherCertificates.name}</span>
-                            </div>
-                          )}
-                          <input
-                            type="file"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            onChange={(e) => handleFileChange('otherCertificates', e.target.files?.[0] || null)}
-                            className="hidden"
-                          />
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Form Actions */}
-                    <div className="flex gap-4 pt-6">
-                      <button
-                        type="button"
-                        onClick={() => setShowProfile(false)}
-                        className="flex-1 px-4 py-3 bg-white hover:bg-[#22a2f2]/10 text-[#22a2f2] font-semibold rounded-xl transition-all border border-[#22a2f2]/30"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        className="flex-1 rounded-xl bg-[#22a2f2] hover:bg-[#1b8bd0] text-white font-semibold px-4 py-3 flex items-center justify-center gap-2 transition-colors shadow-sm hover:shadow-md"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>Save Changes</span>
-                      </button>
-                    </div>
-                  </form>
-                )}
-              </div>
-            </div>
-          </div>
-          </div>
-        )}
       </div>
     );
   }
@@ -2054,7 +1772,7 @@ export default function ManufacturerPortal() {
                 <h1 className="text-3xl font-bold text-black">
                   Grupo
                 </h1>
-                <p className="text-sm text-gray-600">Manufacturing Partner Portal</p>
+                <p className="text-sm text-gray-600">Your Manufacturing Partner</p>
               </div>
             </div>
 
@@ -2116,7 +1834,7 @@ export default function ManufacturerPortal() {
                 <h1 className="text-2xl font-bold text-black">
                   Grupo
                 </h1>
-                <p className="text-xs text-gray-600">Manufacturing Partner Portal</p>
+                <p className="text-xs text-gray-600">Your Manufacturing Partner</p>
               </div>
             </div>
 
@@ -2271,6 +1989,15 @@ export default function ManufacturerPortal() {
                     </form>
                   </>
                 )}
+
+                <div className="mt-6 text-center">
+                  <Link
+                    href="/buyer-portal"
+                    className="text-sm font-semibold text-[#22a2f2] hover:text-[#1b8bd0] transition-colors"
+                  >
+                    Sign in with Buyer
+                  </Link>
+                </div>
 
                 {/* Trust badges */}
                 <div className="mt-8 pt-6 border-t border-gray-300">
