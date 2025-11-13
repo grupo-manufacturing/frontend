@@ -66,6 +66,7 @@ export default function BuyerPortal() {
   // Requirements States
   const [requirements, setRequirements] = useState<any[]>([]);
   const [isLoadingRequirements, setIsLoadingRequirements] = useState(false);
+  const [negotiatingResponseId, setNegotiatingResponseId] = useState<string | null>(null);
   
   // My Orders States
   const [orderSearchQuery, setOrderSearchQuery] = useState('');
@@ -513,6 +514,55 @@ export default function BuyerPortal() {
     } catch (error: any) {
       console.error(`Failed to ${status} response:`, error);
       alert(error.message || `Failed to ${status} quote. Please try again.`);
+    }
+  };
+
+  const handleNegotiateResponse = async (requirement: any, response: any) => {
+    const manufacturerIdRaw = response?.manufacturer_id || response?.manufacturer?.id;
+    const manufacturerId = manufacturerIdRaw ? String(manufacturerIdRaw) : null;
+
+    if (!manufacturerId) {
+      alert('Unable to determine the manufacturer for this response. Please try again later.');
+      return;
+    }
+
+    try {
+      setNegotiatingResponseId(response.id);
+      const buyerId = await getBuyerId();
+
+      if (!buyerId) {
+        setActiveTab('chats');
+        alert('We could not load your buyer profile. Please refresh and try again.');
+        return;
+      }
+
+      setActiveTab('chats');
+      setShowChatInbox(false);
+
+      const ensureRes = await apiService.ensureConversation(buyerId, manufacturerId);
+      const conversationId = ensureRes?.data?.conversation?.id;
+
+      if (conversationId) {
+        setActiveConversationId(conversationId);
+        setActiveBuyerId(buyerId);
+        setActiveManufacturerId(manufacturerId);
+
+        const manufacturerName = response?.manufacturer?.unit_name;
+        const requirementSummary = requirement?.requirement_text;
+        const fallbackTitle = requirementSummary
+          ? requirementSummary.slice(0, 60) + (requirementSummary.length > 60 ? '...' : '')
+          : undefined;
+
+        setActiveTitle(manufacturerName || fallbackTitle);
+        setChatUnreadClearSignal({ conversationId, at: Date.now() });
+      } else {
+        alert('Unable to open the chat for this response. Please try again from the Chats tab.');
+      }
+    } catch (error: any) {
+      console.error('Failed to open negotiation chat:', error);
+      alert(error?.message || 'Failed to open chat. Please try again.');
+    } finally {
+      setNegotiatingResponseId(null);
     }
   };
 
@@ -1735,6 +1785,20 @@ export default function BuyerPortal() {
                                 {/* Action Buttons */}
                                 {(!response.status || response.status === 'submitted') && (
                                   <div className="mt-4 flex flex-col sm:flex-row gap-2">
+                                    <button
+                                      onClick={() => handleNegotiateResponse(req, response)}
+                                      disabled={negotiatingResponseId === response.id}
+                                      className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 font-semibold rounded-lg transition-all ${
+                                        negotiatingResponseId === response.id
+                                          ? 'bg-[#22a2f2]/60 text-white cursor-not-allowed'
+                                          : 'bg-[#22a2f2] hover:bg-[#1b8bd0] text-white'
+                                      }`}
+                                    >
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v7a2 2 0 01-2 2h-6l-4 4v-4H7a2 2 0 01-2-2v-5a2 2 0 012-2h2" />
+                                      </svg>
+                                      {negotiatingResponseId === response.id ? 'Opening Chat...' : 'Negotiate'}
+                                    </button>
                                     <button
                                       onClick={() => handleUpdateResponseStatus(response.id, 'accepted', response.manufacturer?.unit_name || 'this manufacturer')}
                                       className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-all"
