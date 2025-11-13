@@ -307,7 +307,7 @@ export default function ChatWindow({
     return items;
   }, [messages]);
 
-  const whatsappHref = useMemo(() => 'https://wa.me/916362845356', []);
+  const whatsappHref = useMemo(() => 'https://wa.me/917671062042', []);
 
   return (
     <div className={containerClass}>
