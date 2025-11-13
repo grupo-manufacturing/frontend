@@ -307,6 +307,8 @@ export default function ChatWindow({
     return items;
   }, [messages]);
 
+  const whatsappHref = useMemo(() => 'https://wa.me/916362845356', []);
+
   return (
     <div className={containerClass}>
       <div className={headerClass}>
@@ -417,6 +419,18 @@ export default function ChatWindow({
               ? 'flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black disabled:opacity-50'
               : 'flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50'}
           />
+          <a
+            href={whatsappHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2 text-[#25D366] hover:text-[#1ebe5d] rounded-lg hover:bg-[#25D366]/10 transition-colors"
+            aria-label="Continue chat on WhatsApp"
+            title="Open WhatsApp chat"
+          >
+            <svg className="w-6 h-6" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
+              <path d="M27.54 4.46A15.88 15.88 0 0016 0a15.9 15.9 0 00-13.5 24.47L0 32l7.74-2.46A15.9 15.9 0 0016 32h.01c8.82 0 15.99-7.17 15.99-16a15.87 15.87 0 00-4.46-11.54zm-11.53 24.5h-.01a13.3 13.3 0 01-6.79-1.86l-.49-.29-4.6 1.47 1.5-4.47-.32-.52A13.31 13.31 0 012.67 16 13.34 13.34 0 0127.33 16c0 7.35-5.98 12.96-11.32 12.96zm7.48-9.72c-.41-.2-2.42-1.19-2.79-1.33-.37-.14-.64-.2-.9.2-.27.41-1.03 1.33-1.26 1.6-.23.27-.46.3-.86.1-.41-.2-1.73-.64-3.3-2.03-1.22-1.09-2.04-2.43-2.27-2.84-.23-.41-.02-.63.18-.83.18-.18.41-.47.61-.7.2-.23.27-.41.41-.68.14-.27.07-.5-.03-.7-.1-.2-.9-2.17-1.23-2.97-.32-.77-.65-.67-.9-.68h-.77c-.27 0-.7.1-1.06.5-.36.41-1.4 1.37-1.4 3.34 0 1.97 1.44 3.87 1.64 4.14.2.27 2.84 4.33 6.88 6.07.96.41 1.7.66 2.28.84.96.31 1.83.27 2.52.16.77-.12 2.42-.99 2.76-1.95.34-.96.34-1.78.23-1.95-.11-.18-.37-.28-.79-.49z" />
+            </svg>
+          </a>
           <button 
             onClick={handleSend} 
             disabled={sending || uploadingFiles || (!input.trim() && selectedFiles.length === 0)} 
