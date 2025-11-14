@@ -236,11 +236,18 @@ class ApiService {
 
   /**
    * Get JWT token from localStorage
+   * Checks both 'groupo_token' and 'adminToken' for admin support
    * @returns {string|null} JWT token
    */
   getToken() {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('groupo_token');
+      // Check regular token first
+      const token = localStorage.getItem('groupo_token');
+      if (token) return token;
+      
+      // Fallback to admin token
+      const adminToken = localStorage.getItem('adminToken');
+      if (adminToken) return adminToken;
     }
     return null;
   }
@@ -375,6 +382,32 @@ class ApiService {
     
     return this.request(endpoint, {
       method: 'GET'
+    });
+  }
+
+  /**
+   * Admin login with username and password
+   * @param {string} username - Admin username
+   * @param {string} password - Admin password
+   * @returns {Promise} Response data with token
+   */
+  async adminLogin(username, password) {
+    return this.request('/auth/admin-login', {
+      method: 'POST',
+      body: JSON.stringify({ username, password })
+    });
+  }
+
+  /**
+   * Update manufacturer verification status (Admin only)
+   * @param {string} manufacturerId - Manufacturer ID
+   * @param {string} verificationStatus - New verification status ('pending', 'Accepted', 'Rejected', 'Blocked')
+   * @returns {Promise} Response data
+   */
+  async updateManufacturerVerificationStatus(manufacturerId, verificationStatus) {
+    return this.request(`/manufacturers/${manufacturerId}/verification-status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ verification_status: verificationStatus })
     });
   }
 

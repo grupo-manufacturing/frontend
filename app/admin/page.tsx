@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import apiService from '../lib/apiService';
 
-type AdminStep = 'phone' | 'otp' | 'dashboard';
+type AdminStep = 'login' | 'dashboard';
 type AdminView = 'overview' | 'buyers' | 'manufacturers';
 
 interface Manufacturer {
@@ -65,11 +65,11 @@ const renderBadge = (
 };
 
 export default function AdminPortal() {
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [otp, setOtp] = useState('');
-  const [step, setStep] = useState<AdminStep>('phone');
-  const [isLoadingOtp, setIsLoadingOtp] = useState(false);
-  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [step, setStep] = useState<AdminStep>('login');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [activeView, setActiveView] = useState<AdminView>('overview');
   const [buyers, setBuyers] = useState<Buyer[]>([]);
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
@@ -77,12 +77,13 @@ export default function AdminPortal() {
   const [searchQuery, setSearchQuery] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
 
   useEffect(() => {
     const storedToken = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
-    const storedPhone = typeof window !== 'undefined' ? localStorage.getItem('adminPhoneNumber') : null;
-    if (storedToken && storedPhone) {
-      setPhoneNumber(storedPhone);
+    if (storedToken) {
+      // Set token in apiService for admin API calls
+      apiService.setToken(storedToken);
       setStep('dashboard');
     }
   }, []);
@@ -119,76 +120,54 @@ export default function AdminPortal() {
     }
   };
 
-  const handleSendOTP = async (event: React.FormEvent) => {
+  const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!phoneNumber.trim()) return;
+    if (!username.trim() || !password.trim()) return;
 
-    setIsLoadingOtp(true);
-    setErrorMessage('');
-
-    if (phoneNumber === '9999999999') {
-      setTimeout(() => {
-        setIsLoadingOtp(false);
-        setStep('otp');
-      }, 600);
-      return;
-    }
-
-    try {
-      await apiService.sendOTP(phoneNumber, 'admin');
-      setStep('otp');
-    } catch (error) {
-      console.error('Failed to send admin OTP:', error);
-      setErrorMessage('Failed to send OTP. Check the number and retry.');
-    } finally {
-      setIsLoadingOtp(false);
-    }
-  };
-
-  const handleVerifyOTP = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!otp.trim()) return;
-
-    setIsVerifyingOtp(true);
+    setIsLoggingIn(true);
     setErrorMessage('');
 
     try {
-      if (phoneNumber === '9999999999' && otp === '999999') {
-        localStorage.setItem('adminToken', 'demo_admin_token');
-        localStorage.setItem('adminPhoneNumber', phoneNumber);
-        setStep('dashboard');
-        await loadData();
-        return;
-      }
-
-      const response = await apiService.verifyOTP(phoneNumber, otp, 'admin');
+      const response = await apiService.adminLogin(username, password);
       const token = response.data?.token;
       if (token) {
         localStorage.setItem('adminToken', token);
-        localStorage.setItem('adminPhoneNumber', phoneNumber);
+        // Also set token in apiService for admin API calls
+        apiService.setToken(token);
+        setStep('dashboard');
+        await loadData();
       }
-      setStep('dashboard');
-      await loadData();
-    } catch (error) {
-      console.error('Failed to verify admin OTP:', error);
-      setErrorMessage('Invalid OTP. Please try again.');
+    } catch (error: any) {
+      console.error('Failed to login:', error);
+      setErrorMessage(error?.message || 'Invalid credentials. Please try again.');
     } finally {
-      setIsVerifyingOtp(false);
+      setIsLoggingIn(false);
     }
-  };
-
-  const handleBackToPhone = () => {
-    setOtp('');
-    setStep('phone');
   };
 
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminPhoneNumber');
-    setPhoneNumber('');
-    setOtp('');
+    apiService.removeToken();
+    setUsername('');
+    setPassword('');
     setActiveView('overview');
-    setStep('phone');
+    setStep('login');
+  };
+
+  const handleUpdateVerificationStatus = async (manufacturerId: string, newStatus: string) => {
+    setUpdatingStatusId(manufacturerId);
+    setErrorMessage('');
+    
+    try {
+      await apiService.updateManufacturerVerificationStatus(manufacturerId, newStatus);
+      // Reload data to get updated status
+      await loadData();
+    } catch (error: any) {
+      console.error('Failed to update verification status:', error);
+      setErrorMessage(error?.message || 'Failed to update verification status. Please try again.');
+    } finally {
+      setUpdatingStatusId(null);
+    }
   };
 
   const filteredBuyers = useMemo(() => {
@@ -229,7 +208,7 @@ export default function AdminPortal() {
   const isBuyersView = activeView === 'buyers';
   const isManufacturersView = activeView === 'manufacturers';
 
-  if (step === 'phone') {
+  if (step === 'login') {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
         <div className="max-w-md w-full space-y-8">
@@ -240,24 +219,86 @@ export default function AdminPortal() {
             <div className="text-center space-y-2">
               <h1 className="text-2xl font-semibold text-slate-900">Admin Sign In</h1>
               <p className="text-sm text-slate-500">
-                Enter your registered phone number to receive a one-time passcode.
+                Enter your username and password to access the admin portal.
               </p>
             </div>
           </div>
 
-          <form onSubmit={handleSendOTP} className="bg-white shadow-md rounded-2xl border border-slate-100 p-6 space-y-4">
+          <form onSubmit={handleLogin} className="bg-white shadow-md rounded-2xl border border-slate-100 p-6 space-y-4">
             <div className="space-y-2">
-              <label htmlFor="admin-phone" className="text-sm font-medium text-slate-700">
-                Phone Number
+              <label htmlFor="admin-username" className="text-sm font-medium text-slate-700">
+                Username
               </label>
               <input
-                id="admin-phone"
-                type="tel"
-                value={phoneNumber}
-                onChange={(event) => setPhoneNumber(event.target.value)}
-                placeholder="e.g. 91830XXXXXX"
+                id="admin-username"
+                type="text"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                placeholder="Enter username"
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 shadow-sm focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30"
+                autoComplete="username"
               />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="admin-password" className="text-sm font-medium text-slate-700">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  id="admin-password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Enter password"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 pr-10 text-slate-900 shadow-sm focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30"
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <svg
+                      className="h-5 w-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      className="h-5 w-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
 
             {errorMessage && (
@@ -268,68 +309,11 @@ export default function AdminPortal() {
 
             <button
               type="submit"
-              disabled={isLoadingOtp || !phoneNumber.trim()}
+              disabled={isLoggingIn || !username.trim() || !password.trim()}
               className="w-full rounded-lg bg-[#22a2f2] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1b8bd0] disabled:cursor-not-allowed disabled:bg-[#22a2f2]/50"
             >
-              {isLoadingOtp ? 'Sending OTP…' : 'Send OTP'}
+              {isLoggingIn ? 'Signing In…' : 'Sign In'}
             </button>
-          </form>
-        </div>
-      </div>
-    );
-  }
-
-  if (step === 'otp') {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-        <div className="max-w-md w-full space-y-8">
-          <div className="text-center space-y-2">
-            <h1 className="text-2xl font-semibold text-slate-900">Verify OTP</h1>
-            <p className="text-sm text-slate-500">
-              Enter the 6-digit code sent to{' '}
-              <span className="font-medium text-slate-700">{phoneNumber}</span>
-            </p>
-          </div>
-
-          <form onSubmit={handleVerifyOTP} className="bg-white shadow-md rounded-2xl border border-slate-100 p-6 space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="admin-otp" className="text-sm font-medium text-slate-700">
-                One-Time Passcode
-              </label>
-              <input
-                id="admin-otp"
-                type="text"
-                inputMode="numeric"
-                value={otp}
-                onChange={(event) => setOtp(event.target.value)}
-                placeholder="Enter OTP"
-                maxLength={6}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 shadow-sm focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30 tracking-widest text-center text-lg"
-              />
-            </div>
-
-            {errorMessage && (
-              <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-600">
-                {errorMessage}
-              </div>
-            )}
-
-            <div className="flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={handleBackToPhone}
-                className="flex-1 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
-              >
-                Back
-              </button>
-              <button
-                type="submit"
-                disabled={isVerifyingOtp || !otp.trim()}
-                className="flex-1 rounded-lg bg-[#22a2f2] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1b8bd0] disabled:cursor-not-allowed disabled:bg-[#22a2f2]/50"
-              >
-                {isVerifyingOtp ? 'Verifying…' : 'Verify & Continue'}
-              </button>
-            </div>
           </form>
         </div>
       </div>
@@ -351,7 +335,7 @@ export default function AdminPortal() {
           </div>
           <div className="flex items-center gap-3">
             <div className="hidden rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 sm:flex">
-              {phoneNumber}
+              Admin
             </div>
             <button
               onClick={handleLogout}
@@ -652,9 +636,6 @@ export default function AdminPortal() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="text-xs font-medium text-slate-700">{manufacturer.phone_number}</div>
-                          <div className="text-xs text-slate-400">
-                            {manufacturer.contact_person_name || 'Contact not provided'}
-                          </div>
                         </td>
                         <td className="px-4 py-3">
                           {renderBadge(
@@ -663,9 +644,33 @@ export default function AdminPortal() {
                           )}
                         </td>
                         <td className="px-4 py-3">
-                          {manufacturer.verified
-                            ? renderBadge('Verified', 'success')
-                            : renderBadge(manufacturer.verification_status || 'Pending', 'warning')}
+                          <div className="flex items-center gap-2">
+                            <select
+                              value={manufacturer.verification_status || 'pending'}
+                              onChange={(e) => handleUpdateVerificationStatus(String(manufacturer.id), e.target.value)}
+                              disabled={updatingStatusId === String(manufacturer.id)}
+                              className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm transition hover:border-slate-400 focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              <option value="pending">Pending</option>
+                              <option value="Accepted">Accepted</option>
+                              <option value="Rejected">Rejected</option>
+                              <option value="Blocked">Blocked</option>
+                            </select>
+                            {updatingStatusId === String(manufacturer.id) && (
+                              <svg
+                                className="h-4 w-4 animate-spin text-[#22a2f2]"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth={2}
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M21 12a9 9 0 11-6.219-8.56" />
+                                <path d="M21 3v6h-6" />
+                              </svg>
+                            )}
+                          </div>
                         </td>
                         <td className="px-4 py-3 text-xs text-slate-500">
                           {formatDate(manufacturer.created_at)}
