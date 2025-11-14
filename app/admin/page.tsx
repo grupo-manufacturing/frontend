@@ -56,6 +56,7 @@ interface Order {
   price_per_unit: number;
   delivery_time: string;
   notes?: string;
+  status: string;
   created_at: string;
   updated_at: string;
 }
