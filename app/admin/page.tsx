@@ -25,9 +25,6 @@ interface Buyer {
   phone_number: string;
   full_name?: string;
   business_name?: string;
-  verified: boolean;
-  verification_status?: string;
-  onboarding_completed: boolean;
   created_at: string;
 }
 
@@ -35,7 +32,7 @@ const PRIMARY_COLOR = '#22a2f2';
 
 const VIEW_TABS: Array<{ id: AdminView; label: string; description: string }> = [
   { id: 'overview', label: 'Overview', description: 'Key metrics across buyers and manufacturers' },
-  { id: 'buyers', label: 'Buyers', description: 'Registered buyers, onboarding, and verification status' },
+  { id: 'buyers', label: 'Buyers', description: 'Registered buyers directory' },
   { id: 'manufacturers', label: 'Manufacturers', description: 'Registered manufacturers and capability insights' }
 ];
 
@@ -215,16 +212,11 @@ export default function AdminPortal() {
     );
   }, [manufacturers, searchQuery]);
 
-  const verifiedBuyers = useMemo(() => buyers.filter((buyer) => buyer.verified), [buyers]);
   const verifiedManufacturers = useMemo(
     () => manufacturers.filter((manufacturer) => manufacturer.verified),
     [manufacturers]
   );
 
-  const onboardingCompleteBuyers = useMemo(
-    () => buyers.filter((buyer) => buyer.onboarding_completed),
-    [buyers]
-  );
   const onboardingCompleteManufacturers = useMemo(
     () => manufacturers.filter((manufacturer) => manufacturer.onboarding_completed),
     [manufacturers]
@@ -421,7 +413,27 @@ export default function AdminPortal() {
           </div>
         )}
 
-        {lastUpdated && (
+        {isLoadingData && (
+          <div className="flex items-center justify-center py-20">
+            <div className="flex flex-col items-center gap-4">
+              <svg
+                className="h-8 w-8 animate-spin text-[#22a2f2]"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M21 12a9 9 0 11-6.219-8.56" />
+                <path d="M21 3v6h-6" />
+              </svg>
+              <p className="text-sm font-medium text-slate-600">Loading data...</p>
+            </div>
+          </div>
+        )}
+
+        {!isLoadingData && lastUpdated && (
           <p className="mb-6 text-xs text-slate-400">
             Last updated {formatDate(lastUpdated)} •{' '}
             {new Date(lastUpdated).toLocaleTimeString(undefined, {
@@ -431,15 +443,14 @@ export default function AdminPortal() {
           </p>
         )}
 
-        {isOverview && (
+        {!isLoadingData && isOverview && (
           <div className="space-y-8">
             <section className="grid gap-4 md:grid-cols-2">
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Buyers</p>
                 <p className="mt-3 text-3xl font-semibold text-slate-900">{buyers.length}</p>
                 <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-500">
-                  {renderBadge(`${verifiedBuyers.length} verified`, 'success')}
-                  {renderBadge(`${onboardingCompleteBuyers.length} onboarded`, 'info')}
+                  {renderBadge(`${buyers.length} total`, 'info')}
                 </div>
               </div>
 
@@ -480,13 +491,7 @@ export default function AdminPortal() {
                           <p className="text-xs text-slate-500">{buyer.phone_number}</p>
                         </div>
                         <div className="flex flex-col items-end gap-2">
-                          {buyer.verified
-                            ? renderBadge('Verified', 'success')
-                            : renderBadge('Pending verification', 'warning')}
-                          {renderBadge(
-                            buyer.onboarding_completed ? 'Onboarding complete' : 'Onboarding pending',
-                            buyer.onboarding_completed ? 'info' : 'neutral'
-                          )}
+                          {renderBadge('Active', 'success')}
                         </div>
                       </div>
                       <p className="mt-2 text-xs text-slate-400">
@@ -546,7 +551,7 @@ export default function AdminPortal() {
           </div>
         )}
 
-        {(isBuyersView || isManufacturersView) && (
+        {!isLoadingData && (isBuyersView || isManufacturersView) && (
           <div className="space-y-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -555,7 +560,7 @@ export default function AdminPortal() {
                 </h1>
                 <p className="text-sm text-slate-500">
                   {isBuyersView
-                    ? 'Review onboarding progress and verification for every buyer.'
+                    ? 'View and manage all registered buyers.'
                     : 'Track manufacturer capabilities and onboarding status.'}
                 </p>
               </div>
@@ -603,12 +608,16 @@ export default function AdminPortal() {
                     <th scope="col" className="px-4 py-3 text-left font-semibold">
                       Contact
                     </th>
-                    <th scope="col" className="px-4 py-3 text-left font-semibold">
-                      Onboarding
-                    </th>
-                    <th scope="col" className="px-4 py-3 text-left font-semibold">
-                      Verification
-                    </th>
+                    {isManufacturersView && (
+                      <>
+                        <th scope="col" className="px-4 py-3 text-left font-semibold">
+                          Onboarding
+                        </th>
+                        <th scope="col" className="px-4 py-3 text-left font-semibold">
+                          Verification
+                        </th>
+                      </>
+                    )}
                     <th scope="col" className="px-4 py-3 text-left font-semibold">
                       Joined
                     </th>
@@ -626,18 +635,6 @@ export default function AdminPortal() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="text-xs font-medium text-slate-700">{buyer.phone_number}</div>
-                          <div className="text-xs text-slate-400">{buyer.verification_status || 'Pending'}</div>
-                        </td>
-                        <td className="px-4 py-3">
-                          {renderBadge(
-                            buyer.onboarding_completed ? 'Completed' : 'Pending',
-                            buyer.onboarding_completed ? 'info' : 'neutral'
-                          )}
-                        </td>
-                        <td className="px-4 py-3">
-                          {buyer.verified
-                            ? renderBadge('Verified', 'success')
-                            : renderBadge('Not verified', 'warning')}
                         </td>
                         <td className="px-4 py-3 text-xs text-slate-500">{formatDate(buyer.created_at)}</td>
                       </tr>
@@ -678,7 +675,7 @@ export default function AdminPortal() {
                   {(isBuyersView && filteredBuyers.length === 0) ||
                   (isManufacturersView && filteredManufacturers.length === 0) ? (
                     <tr>
-                      <td colSpan={5} className="px-4 py-6 text-center text-sm text-slate-500">
+                      <td colSpan={isBuyersView ? 3 : 5} className="px-4 py-6 text-center text-sm text-slate-500">
                         No records found for your current filters.
                       </td>
                     </tr>

@@ -1589,10 +1589,10 @@ export default function ManufacturerPortal() {
                       </div>
                       
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-gray-100 mb-4">
-                        {req.buyer && req.buyer.company_name && (
+                        {req.buyer && req.buyer.full_name && (
                           <div>
-                            <p className="text-xs text-gray-500 mb-1">Company</p>
-                            <p className="text-sm font-semibold text-black">{req.buyer.company_name}</p>
+                            <p className="text-xs text-gray-500 mb-1">Buyer Name</p>
+                            <p className="text-sm font-semibold text-black">{req.buyer.full_name}</p>
                           </div>
                         )}
                         {req.quantity && (

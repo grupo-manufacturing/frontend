@@ -11,8 +11,6 @@ export default function BuyerProfile() {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
-    companyName: '',
-    gstNumber: '',
     businessAddress: '',
     aboutBusiness: ''
   });
@@ -44,13 +42,11 @@ export default function BuyerProfile() {
         setFormData({
           fullName: profile.full_name || '',
           email: profile.email || '',
-          companyName: profile.company_name || '',
-          gstNumber: profile.gst_number || '',
           businessAddress: profile.business_address || '',
           aboutBusiness: profile.about_business || ''
         });
         
-        const resolvedName = (profile.full_name || profile.company_name || '').trim();
+        const resolvedName = (profile.full_name || '').trim();
         setDisplayName(resolvedName);
       }
     } catch (error) {
@@ -69,22 +65,38 @@ export default function BuyerProfile() {
     setIsSaving(true);
     
     try {
-      await apiService.updateBuyerProfile({
+      const response = await apiService.updateBuyerProfile({
         full_name: formData.fullName,
         email: formData.email,
-        company_name: formData.companyName,
-        gst_number: formData.gstNumber,
         business_address: formData.businessAddress,
         about_business: formData.aboutBusiness
       });
 
-      const resolvedName = (formData.fullName || formData.companyName || '').trim();
-      setDisplayName(resolvedName);
-      
-      alert('Profile updated successfully!');
-    } catch (error) {
+      // Check if update was successful
+      if (response && response.success) {
+        const resolvedName = (formData.fullName || '').trim();
+        setDisplayName(resolvedName);
+        
+        // Reload profile data to ensure we have the latest
+        await loadProfileData();
+        
+        alert('Profile updated successfully!');
+        
+        // Redirect back to dashboard after a short delay
+        setTimeout(() => {
+          router.push('/buyer-portal');
+        }, 500);
+      } else {
+        throw new Error(response?.message || 'Update failed');
+      }
+    } catch (error: any) {
       console.error('Failed to update profile:', error);
-      alert('Failed to update profile. Please try again.');
+      const errorMessage = error?.message || 'Failed to update profile. Please try again.';
+      // Replace "Validation failed" with "Please fill up all fields"
+      const displayMessage = errorMessage.includes('Validation failed') || errorMessage.includes('Please fill up all fields')
+        ? 'Please fill up all fields'
+        : errorMessage;
+      alert(displayMessage);
     } finally {
       setIsSaving(false);
     }
@@ -204,7 +216,7 @@ export default function BuyerProfile() {
                     type="text"
                     value={formData.fullName}
                     onChange={(e) => handleInputChange('fullName', e.target.value)}
-                    placeholder="Enter your full name (optional)"
+                    placeholder="Enter your full name"
                     className="relative w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-500 transition-all"
                   />
                 </div>
@@ -221,41 +233,7 @@ export default function BuyerProfile() {
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder="Enter your email address (optional)"
-                    className="relative w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-500 transition-all"
-                  />
-                </div>
-              </div>
-
-              {/* Company Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Company Name
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-0 bg-[#22a2f2]/15 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
-                  <input
-                    type="text"
-                    value={formData.companyName}
-                    onChange={(e) => handleInputChange('companyName', e.target.value)}
-                    placeholder="Enter your company name (optional)"
-                    className="relative w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-500 transition-all"
-                  />
-                </div>
-              </div>
-
-              {/* GST Number */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  GST Number
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-0 bg-[#22a2f2]/15 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
-                  <input
-                    type="text"
-                    value={formData.gstNumber}
-                    onChange={(e) => handleInputChange('gstNumber', e.target.value)}
-                    placeholder="Enter GST number (optional)"
+                    placeholder="Enter your email address"
                     className="relative w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-500 transition-all"
                   />
                 </div>
@@ -288,7 +266,7 @@ export default function BuyerProfile() {
                   <textarea
                     value={formData.aboutBusiness}
                     onChange={(e) => handleInputChange('aboutBusiness', e.target.value)}
-                    placeholder="Tell us about your business (optional)"
+                    placeholder="Tell us about your business"
                     rows={4}
                     className="relative w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-500 resize-none transition-all"
                   />

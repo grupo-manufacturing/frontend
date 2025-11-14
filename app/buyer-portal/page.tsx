@@ -157,6 +157,7 @@ export default function BuyerPortal() {
   // Profile display states
   const [userPhoneNumber, setUserPhoneNumber] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [profileCompletion, setProfileCompletion] = useState(0);
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -264,7 +265,6 @@ export default function BuyerPortal() {
     try {
       // Fetch real manufacturers from backend
       const response = await apiService.getAllManufacturers({
-        onboarding_completed: true,
         limit: 3
       });
 
@@ -491,6 +491,41 @@ export default function BuyerPortal() {
     }
   }, [activeTab, step]);
 
+  // Refresh profile completion when returning to dashboard (e.g., from profile page)
+  useEffect(() => {
+    if (step === 'dashboard' && apiService.isAuthenticated()) {
+      const refreshProfile = async () => {
+        try {
+          const response = await apiService.getBuyerProfile();
+          if (response && response.success && response.data && response.data.profile) {
+            const profile = response.data.profile;
+            // Check if all required fields are filled
+            const requiredFields = [
+              profile.full_name,
+              profile.email,
+              profile.business_address,
+              profile.about_business
+            ];
+            const allFieldsFilled = requiredFields.every(field => field && field.trim().length > 0);
+            setProfileCompletion(allFieldsFilled ? 100 : 0);
+            
+            const resolvedName = (profile.full_name || '').trim();
+            if (resolvedName) {
+              setDisplayName(resolvedName);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to refresh profile completion:', error);
+        }
+      };
+      
+      // Refresh on mount and when window regains focus (user returns from profile page)
+      refreshProfile();
+      window.addEventListener('focus', refreshProfile);
+      return () => window.removeEventListener('focus', refreshProfile);
+    }
+  }, [step]);
+
   // Handle Accept/Reject Response
   const handleUpdateResponseStatus = async (responseId: string, status: 'accepted' | 'rejected', manufacturerName: string) => {
     const confirmMessage = status === 'accepted' 
@@ -661,15 +696,31 @@ export default function BuyerPortal() {
     const fetchProfileSummary = async () => {
       try {
         const response = await apiService.getBuyerProfile();
-        if (!cancelled && response.success && response.data.profile) {
+        if (!cancelled && response && response.success && response.data && response.data.profile) {
           const profile = response.data.profile;
-          const resolvedName = (profile.full_name || profile.business_name || '').trim();
+          const resolvedName = (profile.full_name || '').trim();
           if (resolvedName) {
             setDisplayName(resolvedName);
           }
+          
+          // Check if all required fields are filled (phone_number is always present, so we check the other 4)
+          // Required fields: full_name, email, business_address, about_business
+          const requiredFields = [
+            profile.full_name,
+            profile.email,
+            profile.business_address,
+            profile.about_business
+          ];
+          const allFieldsFilled = requiredFields.every(field => field && field.trim().length > 0);
+          // Set to 100 if all fields filled, 0 otherwise (to show/hide the notice)
+          setProfileCompletion(allFieldsFilled ? 100 : 0);
+        } else {
+          console.warn('Profile response structure unexpected:', response);
         }
       } catch (error) {
         console.error('Failed to fetch buyer profile summary:', error);
+        // Set default completion if fetch fails (assume incomplete)
+        setProfileCompletion(0);
       }
     };
 
@@ -774,6 +825,28 @@ export default function BuyerPortal() {
             </div>
           </div>
         </header>
+
+        {/* Profile Completion Notice */}
+        {profileCompletion < 100 && (
+          <div className="bg-amber-50 border-b border-amber-200">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <svg className="w-5 h-5 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <span className="text-sm font-medium text-amber-800">Please Complete Your Profile</span>
+                </div>
+                <Link
+                  href="/buyer-portal/profile"
+                  className="flex-shrink-0 px-4 py-2 bg-[#22a2f2] hover:bg-[#1b8bd0] text-white text-sm font-medium rounded-lg transition-all shadow-sm hover:shadow"
+                >
+                  Go to Profile
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Tab Navigation */}
         <nav className="relative z-40 bg-white border-b border-gray-200">
