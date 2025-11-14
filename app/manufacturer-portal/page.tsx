@@ -67,7 +67,7 @@ export default function ManufacturerPortal() {
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 4;
+  const totalSteps = 3;
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -310,6 +310,32 @@ export default function ManufacturerPortal() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Only allow submission on the final step
+    if (currentStep !== totalSteps) {
+      // If not on final step, go to next step instead
+      nextStep();
+      return;
+    }
+    
+    // Validate required fields for all steps
+    if (!formData.unitName || !formData.businessType || !formData.gstNumber) {
+      alert('Please complete all required fields in Business Info section.');
+      setCurrentStep(1);
+      return;
+    }
+    
+    if (!formData.productTypes || formData.productTypes.length === 0) {
+      alert('Please select at least one product type.');
+      setCurrentStep(2);
+      return;
+    }
+    
+    if (!formData.capacity || parseInt(formData.capacity) <= 0) {
+      // Validation failed - stay on step 3, user needs to enter capacity
+      // Don't show alert as it interrupts the flow
+      return;
+    }
+    
     try {
       // Convert form data to backend format
       const onboardingData = {
@@ -464,8 +490,7 @@ export default function ManufacturerPortal() {
   const steps = [
     { id: 1, name: 'Business Info', icon: '🏢' },
     { id: 2, name: 'Products', icon: '📦' },
-    { id: 3, name: 'Capacity', icon: '⚙️' },
-    { id: 4, name: 'Documents', icon: '📄' }
+    { id: 3, name: 'Capacity', icon: '⚙️' }
   ];
 
   // Onboarding View
@@ -519,14 +544,14 @@ export default function ManufacturerPortal() {
         <main className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           {/* Progress Steps */}
           <div className="mb-8 sm:mb-12 animate-fade-in-up">
-            <div className="flex items-center justify-between max-w-3xl mx-auto">
+            <div className="flex items-center justify-center max-w-3xl mx-auto">
               {steps.map((s, idx) => (
-                <div key={s.id} className="flex items-center flex-1">
+                <div key={s.id} className="flex items-center flex-shrink-0">
                   {/* Step Circle */}
                   <div className="flex flex-col items-center flex-shrink-0">
                     <div className={`relative w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-xl sm:text-2xl transition-all duration-500 ${
                       currentStep >= s.id 
-                        ? 'bg-gradient-to-r from-orange-500 to-amber-500 shadow-lg shadow-orange-500/50 scale-110 text-white' 
+                        ? 'bg-gradient-to-r from-[#22a2f2] to-[#1b8bd0] shadow-lg shadow-[#22a2f2]/50 scale-110 text-white' 
                         : 'bg-gray-100 border border-gray-300 text-gray-500'
                     }`}>
                       {currentStep > s.id ? (
@@ -537,7 +562,7 @@ export default function ManufacturerPortal() {
                         <span>{s.icon}</span>
                       )}
                       {currentStep === s.id && (
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 animate-ping opacity-50"></div>
+                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#22a2f2] to-[#1b8bd0] animate-ping opacity-50"></div>
                       )}
                     </div>
                     <span className={`mt-2 text-xs sm:text-sm font-medium transition-colors hidden sm:block ${
@@ -549,7 +574,7 @@ export default function ManufacturerPortal() {
                   
                   {/* Connector Line */}
                   {idx < steps.length - 1 && (
-                    <div className="flex-1 h-1 mx-2 sm:mx-4 rounded-full overflow-hidden bg-gray-200">
+                    <div className="w-16 sm:w-24 h-1 mx-2 sm:mx-4 rounded-full overflow-hidden bg-gray-200">
                       <div 
                         className="h-full bg-black transition-all duration-500 ease-out"
                         style={{ width: currentStep > s.id ? '100%' : currentStep === s.id ? '50%' : '0%' }}
@@ -573,13 +598,11 @@ export default function ManufacturerPortal() {
                   {currentStep === 1 && "Business Information"}
                   {currentStep === 2 && "Product Capabilities"}
                   {currentStep === 3 && "Manufacturing Capacity"}
-                  {currentStep === 4 && "Documentation"}
                 </h1>
                 <p className="text-gray-600 text-sm sm:text-base">
                   {currentStep === 1 && "Tell us about your manufacturing business"}
                   {currentStep === 2 && "Select the products you manufacture"}
                   {currentStep === 3 && "Share your production capabilities"}
-                  {currentStep === 4 && "Upload your business certificates"}
                 </p>
               </div>
 
@@ -591,10 +614,10 @@ export default function ManufacturerPortal() {
                     {/* Manufacturing Unit Name */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Manufacturing Unit Name <span className="text-orange-500">*</span>
+                        Manufacturing Unit Name <span className="text-[#22a2f2]">*</span>
                       </label>
                       <div className="relative group">
-                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#22a2f2] to-[#1b8bd0] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
                         <input
                           type="text"
                           value={formData.unitName}
@@ -609,10 +632,10 @@ export default function ManufacturerPortal() {
                     {/* Business Type */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Business Type <span className="text-orange-500">*</span>
+                        Business Type <span className="text-[#22a2f2]">*</span>
                       </label>
                       <div className="relative group">
-                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#22a2f2] to-[#1b8bd0] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
                         <select
                           value={formData.businessType}
                           onChange={(e) => handleInputChange('businessType', e.target.value)}
@@ -638,10 +661,10 @@ export default function ManufacturerPortal() {
                     {/* GST Number */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        GST Number <span className="text-orange-500">*</span>
+                        GST Number <span className="text-[#22a2f2]">*</span>
                       </label>
                       <div className="relative group">
-                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#22a2f2] to-[#1b8bd0] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
                         <input
                           type="text"
                           value={formData.gstNumber}
@@ -660,7 +683,7 @@ export default function ManufacturerPortal() {
                           PAN Number
                         </label>
                         <div className="relative group">
-                          <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                          <div className="absolute inset-0 bg-gradient-to-r from-[#22a2f2] to-[#1b8bd0] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
                           <input
                             type="text"
                             value={formData.panNumber}
@@ -676,7 +699,7 @@ export default function ManufacturerPortal() {
                           COI Number
                         </label>
                         <div className="relative group">
-                          <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                          <div className="absolute inset-0 bg-gradient-to-r from-[#22a2f2] to-[#1b8bd0] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
                           <input
                             type="text"
                             value={formData.coiNumber}
@@ -694,7 +717,7 @@ export default function ManufacturerPortal() {
                         Manufacturing Unit Location
                       </label>
                       <div className="relative group">
-                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#22a2f2] to-[#1b8bd0] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
                         <input
                           type="text"
                           value={formData.location}
@@ -763,7 +786,7 @@ export default function ManufacturerPortal() {
                         Daily Manufacturing Capacity
                       </label>
                       <div className="relative group">
-                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#22a2f2] to-[#1b8bd0] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
                         <div className="relative flex items-center">
                           <input
                             type="number"
@@ -779,9 +802,9 @@ export default function ManufacturerPortal() {
 
                     {/* Capacity Info Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                      <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500/10 to-amber-500/10 border border-orange-500/20">
+                      <div className="p-4 rounded-xl bg-gradient-to-br from-[#22a2f2]/10 to-[#1b8bd0]/10 border border-[#22a2f2]/20">
                         <div className="flex items-center gap-3 mb-2">
-                          <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 flex items-center justify-center text-white">
+                          <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[#22a2f2] to-[#1b8bd0] flex items-center justify-center text-white">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                             </svg>
@@ -818,83 +841,6 @@ export default function ManufacturerPortal() {
                   </div>
                 )}
 
-                {/* Step 4: Documents */}
-                {currentStep === 4 && (
-                  <div className="space-y-6 animate-fade-in-up">
-                    {/* MSME Certificate */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        MSME Certificate <span className="text-gray-500">(Optional)</span>
-                      </label>
-                      <div className="relative group border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 hover:border-black hover:bg-gray-100 transition-all">
-                        <label className="flex flex-col items-center justify-center py-12 cursor-pointer">
-                          <div className="w-16 h-16 rounded-full bg-black text-white flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
-                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                            </svg>
-                          </div>
-                          <span className="text-sm text-gray-700 font-medium mb-1">Click to upload MSME certificate</span>
-                          <span className="text-xs text-gray-500">PDF, JPG or PNG (Max 5MB)</span>
-                          {formData.msmeFile && (
-                            <div className="mt-3 px-4 py-2 bg-gray-200 border border-gray-300 rounded-lg">
-                              <span className="text-xs text-gray-700 font-medium">{formData.msmeFile.name}</span>
-                            </div>
-                          )}
-                          <input
-                            type="file"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            onChange={(e) => handleFileChange('msmeFile', e.target.files?.[0] || null)}
-                            className="hidden"
-                          />
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Other Certificates */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Other Certificates <span className="text-gray-500">(Optional)</span>
-                      </label>
-                      <div className="relative group border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 hover:border-black hover:bg-gray-100 transition-all">
-                        <label className="flex flex-col items-center justify-center py-12 cursor-pointer">
-                          <div className="w-16 h-16 rounded-full bg-black text-white flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
-                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                          </div>
-                          <span className="text-sm text-gray-700 font-medium mb-1">Upload additional certificates</span>
-                          <span className="text-xs text-gray-500">ISO, Quality certificates, etc.</span>
-                          {formData.otherCertificates && (
-                            <div className="mt-3 px-4 py-2 bg-gray-200 border border-gray-300 rounded-lg">
-                              <span className="text-xs text-gray-700 font-medium">{formData.otherCertificates.name}</span>
-                            </div>
-                          )}
-                          <input
-                            type="file"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            onChange={(e) => handleFileChange('otherCertificates', e.target.files?.[0] || null)}
-                            className="hidden"
-                          />
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Info Note */}
-                    <div className="p-4 rounded-xl bg-blue-50 border border-blue-200">
-                      <div className="flex items-start gap-3">
-                        <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                        </svg>
-                        <div>
-                          <p className="text-sm font-medium text-blue-700 mb-1">Verification Process</p>
-                          <p className="text-xs text-gray-600">
-                            Your documents will be reviewed within 24-48 hours. You'll receive an email once verification is complete.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
 
                 {/* Navigation Buttons */}
                 <div className="flex items-center justify-between gap-4 pt-6 border-t border-gray-200 mt-8">
