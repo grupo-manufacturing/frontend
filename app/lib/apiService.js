@@ -453,12 +453,11 @@ class ApiService {
 
   /**
    * Get all requirements (buyer gets their own, manufacturer gets all)
-   * @param {Object} filters - Optional filters (status, limit, offset, sortBy, sortOrder)
+   * @param {Object} filters - Optional filters (limit, offset, sortBy, sortOrder)
    * @returns {Promise} Response data
    */
   async getRequirements(filters = {}) {
     const queryParams = new URLSearchParams();
-    if (filters.status) queryParams.append('status', filters.status);
     if (filters.limit) queryParams.append('limit', filters.limit);
     if (filters.offset) queryParams.append('offset', filters.offset);
     if (filters.sortBy) queryParams.append('sortBy', filters.sortBy);
@@ -563,6 +562,58 @@ class ApiService {
       method: 'PATCH',
       body: JSON.stringify({ status })
     });
+  }
+
+  /**
+   * Get all orders (Admin only) - can be filtered by status
+   * @param {Object} filters - Optional filters (status, limit, offset, sortBy, sortOrder)
+   * @param {string} filters.status - Optional: 'accepted', 'rejected', 'submitted' (pending), or omit for all
+   * @returns {Promise} Response data with orders
+   */
+  async getOrders(filters = {}) {
+    const queryParams = new URLSearchParams();
+    if (filters.status) queryParams.append('status', filters.status);
+    if (filters.limit) queryParams.append('limit', filters.limit);
+    if (filters.offset) queryParams.append('offset', filters.offset);
+    if (filters.sortBy) queryParams.append('sortBy', filters.sortBy);
+    if (filters.sortOrder) queryParams.append('sortOrder', filters.sortOrder);
+
+    const queryString = queryParams.toString();
+    const endpoint = `/requirements/admin/orders${queryString ? `?${queryString}` : ''}`;
+    
+    return this.request(endpoint, {
+      method: 'GET'
+    });
+  }
+
+  /**
+   * Get all accepted orders (Admin only)
+   * @param {Object} filters - Optional filters (limit, offset, sortBy, sortOrder)
+   * @returns {Promise} Response data with accepted orders
+   * @deprecated Use getOrders({ status: 'accepted' }) instead
+   */
+  async getAcceptedOrders(filters = {}) {
+    return this.getOrders({ ...filters, status: 'accepted' });
+  }
+
+  /**
+   * Get all rejected orders (Admin only)
+   * @param {Object} filters - Optional filters (limit, offset, sortBy, sortOrder)
+   * @returns {Promise} Response data with rejected orders
+   * @deprecated Use getOrders({ status: 'rejected' }) instead
+   */
+  async getRejectedOrders(filters = {}) {
+    return this.getOrders({ ...filters, status: 'rejected' });
+  }
+
+  /**
+   * Get all pending orders (Admin only)
+   * @param {Object} filters - Optional filters (limit, offset, sortBy, sortOrder)
+   * @returns {Promise} Response data with pending orders
+   * @deprecated Use getOrders({ status: 'submitted' }) instead
+   */
+  async getPendingOrders(filters = {}) {
+    return this.getOrders({ ...filters, status: 'submitted' });
   }
 }
 

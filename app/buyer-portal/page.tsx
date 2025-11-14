@@ -1688,7 +1688,7 @@ export default function BuyerPortal() {
                   <span>Requirement tracker</span>
                 </div>
                 <h1 className="text-3xl font-bold text-black mb-2">My Requirements</h1>
-                <p className="text-gray-500">Track all your submitted requirements and their status</p>
+                <p className="text-gray-500">Track all your submitted requirements</p>
               </div>
 
               {/* Loading State */}
@@ -1712,15 +1712,6 @@ export default function BuyerPortal() {
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                              req.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                              req.status === 'quoted' ? 'bg-blue-100 text-blue-700' :
-                              req.status === 'accepted' ? 'bg-green-100 text-green-700' :
-                              req.status === 'completed' ? 'bg-purple-100 text-purple-700' :
-                              'bg-gray-100 text-gray-700'
-                            }`}>
-                              {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
-                            </span>
                             <span className="text-xs text-gray-500">
                               {new Date(req.created_at).toLocaleDateString('en-US', { 
                                 year: 'numeric', 

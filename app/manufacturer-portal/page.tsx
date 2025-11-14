@@ -1499,15 +1499,6 @@ export default function ManufacturerPortal() {
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                              req.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                              req.status === 'quoted' ? 'bg-blue-100 text-blue-700' :
-                              req.status === 'accepted' ? 'bg-green-100 text-green-700' :
-                              req.status === 'completed' ? 'bg-purple-100 text-purple-700' :
-                              'bg-gray-100 text-gray-700'
-                            }`}>
-                              {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
-                            </span>
                             {req.hasResponse && req.myResponse && (req.myResponse.status === 'accepted' || req.myResponse.status === 'rejected') && (
                               <span className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${
                                 req.myResponse.status === 'accepted' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
