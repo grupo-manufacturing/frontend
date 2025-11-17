@@ -17,11 +17,16 @@ const ProductCategories = () => {
       image: '/hero2.jpeg',
     },
     {
-      title: 'Custom Apparel',
-      description: 'Any product, any quantity, any specification',
-      price: 'Custom Quote',
+      title: 'Hoodies',
+      description: 'Premium fleece, custom designs, 500+ units',
+      price: 'From $25/unit',
       image: '/hero3.jpg',
-      isCustom: true,
+    },
+    {
+      title: 'Cargos & Sweatshirts',
+      description: 'Comfortable fit, multiple colors, 1000+ units',
+      price: 'From $22/unit',
+      image: '/hero1.jpeg',
     },
   ];
 
@@ -59,7 +64,7 @@ const ProductCategories = () => {
         </p>
 
         {/* Product Cards Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           {categories.map((category, index) => (
             <div
               key={index}
@@ -78,25 +83,13 @@ const ProductCategories = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
 
                 {/* Content */}
-                <div className="absolute inset-0 flex flex-col justify-end p-6 text-white">
+                <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-6 text-white">
                   <h3 className="text-2xl sm:text-3xl font-bold mb-2">
                     {category.title}
                   </h3>
-                  <p className="text-sm sm:text-base text-gray-200 mb-4">
+                  <p className="text-sm sm:text-base text-gray-200">
                     {category.description}
                   </p>
-
-                  {/* Price/CTA Button */}
-                  <button className={`
-                    self-start px-6 py-2.5 rounded-lg font-semibold text-sm
-                    transition-all duration-200 transform group-hover:scale-105
-                    ${category.isCustom 
-                      ? 'bg-white/90 text-gray-900 hover:bg-white' 
-                      : 'bg-white/20 backdrop-blur-sm text-white border border-white/30 hover:bg-white/30'
-                    }
-                  `}>
-                    {category.price}
-                  </button>
                 </div>
 
                 {/* Hover Shine Effect */}
@@ -104,16 +97,6 @@ const ProductCategories = () => {
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Bottom CTA */}
-        <div className="text-center mt-12">
-          <p className="text-gray-600 mb-4">
-            Don't see what you're looking for?
-          </p>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-4 rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl">
-            Request Custom Manufacturing
-          </button>
         </div>
       </div>
     </section>

@@ -8,9 +8,6 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navLinks = [
-    { name: 'Features', href: '#features' },
-    { name: 'How It Works', href: '#how-it-works' },
-    { name: 'Testimonials', href: '#testimonials' },
     { name: 'Buyer', href: '/buyer-portal' },
     { name: 'Manufacturer', href: '/manufacturer-portal' },
   ];
@@ -31,7 +28,7 @@ const Navbar = () => {
                 priority
               />
               <div className="flex flex-col">
-                <span className="text-2xl font-bold text-blue-600">
+                <span className="text-2xl font-bold text-[#22a2f2]">
                   Grupo
                 </span>
                 <span className="text-xs text-gray-600 font-medium hidden sm:block">
@@ -47,9 +44,10 @@ const Navbar = () => {
               <Link
                 key={link.name}
                 href={link.href}
-                className="text-gray-700 hover:text-blue-600 transition-colors duration-200 font-medium"
+                className="text-gray-700 hover:text-[#22a2f2] transition-colors duration-200 font-medium relative group"
               >
                 {link.name}
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#22a2f2] group-hover:w-full transition-all duration-300 ease-in-out"></span>
               </Link>
             ))}
           </div>
@@ -58,7 +56,7 @@ const Navbar = () => {
           <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 transition-colors duration-200"
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-[#22a2f2] hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#22a2f2] transition-colors duration-200"
               aria-expanded="false"
             >
               <span className="sr-only">Open main menu</span>
@@ -102,7 +100,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
+          {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="md:hidden bg-white border-t border-gray-200">
           <div className="px-2 pt-2 pb-3 space-y-1">
@@ -110,10 +108,11 @@ const Navbar = () => {
               <Link
                 key={link.name}
                 href={link.href}
-                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 transition-colors duration-200"
+                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-[#22a2f2] hover:bg-gray-50 transition-colors duration-200 relative group"
                 onClick={() => setIsMenuOpen(false)}
               >
                 {link.name}
+                <span className="absolute bottom-2 left-3 w-0 h-0.5 bg-[#22a2f2] group-hover:w-[calc(100%-1.5rem)] transition-all duration-300 ease-in-out"></span>
               </Link>
             ))}
           </div>
