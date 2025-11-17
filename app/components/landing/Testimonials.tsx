@@ -1,6 +1,10 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+
 const Testimonials = () => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
   const testimonials = [
     {
       company: 'Urban Threads',
@@ -21,6 +25,23 @@ const Testimonials = () => {
       testimonial: '"Instant quotes and real-time communication streamlined our entire procurement process."',
     },
   ];
+
+  // Auto-play carousel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % testimonials.length);
+    }, 5000); // Change slide every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [testimonials.length]);
+
+  const goToPrevious = () => {
+    setCurrentIndex((prevIndex) => (prevIndex - 1 + testimonials.length) % testimonials.length);
+  };
+
+  const goToNext = () => {
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % testimonials.length);
+  };
 
   return (
     <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
@@ -45,69 +66,82 @@ const Testimonials = () => {
           Real results from real businesses manufacturing with Groupo
         </p>
 
-        {/* Testimonials Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {testimonials.map((item, index) => (
+        {/* Carousel Container */}
+        <div className="relative max-w-4xl mx-auto mb-12">
+          {/* Navigation Arrows */}
+          <button
+            onClick={goToPrevious}
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 md:-translate-x-12 z-10 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 border border-gray-200"
+            aria-label="Previous testimonial"
+          >
+            <svg className="w-6 h-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          <button
+            onClick={goToNext}
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 md:translate-x-12 z-10 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 border border-gray-200"
+            aria-label="Next testimonial"
+          >
+            <svg className="w-6 h-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+
+          {/* Carousel Slides */}
+          <div className="overflow-hidden rounded-2xl">
             <div
-              key={index}
-              className="group bg-white rounded-2xl p-8 shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100"
+              className="flex transition-transform duration-500 ease-in-out"
+              style={{ transform: `translateX(-${currentIndex * 100}%)` }}
             >
-              {/* Stars */}
-              <div className="flex gap-1 mb-6">
-                {[...Array(item.rating)].map((_, i) => (
-                  <svg
-                    key={i}
-                    className="w-5 h-5 text-yellow-400"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                ))}
-              </div>
+              {testimonials.map((item, index) => (
+                <div
+                  key={index}
+                  className="min-w-full px-4 md:px-8"
+                >
+                  <div className="group bg-white rounded-2xl p-8 md:p-12 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100">
+                    {/* Decorative Quote Mark - Top */}
+                    <div className="mb-6">
+                      <svg className="w-12 h-12 text-blue-100" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                      </svg>
+                    </div>
 
-              {/* Company Name */}
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                {item.company}
-              </h3>
+                    {/* Testimonial */}
+                    <p className="text-lg md:text-xl text-gray-700 leading-relaxed italic mb-8">
+                      {item.testimonial}
+                    </p>
 
-              {/* Company Type */}
-              <p className="text-sm text-gray-500 mb-6">
-                {item.type}
-              </p>
+                    {/* Company Info */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                          {item.company}
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                          {item.type}
+                        </p>
+                      </div>
 
-              {/* Testimonial */}
-              <p className="text-gray-700 leading-relaxed italic">
-                {item.testimonial}
-              </p>
-
-              {/* Decorative Quote Mark */}
-              <div className="mt-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <svg className="w-10 h-10 text-blue-100" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-                </svg>
-              </div>
+                      {/* Stars */}
+                      <div className="flex gap-1">
+                        {[...Array(item.rating)].map((_, i) => (
+                          <svg
+                            key={i}
+                            className="w-6 h-6 text-yellow-400"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-
-        {/* Bottom Stats */}
-        <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8">
-          <div className="text-center">
-            <div className="text-4xl font-bold text-blue-600 mb-2">1000+</div>
-            <div className="text-gray-600 font-medium">Happy Clients</div>
-          </div>
-          <div className="text-center">
-            <div className="text-4xl font-bold text-blue-600 mb-2">50+</div>
-            <div className="text-gray-600 font-medium">Countries</div>
-          </div>
-          <div className="text-center">
-            <div className="text-4xl font-bold text-blue-600 mb-2">99%</div>
-            <div className="text-gray-600 font-medium">Satisfaction Rate</div>
-          </div>
-          <div className="text-center">
-            <div className="text-4xl font-bold text-blue-600 mb-2">10K+</div>
-            <div className="text-gray-600 font-medium">Orders Completed</div>
           </div>
         </div>
       </div>

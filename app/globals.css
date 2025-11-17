@@ -124,6 +124,21 @@ body {
   }
 }
 
+@keyframes slideRight {
+  0% {
+    left: 0;
+    opacity: 1;
+  }
+  50% {
+    left: 100%;
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
 .animate-blob {
   animation: blob 7s infinite;
 }
@@ -170,6 +185,10 @@ body {
 
 .animation-delay-4000 {
   animation-delay: 4s;
+}
+
+.animate-slide-right {
+  animation: slideRight 1.5s ease-in-out infinite;
 }
 
 /* Grid pattern background */

@@ -1,6 +1,11 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
+
 const HowItWorks = () => {
+  const [visibleSteps, setVisibleSteps] = useState<number[]>([]);
+  const sectionRef = useRef<HTMLElement>(null);
+
   const steps = [
     {
       number: '1',
@@ -45,8 +50,45 @@ const HowItWorks = () => {
     },
   ];
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // Animate steps sequentially
+            steps.forEach((_, index) => {
+              setTimeout(() => {
+                setVisibleSteps((prev) => {
+                  if (!prev.includes(index)) {
+                    return [...prev, index];
+                  }
+                  return prev;
+                });
+              }, index * 200); // 200ms delay between each step
+            });
+          }
+        });
+      },
+      {
+        threshold: 0.2,
+        rootMargin: '0px 0px -100px 0px',
+      }
+    );
+
+    const currentRef = sectionRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [steps.length]);
+
   return (
-    <section id="how-it-works" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+    <section ref={sectionRef} id="how-it-works" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-7xl mx-auto">
         {/* Badge */}
         <div className="flex justify-center mb-6">
@@ -70,41 +112,111 @@ const HowItWorks = () => {
 
         {/* Steps Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
-          {steps.map((step, index) => (
-            <div key={index} className="relative">
-              {/* Step Card */}
-              <div className="bg-white rounded-2xl p-6 border-2 border-gray-200 hover:border-blue-400 hover:shadow-lg transition-all duration-300 h-full">
-                {/* Step Number Badge */}
-                <div className="absolute -top-4 left-6">
-                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
-                    {step.number}
+          {steps.map((step, index) => {
+            const isVisible = visibleSteps.includes(index);
+            const isConnectorVisible = index < steps.length - 1 && visibleSteps.includes(index + 1);
+
+            return (
+              <div key={index} className="relative">
+                {/* Step Card */}
+                <div
+                  className={`bg-white rounded-2xl p-6 border-2 border-gray-200 hover:border-blue-400 hover:shadow-lg transition-all duration-300 h-full ${
+                    isVisible
+                      ? 'opacity-100 translate-y-0'
+                      : 'opacity-0 translate-y-8'
+                  }`}
+                  style={{
+                    transition: 'opacity 0.6s ease-out, transform 0.6s ease-out',
+                    transitionDelay: `${index * 0.2}s`,
+                  }}
+                >
+                  {/* Step Number Badge */}
+                  <div className="absolute -top-4 left-6">
+                    <div
+                      className={`w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg transition-all duration-500 ${
+                        isVisible
+                          ? 'scale-100 animate-[pulse_2s_ease-in-out_infinite]'
+                          : 'scale-0'
+                      }`}
+                      style={{
+                        transitionDelay: `${index * 0.2 + 0.3}s`,
+                      }}
+                    >
+                      {step.number}
+                    </div>
                   </div>
+
+                  {/* Icon */}
+                  <div className="mt-6 mb-4">
+                    <div
+                      className={`w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 transition-all duration-500 ${
+                        isVisible
+                          ? 'scale-100 rotate-0 opacity-100'
+                          : 'scale-0 rotate-180 opacity-0'
+                      }`}
+                      style={{
+                        transitionDelay: `${index * 0.2 + 0.4}s`,
+                      }}
+                    >
+                      {step.icon}
+                    </div>
+                  </div>
+
+                  {/* Title */}
+                  <h3
+                    className={`text-xl font-bold text-gray-900 mb-3 transition-all duration-500 ${
+                      isVisible
+                        ? 'opacity-100 translate-x-0'
+                        : 'opacity-0 -translate-x-4'
+                    }`}
+                    style={{
+                      transitionDelay: `${index * 0.2 + 0.5}s`,
+                    }}
+                  >
+                    {step.title}
+                  </h3>
+
+                  {/* Description */}
+                  <p
+                    className={`text-gray-600 text-sm leading-relaxed transition-all duration-500 ${
+                      isVisible
+                        ? 'opacity-100 translate-x-0'
+                        : 'opacity-0 translate-x-4'
+                    }`}
+                    style={{
+                      transitionDelay: `${index * 0.2 + 0.6}s`,
+                    }}
+                  >
+                    {step.description}
+                  </p>
                 </div>
 
-                {/* Icon */}
-                <div className="mt-6 mb-4">
-                  <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
-                    {step.icon}
+                {/* Connector Line (not on last item) */}
+                {index < steps.length - 1 && (
+                  <div
+                    className={`hidden lg:block absolute top-1/4 -right-3 h-0.5 bg-gradient-to-r from-blue-400 to-blue-200 transition-all duration-700 ${
+                      isConnectorVisible
+                        ? 'w-6 opacity-100'
+                        : 'w-0 opacity-0'
+                    }`}
+                    style={{
+                      transitionDelay: `${index * 0.2 + 0.8}s`,
+                    }}
+                  >
+                    {/* Animated dot moving along the line */}
+                    {isConnectorVisible && (
+                      <div
+                        className="absolute top-1/2 left-0 w-2 h-2 bg-blue-500 rounded-full transform -translate-y-1/2 animate-slide-right"
+                        style={{
+                          animationDelay: `${index * 0.2 + 1}s`,
+                        }}
+                      />
+                    )}
                   </div>
-                </div>
-
-                {/* Title */}
-                <h3 className="text-xl font-bold text-gray-900 mb-3">
-                  {step.title}
-                </h3>
-
-                {/* Description */}
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  {step.description}
-                </p>
+                )}
               </div>
-
-              {/* Connector Line (not on last item) */}
-              {index < steps.length - 1 && (
-                <div className="hidden lg:block absolute top-1/4 -right-3 w-6 h-0.5 bg-gray-300"></div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

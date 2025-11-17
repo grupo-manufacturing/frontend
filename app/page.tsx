@@ -1,12 +1,12 @@
 import Navbar from './components/landing/Navbar';
 import Hero from './components/landing/Hero';
-import LiveManufacturing from './components/landing/LiveManufacturing';
+// import LiveManufacturing from './components/landing/LiveManufacturing';
 import ProductCategories from './components/landing/ProductCategories';
 import AIFeatures from './components/landing/AIFeatures';
+import Pricing from './components/landing/Pricing';
 import PlatformFeatures from './components/landing/PlatformFeatures';
 import HowItWorks from './components/landing/HowItWorks';
 import Testimonials from './components/landing/Testimonials';
-import CTA from './components/landing/CTA';
 import Footer from './components/landing/Footer';
 
 export default function Home() {
@@ -14,13 +14,13 @@ export default function Home() {
     <div className="min-h-screen">
       <Navbar />
       <Hero />
-      <LiveManufacturing />
+      {/* <LiveManufacturing /> */}
       <ProductCategories />
       <AIFeatures />
+      <Pricing />
       <PlatformFeatures />
       <HowItWorks />
       <Testimonials />
-      <CTA />
       <Footer />
     </div>
   );

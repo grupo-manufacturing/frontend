@@ -8,21 +8,6 @@ const Footer = () => {
     { name: 'For Buyers', href: '#buyer' },
     { name: 'For Manufacturers', href: '#manufacturer' },
     { name: 'Pricing', href: '#pricing' },
-    { name: 'Marketplace', href: '#marketplace' },
-  ];
-
-  const resourceLinks = [
-    { name: 'Documentation', href: '#docs' },
-    { name: 'API', href: '#api' },
-    { name: 'Support', href: '#support' },
-    { name: 'Blog', href: '#blog' },
-  ];
-
-  const companyLinks = [
-    { name: 'About Us', href: '#about' },
-    { name: 'Contact', href: '#contact' },
-    { name: 'Careers', href: '#careers' },
-    { name: 'Admin', href: '#admin' },
   ];
 
   const legalLinks = [
@@ -35,7 +20,7 @@ const Footer = () => {
     <footer className="bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 text-gray-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
           {/* Brand Section */}
           <div className="lg:col-span-1">
             {/* Logo */}
@@ -78,42 +63,6 @@ const Footer = () => {
             <h3 className="text-white font-bold text-lg mb-4">Platform</h3>
             <ul className="space-y-3">
               {platformLinks.map((link, index) => (
-                <li key={index}>
-                  <Link 
-                    href={link.href}
-                    className="text-gray-400 hover:text-blue-400 transition-colors duration-200 flex items-center gap-2 group"
-                  >
-                    <span className="w-0 group-hover:w-2 h-0.5 bg-blue-400 transition-all duration-200"></span>
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Resources Links */}
-          <div>
-            <h3 className="text-white font-bold text-lg mb-4">Resources</h3>
-            <ul className="space-y-3">
-              {resourceLinks.map((link, index) => (
-                <li key={index}>
-                  <Link 
-                    href={link.href}
-                    className="text-gray-400 hover:text-blue-400 transition-colors duration-200 flex items-center gap-2 group"
-                  >
-                    <span className="w-0 group-hover:w-2 h-0.5 bg-blue-400 transition-all duration-200"></span>
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Company Links */}
-          <div>
-            <h3 className="text-white font-bold text-lg mb-4">Company</h3>
-            <ul className="space-y-3">
-              {companyLinks.map((link, index) => (
                 <li key={index}>
                   <Link 
                     href={link.href}

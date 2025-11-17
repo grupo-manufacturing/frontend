@@ -38,7 +38,7 @@ const Hero = () => {
             <div className="space-y-8">
               {/* Main Heading */}
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight">
-                One-Stop <br/><span className="text-[#22a2f2]">AI Manufacturing Platform</span>
+                One-Stop <span className="text-[#22a2f2] whitespace-nowrap">Clothing Platform</span>
               </h1>
 
               {/* Description */}
