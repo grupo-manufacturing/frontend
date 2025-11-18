@@ -3,17 +3,17 @@
 const Pricing = () => {
   const plans = [
     {
-      name: 'Free',
-      price: '₹0',
-      period: 'forever',
-      description: 'Perfect for getting started with manufacturing',
+      name: 'Starter',
+      price: 'Free',
+      period: '',
+      matchings: 'Up to 50 matchings',
+      description: 'Perfect for getting started',
       features: [
-        'Up to 5 quote requests per month',
+        'Access to verified leads',
         'Basic AI matching',
-        'Access to verified manufacturers',
-        'Standard support (48h response)',
-        'Basic order tracking',
-        'Community forum access',
+        'Email support',
+        'Dashboard analytics',
+        'Quality verification',
       ],
       cta: 'Get Started Free',
       popular: false,
@@ -21,41 +21,59 @@ const Pricing = () => {
       borderColor: 'border-gray-300',
     },
     {
-      name: 'Premium',
-      price: '₹2,999',
-      period: 'per month',
-      description: 'Best for growing businesses',
+      name: 'Growth',
+      price: '₹2,000',
+      period: 'month',
+      matchings: 'Up to 500 matchings',
+      description: 'Scale your manufacturing operations',
       features: [
-        'Unlimited quote requests',
-        'Advanced AI matching & recommendations',
-        'Priority manufacturer access',
-        'Priority support (4h response)',
-        'Advanced analytics dashboard',
-        'Real-time order tracking',
-        'Quality control video reviews',
+        'Everything in Starter',
+        'Advanced AI matching',
+        'Priority support',
+        'Custom sourcing',
         'Dedicated account manager',
+        'API access',
       ],
-      cta: 'Start Premium Trial',
+      cta: 'Get Started',
+      popular: false,
+      gradient: 'from-blue-500 to-indigo-600',
+      borderColor: 'border-blue-400',
+    },
+    {
+      name: 'Professional',
+      price: '₹5,000',
+      period: 'month',
+      matchings: 'Up to 1000 matchings',
+      description: 'For high-volume manufacturers',
+      features: [
+        'Everything in Growth',
+        'White-glove service',
+        'Custom integrations',
+        'Advanced analytics & reporting',
+        'Multi-user accounts',
+        'Priority matching algorithm',
+      ],
+      cta: 'Get Started',
       popular: true,
       gradient: 'from-blue-500 to-indigo-600',
       borderColor: 'border-blue-400',
     },
     {
-      name: 'Enterprise',
-      price: 'Custom',
-      description: 'For large-scale manufacturing operations',
+      name: 'Export',
+      price: '₹10,000',
+      period: 'month',
+      matchings: 'Unlimited matchings',
+      description: 'Complete solution for global exports',
       features: [
-        'Everything in Premium',
-        'Custom AI model training',
-        'White-label solutions',
-        'Dedicated support team (24/7)',
-        'Custom integrations & API access',
-        'Volume discounts & negotiated rates',
-        'On-site training & consultation',
-        'SLA guarantees',
-        'Multi-user team management',
+        'Everything in Professional',
+        'Global export capabilities',
+        'International compliance support',
+        'Multi-currency support',
+        'Customs & logistics assistance',
+        'Dedicated export consultant',
+        'Premium support (24/7)',
       ],
-      cta: 'Contact Sales',
+      cta: 'Get Started',
       popular: false,
       gradient: 'from-purple-500 to-pink-600',
       borderColor: 'border-purple-400',
@@ -86,7 +104,7 @@ const Pricing = () => {
         </p>
 
         {/* Pricing Cards */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {plans.map((plan, index) => (
             <div
               key={index}
@@ -112,16 +130,16 @@ const Pricing = () => {
               </div>
 
               {/* Price */}
-              <div className="text-center mb-8">
+              <div className="text-center mb-6">
                 <div className="flex items-baseline justify-center gap-2">
                   <span className="text-5xl font-bold text-gray-900">{plan.price}</span>
-                  {plan.price !== 'Custom' && (
+                  {plan.period && (
                     <span className="text-gray-500 text-lg">/{plan.period}</span>
                   )}
                 </div>
-                {plan.price === 'Custom' && (
-                  <span className="text-gray-500 text-lg block mt-2">{plan.period}</span>
-                )}
+                <div className="mt-3">
+                  <span className="text-gray-600 font-medium">{plan.matchings}</span>
+                </div>
               </div>
 
               {/* Features List */}
@@ -153,9 +171,9 @@ const Pricing = () => {
                 className={`w-full py-4 px-6 rounded-lg font-semibold text-white transition-all duration-300 ${
                   plan.popular
                     ? 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg hover:shadow-xl hover:scale-105'
-                    : plan.name === 'Free'
+                    : plan.name === 'Starter'
                     ? 'bg-gray-700 hover:bg-gray-800 shadow-md hover:shadow-lg'
-                    : 'bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 shadow-md hover:shadow-lg'
+                    : 'bg-gray-700 hover:bg-gray-800 shadow-md hover:shadow-lg'
                 }`}
               >
                 {plan.cta}

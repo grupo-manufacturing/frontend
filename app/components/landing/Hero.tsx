@@ -11,7 +11,7 @@ const Hero = () => {
       <div className="max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-12 lg:items-stretch">
           {/* Left Content */}
-          <div>
+          <div className="flex flex-col justify-center">
             {/* Trust Badge */}
             <div className="inline-flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-sm border border-gray-200 mb-8">
               <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
@@ -37,13 +37,13 @@ const Hero = () => {
             {/* Content Section - Aligned with Image */}
             <div className="space-y-8">
               {/* Main Heading */}
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight">
-                One-Stop <span className="text-[#22a2f2] whitespace-nowrap">Clothing Platform</span>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
+                One-Stop <span className="text-[#22a2f2]">Manufacturing Partner For Clothing Brand</span>
               </h1>
 
               {/* Description */}
               <p className="text-lg sm:text-xl text-gray-600 leading-relaxed max-w-xl">
-                AI-powered platform connecting you with verified manufacturers across the world from anywhere. Get instant quotes and produce globally.
+                AI-powered manufacturing OS that matches your designs to the right factory and delivers production with speed and reliability.
               </p>
 
               {/* CTA Buttons */}
