@@ -28,14 +28,59 @@ export default function BuyerPortal() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'phone' | 'otp' | 'dashboard'>('phone');
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  
   // On initial load, if a token exists, persist dashboard state across refresh
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hasToken = apiService.isAuthenticated();
-      if (hasToken) {
-        setStep('dashboard');
+    const checkAuthAndProfile = async () => {
+      if (typeof window !== 'undefined') {
+        const hasToken = apiService.isAuthenticated();
+        if (hasToken) {
+          setStep('dashboard');
+          // Check profile completion before showing dashboard
+          setIsCheckingProfile(true);
+          
+          // Set phone number from localStorage
+          const storedPhone = localStorage.getItem('buyerPhoneNumber');
+          if (storedPhone) {
+            setUserPhoneNumber(storedPhone);
+            setPhoneNumber(storedPhone);
+          }
+          
+          try {
+            const response = await apiService.getBuyerProfile();
+            if (response && response.success && response.data && response.data.profile) {
+              const profile = response.data.profile;
+              
+              // Check if all required fields are filled
+              const requiredFields = [
+                profile.full_name,
+                profile.email,
+                profile.business_address,
+                profile.about_business
+              ];
+              const allFieldsFilled = requiredFields.every(field => field && field.trim().length > 0);
+              setProfileCompletion(allFieldsFilled ? 100 : 0);
+              
+              const resolvedName = (profile.full_name || '').trim();
+              if (resolvedName) {
+                setDisplayName(resolvedName);
+              }
+            }
+          } catch (error) {
+            console.error('Failed to fetch buyer profile:', error);
+            setProfileCompletion(0);
+          } finally {
+            setIsCheckingProfile(false);
+          }
+        }
+        setIsCheckingAuth(false);
+      } else {
+        setIsCheckingAuth(false);
       }
-    }
+    };
+    
+    checkAuthAndProfile();
   }, []);
   const [isLoadingOtp, setIsLoadingOtp] = useState(false);
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
@@ -162,6 +207,8 @@ export default function BuyerPortal() {
   const [userPhoneNumber, setUserPhoneNumber] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [profileCompletion, setProfileCompletion] = useState(0);
+  const [isCheckingProfile, setIsCheckingProfile] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -283,7 +330,37 @@ export default function BuyerPortal() {
         localStorage.setItem('buyerPhoneNumber', phoneNumber);
         localStorage.setItem('user_role', 'buyer');
         
-        // Go directly to dashboard
+        // Check profile completion before showing dashboard
+        setIsCheckingProfile(true);
+        try {
+          const response = await apiService.getBuyerProfile();
+          if (response && response.success && response.data && response.data.profile) {
+            const profile = response.data.profile;
+            const requiredFields = [
+              profile.full_name,
+              profile.email,
+              profile.business_address,
+              profile.about_business
+            ];
+            const allFieldsFilled = requiredFields.every(field => field && field.trim().length > 0);
+            setProfileCompletion(allFieldsFilled ? 100 : 0);
+            
+            const resolvedName = (profile.full_name || '').trim();
+            if (resolvedName) {
+              setDisplayName(resolvedName);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to fetch buyer profile:', error);
+          setProfileCompletion(0);
+        } finally {
+          setIsCheckingProfile(false);
+        }
+        
+        // Set phone number for display
+        setUserPhoneNumber(phoneNumber);
+        
+        // Go directly to dashboard after profile check
         setStep('dashboard');
         return;
       }
@@ -298,7 +375,38 @@ export default function BuyerPortal() {
       localStorage.setItem('buyerPhoneNumber', phoneNumber);
       localStorage.setItem('user_role', 'buyer');
       
-      // Go directly to dashboard
+      // Check profile completion before showing dashboard
+      setIsCheckingProfile(true);
+      try {
+        const profileResponse = await apiService.getBuyerProfile();
+        if (profileResponse && profileResponse.success && profileResponse.data && profileResponse.data.profile) {
+          const profile = profileResponse.data.profile;
+          // Check if all required fields are filled
+          const requiredFields = [
+            profile.full_name,
+            profile.email,
+            profile.business_address,
+            profile.about_business
+          ];
+          const allFieldsFilled = requiredFields.every(field => field && field.trim().length > 0);
+          setProfileCompletion(allFieldsFilled ? 100 : 0);
+          
+          const resolvedName = (profile.full_name || '').trim();
+          if (resolvedName) {
+            setDisplayName(resolvedName);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch buyer profile:', error);
+        setProfileCompletion(0);
+      } finally {
+        setIsCheckingProfile(false);
+      }
+      
+      // Set phone number for display
+      setUserPhoneNumber(phoneNumber);
+      
+      // Go directly to dashboard after profile check
       setStep('dashboard');
     } catch (error) {
       console.error('Failed to verify OTP:', error);
@@ -309,11 +417,18 @@ export default function BuyerPortal() {
   };
 
   const handleLogout = async () => {
+    // Show loading immediately
+    setIsLoggingOut(true);
+    
     // Clear all localStorage (apiService.logout will handle this)
     // Reset state before redirect
     setPhoneNumber('');
     setOtp('');
     setStep('phone');
+    
+    // Small delay to ensure loading state is shown before redirect
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     // Logout will clear localStorage and redirect to login
     await apiService.logout('/buyer-portal');
   };
@@ -803,6 +918,21 @@ export default function BuyerPortal() {
 
 
   // Dashboard View
+  // Show loading while checking authentication, profile completion, or logging out
+  if (isCheckingAuth || isCheckingProfile || isLoggingOut) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-4">
+          <svg className="animate-spin h-12 w-12 text-[#22a2f2]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <p className="text-sm text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (step === 'dashboard') {
     return (
       <div className="min-h-screen bg-white">
@@ -2197,7 +2327,17 @@ export default function BuyerPortal() {
                   </p>
                 </div>
 
-                {step === 'phone' ? (
+                {(isCheckingAuth || isLoggingOut) ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="flex flex-col items-center gap-4">
+                      <svg className="animate-spin h-8 w-8 text-[#22a2f2]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <p className="text-sm text-gray-600">Loading...</p>
+                    </div>
+                  </div>
+                ) : step === 'phone' ? (
                   <>
                     {/* Phone Form */}
                     <form onSubmit={handleSendOTP} className="space-y-6">
