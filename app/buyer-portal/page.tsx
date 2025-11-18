@@ -135,6 +135,7 @@ export default function BuyerPortal() {
   const [activeBuyerId, setActiveBuyerId] = useState<string | null>(null);
   const [activeManufacturerId, setActiveManufacturerId] = useState<string | null>(null);
   const [activeTitle, setActiveTitle] = useState<string | undefined>(undefined);
+  const [activeRequirement, setActiveRequirement] = useState<any | null>(null);
   const [totalUnreadChats, setTotalUnreadChats] = useState<number>(0);
   const [chatUnreadClearSignal, setChatUnreadClearSignal] = useState<{ conversationId: string; at: number } | null>(null);
 
@@ -148,6 +149,7 @@ export default function BuyerPortal() {
       setActiveBuyerId(buyerId);
       setActiveManufacturerId(manufacturerId);
       setActiveTitle(undefined);
+      setActiveRequirement(null); // Clear requirement when opening chat from other sources
       setChatUnreadClearSignal({ conversationId, at: Date.now() });
     }
     if (typeof window !== 'undefined') {
@@ -195,6 +197,7 @@ export default function BuyerPortal() {
         setActiveConversationId(conversationId);
         setActiveBuyerId(buyerId);
         setActiveManufacturerId(manufacturerId);
+        setActiveRequirement(null); // Clear requirement when opening chat from quote
         setChatUnreadClearSignal({ conversationId, at: Date.now() });
       }
     } catch (e) {
@@ -774,6 +777,7 @@ export default function BuyerPortal() {
           : undefined;
 
         setActiveTitle(manufacturerName || fallbackTitle);
+        setActiveRequirement(requirement); // Store requirement data for chat
         setChatUnreadClearSignal({ conversationId, at: Date.now() });
       } else {
         alert('Unable to open the chat for this response. Please try again from the Chats tab.');
@@ -1825,6 +1829,7 @@ export default function BuyerPortal() {
                       setActiveBuyerId(bid);
                       setActiveManufacturerId(mid);
                       setActiveTitle(title);
+                      setActiveRequirement(null); // Clear requirement when opening from chat list
                       setChatUnreadClearSignal({ conversationId: cid, at: Date.now() });
                     }} 
                   />
@@ -1841,11 +1846,13 @@ export default function BuyerPortal() {
                       inline
                       selfRole={'buyer'}
                       onConversationRead={(cid) => setChatUnreadClearSignal({ conversationId: cid, at: Date.now() })}
+                      requirement={activeRequirement}
                       onClose={() => {
                         setActiveConversationId(null);
                         setActiveBuyerId(null);
                         setActiveManufacturerId(null);
                         setActiveTitle(undefined);
+                        setActiveRequirement(null);
                       }}
                     />
                   ) : (
