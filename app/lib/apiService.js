@@ -258,6 +258,32 @@ class ApiService {
   removeToken() {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('groupo_token');
+      localStorage.removeItem('adminToken');
+      // Also remove cookie
+      document.cookie = 'groupo_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    }
+  }
+
+  /**
+   * Clear all authentication-related localStorage items
+   */
+  clearAllAuthData() {
+    if (typeof window !== 'undefined') {
+      // Clear tokens
+      localStorage.removeItem('groupo_token');
+      localStorage.removeItem('adminToken');
+      
+      // Clear buyer-related data
+      localStorage.removeItem('buyerPhoneNumber');
+      localStorage.removeItem('buyerId');
+      
+      // Clear manufacturer-related data
+      localStorage.removeItem('manufacturerPhoneNumber');
+      localStorage.removeItem('manufacturerOnboardingComplete');
+      
+      // Clear role data
+      localStorage.removeItem('user_role');
+      
       // Also remove cookie
       document.cookie = 'groupo_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     }
@@ -427,8 +453,8 @@ class ApiService {
       console.error('Logout API call failed:', error);
       // Continue with local logout even if API call fails
     } finally {
-      // Always clear local storage
-      this.removeToken();
+      // Always clear all local storage and auth data
+      this.clearAllAuthData();
       if (typeof window !== 'undefined') {
         window.location.href = redirectPath;
       }

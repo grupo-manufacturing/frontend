@@ -25,6 +25,10 @@ export default function ManufacturerPortal() {
   }, []);
   const [isLoadingOtp, setIsLoadingOtp] = useState(false);
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [otpTimer, setOtpTimer] = useState(0); // Timer in seconds
+  const [isResendingOtp, setIsResendingOtp] = useState(false);
+  const [otpErrorMessage, setOtpErrorMessage] = useState('');
+  const [otpSuccessMessage, setOtpSuccessMessage] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('chats');
   const [activeAnalyticsTab, setActiveAnalyticsTab] = useState<AnalyticsTabType>('revenue-trends');
   // Chat state (chats inbox)
@@ -74,6 +78,10 @@ export default function ManufacturerPortal() {
     
     const fullPhoneNumber = countryCode + phoneNumber;
     
+    // Clear previous messages
+    setOtpErrorMessage('');
+    setOtpSuccessMessage('');
+    
     // Demo credentials bypass
     if (phoneNumber === '1234567890') {
       console.log('Demo credentials detected - bypassing OTP');
@@ -81,6 +89,7 @@ export default function ManufacturerPortal() {
       setTimeout(() => {
         setIsLoadingOtp(false);
         setStep('otp');
+        setOtpTimer(120); // 2 minutes for demo
       }, 1000);
       return;
     }
@@ -91,13 +100,73 @@ export default function ManufacturerPortal() {
       const response = await apiService.sendOTP(fullPhoneNumber, 'manufacturer');
       console.log('OTP sent successfully:', response);
       setStep('otp');
-    } catch (error) {
+      setOtpTimer(120); // 2 minutes (120 seconds)
+    } catch (error: any) {
       console.error('Failed to send OTP:', error);
-      alert('Failed to send OTP. Please try again.');
+      setOtpErrorMessage(error.message || 'Failed to send OTP. Please try again.');
+      if (!error.message?.includes('maximum')) {
+        setTimeout(() => setOtpErrorMessage(''), 5000);
+      }
     } finally {
       setIsLoadingOtp(false);
     }
   };
+
+  const handleResendOTP = async () => {
+    const fullPhoneNumber = countryCode + phoneNumber;
+    
+    // Clear previous messages
+    setOtpErrorMessage('');
+    setOtpSuccessMessage('');
+    setOtp(''); // Clear OTP input
+    
+    setIsResendingOtp(true);
+    try {
+      const response = await apiService.sendOTP(fullPhoneNumber, 'manufacturer');
+      setOtpTimer(120); // Reset timer to 2 minutes
+      setOtpSuccessMessage('OTP resent successfully! Please check your phone.');
+      setTimeout(() => setOtpSuccessMessage(''), 5000);
+    } catch (error: any) {
+      console.error('Failed to resend OTP:', error);
+      setOtpErrorMessage(error.message || 'Failed to resend OTP. Please try again.');
+      if (!error.message?.includes('maximum')) {
+        setTimeout(() => setOtpErrorMessage(''), 5000);
+      }
+    } finally {
+      setIsResendingOtp(false);
+    }
+  };
+
+  // Timer countdown effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    
+    if (otpTimer > 0) {
+      interval = setInterval(() => {
+        setOtpTimer((prev) => {
+          if (prev <= 1) {
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [otpTimer]);
+
+  // Reset timer when step changes away from OTP
+  useEffect(() => {
+    if (step !== 'otp') {
+      setOtpTimer(0);
+      setOtpErrorMessage('');
+      setOtpSuccessMessage('');
+    }
+  }, [step]);
 
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,12 +240,13 @@ export default function ManufacturerPortal() {
   };
 
   const handleLogout = async () => {
-    // Clear localStorage and reset to phone step
-    apiService.logout('/manufacturer-portal');
-    localStorage.removeItem('manufacturerPhoneNumber');
+    // Clear all localStorage (apiService.logout will handle this)
+    // Reset state before redirect
     setPhoneNumber('');
     setOtp('');
     setStep('phone');
+    // Logout will clear localStorage and redirect to login
+    await apiService.logout('/manufacturer-portal');
   };
 
   const handleChangePhoneNumber = () => {
@@ -1925,6 +1995,7 @@ export default function ManufacturerPortal() {
                               const value = e.target.value.replace(/\D/g, '');
                               if (value.length <= 6) {
                                 setOtp(value);
+                                setOtpErrorMessage(''); // Clear error on input
                               }
                             }}
                             placeholder="000000"
@@ -1936,6 +2007,61 @@ export default function ManufacturerPortal() {
                         <p className="text-xs text-gray-500 text-center mt-2">
                           Enter the 6-digit code sent to your phone
                         </p>
+                        
+                        {/* Timer Display */}
+                        {otpTimer > 0 && (
+                          <div className="text-center mt-3">
+                            <p className="text-base text-gray-600">
+                              Resend OTP in{' '}
+                              <span className="font-bold text-[#22a2f2] text-lg">
+                                {Math.floor(otpTimer / 60)}:{(otpTimer % 60).toString().padStart(2, '0')}
+                              </span>
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Success Message */}
+                        {otpSuccessMessage && (
+                          <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <p className="text-sm text-green-800 text-center">{otpSuccessMessage}</p>
+                          </div>
+                        )}
+
+                        {/* Error Message */}
+                        {otpErrorMessage && (
+                          <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <p className="text-sm text-red-800 text-center">{otpErrorMessage}</p>
+                          </div>
+                        )}
+
+                        {/* Resend Button */}
+                        {otpTimer === 0 && step === 'otp' && (
+                          <div className="mt-4 text-center">
+                            <button
+                              type="button"
+                              onClick={handleResendOTP}
+                              disabled={isResendingOtp}
+                              className="text-sm font-semibold text-[#22a2f2] hover:text-[#1b8bd0] transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mx-auto"
+                            >
+                              {isResendingOtp ? (
+                                <>
+                                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
+                                  <span>Resending...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                  </svg>
+                                  <span>Resend OTP</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        )}
                       </div>
 
                       <button
