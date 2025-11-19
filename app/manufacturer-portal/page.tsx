@@ -1760,7 +1760,24 @@ export default function ManufacturerPortal() {
                         type="number"
                         step="0.01"
                         value={responseForm.quotedPrice}
-                        onChange={(e) => setResponseForm({...responseForm, quotedPrice: e.target.value})}
+                        onChange={(e) => {
+                          const quotedPrice = e.target.value;
+                          const quantity = selectedRequirement?.quantity;
+                          
+                          let pricePerUnit = '';
+                          if (quotedPrice && quantity && quantity > 0) {
+                            const parsedPrice = parseFloat(quotedPrice);
+                            if (!isNaN(parsedPrice) && parsedPrice >= 0) {
+                              pricePerUnit = (parsedPrice / quantity).toFixed(2);
+                            }
+                          }
+                          
+                          setResponseForm({
+                            ...responseForm,
+                            quotedPrice: quotedPrice,
+                            pricePerUnit: pricePerUnit
+                          });
+                        }}
                         placeholder="e.g., 50000"
                         className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500"
                         required
@@ -1775,11 +1792,12 @@ export default function ManufacturerPortal() {
                         type="number"
                         step="0.01"
                         value={responseForm.pricePerUnit}
-                        onChange={(e) => setResponseForm({...responseForm, pricePerUnit: e.target.value})}
-                        placeholder="e.g., 50"
-                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500"
+                        readOnly
+                        placeholder="Auto-calculated"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-black placeholder:text-gray-500 cursor-not-allowed"
                         required
                       />
+                      <p className="text-xs text-gray-500 mt-1">Automatically calculated from Quoted Price ÷ Quantity</p>
                     </div>
                   </div>
 
