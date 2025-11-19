@@ -189,7 +189,7 @@ export default function ChatWindow({
       try {
         setLoading(true);
         // Fetch messages from dedicated endpoint that filters by both conversation_id AND requirement_id
-        const res = await apiService.getMessagesForRequirement(conversationId, activeRequirementId, { 
+        const res = await apiService.getMessagesForRequirement(conversationId, activeRequirementId!, { 
           limit: 200 
         });
         
