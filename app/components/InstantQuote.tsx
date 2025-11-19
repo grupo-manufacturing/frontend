@@ -302,11 +302,11 @@ export default function InstantQuote({ onOpenChat }: InstantQuoteProps) {
                 <div className="grid grid-cols-2 gap-2 mb-2 pb-2 border-b border-gray-200">
                   <div className="bg-gray-50 rounded p-1.5">
                     <p className="text-[10px] text-gray-600 mb-0.5">Total</p>
-                    <p className="text-base font-bold text-black">${quote.totalPrice.toLocaleString()}</p>
+                    <p className="text-base font-bold text-black">₹{quote.totalPrice.toLocaleString('en-IN')}</p>
                   </div>
                   <div className="bg-gray-50 rounded p-1.5">
                     <p className="text-[10px] text-gray-600 mb-0.5">Per Unit</p>
-                    <p className="text-base font-bold text-black">${quote.pricePerUnit}</p>
+                    <p className="text-base font-bold text-black">₹{quote.pricePerUnit.toLocaleString('en-IN')}</p>
                   </div>
                 </div>
 

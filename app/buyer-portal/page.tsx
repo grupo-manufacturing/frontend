@@ -756,6 +756,17 @@ export default function BuyerPortal() {
 
     try {
       setNegotiatingResponseId(response.id);
+      
+      // Update response status to 'negotiating' first
+      try {
+        await apiService.updateRequirementResponseStatus(response.id, 'negotiating');
+        // Refresh requirements to show updated status
+        fetchRequirements();
+      } catch (statusError: any) {
+        console.error('Failed to update response status:', statusError);
+        // Continue with chat opening even if status update fails
+      }
+
       const buyerId = await getBuyerId();
 
       if (!buyerId) {
@@ -1931,6 +1942,12 @@ export default function BuyerPortal() {
                                 day: 'numeric' 
                               })}
                             </span>
+                            {/* Pending Badge - Show when there are no responses */}
+                            {(!req.responses || req.responses.length === 0 || req.manufacturer_count === 0) && (
+                              <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
+                                Pending
+                              </span>
+                            )}
                           </div>
                           <p className="text-gray-800 mb-3 leading-relaxed">{req.requirement_text}</p>
                         </div>
@@ -2002,7 +2019,13 @@ export default function BuyerPortal() {
                                       </p>
                                       {response.status && response.status !== 'submitted' && (
                                         <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                                          response.status === 'accepted' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                          response.status === 'accepted' 
+                                            ? 'bg-green-100 text-green-700' 
+                                            : response.status === 'rejected'
+                                            ? 'bg-red-100 text-red-700'
+                                            : response.status === 'negotiating'
+                                            ? 'bg-orange-100 text-orange-700'
+                                            : 'bg-gray-100 text-gray-700'
                                         }`}>
                                           {response.status.charAt(0).toUpperCase() + response.status.slice(1)}
                                         </span>
@@ -2059,22 +2082,26 @@ export default function BuyerPortal() {
                                 )}
 
                                 {/* Action Buttons */}
-                                {(!response.status || response.status === 'submitted') && (
+                                {(!response.status || response.status === 'submitted' || response.status === 'negotiating') && (
                                   <div className="mt-4 flex flex-col sm:flex-row gap-2">
-                                    <button
-                                      onClick={() => handleNegotiateResponse(req, response)}
-                                      disabled={negotiatingResponseId === response.id}
-                                      className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 font-semibold rounded-lg transition-all ${
-                                        negotiatingResponseId === response.id
-                                          ? 'bg-[#22a2f2]/60 text-white cursor-not-allowed'
-                                          : 'bg-[#22a2f2] hover:bg-[#1b8bd0] text-white'
-                                      }`}
-                                    >
-                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v7a2 2 0 01-2 2h-6l-4 4v-4H7a2 2 0 01-2-2v-5a2 2 0 012-2h2" />
-                                      </svg>
-                                      {negotiatingResponseId === response.id ? 'Opening Chat...' : 'Negotiate'}
-                                    </button>
+                                    {/* Negotiate Button - only show when status is null, 'submitted', or empty */}
+                                    {(!response.status || response.status === 'submitted') && (
+                                      <button
+                                        onClick={() => handleNegotiateResponse(req, response)}
+                                        disabled={negotiatingResponseId === response.id}
+                                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 font-semibold rounded-lg transition-all ${
+                                          negotiatingResponseId === response.id
+                                            ? 'bg-[#22a2f2]/60 text-white cursor-not-allowed'
+                                            : 'bg-[#22a2f2] hover:bg-[#1b8bd0] text-white'
+                                        }`}
+                                      >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v7a2 2 0 01-2 2h-6l-4 4v-4H7a2 2 0 01-2-2v-5a2 2 0 012-2h2" />
+                                        </svg>
+                                        {negotiatingResponseId === response.id ? 'Opening Chat...' : 'Negotiate'}
+                                      </button>
+                                    )}
+                                    {/* Accept and Reject buttons - show when status is null, 'submitted', or 'negotiating' */}
                                     <button
                                       onClick={() => handleUpdateResponseStatus(response.id, 'accepted', response.manufacturer?.unit_name || 'this manufacturer')}
                                       className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-all"
