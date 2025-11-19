@@ -20,15 +20,31 @@ export default function ManufacturerPortal() {
   
   // On initial load, if a token exists, persist state across refresh
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      if (apiService.isAuthenticated()) {
-        const onboardingComplete = localStorage.getItem('manufacturerOnboardingComplete');
-        setStep(onboardingComplete === 'true' ? 'dashboard' : 'onboarding');
+    const checkAuth = async () => {
+      if (typeof window !== 'undefined') {
+        if (apiService.isAuthenticated()) {
+          try {
+            // Verify token is still valid by attempting to get profile
+            const response = await apiService.getManufacturerProfile();
+            if (response && response.success) {
+              const onboardingComplete = localStorage.getItem('manufacturerOnboardingComplete');
+              setStep(onboardingComplete === 'true' ? 'dashboard' : 'onboarding');
+            }
+          } catch (error: any) {
+            // If token expired or unauthorized, redirect to login
+            if (error.message?.includes('expired') || error.message?.includes('session')) {
+              setStep('phone');
+              apiService.clearAllAuthData();
+            }
+          }
+        }
+        setIsCheckingAuth(false);
+      } else {
+        setIsCheckingAuth(false);
       }
-      setIsCheckingAuth(false);
-    } else {
-      setIsCheckingAuth(false);
-    }
+    };
+    
+    checkAuth();
   }, []);
   const [isLoadingOtp, setIsLoadingOtp] = useState(false);
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);

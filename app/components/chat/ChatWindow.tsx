@@ -380,7 +380,17 @@ export default function ChatWindow({
       )}
 
       <div ref={listRef} className={listClass}>
-        {loading && <div className={inline ? 'text-sm text-gray-400' : 'text-sm text-gray-500'}>Loading...</div>}
+        {loading && (
+          <div className="flex items-center justify-center py-8">
+            <div className="flex flex-col items-center gap-3">
+              <div className="relative">
+                <div className="w-8 h-8 border-4 border-[#22a2f2]/20 rounded-full"></div>
+                <div className="w-8 h-8 border-4 border-[#22a2f2] border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
+              </div>
+              <p className={inline ? 'text-sm text-gray-400' : 'text-sm text-gray-500'}>Loading messages...</p>
+            </div>
+          </div>
+        )}
         {!loading && timelineItems.map((item) => {
           if (item.type === 'date') {
             return (

@@ -8,6 +8,27 @@ class ApiService {
   }
 
   /**
+   * Handle token expiration - redirect to appropriate portal login
+   * @private
+   */
+  handleTokenExpiration() {
+    if (typeof window === 'undefined') return;
+    
+    const currentPath = window.location.pathname;
+    
+    // Clear all auth data
+    this.clearAllAuthData();
+    
+    // Redirect based on current portal
+    if (currentPath.startsWith('/buyer-portal')) {
+      window.location.href = '/buyer-portal';
+    } else if (currentPath.startsWith('/manufacturer-portal')) {
+      window.location.href = '/manufacturer-portal';
+    }
+    // If on admin portal or other routes, just clear auth (don't redirect)
+  }
+
+  /**
    * Make HTTP request
    * @param {string} endpoint - API endpoint
    * @param {Object} options - Request options
@@ -34,6 +55,11 @@ class ApiService {
       const data = await response.json();
 
       if (!response.ok) {
+        // Handle token expiration (401 Unauthorized)
+        if (response.status === 401) {
+          this.handleTokenExpiration();
+          throw new Error('Your session has expired. Please log in again.');
+        }
         throw new Error(data.message || `HTTP error! status: ${response.status}`);
       }
 
@@ -106,6 +132,11 @@ class ApiService {
       const data = await response.json();
 
       if (!response.ok) {
+        // Handle token expiration (401 Unauthorized)
+        if (response.status === 401) {
+          this.handleTokenExpiration();
+          throw new Error('Your session has expired. Please log in again.');
+        }
         throw new Error(data.message || `Upload failed! status: ${response.status}`);
       }
 
@@ -144,6 +175,11 @@ class ApiService {
       const data = await response.json();
 
       if (!response.ok) {
+        // Handle token expiration (401 Unauthorized)
+        if (response.status === 401) {
+          this.handleTokenExpiration();
+          throw new Error('Your session has expired. Please log in again.');
+        }
         throw new Error(data.message || `Upload failed! status: ${response.status}`);
       }
 

@@ -67,8 +67,13 @@ export default function BuyerPortal() {
                 setDisplayName(resolvedName);
               }
             }
-          } catch (error) {
+          } catch (error: any) {
             console.error('Failed to fetch buyer profile:', error);
+            // If token expired or unauthorized, redirect to login
+            if (error.message?.includes('expired') || error.message?.includes('session')) {
+              setStep('phone');
+              apiService.clearAllAuthData();
+            }
             setProfileCompletion(0);
           } finally {
             setIsCheckingProfile(false);
