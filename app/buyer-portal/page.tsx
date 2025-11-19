@@ -66,6 +66,31 @@ export default function BuyerPortal() {
               if (resolvedName) {
                 setDisplayName(resolvedName);
               }
+              
+              // Restore chat state from localStorage
+              const storedChatState = localStorage.getItem('buyer_chat_state');
+              if (storedChatState) {
+                try {
+                  const chatState = JSON.parse(storedChatState);
+                  if (chatState.conversationId && chatState.buyerId && chatState.manufacturerId) {
+                    setActiveConversationId(chatState.conversationId);
+                    setActiveBuyerId(chatState.buyerId);
+                    setActiveManufacturerId(chatState.manufacturerId);
+                    setActiveTitle(chatState.title || undefined);
+                    if (chatState.activeTab) {
+                      setActiveTab(chatState.activeTab);
+                    } else if (chatState.conversationId) {
+                      setActiveTab('chats');
+                    }
+                    // Restore requirement if available
+                    if (chatState.requirement) {
+                      setActiveRequirement(chatState.requirement);
+                    }
+                  }
+                } catch (e) {
+                  console.error('Failed to restore chat state:', e);
+                }
+              }
             }
           } catch (error: any) {
             console.error('Failed to fetch buyer profile:', error);
@@ -73,6 +98,8 @@ export default function BuyerPortal() {
             if (error.message?.includes('expired') || error.message?.includes('session')) {
               setStep('phone');
               apiService.clearAllAuthData();
+              // Clear chat state on logout
+              localStorage.removeItem('buyer_chat_state');
             }
             setProfileCompletion(0);
           } finally {
@@ -140,9 +167,28 @@ export default function BuyerPortal() {
   const [activeBuyerId, setActiveBuyerId] = useState<string | null>(null);
   const [activeManufacturerId, setActiveManufacturerId] = useState<string | null>(null);
   const [activeTitle, setActiveTitle] = useState<string | undefined>(undefined);
-  const [activeRequirement, setActiveRequirement] = useState<any | null>(null);
+  const [activeRequirement, setActiveRequirement] = useState<any | null>(null); // Track active requirement for chat
   const [totalUnreadChats, setTotalUnreadChats] = useState<number>(0);
   const [chatUnreadClearSignal, setChatUnreadClearSignal] = useState<{ conversationId: string; at: number } | null>(null);
+
+  // Persist chat state to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (activeConversationId && activeBuyerId && activeManufacturerId) {
+        const chatState = {
+          conversationId: activeConversationId,
+          buyerId: activeBuyerId,
+          manufacturerId: activeManufacturerId,
+          title: activeTitle,
+          activeTab: activeTab,
+          requirement: activeRequirement
+        };
+        localStorage.setItem('buyer_chat_state', JSON.stringify(chatState));
+      } else {
+        localStorage.removeItem('buyer_chat_state');
+      }
+    }
+  }, [activeConversationId, activeBuyerId, activeManufacturerId, activeTitle, activeTab, activeRequirement]);
 
   // Listen for chat open events from components like ManufacturerCard
   useEffect(() => {
@@ -154,7 +200,6 @@ export default function BuyerPortal() {
       setActiveBuyerId(buyerId);
       setActiveManufacturerId(manufacturerId);
       setActiveTitle(undefined);
-      setActiveRequirement(null); // Clear requirement when opening chat from other sources
       setChatUnreadClearSignal({ conversationId, at: Date.now() });
     }
     if (typeof window !== 'undefined') {
@@ -202,7 +247,6 @@ export default function BuyerPortal() {
         setActiveConversationId(conversationId);
         setActiveBuyerId(buyerId);
         setActiveManufacturerId(manufacturerId);
-        setActiveRequirement(null); // Clear requirement when opening chat from quote
         setChatUnreadClearSignal({ conversationId, at: Date.now() });
       }
     } catch (e) {
@@ -793,7 +837,7 @@ export default function BuyerPortal() {
           : undefined;
 
         setActiveTitle(manufacturerName || fallbackTitle);
-        setActiveRequirement(requirement); // Store requirement data for chat
+        setActiveRequirement(requirement); // Set the requirement for ChatWindow
         setChatUnreadClearSignal({ conversationId, at: Date.now() });
       } else {
         alert('Unable to open the chat for this response. Please try again from the Chats tab.');
@@ -1815,22 +1859,6 @@ export default function BuyerPortal() {
           )}
           {activeTab === 'chats' && (
             <div className="h-full flex flex-col">
-              {/* Header */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22a2f2]/10 text-[#22a2f2] text-sm font-semibold mb-3">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12.79V12a9 9 0 10-18 0v.79A2 2 0 003.22 14l1.05.7a2 2 0 01.73.76l.38.76a2 2 0 001.79 1.11h9.66a2 2 0 001.79-1.11l.38-.76a2 2 0 01.73-.76l1.05-.7A2 2 0 0021 12.79z" />
-                      </svg>
-                      <span>Conversations</span>
-                    </div>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-black mb-1">Messages</h1>
-                    <p className="text-sm text-gray-500">View and manage your conversations with manufacturers</p>
-                  </div>
-                </div>
-              </div>
-
               {/* Chat Layout */}
               <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 min-h-0">
                 {/* Conversations Sidebar */}
@@ -1845,7 +1873,7 @@ export default function BuyerPortal() {
                       setActiveBuyerId(bid);
                       setActiveManufacturerId(mid);
                       setActiveTitle(title);
-                      setActiveRequirement(null); // Clear requirement when opening from chat list
+                      setActiveRequirement(null); // Clear requirement - show all messages with all tabs
                       setChatUnreadClearSignal({ conversationId: cid, at: Date.now() });
                     }} 
                   />
@@ -1869,6 +1897,10 @@ export default function BuyerPortal() {
                         setActiveManufacturerId(null);
                         setActiveTitle(undefined);
                         setActiveRequirement(null);
+                        // Clear localStorage when closing chat
+                        if (typeof window !== 'undefined') {
+                          localStorage.removeItem('buyer_chat_state');
+                        }
                       }}
                     />
                   ) : (

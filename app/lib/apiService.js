@@ -91,18 +91,36 @@ class ApiService {
     });
   }
 
-  async listMessages(conversationId, { before, limit = 50 } = {}) {
+  async listMessages(conversationId, { before, limit = 50, requirementId } = {}) {
     const params = new URLSearchParams();
     if (before) params.append('before', before);
     if (limit) params.append('limit', String(limit));
+    if (requirementId) params.append('requirementId', requirementId);
     const qs = params.toString();
     return this.request(`/chat/conversations/${conversationId}/messages${qs ? `?${qs}` : ''}`, { method: 'GET' });
   }
 
-  async sendMessage(conversationId, { body, clientTempId, attachments }) {
+  /**
+   * Get messages for a specific requirement in a conversation
+   * @param {string} conversationId - Conversation ID
+   * @param {string} requirementId - Requirement ID
+   * @param {Object} options - Query options (before, limit)
+   * @returns {Promise} Response data with messages
+   */
+  async getMessagesForRequirement(conversationId, requirementId, { before, limit = 200 } = {}) {
+    const params = new URLSearchParams();
+    if (before) params.append('before', before);
+    if (limit) params.append('limit', String(limit));
+    const qs = params.toString();
+    return this.request(`/chat/conversations/${conversationId}/messages/requirement/${requirementId}${qs ? `?${qs}` : ''}`, { 
+      method: 'GET' 
+    });
+  }
+
+  async sendMessage(conversationId, { body, clientTempId, attachments, requirementId }) {
     return this.request(`/chat/conversations/${conversationId}/messages`, {
       method: 'POST',
-      body: JSON.stringify({ body, clientTempId, attachments })
+      body: JSON.stringify({ body, clientTempId, attachments, requirementId })
     });
   }
 
@@ -529,6 +547,18 @@ class ApiService {
     const endpoint = `/requirements${queryString ? `?${queryString}` : ''}`;
     
     return this.request(endpoint, {
+      method: 'GET'
+    });
+  }
+
+  /**
+   * Get negotiating requirements for a conversation
+   * Returns requirements where status is 'negotiating' and matches the conversation's buyer_id and manufacturer_id
+   * @param {string} conversationId - Conversation ID
+   * @returns {Promise} Response data
+   */
+  async getNegotiatingRequirementsForConversation(conversationId) {
+    return this.request(`/requirements/conversation/${conversationId}/negotiating`, {
       method: 'GET'
     });
   }

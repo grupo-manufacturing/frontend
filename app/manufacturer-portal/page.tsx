@@ -29,12 +29,35 @@ export default function ManufacturerPortal() {
             if (response && response.success) {
               const onboardingComplete = localStorage.getItem('manufacturerOnboardingComplete');
               setStep(onboardingComplete === 'true' ? 'dashboard' : 'onboarding');
+              
+              // Restore chat state from localStorage
+              const storedChatState = localStorage.getItem('manufacturer_chat_state');
+              if (storedChatState) {
+                try {
+                  const chatState = JSON.parse(storedChatState);
+                  if (chatState.conversationId && chatState.buyerId && chatState.manufacturerId) {
+                    setActiveConversationId(chatState.conversationId);
+                    setActiveBuyerId(chatState.buyerId);
+                    setActiveManufacturerId(chatState.manufacturerId);
+                    setActiveTitle(chatState.title || undefined);
+                    if (chatState.activeTab) {
+                      setActiveTab(chatState.activeTab);
+                    } else if (chatState.conversationId) {
+                      setActiveTab('chats');
+                    }
+                  }
+                } catch (e) {
+                  console.error('Failed to restore chat state:', e);
+                }
+              }
             }
           } catch (error: any) {
             // If token expired or unauthorized, redirect to login
             if (error.message?.includes('expired') || error.message?.includes('session')) {
               setStep('phone');
               apiService.clearAllAuthData();
+              // Clear chat state on logout
+              localStorage.removeItem('manufacturer_chat_state');
             }
           }
         }
@@ -62,6 +85,24 @@ export default function ManufacturerPortal() {
   const [activeTitle, setActiveTitle] = useState<string | undefined>(undefined);
   const [totalUnreadChats, setTotalUnreadChats] = useState<number>(0);
   const [chatUnreadClearSignal, setChatUnreadClearSignal] = useState<{ conversationId: string; at: number } | null>(null);
+  
+  // Persist chat state to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (activeConversationId && activeBuyerId && activeManufacturerId) {
+        const chatState = {
+          conversationId: activeConversationId,
+          buyerId: activeBuyerId,
+          manufacturerId: activeManufacturerId,
+          title: activeTitle,
+          activeTab: activeTab
+        };
+        localStorage.setItem('manufacturer_chat_state', JSON.stringify(chatState));
+      } else {
+        localStorage.removeItem('manufacturer_chat_state');
+      }
+    }
+  }, [activeConversationId, activeBuyerId, activeManufacturerId, activeTitle, activeTab]);
   
   // Requirements states
   const [requirements, setRequirements] = useState<any[]>([]);
@@ -1500,29 +1541,6 @@ export default function ManufacturerPortal() {
           )}
           {activeTab === 'chats' && (
             <div className="animate-fade-in-up h-full flex flex-col">
-              {/* Header */}
-              <div className="mb-6">
-                <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-                  <div>
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22a2f2]/10 text-[#22a2f2] text-sm font-semibold mb-3">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2m-6 0a2 2 0 012-2h2a2 2 0 012 2m-4 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                      </svg>
-                      <span>Chats</span>
-                    </div>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-black mb-1">Buyer Conversations</h1>
-                    <p className="text-sm text-gray-600">View and respond to buyer inquiries and chat threads</p>
-                  </div>
-                  <div className="flex items-center gap-2 px-4 py-2 bg-[#22a2f2]/10 border border-[#22a2f2]/20 text-[#22a2f2] rounded-xl text-sm font-medium">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 00-9.33-5" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2 8a6 6 0 0111.33-1" />
-                    </svg>
-                    Stay responsive to convert requests faster
-                  </div>
-                </div>
-              </div>
-
               {/* Chat Layout */}
               <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 min-h-0">
                 {/* Conversations Sidebar */}
@@ -1558,6 +1576,10 @@ export default function ManufacturerPortal() {
                         setActiveBuyerId(null);
                         setActiveManufacturerId(null);
                         setActiveTitle(undefined);
+                        // Clear localStorage when closing chat
+                        if (typeof window !== 'undefined') {
+                          localStorage.removeItem('manufacturer_chat_state');
+                        }
                       }}
                     />
                   ) : (

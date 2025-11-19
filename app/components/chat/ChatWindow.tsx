@@ -40,6 +40,13 @@ interface ChatMessage {
   created_at?: string;
   is_read?: boolean;
   attachments?: Attachment[];
+  requirement_id?: string | null;
+}
+
+interface RequirementTab {
+  id: string;
+  requirement_text: string;
+  created_at?: string;
 }
 
 export default function ChatWindow({
@@ -54,6 +61,7 @@ export default function ChatWindow({
   requirement
 }: ChatWindowProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [allMessages, setAllMessages] = useState<ChatMessage[]>([]); // Store all messages
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [peerTyping, setPeerTyping] = useState(false);
@@ -65,6 +73,12 @@ export default function ChatWindow({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [uploadingFiles, setUploadingFiles] = useState<boolean>(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  
+  // Initialize activeRequirementId from requirement prop only (no localStorage)
+  // Default to first requirement tab if available, otherwise null
+  const [activeRequirementId, setActiveRequirementId] = useState<string | null>(requirement?.id || null);
+  const [requirementTabs, setRequirementTabs] = useState<RequirementTab[]>([]);
+  const [loadingRequirements, setLoadingRequirements] = useState(false);
 
   const token = useMemo(() => apiService.getToken(), []);
   const wsUrl = useMemo(() => process.env.NEXT_PUBLIC_WS_URL || getApiBaseOrigin(), []);
@@ -82,27 +96,162 @@ export default function ChatWindow({
     [conversationId, onConversationRead]
   );
 
+  // Stable reference for markConversationRead that won't cause re-renders
+  const markConversationReadRef = useRef(markConversationRead);
   useEffect(() => {
-    let mounted = true;
+    markConversationReadRef.current = markConversationRead;
+  }, [markConversationRead]);
 
-    async function loadInitial() {
+  // Load negotiating requirements for this conversation as tabs
+  useEffect(() => {
+    if (!conversationId) {
+      setRequirementTabs([]);
+      setLoadingRequirements(false);
+      return;
+    }
+
+    let mounted = true;
+    setLoadingRequirements(true);
+
+    async function loadNegotiatingRequirements() {
       try {
-        const res = await apiService.listMessages(conversationId, { limit: 50 });
+        // Fetch only negotiating requirements for this specific conversation
+        // These are requirements where:
+        // - requirement_responses.status = 'negotiating'
+        // - requirement_responses.manufacturer_id = conversation.manufacturer_id
+        // - requirements.buyer_id = conversation.buyer_id
+        const res = await apiService.getNegotiatingRequirementsForConversation(conversationId);
+        
         if (!mounted) return;
-        const loadedMessages = res.data.messages || [];
-        setMessages(loadedMessages);
-        const lastMessage = loadedMessages.length ? loadedMessages[loadedMessages.length - 1] : null;
-        await markConversationRead(lastMessage?.id);
+        
+        if (res.success && res.data && Array.isArray(res.data)) {
+          // Map requirements to tabs
+          const requirements: RequirementTab[] = res.data.map((req: any) => ({
+            id: req.id,
+            requirement_text: req.requirement_text || 'Requirement',
+            created_at: req.created_at
+          }));
+
+          // Sort by created_at (newest first)
+          requirements.sort((a, b) => {
+            const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+            const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+            return dateB - dateA;
+          });
+
+          if (mounted) {
+            setRequirementTabs(requirements);
+            console.log('[ChatWindow] Loaded negotiating requirements as tabs:', requirements.length, requirements);
+            
+            // Auto-select first requirement if none selected yet
+            if (requirements.length > 0 && !activeRequirementId && !requirement?.id) {
+              setActiveRequirementId(requirements[0].id);
+              console.log('[ChatWindow] Auto-selected first requirement:', requirements[0].id);
+            }
+          }
+        } else {
+          if (mounted) {
+            setRequirementTabs([]);
+          }
+        }
+      } catch (err) {
+        console.error('[ChatWindow] Failed to load negotiating requirements:', err);
+        if (mounted) {
+          setRequirementTabs([]);
+        }
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted) {
+          setLoadingRequirements(false);
+        }
       }
     }
-    loadInitial();
+
+    loadNegotiatingRequirements();
 
     return () => {
       mounted = false;
     };
-  }, [conversationId, markConversationRead]);
+  }, [conversationId]); // Re-run when conversation changes
+
+  // Load messages filtered by conversation_id AND requirement_id from backend
+  useEffect(() => {
+    if (!conversationId || !activeRequirementId) {
+      setAllMessages([]);
+      setMessages([]);
+      setLoading(false);
+      return;
+    }
+
+    let mounted = true;
+    let cancelled = false;
+
+    async function loadMessagesForRequirement() {
+      try {
+        setLoading(true);
+        // Fetch messages from dedicated endpoint that filters by both conversation_id AND requirement_id
+        const res = await apiService.getMessagesForRequirement(conversationId, activeRequirementId, { 
+          limit: 200 
+        });
+        
+        if (cancelled || !mounted) return;
+        
+        const loadedMessages = res.data.messages || [];
+        // Store in both allMessages and messages
+        setAllMessages(loadedMessages);
+        setMessages(loadedMessages);
+        
+        console.log('[ChatWindow] Loaded messages for requirement:', {
+          conversationId,
+          requirementId: activeRequirementId,
+          count: loadedMessages.length
+        });
+
+        // Mark as read (use ref to avoid dependency issues)
+        const lastMessage = loadedMessages.length ? loadedMessages[loadedMessages.length - 1] : null;
+        if (lastMessage && !cancelled && mounted) {
+          markConversationReadRef.current(lastMessage.id);
+        }
+      } catch (err) {
+        console.error('[ChatWindow] Failed to load messages for requirement:', err);
+        if (!cancelled && mounted) {
+          setMessages([]);
+          setAllMessages([]);
+        }
+      } finally {
+        if (!cancelled && mounted) {
+          setLoading(false);
+        }
+      }
+    }
+    
+    loadMessagesForRequirement();
+
+    return () => {
+      cancelled = true;
+      mounted = false;
+    };
+  }, [conversationId, activeRequirementId]); // Removed markConversationRead from dependencies
+  
+  // Auto-select first requirement tab when tabs load and no requirement is selected
+  useEffect(() => {
+    if (requirementTabs.length > 0 && !activeRequirementId && !requirement?.id) {
+      // Auto-select the first requirement tab
+      const firstReqId = requirementTabs[0].id;
+      setActiveRequirementId(firstReqId);
+      console.log('[ChatWindow] Auto-selected first requirement tab:', firstReqId);
+    }
+  }, [requirementTabs, activeRequirementId, requirement?.id]);
+
+  // Set active requirement when requirement prop changes (e.g., from "Negotiate" button)
+  useEffect(() => {
+    if (requirement?.id) {
+      // Set as active requirement when prop is provided
+      setActiveRequirementId(requirement.id);
+      console.log('[ChatWindow] Set active requirement from prop:', requirement.id);
+    }
+    // Note: We don't default to null anymore since we removed "All Messages" tab
+    // The active requirement will be set when tabs load or from requirement prop
+  }, [requirement?.id]);
 
   useEffect(() => {
     if (!token || !wsUrl) return;
@@ -115,7 +264,9 @@ export default function ChatWindow({
 
     socket.on('message:new', async ({ message }) => {
       if (message.conversation_id !== conversationId) return;
-      setMessages((prev) => {
+      
+      // Add to allMessages
+      setAllMessages((prev) => {
         // Replace optimistic by client_temp_id if present
         if (message.client_temp_id) {
           const idx = prev.findIndex(m => m.client_temp_id === message.client_temp_id);
@@ -127,6 +278,30 @@ export default function ChatWindow({
         }
         return [...prev, message];
       });
+
+      // Add to messages if it matches active requirement
+      // Compare requirement_id as strings to handle UUID differences
+      const messageReqId = message.requirement_id ? String(message.requirement_id) : null;
+      const activeReqId = activeRequirementId ? String(activeRequirementId) : null;
+      
+      if (messageReqId === activeReqId) {
+        setMessages((prev) => {
+          // Replace optimistic by client_temp_id if present
+          if (message.client_temp_id) {
+            const idx = prev.findIndex(m => m.client_temp_id === message.client_temp_id);
+            if (idx !== -1) {
+              const clone = prev.slice();
+              clone[idx] = message;
+              return clone;
+            }
+          }
+          return [...prev, message];
+        });
+      }
+
+      // Note: Requirement tabs are loaded from backend, not from individual messages
+      // This ensures all requirements are always visible as tabs
+
       scrollToBottom();
       if (message.sender_role !== selfRole) {
         await markConversationRead(message.id);
@@ -216,9 +391,11 @@ export default function ChatWindow({
         body,
         created_at: new Date().toISOString(),
         is_read: false,
-        attachments: uploadedAttachments
+        attachments: uploadedAttachments,
+        requirement_id: activeRequirementId || null
       };
       setMessages((prev) => [...prev, optimistic]);
+      setAllMessages((prev) => [...prev, optimistic]);
       scrollToBottom();
 
       // Prefer WebSocket
@@ -227,14 +404,16 @@ export default function ChatWindow({
           conversationId, 
           body, 
           clientTempId,
-          attachments: uploadedAttachments
+          attachments: uploadedAttachments,
+          requirementId: activeRequirementId
         });
       } else {
         // fallback to REST
         await apiService.sendMessage(conversationId, { 
           body, 
           clientTempId,
-          attachments: uploadedAttachments
+          attachments: uploadedAttachments,
+          requirementId: activeRequirementId
         });
       }
     } catch (err) {
@@ -318,63 +497,30 @@ export default function ChatWindow({
         <button onClick={onClose} className={closeClass}>✕</button>
       </div>
 
-      {/* Requirement Details Section */}
-      {requirement && (
-        <div className="border-b border-gray-200 bg-gradient-to-r from-[#22a2f2]/5 to-blue-50/50 p-4">
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 mt-0.5">
-              <div className="w-8 h-8 rounded-lg bg-[#22a2f2]/10 flex items-center justify-center">
-                <svg className="w-5 h-5 text-[#22a2f2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-sm font-semibold text-gray-900">Requirement Details</h3>
-                <span className="text-xs text-gray-500">
-                  {requirement.created_at && new Date(requirement.created_at).toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'short', 
-                    day: 'numeric' 
-                  })}
-                </span>
-              </div>
-              <p className="text-sm text-gray-700 mb-2 leading-relaxed">{requirement.requirement_text}</p>
-              <div className="flex flex-wrap gap-3 text-xs">
-                {requirement.quantity && (
-                  <div className="flex items-center gap-1">
-                    <span className="text-gray-500">Quantity:</span>
-                    <span className="font-semibold text-gray-900">{requirement.quantity.toLocaleString()}</span>
-                  </div>
-                )}
-                {requirement.brand_name && (
-                  <div className="flex items-center gap-1">
-                    <span className="text-gray-500">Brand:</span>
-                    <span className="font-semibold text-gray-900">{requirement.brand_name}</span>
-                  </div>
-                )}
-                {requirement.product_type && (
-                  <div className="flex items-center gap-1">
-                    <span className="text-gray-500">Type:</span>
-                    <span className="font-semibold text-gray-900 capitalize">{requirement.product_type}</span>
-                  </div>
-                )}
-                {requirement.product_link && (
-                  <a 
-                    href={requirement.product_link} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-[#22a2f2] hover:underline flex items-center gap-1"
-                  >
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                    </svg>
-                    Reference
-                  </a>
-                )}
-              </div>
-            </div>
+      {/* Requirement Tabs - ALWAYS show when conversation is active, even if loading */}
+      {conversationId && (
+        <div className="border-b border-gray-200 bg-white overflow-x-auto">
+          <div className="flex gap-2 px-4 py-2">
+            {loadingRequirements ? (
+              <div className="px-4 py-2 text-sm text-gray-500 animate-pulse">Loading requirements...</div>
+            ) : requirementTabs.length > 0 ? (
+              requirementTabs.map((reqTab) => (
+                <button
+                  key={reqTab.id}
+                  onClick={() => setActiveRequirementId(reqTab.id)}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
+                    activeRequirementId === reqTab.id
+                      ? 'bg-[#22a2f2] text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                  title={reqTab.requirement_text}
+                >
+                  {reqTab.requirement_text.length > 30 
+                    ? reqTab.requirement_text.substring(0, 30) + '...'
+                    : reqTab.requirement_text}
+                </button>
+              ))
+            ) : null}
           </div>
         </div>
       )}
@@ -391,7 +537,21 @@ export default function ChatWindow({
             </div>
           </div>
         )}
-        {!loading && timelineItems.map((item) => {
+        {!loading && timelineItems.length === 0 && (
+          <div className="flex items-center justify-center py-8">
+            <div className="text-center max-w-sm">
+              <div className="relative mx-auto mb-4 w-16 h-16">
+                <div className="absolute inset-0 bg-gray-100 rounded-full"></div>
+                <svg className="w-8 h-8 text-gray-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </div>
+              <p className="text-sm font-medium text-gray-600 mb-1">No messages yet</p>
+              <p className="text-xs text-gray-500">Start the conversation by sending a message</p>
+            </div>
+          </div>
+        )}
+        {!loading && timelineItems.length > 0 && timelineItems.map((item) => {
           if (item.type === 'date') {
             return (
               <div key={item.id} className="flex justify-center my-3">
