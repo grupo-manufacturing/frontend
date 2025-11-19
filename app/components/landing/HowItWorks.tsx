@@ -107,7 +107,7 @@ const HowItWorks = () => {
 
         {/* Subtitle */}
         <p className="text-lg sm:text-xl text-gray-600 text-center max-w-3xl mx-auto mb-16">
-          Connect with manufacturers worldwide and bring your designs to life
+          Connect with manufacturers and bring your designs to life
         </p>
 
         {/* Steps Grid */}
