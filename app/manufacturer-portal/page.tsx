@@ -109,8 +109,8 @@ export default function ManufacturerPortal() {
   const [isLoadingRequirements, setIsLoadingRequirements] = useState(false);
   const [selectedRequirement, setSelectedRequirement] = useState<any | null>(null);
   const [showResponseModal, setShowResponseModal] = useState(false);
+  const [showPriceBreakdown, setShowPriceBreakdown] = useState(false);
   const [responseForm, setResponseForm] = useState({
-    quotedPrice: '',
     pricePerUnit: '',
     deliveryTime: '',
     notes: ''
@@ -571,11 +571,11 @@ export default function ManufacturerPortal() {
     
     setSelectedRequirement(requirement);
     setResponseForm({
-      quotedPrice: '',
       pricePerUnit: '',
       deliveryTime: '',
       notes: ''
     });
+    setShowPriceBreakdown(false);
     setShowResponseModal(true);
   };
 
@@ -586,7 +586,7 @@ export default function ManufacturerPortal() {
     if (!selectedRequirement) return;
 
     // Validate required fields
-    if (!responseForm.quotedPrice || !responseForm.pricePerUnit || !responseForm.deliveryTime) {
+    if (!responseForm.pricePerUnit || !responseForm.deliveryTime) {
       alert('Please fill in all required fields');
       return;
     }
@@ -594,9 +594,16 @@ export default function ManufacturerPortal() {
     setIsSubmittingResponse(true);
     
     try {
+      const quantity = selectedRequirement.quantity || 1;
+      const pricePerUnit = parseFloat(responseForm.pricePerUnit);
+      const basePrice = pricePerUnit * quantity;
+      const gst = basePrice * 0.0005; // 0.05% GST
+      const platformFee = basePrice * 0.0015; // 0.15% Platform Fee
+      const totalQuotedPrice = basePrice + gst + platformFee;
+
       const responseData = {
-        quoted_price: parseFloat(responseForm.quotedPrice),
-        price_per_unit: parseFloat(responseForm.pricePerUnit),
+        quoted_price: totalQuotedPrice,
+        price_per_unit: pricePerUnit,
         delivery_time: responseForm.deliveryTime,
         notes: responseForm.notes || null
       };
@@ -1612,8 +1619,11 @@ export default function ManufacturerPortal() {
                   </svg>
                   <span>Buyer requirements</span>
                 </div>
-                <h1 className="text-3xl font-bold text-black mb-2">Requirements</h1>
-                <p className="text-gray-500">View and respond to buyer requirements</p>
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-3xl font-bold text-black">Requirements</h1>
+                  <div className="h-8 w-0.5 bg-[#22a2f2]/30"></div>
+                </div>
+                <p className="text-sm font-medium text-gray-500">View and respond to buyer requirements</p>
               </div>
 
               {/* Loading State */}
@@ -1629,87 +1639,142 @@ export default function ManufacturerPortal() {
                 </div>
               )}
 
-              {/* Requirements List */}
+              {/* Requirements Grid */}
               {!isLoadingRequirements && requirements.length > 0 && (
-                <div className="space-y-4">
-                  {requirements.map((req: any) => (
-                    <div key={req.id} className="bg-white rounded-xl border border-[#22a2f2]/30 p-6 hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            {req.hasResponse && req.myResponse && (req.myResponse.status === 'accepted' || req.myResponse.status === 'rejected') && (
-                              <span className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${
-                                req.myResponse.status === 'accepted' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                              }`}>
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  {req.myResponse.status === 'accepted' ? (
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                  ) : (
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                  )}
-                                </svg>
-                                {req.myResponse.status === 'accepted' ? 'Accepted' : 'Rejected'}
-                              </span>
-                            )}
-                            <span className="text-xs text-gray-500">
-                              {new Date(req.created_at).toLocaleDateString('en-US', { 
-                                year: 'numeric', 
-                                month: 'short', 
-                                day: 'numeric' 
-                              })}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {requirements.map((req: any) => {
+                    // Format requirement text - capitalize first letter, fix common typos
+                    const formatText = (text: string) => {
+                      if (!text) return '';
+                      return text.trim()
+                        .replace(/\bneeed\b/gi, 'need')
+                        .replace(/\bi\b/g, 'I')
+                        .replace(/^\w/, (c) => c.toUpperCase());
+                    };
+
+                    // Format brand and product type
+                    const formatBrand = (brand: string) => {
+                      if (!brand) return '';
+                      return brand.trim()
+                        .split(' ')
+                        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                        .join(' ');
+                    };
+
+                    // Determine status tag - check rejected first, then accepted, then negotiating
+                    const getStatusTag = () => {
+                      if (req.hasResponse && req.myResponse) {
+                        // Get status from myResponse, handling different possible field names
+                        const status = (req.myResponse.status || req.myResponse.response_status || '').toLowerCase().trim();
+                        
+                        // Check rejected first (highest priority) - this should override negotiating
+                        if (status === 'rejected') {
+                          return { label: 'Rejected', color: 'bg-red-100 text-red-700' };
+                        }
+                        // Then check accepted
+                        if (status === 'accepted') {
+                          return { label: 'Accepted', color: 'bg-green-100 text-green-700' };
+                        }
+                        // Finally negotiating (only if not rejected or accepted)
+                        if (status === 'negotiating') {
+                          return { label: 'Negotiating', color: 'bg-blue-100 text-blue-700' };
+                        }
+                        // If status exists but doesn't match known values, show it anyway
+                        if (status) {
+                          return { label: status.charAt(0).toUpperCase() + status.slice(1), color: 'bg-gray-100 text-gray-700' };
+                        }
+                      }
+                      return { label: 'New', color: 'bg-orange-100 text-orange-700' };
+                    };
+
+                    const statusTag = getStatusTag();
+                    const formattedRequirement = formatText(req.requirement_text);
+                    const formattedBrand = req.brand_name ? formatBrand(req.brand_name) : '';
+                    const formattedType = req.product_type ? formatBrand(req.product_type) : '';
+
+                    return (
+                      <div 
+                        key={req.id} 
+                        className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-[#22a2f2]/50 transition-all duration-200 p-5 aspect-square flex flex-col cursor-pointer group"
+                        onClick={() => !req.hasResponse && handleRespondToRequirement(req)}
+                      >
+                        {/* Date badge - smaller and positioned better */}
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className={`px-2 py-1 rounded-md text-xs font-semibold ${statusTag.color}`}>
+                              {statusTag.label}
                             </span>
                           </div>
-                          <p className="text-gray-800 mb-3 leading-relaxed">{req.requirement_text}</p>
+                          <span className="text-[10px] text-gray-400 bg-gray-50 px-2 py-1 rounded-md font-medium">
+                            {new Date(req.created_at).toLocaleDateString('en-US', { 
+                              month: 'short', 
+                              day: 'numeric' 
+                            })}
+                          </span>
                         </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-gray-100 mb-4">
-                        {req.buyer && req.buyer.full_name && (
-                          <div>
-                            <p className="text-xs text-gray-500 mb-1">Buyer Name</p>
-                            <p className="text-sm font-semibold text-black">{req.buyer.full_name}</p>
+                        
+                        {/* Requirement title - larger and bolder */}
+                        <h3 className="text-base font-bold text-gray-900 mb-4 leading-snug line-clamp-2 group-hover:text-[#22a2f2] transition-colors">
+                          {formattedRequirement}
+                        </h3>
+                        
+                        {/* Details - reduced label emphasis, increased value emphasis */}
+                        <div className="space-y-2 mb-4 flex-1">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-400 font-normal">Buyer</span>
+                            <span className="text-gray-900 font-semibold text-right truncate ml-2">{req.buyer?.full_name || 'N/A'}</span>
                           </div>
-                        )}
-                        {req.quantity && (
-                          <div>
-                            <p className="text-xs text-gray-500 mb-1">Quantity</p>
-                            <p className="text-sm font-semibold text-black">{req.quantity.toLocaleString()}</p>
-                          </div>
-                        )}
-                        {req.brand_name && (
-                          <div>
-                            <p className="text-xs text-gray-500 mb-1">Brand</p>
-                            <p className="text-sm font-semibold text-black">{req.brand_name}</p>
-                          </div>
-                        )}
-                        {req.product_type && (
-                          <div>
-                            <p className="text-xs text-gray-500 mb-1">Product Type</p>
-                            <p className="text-sm font-semibold text-black capitalize">{req.product_type}</p>
-                          </div>
-                        )}
-                      </div>
+                          {req.quantity && (
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-gray-400 font-normal">Quantity</span>
+                              <span className="text-gray-900 font-semibold">{req.quantity.toLocaleString()}</span>
+                            </div>
+                          )}
+                          {formattedBrand && (
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-gray-400 font-normal">Brand</span>
+                              <span className="text-gray-900 font-semibold text-right truncate ml-2">{formattedBrand}</span>
+                            </div>
+                          )}
+                          {formattedType && (
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-gray-400 font-normal">Type</span>
+                              <span className="text-gray-900 font-semibold text-right truncate ml-2 capitalize">{formattedType}</span>
+                            </div>
+                          )}
+                        </div>
 
-                      {req.hasResponse ? (
-                        <div className="w-full bg-gray-100 border-2 border-gray-300 text-gray-600 px-6 py-3 font-semibold rounded-xl flex items-center justify-center gap-2 cursor-not-allowed">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <span>Quote Already Submitted</span>
+                        {/* Divider */}
+                        <div className="border-t border-gray-100 my-3"></div>
+
+                        {/* Action button - smaller and better styled */}
+                        <div className="mt-auto">
+                          {req.hasResponse ? (
+                            <div className="w-full bg-gray-50 border border-gray-200 text-gray-600 px-4 py-2.5 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 cursor-not-allowed">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <span>Quote Submitted</span>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRespondToRequirement(req);
+                              }}
+                              className="w-full bg-[#22a2f2] hover:bg-[#1b8bd0] text-white px-4 py-2.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                              title="View details & submit quote"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                              </svg>
+                              <span>Submit Quote</span>
+                            </button>
+                          )}
                         </div>
-                      ) : (
-                        <button
-                          onClick={() => handleRespondToRequirement(req)}
-                          className="w-full bg-[#22a2f2] hover:bg-[#1b8bd0] text-white px-6 py-3 font-semibold rounded-xl transition-all flex items-center justify-center gap-2"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                          </svg>
-                          <span>Submit Quote</span>
-                        </button>
-                      )}
-                    </div>
-                  ))}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
 
@@ -1773,54 +1838,33 @@ export default function ManufacturerPortal() {
                 </div>
 
                 <form onSubmit={handleSubmitResponse} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Total Quoted Price <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={responseForm.quotedPrice}
-                        onChange={(e) => {
-                          const quotedPrice = e.target.value;
-                          const quantity = selectedRequirement?.quantity;
-                          
-                          let pricePerUnit = '';
-                          if (quotedPrice && quantity && quantity > 0) {
-                            const parsedPrice = parseFloat(quotedPrice);
-                            if (!isNaN(parsedPrice) && parsedPrice >= 0) {
-                              pricePerUnit = (parsedPrice / quantity).toFixed(2);
-                            }
-                          }
-                          
-                          setResponseForm({
-                            ...responseForm,
-                            quotedPrice: quotedPrice,
-                            pricePerUnit: pricePerUnit
-                          });
-                        }}
-                        placeholder="e.g., 50000"
-                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Price Per Unit <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={responseForm.pricePerUnit}
-                        readOnly
-                        placeholder="Auto-calculated"
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-black placeholder:text-gray-500 cursor-not-allowed"
-                        required
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Automatically calculated from Quoted Price ÷ Quantity</p>
-                    </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Price Per Unit <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="1"
+                      min="1"
+                      value={responseForm.pricePerUnit}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Only allow integers (no decimals)
+                        if (value === '' || /^\d+$/.test(value)) {
+                          setResponseForm({...responseForm, pricePerUnit: value});
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        // Prevent decimal point and other non-numeric characters
+                        if (e.key === '.' || e.key === ',' || e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-') {
+                          e.preventDefault();
+                        }
+                      }}
+                      placeholder="e.g., 100"
+                      className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Enter the price per unit (whole numbers only, before taxes and fees)</p>
                   </div>
 
                   <div>
@@ -1849,6 +1893,91 @@ export default function ManufacturerPortal() {
                       className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 resize-none"
                     />
                   </div>
+
+                  {/* Total Quote Price Section */}
+                  {responseForm.pricePerUnit && selectedRequirement?.quantity && (
+                    <div className="border-t border-gray-200 pt-4">
+                      <div className="bg-gray-50 rounded-xl p-4">
+                        <button
+                          type="button"
+                          onClick={() => setShowPriceBreakdown(!showPriceBreakdown)}
+                          className="w-full flex items-center justify-between text-left"
+                        >
+                          <div>
+                            <p className="text-sm font-medium text-gray-600 mb-1">Total Quote Price</p>
+                            <p className="text-2xl font-bold text-gray-900">
+                              ₹{(() => {
+                                const quantity = selectedRequirement.quantity || 1;
+                                const pricePerUnit = parseFloat(responseForm.pricePerUnit) || 0;
+                                const basePrice = pricePerUnit * quantity;
+                                const gst = basePrice * 0.0005;
+                                const platformFee = basePrice * 0.0015;
+                                return (basePrice + gst + platformFee).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+                              })()}
+                            </p>
+                          </div>
+                          <svg
+                            className={`w-5 h-5 text-gray-500 transition-transform ${showPriceBreakdown ? 'transform rotate-180' : ''}`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+
+                        {showPriceBreakdown && (
+                          <div className="mt-4 pt-4 border-t border-gray-200 space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">Base Price ({selectedRequirement.quantity.toLocaleString()} × ₹{parseFloat(responseForm.pricePerUnit || '0').toLocaleString('en-IN', { maximumFractionDigits: 2 })})</span>
+                              <span className="font-semibold text-gray-900">
+                                ₹{(() => {
+                                  const quantity = selectedRequirement.quantity || 1;
+                                  const pricePerUnit = parseFloat(responseForm.pricePerUnit) || 0;
+                                  return (pricePerUnit * quantity).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+                                })()}
+                              </span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">GST (0.05%)</span>
+                              <span className="font-semibold text-gray-900">
+                                ₹{(() => {
+                                  const quantity = selectedRequirement.quantity || 1;
+                                  const pricePerUnit = parseFloat(responseForm.pricePerUnit) || 0;
+                                  const basePrice = pricePerUnit * quantity;
+                                  return (basePrice * 0.0005).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+                                })()}
+                              </span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">Platform Fee (0.15%)</span>
+                              <span className="font-semibold text-gray-900">
+                                ₹{(() => {
+                                  const quantity = selectedRequirement.quantity || 1;
+                                  const pricePerUnit = parseFloat(responseForm.pricePerUnit) || 0;
+                                  const basePrice = pricePerUnit * quantity;
+                                  return (basePrice * 0.0015).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+                                })()}
+                              </span>
+                            </div>
+                            <div className="flex justify-between text-sm pt-2 border-t border-gray-300">
+                              <span className="font-semibold text-gray-900">Total</span>
+                              <span className="font-bold text-lg text-gray-900">
+                                ₹{(() => {
+                                  const quantity = selectedRequirement.quantity || 1;
+                                  const pricePerUnit = parseFloat(responseForm.pricePerUnit) || 0;
+                                  const basePrice = pricePerUnit * quantity;
+                                  const gst = basePrice * 0.0005;
+                                  const platformFee = basePrice * 0.0015;
+                                  return (basePrice + gst + platformFee).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+                                })()}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="flex gap-4 pt-4">
                     <button

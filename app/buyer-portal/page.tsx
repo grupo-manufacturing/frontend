@@ -123,6 +123,7 @@ export default function BuyerPortal() {
   const [activeTab, setActiveTab] = useState<TabType>('designs');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   
   // Instant Quote Form States
   const [brandName, setBrandName] = useState('');
@@ -140,6 +141,7 @@ export default function BuyerPortal() {
   const [customQuantity, setCustomQuantity] = useState('');
   const [customBrandName, setCustomBrandName] = useState('');
   const [customProductType, setCustomProductType] = useState('');
+  const [isProductTypeDropdownOpen, setIsProductTypeDropdownOpen] = useState(false);
   const [productLink, setProductLink] = useState('');
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [isSubmittingRequirement, setIsSubmittingRequirement] = useState(false);
@@ -152,6 +154,7 @@ export default function BuyerPortal() {
   // My Orders States
   const [orderSearchQuery, setOrderSearchQuery] = useState('');
   const [orderFilter, setOrderFilter] = useState('all');
+  const [isOrderFilterDropdownOpen, setIsOrderFilterDropdownOpen] = useState(false);
   
   // Chats States
   const [chatSearchQuery, setChatSearchQuery] = useState('');
@@ -1352,24 +1355,33 @@ export default function BuyerPortal() {
 
                     {/* Category Dropdown */}
                     <div className="relative">
-                      <select
-                        value={selectedCategory}
-                        onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="appearance-none w-full md:w-64 px-4 py-3 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black cursor-pointer transition-all"
+                      <button
+                        type="button"
+                        onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                        onBlur={() => setTimeout(() => setIsCategoryDropdownOpen(false), 200)}
+                        className="appearance-none w-full md:w-64 px-4 py-3 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black cursor-pointer transition-all text-left flex items-center justify-between"
                       >
-                        <option value="all" className="bg-white">All Categories</option>
-                        <option value="t-shirts" className="bg-white">T-Shirts</option>
-                        <option value="shirts" className="bg-white">Shirts</option>
-                        <option value="hoodies" className="bg-white">Hoodies</option>
-                        <option value="sweatshirts" className="bg-white">Sweatshirts</option>
-                        <option value="cargos" className="bg-white">Cargos</option>
-                        <option value="trackpants" className="bg-white">Trackpants</option>
-                      </select>
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                        <svg
-                          className="h-5 w-5 text-gray-400"
-                          fill="none"
-                          stroke="currentColor"
+                        <span className={selectedCategory !== 'all' ? 'text-black' : 'text-gray-500'}>
+                          {selectedCategory === 'all' 
+                            ? 'All Categories' 
+                            : selectedCategory === 't-shirts' 
+                            ? 'T-Shirts' 
+                            : selectedCategory === 'shirts'
+                            ? 'Shirts'
+                            : selectedCategory === 'hoodies'
+                            ? 'Hoodies'
+                            : selectedCategory === 'sweatshirts'
+                            ? 'Sweatshirts'
+                            : selectedCategory === 'cargos'
+                            ? 'Cargos'
+                            : selectedCategory === 'trackpants'
+                            ? 'Trackpants'
+                            : 'All Categories'}
+                        </span>
+                        <svg 
+                          className={`h-5 w-5 text-gray-400 transition-transform ${isCategoryDropdownOpen ? 'transform rotate-180' : ''}`}
+                          fill="none" 
+                          stroke="currentColor" 
                           viewBox="0 0 24 24"
                         >
                           <path
@@ -1379,7 +1391,37 @@ export default function BuyerPortal() {
                             d="M19 9l-7 7-7-7"
                           />
                         </svg>
-                      </div>
+                      </button>
+                      
+                      {isCategoryDropdownOpen && (
+                        <div className="absolute z-50 w-full md:w-64 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                          <div className="max-h-[180px] overflow-y-auto">
+                            {[
+                              { value: 'all', label: 'All Categories' },
+                              { value: 't-shirts', label: 'T-Shirts' },
+                              { value: 'shirts', label: 'Shirts' },
+                              { value: 'hoodies', label: 'Hoodies' },
+                              { value: 'sweatshirts', label: 'Sweatshirts' },
+                              { value: 'cargos', label: 'Cargos' },
+                              { value: 'trackpants', label: 'Trackpants' }
+                            ].map((option) => (
+                              <button
+                                key={option.value}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedCategory(option.value);
+                                  setIsCategoryDropdownOpen(false);
+                                }}
+                                className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${
+                                  selectedCategory === option.value ? 'bg-[#22a2f2]/10 text-[#22a2f2] font-medium' : 'text-gray-900'
+                                }`}
+                              >
+                                {option.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1479,26 +1521,69 @@ export default function BuyerPortal() {
                       Product Type
                     </label>
                     <div className="relative">
-                      <select
-                        value={customProductType}
-                        onChange={(e) => setCustomProductType(e.target.value)}
-                      className="appearance-none w-full px-4 py-3 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black cursor-pointer transition-all"
+                      <button
+                        type="button"
+                        onClick={() => setIsProductTypeDropdownOpen(!isProductTypeDropdownOpen)}
+                        onBlur={() => setTimeout(() => setIsProductTypeDropdownOpen(false), 200)}
+                        className="appearance-none w-full px-4 py-3 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black cursor-pointer transition-all text-left flex items-center justify-between"
                       >
-                        <option value="" className="bg-white">Select product type</option>
-                        <option value="t-shirt" className="bg-white">T-Shirt</option>
-                        <option value="shirt" className="bg-white">Shirt</option>
-                        <option value="jacket" className="bg-white">Jacket</option>
-                        <option value="hoodie" className="bg-white">Hoodie</option>
-                        <option value="sweater" className="bg-white">Sweater</option>
-                        <option value="trouser" className="bg-white">Trouser</option>
-                        <option value="shorts" className="bg-white">Shorts</option>
-                        <option value="dress" className="bg-white">Dress</option>
-                      </select>
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <span className={customProductType ? 'text-black' : 'text-gray-500'}>
+                          {customProductType || 'Select product type'}
+                        </span>
+                        <svg 
+                          className={`w-5 h-5 text-gray-400 transition-transform ${isProductTypeDropdownOpen ? 'transform rotate-180' : ''}`}
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
                         </svg>
-                      </div>
+                      </button>
+                      
+                      {isProductTypeDropdownOpen && (
+                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                          <div className="max-h-[180px] overflow-y-auto">
+                            {[
+                              'Tshirts Plain',
+                              'Tshirts Printed',
+                              'Acid Wash Plain',
+                              'Cargos',
+                              'Polos',
+                              'Mesh',
+                              'Denim Jeans',
+                              'Twill Jacket',
+                              'Wind Cheaters',
+                              'Vests',
+                              'Cotton Shirts',
+                              'Silk Shirts',
+                              'Carduroy Shirts',
+                              'Varsity Jackets',
+                              'Sweatshirts',
+                              'Hoodies Plain',
+                              'Hoodies Printed',
+                              'Tops',
+                              'Women Dresss',
+                              'Leather Products',
+                              'Caps',
+                              'Bags'
+                            ].map((option) => (
+                              <button
+                                key={option}
+                                type="button"
+                                onClick={() => {
+                                  setCustomProductType(option);
+                                  setIsProductTypeDropdownOpen(false);
+                                }}
+                                className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${
+                                  customProductType === option ? 'bg-[#22a2f2]/10 text-[#22a2f2] font-medium' : 'text-gray-900'
+                                }`}
+                              >
+                                {option}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -1795,23 +1880,31 @@ export default function BuyerPortal() {
 
                   {/* Filter Dropdown */}
                   <div className="relative">
-                    <select
-                      value={orderFilter}
-                      onChange={(e) => setOrderFilter(e.target.value)}
-                      className="appearance-none w-full md:w-48 px-4 py-2.5 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black cursor-pointer transition-all"
+                    <button
+                      type="button"
+                      onClick={() => setIsOrderFilterDropdownOpen(!isOrderFilterDropdownOpen)}
+                      onBlur={() => setTimeout(() => setIsOrderFilterDropdownOpen(false), 200)}
+                      className="appearance-none w-full md:w-48 px-4 py-2.5 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black cursor-pointer transition-all text-left flex items-center justify-between"
                     >
-                      <option value="all" className="bg-white">All Orders</option>
-                      <option value="accepted" className="bg-white">Accepted</option>
-                      <option value="pending" className="bg-white">Pending Review</option>
-                      <option value="negotiation" className="bg-white">In Negotiation</option>
-                      <option value="completed" className="bg-white">Completed</option>
-                      <option value="cancelled" className="bg-white">Cancelled</option>
-                    </select>
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                      <svg
-                        className="h-5 w-5 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
+                      <span className={orderFilter !== 'all' ? 'text-black' : 'text-gray-500'}>
+                        {orderFilter === 'all' 
+                          ? 'All Orders' 
+                          : orderFilter === 'accepted' 
+                          ? 'Accepted' 
+                          : orderFilter === 'pending'
+                          ? 'Pending Review'
+                          : orderFilter === 'negotiation'
+                          ? 'In Negotiation'
+                          : orderFilter === 'completed'
+                          ? 'Completed'
+                          : orderFilter === 'cancelled'
+                          ? 'Cancelled'
+                          : 'All Orders'}
+                      </span>
+                      <svg 
+                        className={`h-5 w-5 text-gray-400 transition-transform ${isOrderFilterDropdownOpen ? 'transform rotate-180' : ''}`}
+                        fill="none" 
+                        stroke="currentColor" 
                         viewBox="0 0 24 24"
                       >
                         <path
@@ -1821,7 +1914,36 @@ export default function BuyerPortal() {
                           d="M19 9l-7 7-7-7"
                         />
                       </svg>
-                    </div>
+                    </button>
+                    
+                    {isOrderFilterDropdownOpen && (
+                      <div className="absolute z-50 w-full md:w-48 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                        <div className="max-h-[180px] overflow-y-auto">
+                          {[
+                            { value: 'all', label: 'All Orders' },
+                            { value: 'accepted', label: 'Accepted' },
+                            { value: 'pending', label: 'Pending Review' },
+                            { value: 'negotiation', label: 'In Negotiation' },
+                            { value: 'completed', label: 'Completed' },
+                            { value: 'cancelled', label: 'Cancelled' }
+                          ].map((option) => (
+                            <button
+                              key={option.value}
+                              type="button"
+                              onClick={() => {
+                                setOrderFilter(option.value);
+                                setIsOrderFilterDropdownOpen(false);
+                              }}
+                              className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${
+                                orderFilter === option.value ? 'bg-[#22a2f2]/10 text-[#22a2f2] font-medium' : 'text-gray-900'
+                              }`}
+                            >
+                              {option.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
