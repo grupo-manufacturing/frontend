@@ -115,9 +115,9 @@ export default function ChatWindow({
 
     async function loadNegotiatingRequirements() {
       try {
-        // Fetch only negotiating requirements for this specific conversation
+        // Fetch negotiating and accepted requirements for this specific conversation
         // These are requirements where:
-        // - requirement_responses.status = 'negotiating'
+        // - requirement_responses.status = 'negotiating' OR 'accepted'
         // - requirement_responses.manufacturer_id = conversation.manufacturer_id
         // - requirements.buyer_id = conversation.buyer_id
         const res = await apiService.getNegotiatingRequirementsForConversation(conversationId);

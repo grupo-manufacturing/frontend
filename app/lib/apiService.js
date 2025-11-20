@@ -552,8 +552,8 @@ class ApiService {
   }
 
   /**
-   * Get negotiating requirements for a conversation
-   * Returns requirements where status is 'negotiating' and matches the conversation's buyer_id and manufacturer_id
+   * Get negotiating and accepted requirements for a conversation
+   * Returns requirements where status is 'negotiating' or 'accepted' and matches the conversation's buyer_id and manufacturer_id
    * @param {string} conversationId - Conversation ID
    * @returns {Promise} Response data
    */
