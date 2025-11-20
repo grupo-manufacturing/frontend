@@ -597,8 +597,8 @@ export default function ManufacturerPortal() {
       const quantity = selectedRequirement.quantity || 1;
       const pricePerUnit = parseFloat(responseForm.pricePerUnit);
       const basePrice = pricePerUnit * quantity;
-      const gst = basePrice * 0.0005; // 0.05% GST
-      const platformFee = basePrice * 0.0015; // 0.15% Platform Fee
+      const gst = basePrice * 0.05; // 5% GST
+      const platformFee = basePrice * 0.15; // 15% Platform Fee
       const totalQuotedPrice = basePrice + gst + platformFee;
 
       const responseData = {
@@ -1910,8 +1910,8 @@ export default function ManufacturerPortal() {
                                 const quantity = selectedRequirement.quantity || 1;
                                 const pricePerUnit = parseFloat(responseForm.pricePerUnit) || 0;
                                 const basePrice = pricePerUnit * quantity;
-                                const gst = basePrice * 0.0005;
-                                const platformFee = basePrice * 0.0015;
+                                const gst = basePrice * 0.05;
+                                const platformFee = basePrice * 0.15;
                                 return (basePrice + gst + platformFee).toLocaleString('en-IN', { maximumFractionDigits: 2 });
                               })()}
                             </p>
@@ -1939,24 +1939,24 @@ export default function ManufacturerPortal() {
                               </span>
                             </div>
                             <div className="flex justify-between text-sm">
-                              <span className="text-gray-600">GST (0.05%)</span>
+                              <span className="text-gray-600">GST (5%)</span>
                               <span className="font-semibold text-gray-900">
                                 ₹{(() => {
                                   const quantity = selectedRequirement.quantity || 1;
                                   const pricePerUnit = parseFloat(responseForm.pricePerUnit) || 0;
                                   const basePrice = pricePerUnit * quantity;
-                                  return (basePrice * 0.0005).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+                                  return (basePrice * 0.05).toLocaleString('en-IN', { maximumFractionDigits: 2 });
                                 })()}
                               </span>
                             </div>
                             <div className="flex justify-between text-sm">
-                              <span className="text-gray-600">Platform Fee (0.15%)</span>
+                              <span className="text-gray-600">Platform Fee (15%)</span>
                               <span className="font-semibold text-gray-900">
                                 ₹{(() => {
                                   const quantity = selectedRequirement.quantity || 1;
                                   const pricePerUnit = parseFloat(responseForm.pricePerUnit) || 0;
                                   const basePrice = pricePerUnit * quantity;
-                                  return (basePrice * 0.0015).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+                                  return (basePrice * 0.15).toLocaleString('en-IN', { maximumFractionDigits: 2 });
                                 })()}
                               </span>
                             </div>
@@ -1967,8 +1967,8 @@ export default function ManufacturerPortal() {
                                   const quantity = selectedRequirement.quantity || 1;
                                   const pricePerUnit = parseFloat(responseForm.pricePerUnit) || 0;
                                   const basePrice = pricePerUnit * quantity;
-                                  const gst = basePrice * 0.0005;
-                                  const platformFee = basePrice * 0.0015;
+                                  const gst = basePrice * 0.05;
+                                  const platformFee = basePrice * 0.15;
                                   return (basePrice + gst + platformFee).toLocaleString('en-IN', { maximumFractionDigits: 2 });
                                 })()}
                               </span>
