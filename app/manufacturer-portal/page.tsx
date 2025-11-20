@@ -579,6 +579,54 @@ export default function ManufacturerPortal() {
     setShowResponseModal(true);
   };
 
+  /**
+   * Calculate platform fee based on tiered structure
+   * Fee percentage is determined by the total quote price (base + GST + platform fee)
+   * Uses iterative approach to handle circular dependency
+   * @param basePrice - Base price before GST and platform fee
+   * @param gst - GST amount
+   * @returns Object with platformFee amount and feePercentage for display
+   */
+  const calculatePlatformFee = (basePrice: number, gst: number): { platformFee: number; feePercentage: number } => {
+    // Start with an estimate based on base + GST to determine bracket
+    let platformFeeRate = 0.15; // Default
+    let platformFee = basePrice * platformFeeRate;
+    
+    // Iterate a few times to converge on the correct fee
+    // The fee percentage depends on the final total, so we need to approximate
+    for (let i = 0; i < 5; i++) {
+      const total = basePrice + gst + platformFee;
+      
+      // Determine fee percentage based on total quote price
+      // Tiered structure:
+      // 0 to 1 Lakh (0-100000) → 20%
+      // 1 Lakh to 2 Lakh (100001-200000) → 15%
+      // 2 Lakh to 5 Lakh (200001-500000) → 8%
+      // Above 5 Lakh (500001+) → 5%
+      if (total <= 100000) {
+        platformFeeRate = 0.20; // 20%
+      } else if (total <= 200000) {
+        platformFeeRate = 0.15; // 15%
+      } else if (total <= 500000) {
+        platformFeeRate = 0.08; // 8%
+      } else {
+        platformFeeRate = 0.05; // 5%
+      }
+      
+      // Recalculate platform fee based on new rate
+      const newPlatformFee = basePrice * platformFeeRate;
+      
+      // Check if we've converged (change is less than 0.01)
+      if (Math.abs(newPlatformFee - platformFee) < 0.01) {
+        break;
+      }
+      
+      platformFee = newPlatformFee;
+    }
+    
+    return { platformFee, feePercentage: platformFeeRate };
+  };
+
   // Handle submit response
   const handleSubmitResponse = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -598,7 +646,7 @@ export default function ManufacturerPortal() {
       const pricePerUnit = parseFloat(responseForm.pricePerUnit);
       const basePrice = pricePerUnit * quantity;
       const gst = basePrice * 0.05; // 5% GST
-      const platformFee = basePrice * 0.15; // 15% Platform Fee
+      const { platformFee } = calculatePlatformFee(basePrice, gst);
       const totalQuotedPrice = basePrice + gst + platformFee;
 
       const responseData = {
@@ -1911,7 +1959,7 @@ export default function ManufacturerPortal() {
                                 const pricePerUnit = parseFloat(responseForm.pricePerUnit) || 0;
                                 const basePrice = pricePerUnit * quantity;
                                 const gst = basePrice * 0.05;
-                                const platformFee = basePrice * 0.15;
+                                const { platformFee } = calculatePlatformFee(basePrice, gst);
                                 return (basePrice + gst + platformFee).toLocaleString('en-IN', { maximumFractionDigits: 2 });
                               })()}
                             </p>
@@ -1950,13 +1998,22 @@ export default function ManufacturerPortal() {
                               </span>
                             </div>
                             <div className="flex justify-between text-sm">
-                              <span className="text-gray-600">Platform Fee (15%)</span>
+                              <span className="text-gray-600">Platform Fee ({(() => {
+                                const quantity = selectedRequirement.quantity || 1;
+                                const pricePerUnit = parseFloat(responseForm.pricePerUnit) || 0;
+                                const basePrice = pricePerUnit * quantity;
+                                const gst = basePrice * 0.05;
+                                const { feePercentage } = calculatePlatformFee(basePrice, gst);
+                                return `${(feePercentage * 100).toFixed(0)}%`;
+                              })()})</span>
                               <span className="font-semibold text-gray-900">
                                 ₹{(() => {
                                   const quantity = selectedRequirement.quantity || 1;
                                   const pricePerUnit = parseFloat(responseForm.pricePerUnit) || 0;
                                   const basePrice = pricePerUnit * quantity;
-                                  return (basePrice * 0.15).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+                                  const gst = basePrice * 0.05;
+                                  const { platformFee } = calculatePlatformFee(basePrice, gst);
+                                  return platformFee.toLocaleString('en-IN', { maximumFractionDigits: 2 });
                                 })()}
                               </span>
                             </div>
@@ -1968,7 +2025,7 @@ export default function ManufacturerPortal() {
                                   const pricePerUnit = parseFloat(responseForm.pricePerUnit) || 0;
                                   const basePrice = pricePerUnit * quantity;
                                   const gst = basePrice * 0.05;
-                                  const platformFee = basePrice * 0.15;
+                                  const { platformFee } = calculatePlatformFee(basePrice, gst);
                                   return (basePrice + gst + platformFee).toLocaleString('en-IN', { maximumFractionDigits: 2 });
                                 })()}
                               </span>
