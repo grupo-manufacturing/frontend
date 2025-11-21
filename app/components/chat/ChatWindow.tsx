@@ -61,6 +61,7 @@ interface RequirementDetails {
   notes?: string | null;
   created_at?: string;
   updated_at?: string;
+  status?: 'accepted' | 'negotiating' | null;
 }
 
 export default function ChatWindow({
@@ -208,8 +209,33 @@ export default function ChatWindow({
         if (cancelled || !mounted) return;
         
         if (res.success && res.data) {
-          setActiveRequirementDetails(res.data);
-          console.log('[ChatWindow] Loaded requirement details:', res.data);
+          // Fetch requirement responses to get the status for this conversation's manufacturer
+          try {
+            const responsesRes = await apiService.getRequirementResponses(activeRequirementId!);
+            let status: 'accepted' | 'negotiating' | null = null;
+            
+            if (responsesRes.success && responsesRes.data && Array.isArray(responsesRes.data)) {
+              // Find the response from the manufacturer in this conversation
+              const manufacturerResponse = responsesRes.data.find((resp: any) => 
+                resp.manufacturer_id === manufacturerId && 
+                (resp.status === 'accepted' || resp.status === 'negotiating')
+              );
+              
+              if (manufacturerResponse) {
+                status = manufacturerResponse.status === 'accepted' ? 'accepted' : 'negotiating';
+              }
+            }
+            
+            setActiveRequirementDetails({
+              ...res.data,
+              status
+            });
+            console.log('[ChatWindow] Loaded requirement details:', { ...res.data, status });
+          } catch (responsesErr) {
+            // If fetching responses fails, still set the requirement details without status
+            console.error('[ChatWindow] Failed to load requirement responses:', responsesErr);
+            setActiveRequirementDetails(res.data);
+          }
         } else {
           setActiveRequirementDetails(null);
         }
@@ -231,7 +257,7 @@ export default function ChatWindow({
       cancelled = true;
       mounted = false;
     };
-  }, [activeRequirementId]);
+  }, [activeRequirementId, manufacturerId]);
 
   // Load messages filtered by conversation_id AND requirement_id from backend
   useEffect(() => {
@@ -593,8 +619,21 @@ export default function ChatWindow({
           ) : activeRequirementDetails ? (
             (activeRequirementDetails.quantity || 
              activeRequirementDetails.brand_name || 
-             activeRequirementDetails.product_type) ? (
+             activeRequirementDetails.product_type ||
+             activeRequirementDetails.status) ? (
               <div className="flex items-center gap-3 flex-wrap">
+                {activeRequirementDetails.status && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-gray-500">Status:</span>
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                      activeRequirementDetails.status === 'accepted'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-yellow-100 text-yellow-700'
+                    }`}>
+                      {activeRequirementDetails.status === 'accepted' ? 'Accepted' : 'Negotiating'}
+                    </span>
+                  </div>
+                )}
                 {activeRequirementDetails.quantity && (
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs text-gray-500">Qty:</span>
