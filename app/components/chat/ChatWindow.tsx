@@ -49,6 +49,20 @@ interface RequirementTab {
   created_at?: string;
 }
 
+interface RequirementDetails {
+  id: string;
+  buyer_id: string;
+  requirement_text: string;
+  quantity?: number | null;
+  brand_name?: string | null;
+  product_type?: string | null;
+  product_link?: string | null;
+  image_url?: string | null;
+  notes?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export default function ChatWindow({
   conversationId,
   buyerId,
@@ -79,6 +93,8 @@ export default function ChatWindow({
   const [activeRequirementId, setActiveRequirementId] = useState<string | null>(requirement?.id || null);
   const [requirementTabs, setRequirementTabs] = useState<RequirementTab[]>([]);
   const [loadingRequirements, setLoadingRequirements] = useState(false);
+  const [activeRequirementDetails, setActiveRequirementDetails] = useState<RequirementDetails | null>(null);
+  const [loadingRequirementDetails, setLoadingRequirementDetails] = useState(false);
 
   const token = useMemo(() => apiService.getToken(), []);
   const wsUrl = useMemo(() => process.env.NEXT_PUBLIC_WS_URL || getApiBaseOrigin(), []);
@@ -172,6 +188,50 @@ export default function ChatWindow({
       mounted = false;
     };
   }, [conversationId]); // Re-run when conversation changes
+
+  // Fetch requirement details when activeRequirementId changes
+  useEffect(() => {
+    if (!activeRequirementId) {
+      setActiveRequirementDetails(null);
+      setLoadingRequirementDetails(false);
+      return;
+    }
+
+    let mounted = true;
+    let cancelled = false;
+
+    async function loadRequirementDetails() {
+      try {
+        setLoadingRequirementDetails(true);
+        const res = await apiService.getRequirement(activeRequirementId!);
+        
+        if (cancelled || !mounted) return;
+        
+        if (res.success && res.data) {
+          setActiveRequirementDetails(res.data);
+          console.log('[ChatWindow] Loaded requirement details:', res.data);
+        } else {
+          setActiveRequirementDetails(null);
+        }
+      } catch (err) {
+        console.error('[ChatWindow] Failed to load requirement details:', err);
+        if (!cancelled && mounted) {
+          setActiveRequirementDetails(null);
+        }
+      } finally {
+        if (!cancelled && mounted) {
+          setLoadingRequirementDetails(false);
+        }
+      }
+    }
+    
+    loadRequirementDetails();
+
+    return () => {
+      cancelled = true;
+      mounted = false;
+    };
+  }, [activeRequirementId]);
 
   // Load messages filtered by conversation_id AND requirement_id from backend
   useEffect(() => {
@@ -508,7 +568,7 @@ export default function ChatWindow({
                 <button
                   key={reqTab.id}
                   onClick={() => setActiveRequirementId(reqTab.id)}
-                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
+                  className={`px-4 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap ${
                     activeRequirementId === reqTab.id
                       ? 'bg-[#22a2f2] text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -522,6 +582,46 @@ export default function ChatWindow({
               ))
             ) : null}
           </div>
+        </div>
+      )}
+
+      {/* Requirement Details - Compact info bar below tabs */}
+      {activeRequirementId && (
+        <div className="border-b border-gray-200 bg-white px-4 py-2">
+          {loadingRequirementDetails ? (
+            <div className="text-xs text-gray-400 animate-pulse">Loading...</div>
+          ) : activeRequirementDetails ? (
+            (activeRequirementDetails.quantity || 
+             activeRequirementDetails.brand_name || 
+             activeRequirementDetails.product_type) ? (
+              <div className="flex items-center gap-3 flex-wrap">
+                {activeRequirementDetails.quantity && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-gray-500">Qty:</span>
+                    <span className="text-xs font-medium text-gray-900 bg-gray-100 px-2 py-0.5 rounded-full">
+                      {activeRequirementDetails.quantity.toLocaleString()}
+                    </span>
+                  </div>
+                )}
+                {activeRequirementDetails.brand_name && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-gray-500">Brand:</span>
+                    <span className="text-xs font-medium text-gray-900 bg-gray-100 px-2 py-0.5 rounded-full">
+                      {activeRequirementDetails.brand_name}
+                    </span>
+                  </div>
+                )}
+                {activeRequirementDetails.product_type && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-gray-500">Type:</span>
+                    <span className="text-xs font-medium text-gray-900 bg-gray-100 px-2 py-0.5 rounded-full">
+                      {activeRequirementDetails.product_type}
+                    </span>
+                  </div>
+                )}
+              </div>
+            ) : null
+          ) : null}
         </div>
       )}
 
