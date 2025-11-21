@@ -155,6 +155,13 @@ export default function BuyerPortal() {
   const [orderSearchQuery, setOrderSearchQuery] = useState('');
   const [orderFilter, setOrderFilter] = useState('all');
   const [isOrderFilterDropdownOpen, setIsOrderFilterDropdownOpen] = useState(false);
+  const [requirementStats, setRequirementStats] = useState({
+    total: 0,
+    accepted: 0,
+    pending_review: 0,
+    in_negotiation: 0
+  });
+  const [isLoadingStats, setIsLoadingStats] = useState(false);
   
   // Chats States
   const [chatSearchQuery, setChatSearchQuery] = useState('');
@@ -666,6 +673,11 @@ export default function BuyerPortal() {
         setProductLink('');
         setUploadedImage(null);
         
+        // Refresh statistics if on my-orders tab
+        if (activeTab === 'my-orders') {
+          fetchRequirementStatistics();
+        }
+        
         // Switch to requirements tab to show the newly created requirement
         setActiveTab('requirements');
       } else {
@@ -677,6 +689,30 @@ export default function BuyerPortal() {
     } finally {
       setIsSubmittingRequirement(false);
     }
+  };
+
+  // Helper function to determine requirement status based on responses
+  const getRequirementStatus = (requirement: any): 'accepted' | 'pending' | 'negotiation' => {
+    const responses = requirement.responses || [];
+    
+    if (responses.length === 0) {
+      return 'pending';
+    }
+    
+    // Check if any response is accepted
+    const hasAccepted = responses.some((r: any) => r.status === 'accepted');
+    if (hasAccepted) {
+      return 'accepted';
+    }
+    
+    // Check if any response is negotiating
+    const hasNegotiating = responses.some((r: any) => r.status === 'negotiating');
+    if (hasNegotiating) {
+      return 'negotiation';
+    }
+    
+    // Has responses but none are accepted or negotiating = pending review
+    return 'pending';
   };
 
   // Fetch Requirements
@@ -727,6 +763,31 @@ export default function BuyerPortal() {
   // Fetch requirements when tab changes to requirements
   useEffect(() => {
     if (activeTab === 'requirements' && step === 'dashboard') {
+      fetchRequirements();
+    }
+  }, [activeTab, step]);
+
+  // Fetch requirement statistics
+  const fetchRequirementStatistics = async () => {
+    setIsLoadingStats(true);
+    try {
+      const response = await apiService.getBuyerRequirementStatistics();
+      if (response && response.success && response.data) {
+        setRequirementStats(response.data);
+      } else {
+        console.error('Failed to fetch requirement statistics');
+      }
+    } catch (error) {
+      console.error('Failed to fetch requirement statistics:', error);
+    } finally {
+      setIsLoadingStats(false);
+    }
+  };
+
+  // Fetch statistics and requirements when my-orders tab is active
+  useEffect(() => {
+    if (activeTab === 'my-orders' && step === 'dashboard') {
+      fetchRequirementStatistics();
       fetchRequirements();
     }
   }, [activeTab, step]);
@@ -783,6 +844,10 @@ export default function BuyerPortal() {
         alert(`Quote ${status} successfully!`);
         // Refresh requirements to show updated status
         fetchRequirements();
+        // Refresh statistics if on my-orders tab
+        if (activeTab === 'my-orders') {
+          fetchRequirementStatistics();
+        }
       } else {
         alert(response.message || `Failed to ${status} quote. Please try again.`);
       }
@@ -809,6 +874,10 @@ export default function BuyerPortal() {
         await apiService.updateRequirementResponseStatus(response.id, 'negotiating');
         // Refresh requirements to show updated status
         fetchRequirements();
+        // Refresh statistics if on my-orders tab
+        if (activeTab === 'my-orders') {
+          fetchRequirementStatistics();
+        }
       } catch (statusError: any) {
         console.error('Failed to update response status:', statusError);
         // Continue with chat opening even if status update fails
@@ -1736,14 +1805,14 @@ export default function BuyerPortal() {
 
               {/* Stats Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                {/* Total Orders Card */}
+                {/* Total Requirements Card */}
                 <div className="group relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-[#22a2f2]/15 to-[#1b8bd0]/10 rounded-2xl blur opacity-40 group-hover:opacity-70 transition duration-300"></div>
                   <div className="relative bg-white rounded-2xl border border-[#22a2f2]/30 p-6 hover:border-[#22a2f2]/60 transition-all">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-[#22a2f2] font-semibold mb-1">Total Orders</p>
-                        <p className="text-3xl font-bold text-black">56</p>
+                        <p className="text-sm text-[#22a2f2] font-semibold mb-1">Total Requirements</p>
+                        <p className="text-3xl font-bold text-black">{isLoadingStats ? '...' : requirementStats.total}</p>
                       </div>
                       <div className="p-3 bg-[#22a2f2]/15 rounded-xl shadow-lg shadow-[#22a2f2]/20 text-[#22a2f2]">
                         <svg
@@ -1771,7 +1840,7 @@ export default function BuyerPortal() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-[#1b8bd0] font-semibold mb-1">Accepted</p>
-                        <p className="text-3xl font-bold text-[#22a2f2]">0</p>
+                        <p className="text-3xl font-bold text-[#22a2f2]">{isLoadingStats ? '...' : requirementStats.accepted}</p>
                       </div>
                       <div className="p-3 bg-[#22a2f2]/15 rounded-xl shadow-lg shadow-[#22a2f2]/20 text-[#22a2f2]">
                         <svg
@@ -1792,14 +1861,14 @@ export default function BuyerPortal() {
                   </div>
                 </div>
 
-                {/* Pending Review Card */}
+                {/* Pending Card */}
                 <div className="group relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-[#22a2f2]/15 to-[#1b8bd0]/10 rounded-2xl blur opacity-40 group-hover:opacity-70 transition duration-300"></div>
                   <div className="relative bg-white rounded-2xl border border-[#22a2f2]/30 p-6 hover:border-[#22a2f2]/60 transition-all">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-[#1b8bd0] font-semibold mb-1">Pending Review</p>
-                        <p className="text-3xl font-bold text-[#22a2f2]">0</p>
+                        <p className="text-sm text-[#1b8bd0] font-semibold mb-1">Pending</p>
+                        <p className="text-3xl font-bold text-[#22a2f2]">{isLoadingStats ? '...' : requirementStats.pending_review}</p>
                       </div>
                       <div className="p-3 bg-[#22a2f2]/15 rounded-xl shadow-lg shadow-[#22a2f2]/20 text-[#22a2f2]">
                         <svg
@@ -1820,14 +1889,14 @@ export default function BuyerPortal() {
                   </div>
                 </div>
 
-                {/* In Negotiation Card */}
+                {/* Negotiating Card */}
                 <div className="group relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-[#22a2f2]/15 to-[#1b8bd0]/10 rounded-2xl blur opacity-40 group-hover:opacity-70 transition duration-300"></div>
                   <div className="relative bg-white rounded-2xl border border-[#22a2f2]/30 p-6 hover:border-[#22a2f2]/60 transition-all">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-[#1b8bd0] font-semibold mb-1">In Negotiation</p>
-                        <p className="text-3xl font-bold text-[#22a2f2]">0</p>
+                        <p className="text-sm text-[#1b8bd0] font-semibold mb-1">Negotiating</p>
+                        <p className="text-3xl font-bold text-[#22a2f2]">{isLoadingStats ? '...' : requirementStats.in_negotiation}</p>
                       </div>
                       <div className="p-3 bg-[#22a2f2]/15 rounded-xl shadow-lg shadow-[#22a2f2]/20 text-[#22a2f2]">
                         <svg
@@ -1892,13 +1961,9 @@ export default function BuyerPortal() {
                           : orderFilter === 'accepted' 
                           ? 'Accepted' 
                           : orderFilter === 'pending'
-                          ? 'Pending Review'
+                          ? 'Pending'
                           : orderFilter === 'negotiation'
-                          ? 'In Negotiation'
-                          : orderFilter === 'completed'
-                          ? 'Completed'
-                          : orderFilter === 'cancelled'
-                          ? 'Cancelled'
+                          ? 'Negotiating'
                           : 'All Orders'}
                       </span>
                       <svg 
@@ -1922,10 +1987,8 @@ export default function BuyerPortal() {
                           {[
                             { value: 'all', label: 'All Orders' },
                             { value: 'accepted', label: 'Accepted' },
-                            { value: 'pending', label: 'Pending Review' },
-                            { value: 'negotiation', label: 'In Negotiation' },
-                            { value: 'completed', label: 'Completed' },
-                            { value: 'cancelled', label: 'Cancelled' }
+                            { value: 'pending', label: 'Pending' },
+                            { value: 'negotiation', label: 'Negotiating' }
                           ].map((option) => (
                             <button
                               key={option.value}
@@ -1948,35 +2011,163 @@ export default function BuyerPortal() {
                 </div>
               </div>
 
-              {/* Orders List / Empty State */}
-              <div className="bg-white rounded-xl border border-[#22a2f2]/30 p-12">
-                <div className="flex flex-col items-center justify-center text-center">
-                  {/* Package Icon */}
-                  <div className="relative mb-6">
-                    <div className="absolute inset-0 bg-[#22a2f2]/30 rounded-full blur-xl opacity-40"></div>
-                    <div className="relative bg-[#22a2f2]/10 rounded-full p-6 border border-[#22a2f2]/30">
-                      <svg
-                        className="w-16 h-16 text-[#22a2f2]"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                        />
-                      </svg>
+              {/* Requirements List */}
+              {isLoadingRequirements ? (
+                <div className="bg-white rounded-xl border border-[#22a2f2]/30 p-12">
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#22a2f2] mb-4"></div>
+                    <p className="text-gray-500">Loading requirements...</p>
+                  </div>
+                </div>
+              ) : (() => {
+                // Filter requirements based on search query and filter
+                const filteredRequirements = requirements.filter((req: any) => {
+                  // Search filter
+                  const searchLower = orderSearchQuery.toLowerCase();
+                  const matchesSearch = !orderSearchQuery || 
+                    req.requirement_text?.toLowerCase().includes(searchLower) ||
+                    req.brand_name?.toLowerCase().includes(searchLower) ||
+                    req.product_type?.toLowerCase().includes(searchLower) ||
+                    req.id?.toLowerCase().includes(searchLower);
+                  
+                  if (!matchesSearch) return false;
+                  
+                  // Status filter
+                  if (orderFilter === 'all') return true;
+                  
+                  const status = getRequirementStatus(req);
+                  return status === orderFilter;
+                });
+                
+                return filteredRequirements.length > 0 ? (
+                  <div className="bg-white rounded-xl border border-[#22a2f2]/30 overflow-hidden">
+                    {/* Table Header */}
+                    <div className="bg-gray-50 border-b border-gray-200 px-6 py-3">
+                      <div className="grid grid-cols-12 gap-4 text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                        <div className="col-span-4">Requirement</div>
+                        <div className="col-span-2">Brand</div>
+                        <div className="col-span-2">Type</div>
+                        <div className="col-span-1">Quantity</div>
+                        <div className="col-span-2">Status</div>
+                        <div className="col-span-1">Delivery</div>
+                      </div>
+                    </div>
+                    
+                    {/* Table Body */}
+                    <div className="divide-y divide-gray-200">
+                      {filteredRequirements.map((req: any) => {
+                        const status = getRequirementStatus(req);
+                        const statusColors = {
+                          accepted: 'bg-green-100 text-green-700',
+                          pending: 'bg-yellow-100 text-yellow-700',
+                          negotiation: 'bg-orange-100 text-orange-700'
+                        };
+                      const statusLabels = {
+                        accepted: 'Accepted',
+                        pending: 'Pending',
+                        negotiation: 'Negotiating'
+                      };
+                        
+                        // Get best quote
+                        const acceptedResponse = req.responses?.find((r: any) => r.status === 'accepted');
+                        const negotiatingResponse = req.responses?.find((r: any) => r.status === 'negotiating');
+                        const bestResponse = acceptedResponse || negotiatingResponse || req.responses?.[0];
+                        
+                        return (
+                          <div key={req.id} className="px-6 py-4 hover:bg-gray-50 transition-colors">
+                            <div className="grid grid-cols-12 gap-4 items-center">
+                              {/* Requirement */}
+                              <div className="col-span-4">
+                                <p className="text-sm font-medium text-black line-clamp-2">
+                                  {req.requirement_text || 'Requirement'}
+                                </p>
+                                {req.image_url && (
+                                  <img 
+                                    src={req.image_url} 
+                                    alt="Requirement" 
+                                    className="w-12 h-12 object-cover rounded mt-2 border border-gray-200"
+                                  />
+                                )}
+                              </div>
+                              
+                              {/* Brand */}
+                              <div className="col-span-2">
+                                <p className="text-sm text-gray-600">
+                                  {req.brand_name || '—'}
+                                </p>
+                              </div>
+                              
+                              {/* Type */}
+                              <div className="col-span-2">
+                                <p className="text-sm text-gray-600">
+                                  {req.product_type || '—'}
+                                </p>
+                              </div>
+                              
+                              {/* Quantity */}
+                              <div className="col-span-1">
+                                <p className="text-sm text-gray-600">
+                                  {req.quantity || '—'}
+                                </p>
+                              </div>
+                              
+                              {/* Status */}
+                              <div className="col-span-2">
+                                <span className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${statusColors[status]}`}>
+                                  {statusLabels[status]}
+                                </span>
+                              </div>
+                              
+                              {/* Delivery */}
+                              <div className="col-span-1">
+                                {bestResponse?.delivery_time ? (
+                                  <p className="text-sm text-gray-600">
+                                    {bestResponse.delivery_time}
+                                  </p>
+                                ) : (
+                                  <p className="text-sm text-gray-400">—</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
-                  
-                  <h3 className="text-xl font-semibold text-black mb-2">No orders found</h3>
-                  <p className="text-gray-400 max-w-md">
-                    Your orders will appear here once manufacturers respond to your requirements
-                  </p>
-                </div>
-              </div>
+                ) : (
+                  <div className="bg-white rounded-xl border border-[#22a2f2]/30 p-12">
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <div className="relative mb-6">
+                        <div className="absolute inset-0 bg-[#22a2f2]/30 rounded-full blur-xl opacity-40"></div>
+                        <div className="relative bg-[#22a2f2]/10 rounded-full p-6 border border-[#22a2f2]/30">
+                          <svg
+                            className="w-16 h-16 text-[#22a2f2]"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1.5}
+                              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                      
+                      <h3 className="text-xl font-semibold text-black mb-2">
+                        {orderSearchQuery || orderFilter !== 'all' ? 'No requirements found' : 'No requirements yet'}
+                      </h3>
+                      <p className="text-gray-400 max-w-md">
+                        {orderSearchQuery || orderFilter !== 'all' 
+                          ? 'Try adjusting your search or filter criteria'
+                          : 'Your requirements will appear here once you submit them'}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
           {activeTab === 'chats' && (

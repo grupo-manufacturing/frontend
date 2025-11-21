@@ -707,6 +707,16 @@ class ApiService {
   async getPendingOrders(filters = {}) {
     return this.getOrders({ ...filters, status: 'submitted' });
   }
+
+  /**
+   * Get buyer requirement statistics
+   * @returns {Promise} Response data with statistics (total, accepted, pending_review, in_negotiation)
+   */
+  async getBuyerRequirementStatistics() {
+    return this.request('/requirements/buyer/statistics', {
+      method: 'GET'
+    });
+  }
 }
 
 // Create singleton instance
