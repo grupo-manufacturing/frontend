@@ -121,16 +121,6 @@ export default function ManufacturerProfile() {
     }
   };
 
-  const handleLogout = async () => {
-    localStorage.removeItem('manufacturerPhoneNumber');
-    localStorage.removeItem('manufacturerOnboardingComplete');
-    localStorage.removeItem('user_role');
-    await apiService.logout('/manufacturer-portal');
-    if (typeof window !== 'undefined') {
-      window.location.href = '/manufacturer-portal';
-    }
-  };
-
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}

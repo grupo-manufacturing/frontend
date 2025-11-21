@@ -102,15 +102,6 @@ export default function BuyerProfile() {
     }
   };
 
-  const handleLogout = async () => {
-    localStorage.removeItem('buyerPhoneNumber');
-    localStorage.removeItem('user_role');
-    await apiService.logout('/buyer-portal');
-    if (typeof window !== 'undefined') {
-      window.location.href = '/buyer-portal';
-    }
-  };
-
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}

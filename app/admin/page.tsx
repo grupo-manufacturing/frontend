@@ -14,7 +14,6 @@ interface Manufacturer {
   unit_name?: string;
   business_name?: string;
   business_type?: string;
-  contact_person_name?: string;
   verified: boolean;
   verification_status?: string;
   onboarding_completed: boolean;
@@ -32,36 +31,26 @@ interface Buyer {
 interface Order {
   id: string;
   requirement: {
-    id: string;
     requirement_text: string;
     quantity?: number;
-    brand_name?: string;
     product_type?: string;
-    created_at: string;
     buyer: {
-      id: string;
       full_name?: string;
       phone_number: string;
-      business_address?: string;
     };
   };
   manufacturer: {
-    id: string;
     unit_name?: string;
     phone_number: string;
     location?: string;
-    business_type?: string;
   };
   quoted_price: number;
   price_per_unit: number;
   delivery_time: string;
-  notes?: string;
   status: string;
   created_at: string;
   updated_at: string;
 }
-
-const PRIMARY_COLOR = '#22a2f2';
 
 const VIEW_TABS: Array<{ id: AdminView; label: string; description: string }> = [
   { id: 'overview', label: 'Overview', description: 'Key metrics across buyers and manufacturers' },

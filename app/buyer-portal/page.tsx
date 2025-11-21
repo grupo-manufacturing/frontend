@@ -2,26 +2,13 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import AIChatbot from '../components/AIChatbot';
 import apiService from '../lib/apiService';
 import ChatList from '../components/chat/ChatList';
 import ChatWindow from '../components/chat/ChatWindow';
 
 type TabType = 'designs' | 'custom-quote' | 'my-orders' | 'chats' | 'requirements' | 'cart';
-
-type Manufacturer = {
-  id: string | number;
-  unit_name?: string;
-  verification_status?: string;
-  msme_number?: string;
-  product_types?: string[];
-  daily_capacity?: number;
-  is_verified?: boolean;
-  location?: string;
-  business_type?: string;
-};
 
 export default function BuyerPortal() {
   const [countryCode, setCountryCode] = useState('+91');
@@ -125,17 +112,6 @@ export default function BuyerPortal() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   
-  // Instant Quote Form States
-  const [brandName, setBrandName] = useState('');
-  const [productType, setProductType] = useState('');
-  const [fabricType, setFabricType] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [colors, setColors] = useState('');
-  const [sizes, setSizes] = useState('');
-  const [additionalDetails, setAdditionalDetails] = useState('');
-  const [quotes, setQuotes] = useState<any[]>([]);
-  const [isLoadingQuotes, setIsLoadingQuotes] = useState(false);
-  
   // Custom Quote Form States
   const [requirement, setRequirement] = useState('');
   const [customQuantity, setCustomQuantity] = useState('');
@@ -164,15 +140,6 @@ export default function BuyerPortal() {
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   
   // Chats States
-  const [chatSearchQuery, setChatSearchQuery] = useState('');
-  const [conversations, setConversations] = useState<any[]>([]);
-  const [selectedManufacturer, setSelectedManufacturer] = useState<any | null>(null);
-  const [messages, setMessages] = useState<any[]>([]);
-  const [newMessage, setNewMessage] = useState('');
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [isManufacturerTyping, setIsManufacturerTyping] = useState(false);
-  // Chat inbox state
-  const [showChatInbox, setShowChatInbox] = useState(false);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [activeBuyerId, setActiveBuyerId] = useState<string | null>(null);
   const [activeManufacturerId, setActiveManufacturerId] = useState<string | null>(null);
@@ -500,137 +467,7 @@ export default function BuyerPortal() {
     setOtp('');
   };
 
-  const handleGenerateQuotes = async () => {
-    // Validate required fields
-    if (!brandName || !productType || !quantity) {
-      alert('Please fill in Brand Name, Product Type, and Quantity');
-      return;
-    }
-
-    setIsLoadingQuotes(true);
-    
-    try {
-      // Fetch real manufacturers from backend
-      const response = await apiService.getAllManufacturers({
-        limit: 3
-      });
-
-      if (response.success && response.data.manufacturers && response.data.manufacturers.length > 0) {
-        const manufacturerList: Manufacturer[] = response.data.manufacturers as Manufacturer[];
-        
-        // Map real manufacturers to quote format with mock pricing
-        const mappedQuotes = manufacturerList.map((manufacturer: Manufacturer, index: number) => {
-          // Calculate mock pricing based on manufacturer data
-          const dailyCapacity = manufacturer.daily_capacity || 1000;
-          const basePrice = Math.max(10, 30 - (dailyCapacity / 500)); // Higher capacity = lower price
-          const adjustedPrice = basePrice * (1 + (index * 0.15)); // Slight price variation
-          const totalPrice = parseFloat(adjustedPrice.toFixed(2)) * parseInt(quantity);
-          const pricePerUnit = parseFloat(adjustedPrice.toFixed(2));
-          
-          // Generate mock features based on manufacturer data
-          const features = [];
-          if (manufacturer.is_verified) features.push('Verified Manufacturer');
-          if (manufacturer.verification_status === 'approved') features.push('Approved by Grupo');
-          if (manufacturer.msme_number) features.push('MSME Certified');
-          if (manufacturer.product_types && manufacturer.product_types.length > 0) {
-            features.push(`Specializes in ${manufacturer.product_types[0]}`);
-          }
-          if ((manufacturer.daily_capacity ?? 0) > 500) {
-            features.push('Large Volume Capacity');
-          }
-          if (features.length < 3) {
-            features.push('Quality Assured', 'On-Time Delivery', 'Competitive Pricing');
-          }
-          
-          // Generate delivery estimate based on capacity
-          let deliveryDays = '25-30';
-          if (dailyCapacity > 2000) deliveryDays = '20-25';
-          else if (dailyCapacity < 500) deliveryDays = '30-35';
-
-          return {
-            id: manufacturer.id,
-            manufacturer: manufacturer.unit_name || `Manufacturer ${index + 1}`,
-            badge: manufacturer.verification_status === 'approved' ? 'Premium' : 'Standard',
-            rating: parseFloat((4.2 + (index * 0.2)).toFixed(1)), // Mock ratings from 4.2 to 4.6, rounded to 1 decimal
-            totalPrice: Math.round(totalPrice),
-            pricePerUnit: pricePerUnit,
-            delivery: `${deliveryDays} days`,
-            features: features.slice(0, 5), // Limit to 5 features
-            bestValue: index === 1, // Middle manufacturer as best value
-            location: manufacturer.location || 'Location not specified',
-            businessType: manufacturer.business_type || 'Manufacturing',
-            capacity: manufacturer.daily_capacity || 0
-          };
-        });
-
-        setQuotes(mappedQuotes);
-      } else {
-        // Fallback to mock data if no manufacturers found
-        console.warn('No manufacturers found, using mock data');
-        const mockQuotes = [
-          {
-            id: 1,
-            manufacturer: 'Premium Manufacturer',
-            badge: 'Premium',
-            rating: 4.8,
-            totalPrice: 5760,
-            pricePerUnit: 19.2,
-            delivery: '20-25 days',
-            features: [
-              'GOTS Certified Materials',
-              'Premium Quality Control',
-              'Custom Packaging Available',
-              'Free Sample Before Order',
-              'Eco-Friendly Production'
-            ],
-            bestValue: true
-          },
-          {
-            id: 2,
-            manufacturer: 'Standard Manufacturer',
-            badge: 'Standard',
-            rating: 4.5,
-            totalPrice: 4800,
-            pricePerUnit: 16,
-            delivery: '25-30 days',
-            features: [
-              'Quality Certified Materials',
-              'Standard Quality Control',
-              'Bulk Order Discounts',
-              'Fast Turnaround',
-              'Reliable Shipping'
-            ],
-            bestValue: false
-          },
-          {
-            id: 3,
-            manufacturer: 'Budget Manufacturer',
-            badge: 'Standard',
-            rating: 4.2,
-            totalPrice: 4080,
-            pricePerUnit: 13.6,
-            delivery: '30-35 days',
-            features: [
-              'Cost-Effective Solution',
-              'Basic Quality Control',
-              'Flexible Payment Terms',
-              'Large Volume Capacity',
-              'Competitive Pricing'
-            ],
-            bestValue: false
-          }
-        ];
-        setQuotes(mockQuotes);
-      }
-    } catch (error) {
-      console.error('Failed to fetch manufacturers:', error);
-      alert('Failed to load manufacturers. Please try again.');
-      setQuotes([]);
-    } finally {
-      setIsLoadingQuotes(false);
-    }
-  };
-
+  
   // Handle Custom Quote Submission
   const handleSubmitRequirement = async () => {
     // Validate required field
@@ -892,7 +729,6 @@ export default function BuyerPortal() {
       }
 
       setActiveTab('chats');
-      setShowChatInbox(false);
 
       const ensureRes = await apiService.ensureConversation(buyerId, manufacturerId);
       const conversationId = ensureRes?.data?.conversation?.id;
@@ -919,83 +755,6 @@ export default function BuyerPortal() {
       alert(error?.message || 'Failed to open chat. Please try again.');
     } finally {
       setNegotiatingResponseId(null);
-    }
-  };
-
-  // removed legacy mock handleOpenChat
-
-  const handleSendMessage = () => {
-    if (!newMessage.trim() || !selectedManufacturer) return;
-    
-    const message = {
-      id: messages.length + 1,
-      sender: 'buyer',
-      text: newMessage,
-      timestamp: new Date().toISOString()
-    };
-    
-    setMessages(prev => [...prev, message]);
-    setNewMessage('');
-    
-    // Update conversation's last message
-    setConversations(prev => prev.map(conv => 
-      conv.manufacturerId === selectedManufacturer.id 
-        ? { ...conv, lastMessage: newMessage, timestamp: new Date().toISOString() }
-        : conv
-    ));
-    
-    // Simulate manufacturer response after 2 seconds
-    setIsManufacturerTyping(true);
-    setTimeout(() => {
-      const response = {
-        id: messages.length + 2,
-        sender: 'manufacturer',
-        text: 'Thank you for your message. We will get back to you shortly with more details.',
-        timestamp: new Date().toISOString()
-      };
-      setMessages(prev => [...prev, response]);
-      setIsManufacturerTyping(false);
-    }, 2000);
-  };
-
-  // Mock attachment handlers
-  const handleAttachClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileSelected = (e: any) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file || !selectedManufacturer) return;
-
-    const objectUrl = URL.createObjectURL(file);
-    const isImage = file.type.startsWith('image/');
-
-    const attachmentMessage: any = {
-      id: messages.length + 1,
-      sender: 'buyer',
-      timestamp: new Date().toISOString(),
-      attachment: {
-        type: isImage ? 'image' : 'file',
-        url: objectUrl,
-        name: file.name,
-        size: file.size,
-        mime: file.type
-      }
-    };
-
-    setMessages(prev => [...prev, attachmentMessage]);
-    setConversations(prev => prev.map(conv => 
-      conv.manufacturerId === selectedManufacturer.id 
-        ? { 
-            ...conv, 
-            lastMessage: isImage ? '📷 Image' : `📎 ${file.name}`, 
-            timestamp: new Date().toISOString() 
-          }
-        : conv
-    ));
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
     }
   };
 
@@ -2229,15 +1988,6 @@ export default function BuyerPortal() {
                         </div>
                         <h3 className="text-lg font-semibold text-black mb-2">Select a conversation</h3>
                         <p className="text-sm text-gray-500">Choose a manufacturer from the list to start chatting</p>
-                        <button
-                          onClick={() => setShowChatInbox(true)}
-                          className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-[#22a2f2] hover:bg-[#1b8bd0] text-white rounded-lg font-medium transition-colors shadow-sm hover:shadow-md"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v7a2 2 0 01-2 2h-6l-4 4v-4H7a2 2 0 01-2-2v-1" />
-                          </svg>
-                          Open Inbox
-                        </button>
                       </div>
                     </div>
                   )}

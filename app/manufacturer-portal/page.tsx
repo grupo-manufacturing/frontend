@@ -3,7 +3,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import apiService from '../lib/apiService';
 import ChatList from '../components/chat/ChatList';
 import ChatWindow from '../components/chat/ChatWindow';
@@ -132,8 +131,6 @@ export default function ManufacturerPortal() {
   });
 
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
@@ -359,75 +356,6 @@ export default function ManufacturerPortal() {
       }
     } catch (error) {
       console.error('Failed to check onboarding status:', error);
-    }
-  };
-
-  // Load profile data when profile modal is opened
-  const loadProfileData = async () => {
-    setIsLoadingProfile(true);
-    try {
-      const response = await apiService.getManufacturerProfile();
-      if (response.success && response.data.profile) {
-        const profile = response.data.profile;
-        setFormData({
-          unitName: profile.unit_name || '',
-          businessType: profile.business_type || '',
-          gstNumber: profile.gst_number || '',
-          productTypes: profile.product_types || [],
-          capacity: profile.daily_capacity?.toString() || '',
-          location: profile.location || '',
-          panNumber: profile.pan_number || '',
-          coiNumber: profile.coi_number || '',
-          msmeFile: null,
-          otherCertificates: null
-        });
-        const resolvedName = (profile.contact_person_name || profile.unit_name || profile.business_name || '').trim();
-        if (resolvedName) {
-          setDisplayName(resolvedName);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load profile data:', error);
-      alert('Failed to load profile data. Please try again.');
-    } finally {
-      setIsLoadingProfile(false);
-    }
-  };
-
-  // Handle profile update
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      // Convert form data to backend format
-      const profileData = {
-        unit_name: formData.unitName,
-        business_type: formData.businessType,
-        gst_number: formData.gstNumber,
-        product_types: formData.productTypes,
-        daily_capacity: parseInt(formData.capacity) || 0,
-        location: formData.location,
-        pan_number: formData.panNumber,
-        coi_number: formData.coiNumber
-      };
-      
-      // Update profile data
-      const response = await apiService.updateManufacturerProfile(profileData);
-      
-      if (response.success) {
-        console.log('Profile updated successfully:', response.data);
-        alert('Profile updated successfully!');
-        const resolvedName = (formData.unitName || '').trim();
-        if (resolvedName) {
-          setDisplayName(resolvedName);
-        }
-        setShowProfile(false);
-      } else {
-        throw new Error(response.message || 'Failed to update profile');
-      }
-    } catch (error) {
-      console.error('Failed to update profile:', error);
-      alert('Failed to update profile. Please try again.');
     }
   };
 
