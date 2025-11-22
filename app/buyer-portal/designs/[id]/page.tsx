@@ -63,7 +63,7 @@ export default function DesignDetailPage() {
 
   useEffect(() => {
     // Calculate total quantity from size quantities
-    const total = Object.values(sizeQuantities).reduce((sum, qty) => {
+    const total = Object.values(sizeQuantities).reduce((sum: number, qty) => {
       const numQty = typeof qty === 'number' ? qty : 0;
       return sum + numQty;
     }, 0);
@@ -143,7 +143,7 @@ export default function DesignDetailPage() {
     }
     
     const maxQty = selectedQuantityRange === '1-50' ? 50 : selectedQuantityRange === '51-100' ? 100 : 200;
-    const currentTotal = Object.values(sizeQuantities).reduce((sum, qty) => {
+    const currentTotal = Object.values(sizeQuantities).reduce((sum: number, qty) => {
       const numQty = typeof qty === 'number' ? qty : 0;
       return sum + numQty;
     }, 0);
