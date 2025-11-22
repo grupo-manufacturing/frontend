@@ -8,7 +8,7 @@ import apiService from '../lib/apiService';
 import ChatList from '../components/chat/ChatList';
 import ChatWindow from '../components/chat/ChatWindow';
 
-type TabType = 'designs' | 'custom-quote' | 'my-orders' | 'chats' | 'requirements' | 'cart';
+type TabType = 'designs' | 'custom-quote' | 'my-orders' | 'chats' | 'requirements';
 
 export default function BuyerPortal() {
   const [countryCode, setCountryCode] = useState('+91');
@@ -111,6 +111,8 @@ export default function BuyerPortal() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
+  const [designs, setDesigns] = useState<any[]>([]);
+  const [isLoadingDesigns, setIsLoadingDesigns] = useState(false);
   
   // Custom Quote Form States
   const [requirement, setRequirement] = useState('');
@@ -527,6 +529,40 @@ export default function BuyerPortal() {
       setIsSubmittingRequirement(false);
     }
   };
+
+  // Fetch designs
+  const fetchDesigns = async () => {
+    setIsLoadingDesigns(true);
+    try {
+      const filters: any = {};
+      if (selectedCategory !== 'all') {
+        filters.category = selectedCategory;
+      }
+      if (searchQuery.trim()) {
+        filters.search = searchQuery.trim();
+      }
+      
+      const response = await apiService.getDesigns(filters);
+      if (response.success && response.data) {
+        setDesigns(response.data.designs || []);
+      } else {
+        console.error('Failed to fetch designs');
+        setDesigns([]);
+      }
+    } catch (error) {
+      console.error('Failed to fetch designs:', error);
+      setDesigns([]);
+    } finally {
+      setIsLoadingDesigns(false);
+    }
+  };
+
+  // Fetch designs when designs tab is active
+  useEffect(() => {
+    if (activeTab === 'designs' && step === 'dashboard') {
+      fetchDesigns();
+    }
+  }, [activeTab, step, selectedCategory, searchQuery]);
 
   // Helper function to determine requirement status based on responses
   const getRequirementStatus = (requirement: any): 'accepted' | 'pending' | 'negotiation' => {
@@ -1092,34 +1128,6 @@ export default function BuyerPortal() {
                 <span className="relative z-10 hidden sm:inline">Requirements</span>
               </button>
 
-              {/* Cart Tab */}
-              <button
-                onClick={() => setActiveTab('cart')}
-                className={`relative flex items-center gap-2 px-3 lg:px-4 py-3 font-medium text-sm whitespace-nowrap transition-all rounded-t-lg ${
-                  activeTab === 'cart'
-                    ? 'text-black'
-                    : 'text-gray-500 hover:text-black'
-                }`}
-              >
-                {activeTab === 'cart' && (
-                  <div className="absolute inset-0 bg-gray-100 rounded-t-lg border-b-2 border-black"></div>
-                )}
-                <svg
-                  className="relative z-10 w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-                  />
-                </svg>
-                <span className="relative z-10 hidden sm:inline">Cart</span>
-              </button>
-
             </div>
           </div>
         </nav>
@@ -1255,32 +1263,84 @@ export default function BuyerPortal() {
                 </div>
               </div>
 
-              {/* Empty State */}
-              <div className="flex flex-col items-center justify-center py-20">
-                <div className="text-center max-w-md">
-                  <div className="relative group mb-6">
-                    <div className="bg-[#22a2f2]/10 rounded-2xl p-8 border border-[#22a2f2]/30 shadow-sm">
-                      <svg
-                        className="mx-auto h-20 w-20 text-[#22a2f2]"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                  <p className="text-lg font-semibold text-[#22a2f2] mb-2">No designs found matching your criteria</p>
-                  <p className="text-sm text-gray-500">
-                    Try adjusting your search terms or category filter
-                  </p>
+              {/* Loading State */}
+              {isLoadingDesigns && (
+                <div className="flex flex-col items-center justify-center py-20">
+                  <svg className="animate-spin w-12 h-12 text-[#22a2f2] mb-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <p className="text-gray-500">Loading designs...</p>
                 </div>
-              </div>
+              )}
+
+              {/* Designs Grid */}
+              {!isLoadingDesigns && designs.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {designs.map((design: any) => (
+                    <div
+                      key={design.id}
+                      className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-[#22a2f2]/50 transition-all duration-200 overflow-hidden group cursor-pointer"
+                      onClick={() => {
+                        window.location.href = `/buyer-portal/designs/${design.id}`;
+                      }}
+                    >
+                      {/* Product Image */}
+                      <div className="relative aspect-square overflow-hidden bg-gray-100">
+                        <img
+                          src={design.image_url}
+                          alt={design.product_name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                      
+                      {/* Product Info */}
+                      <div className="p-5">
+                        <div className="mb-2 flex items-center justify-between gap-2">
+                          <h3 className="text-lg font-bold text-gray-900 line-clamp-1 group-hover:text-[#22a2f2] transition-colors flex-1">{design.product_name}</h3>
+                          <svg 
+                            className="w-5 h-5 text-gray-400 group-hover:text-[#22a2f2] transition-colors flex-shrink-0" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Empty State */}
+              {!isLoadingDesigns && designs.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-20">
+                  <div className="text-center max-w-md">
+                    <div className="relative group mb-6">
+                      <div className="bg-[#22a2f2]/10 rounded-2xl p-8 border border-[#22a2f2]/30 shadow-sm">
+                        <svg
+                          className="mx-auto h-20 w-20 text-[#22a2f2]"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                    <p className="text-lg font-semibold text-[#22a2f2] mb-2">No designs found matching your criteria</p>
+                    <p className="text-sm text-gray-500">
+                      Try adjusting your search terms or category filter
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
           {activeTab === 'custom-quote' && (
@@ -2276,65 +2336,6 @@ export default function BuyerPortal() {
                   </div>
                 </div>
               )}
-            </div>
-          )}
-          {activeTab === 'cart' && (
-            <div>
-              {/* Header Section */}
-              <div className="mb-8">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22a2f2]/10 text-[#22a2f2] text-sm font-semibold mb-3">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                  <span>Saved selections</span>
-                </div>
-                <h1 className="text-3xl font-bold text-black mb-2">Shopping Cart</h1>
-                <p className="text-gray-500">Review your selected designs before checkout</p>
-              </div>
-
-              {/* Empty State */}
-              <div className="bg-white rounded-xl border border-[#22a2f2]/30 p-12">
-                <div className="flex flex-col items-center justify-center text-center">
-                  {/* Shopping Bag Icon */}
-                  <div className="relative mb-6">
-                    <div className="absolute inset-0 bg-[#22a2f2]/30 rounded-full blur-xl opacity-40"></div>
-                    <div className="relative bg-[#22a2f2]/10 rounded-full p-6 border border-[#22a2f2]/30">
-                      <svg
-                        className="w-16 h-16 text-[#22a2f2]"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                  
-                  <h3 className="text-xl font-semibold text-black mb-2">Your cart is empty</h3>
-                  <p className="text-gray-400 max-w-md">
-                    Browse our design marketplace to discover and add products to your cart
-                  </p>
-                  
-                  {/* CTA Button */}
-                  <button
-                    onClick={() => setActiveTab('designs')}
-                    className="mt-6 relative group overflow-hidden rounded-xl"
-                  >
-                    <div className="absolute inset-0 bg-[#22a2f2] transition-transform group-hover:scale-105 rounded-xl"></div>
-                    <div className="relative px-6 py-3 font-semibold text-white flex items-center gap-2">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <span>Browse Designs</span>
-                    </div>
-                  </button>
-                </div>
-              </div>
             </div>
           )}
         </main>

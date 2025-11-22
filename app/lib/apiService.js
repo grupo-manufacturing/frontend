@@ -717,6 +717,115 @@ class ApiService {
       method: 'GET'
     });
   }
+
+  // =============================================
+  // DESIGNS API
+  // =============================================
+
+  /**
+   * Upload design image
+   * @param {File} file - Image file to upload
+   * @returns {Promise} Upload result with image URL and metadata
+   */
+  async uploadDesignImage(file) {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const token = this.getToken();
+    const url = `${this.baseURL}/designs/upload-image`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: token ? `Bearer ${token}` : ''
+        },
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          this.handleTokenExpiration();
+          throw new Error('Your session has expired. Please log in again.');
+        }
+        throw new Error(data.message || `Upload failed! status: ${response.status}`);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Design image upload failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create a new design
+   * @param {Object} designData - Design data (title, description, category, image_url, price_per_unit, min_quantity, tags)
+   * @returns {Promise} Response data
+   */
+  async createDesign(designData) {
+    return this.request('/designs', {
+      method: 'POST',
+      body: JSON.stringify(designData)
+    });
+  }
+
+  /**
+   * Get all designs
+   * @param {Object} filters - Optional filters (category, search, limit, offset)
+   * @returns {Promise} Response data
+   */
+  async getDesigns(filters = {}) {
+    const queryParams = new URLSearchParams();
+    if (filters.category) queryParams.append('category', filters.category);
+    if (filters.search) queryParams.append('search', filters.search);
+    if (filters.limit) queryParams.append('limit', filters.limit);
+    if (filters.offset) queryParams.append('offset', filters.offset);
+
+    const queryString = queryParams.toString();
+    const endpoint = `/designs${queryString ? `?${queryString}` : ''}`;
+    
+    return this.request(endpoint, {
+      method: 'GET'
+    });
+  }
+
+  /**
+   * Get a single design by ID
+   * @param {string} designId - Design ID
+   * @returns {Promise} Response data
+   */
+  async getDesign(designId) {
+    return this.request(`/designs/${designId}`, {
+      method: 'GET'
+    });
+  }
+
+  /**
+   * Update a design
+   * @param {string} designId - Design ID
+   * @param {Object} updateData - Data to update
+   * @returns {Promise} Response data
+   */
+  async updateDesign(designId, updateData) {
+    return this.request(`/designs/${designId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData)
+    });
+  }
+
+  /**
+   * Delete a design
+   * @param {string} designId - Design ID
+   * @returns {Promise} Response data
+   */
+  async deleteDesign(designId) {
+    return this.request(`/designs/${designId}`, {
+      method: 'DELETE'
+    });
+  }
 }
 
 // Create singleton instance
