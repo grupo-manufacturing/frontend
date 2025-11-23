@@ -5,7 +5,8 @@ import { useEffect, useMemo, useState } from 'react';
 import apiService from '../lib/apiService';
 
 type AdminStep = 'login' | 'dashboard';
-type AdminView = 'overview' | 'buyers' | 'manufacturers' | 'orders';
+type AdminView = 'overview' | 'users' | 'designs' | 'orders';
+type UserType = 'buyers' | 'manufacturers';
 type OrderStatusFilter = 'all' | 'accepted' | 'rejected' | 'submitted';
 
 interface Manufacturer {
@@ -52,10 +53,29 @@ interface Order {
   updated_at: string;
 }
 
+interface Design {
+  id: string;
+  product_name: string;
+  image_url?: string;
+  product_category?: string;
+  description?: string;
+  price_1_50?: number;
+  price_51_100?: number;
+  price_101_200?: number;
+  min_quantity?: number;
+  tags?: string[];
+  manufacturer_profiles?: {
+    unit_name?: string;
+    phone_number?: string;
+  };
+  created_at: string;
+  updated_at?: string;
+}
+
 const VIEW_TABS: Array<{ id: AdminView; label: string; description: string }> = [
   { id: 'overview', label: 'Overview', description: 'Key metrics across buyers and manufacturers' },
-  { id: 'buyers', label: 'Buyers', description: 'Registered buyers directory' },
-  { id: 'manufacturers', label: 'Manufacturers', description: 'Registered manufacturers and capability insights' },
+  { id: 'users', label: 'Users', description: 'Manage buyers and manufacturers' },
+  { id: 'designs', label: 'Designs', description: 'View and manage all product designs' },
   { id: 'orders', label: 'Orders', description: 'View and filter all orders by status' }
 ];
 
@@ -94,9 +114,11 @@ export default function AdminPortal() {
   const [step, setStep] = useState<AdminStep>('login');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [activeView, setActiveView] = useState<AdminView>('overview');
+  const [userType, setUserType] = useState<UserType>('buyers');
   const [buyers, setBuyers] = useState<Buyer[]>([]);
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [designs, setDesigns] = useState<Design[]>([]);
   const [orderStatusFilter, setOrderStatusFilter] = useState<OrderStatusFilter>('all');
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -126,7 +148,16 @@ export default function AdminPortal() {
     if (activeView === 'orders') {
       void loadOrders();
     }
+    if (activeView === 'designs') {
+      void loadDesigns();
+    }
   }, [activeView, orderStatusFilter]);
+
+  useEffect(() => {
+    if (activeView === 'users') {
+      setSearchQuery('');
+    }
+  }, [activeView, userType]);
 
   const loadData = async () => {
     setIsLoadingData(true);
@@ -167,6 +198,21 @@ export default function AdminPortal() {
     }
   };
 
+  const loadDesigns = async () => {
+    setIsLoadingData(true);
+    setErrorMessage('');
+    try {
+      const designsRes = await apiService.getDesigns();
+      setDesigns(designsRes.data?.designs || []);
+      setLastUpdated(new Date().toISOString());
+    } catch (error) {
+      console.error('Failed to load designs:', error);
+      setErrorMessage('Unable to fetch designs. Please try again.');
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!username.trim() || !password.trim()) return;
@@ -198,6 +244,7 @@ export default function AdminPortal() {
     setUsername('');
     setPassword('');
     setActiveView('overview');
+    setUserType('buyers');
     setStep('login');
   };
 
@@ -248,13 +295,15 @@ export default function AdminPortal() {
     [manufacturers]
   );
 
-  const recentBuyers = buyers.slice(0, 5);
-  const recentManufacturers = manufacturers.slice(0, 5);
+  const recentBuyers = buyers.slice(0, 3);
+  const recentManufacturers = manufacturers.slice(0, 3);
 
   const isOverview = activeView === 'overview';
-  const isBuyersView = activeView === 'buyers';
-  const isManufacturersView = activeView === 'manufacturers';
+  const isUsersView = activeView === 'users';
+  const isDesignsView = activeView === 'designs';
   const isOrdersView = activeView === 'orders';
+  const isShowingBuyers = userType === 'buyers';
+  const isShowingManufacturers = userType === 'manufacturers';
 
   const filteredOrders = useMemo(() => {
     if (!searchQuery.trim()) return orders;
@@ -458,6 +507,8 @@ export default function AdminPortal() {
             onClick={() => {
               if (activeView === 'orders') {
                 void loadOrders();
+              } else if (activeView === 'designs') {
+                void loadDesigns();
               } else {
                 void loadData();
               }
@@ -521,19 +572,19 @@ export default function AdminPortal() {
 
         {!isLoadingData && isOverview && (
           <div className="space-y-8">
-            <section className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="grid gap-3 md:grid-cols-2">
+              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Buyers</p>
-                <p className="mt-3 text-3xl font-semibold text-slate-900">{buyers.length}</p>
-                <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-500">
+                <p className="mt-2 text-2xl font-semibold text-slate-900">{buyers.length}</p>
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
                   {renderBadge(`${buyers.length} total`, 'info')}
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Manufacturers</p>
-                <p className="mt-3 text-3xl font-semibold text-slate-900">{manufacturers.length}</p>
-                <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-500">
+                <p className="mt-2 text-2xl font-semibold text-slate-900">{manufacturers.length}</p>
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
                   {renderBadge(`${verifiedManufacturers.length} verified`, 'success')}
                   {renderBadge(`${onboardingCompleteManufacturers.length} onboarded`, 'info')}
                 </div>
@@ -576,6 +627,17 @@ export default function AdminPortal() {
                     </div>
                   ))}
                 </div>
+                {buyers.length > 3 && (
+                  <button
+                    onClick={() => {
+                      setActiveView('users');
+                      setUserType('buyers');
+                    }}
+                    className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-100"
+                  >
+                    View All Buyers ({buyers.length})
+                  </button>
+                )}
               </div>
 
               <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -622,6 +684,17 @@ export default function AdminPortal() {
                     </div>
                   ))}
                 </div>
+                {manufacturers.length > 3 && (
+                  <button
+                    onClick={() => {
+                      setActiveView('users');
+                      setUserType('manufacturers');
+                    }}
+                    className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-100"
+                  >
+                    View All Manufacturers ({manufacturers.length})
+                  </button>
+                )}
               </div>
             </section>
           </div>
@@ -787,30 +860,50 @@ export default function AdminPortal() {
           </div>
         )}
 
-        {!isLoadingData && (isBuyersView || isManufacturersView) && (
+        {!isLoadingData && isUsersView && (
           <div className="space-y-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h1 className="text-xl font-semibold text-slate-900">
-                  {isBuyersView ? 'Buyer Directory' : 'Manufacturer Directory'}
-                </h1>
+                <h1 className="text-xl font-semibold text-slate-900">User Directory</h1>
                 <p className="text-sm text-slate-500">
-                  {isBuyersView
-                    ? 'View and manage all registered buyers.'
-                    : 'Track manufacturer capabilities and onboarding status.'}
+                  View and manage all registered buyers and manufacturers.
                 </p>
               </div>
               <div className="flex items-center gap-3">
                 <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500">
                   Total records:{' '}
                   <span className="font-semibold text-slate-800">
-                    {isBuyersView ? buyers.length : manufacturers.length}
+                    {isShowingBuyers ? buyers.length : manufacturers.length}
                   </span>
                 </div>
               </div>
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <div className="inline-flex rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
+                  <button
+                    onClick={() => setUserType('buyers')}
+                    className={`rounded-md px-4 py-2 text-sm font-medium transition ${
+                      isShowingBuyers
+                        ? 'bg-[#22a2f2] text-white shadow-sm'
+                        : 'text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    Buyers
+                  </button>
+                  <button
+                    onClick={() => setUserType('manufacturers')}
+                    className={`rounded-md px-4 py-2 text-sm font-medium transition ${
+                      isShowingManufacturers
+                        ? 'bg-[#22a2f2] text-white shadow-sm'
+                        : 'text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    Manufacturers
+                  </button>
+                </div>
+              </div>
               <div className="relative flex-1 max-w-md">
                 <svg
                   className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
@@ -828,7 +921,7 @@ export default function AdminPortal() {
                   type="search"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
-                  placeholder={`Search ${isBuyersView ? 'buyers' : 'manufacturers'} by name or phone`}
+                  placeholder={`Search ${isShowingBuyers ? 'buyers' : 'manufacturers'} by name or phone`}
                   className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-700 shadow-sm focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30"
                 />
               </div>
@@ -839,12 +932,12 @@ export default function AdminPortal() {
                 <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                   <tr>
                     <th scope="col" className="px-4 py-3 text-left font-semibold">
-                      {isBuyersView ? 'Buyer' : 'Manufacturer'}
+                      {isShowingBuyers ? 'Buyer' : 'Manufacturer'}
                     </th>
                     <th scope="col" className="px-4 py-3 text-left font-semibold">
                       Contact
                     </th>
-                    {isManufacturersView && (
+                    {isShowingManufacturers && (
                       <>
                         <th scope="col" className="px-4 py-3 text-left font-semibold">
                           Onboarding
@@ -860,7 +953,7 @@ export default function AdminPortal() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 text-slate-600">
-                  {isBuyersView &&
+                  {isShowingBuyers &&
                     filteredBuyers.map((buyer) => (
                       <tr key={buyer.id} className="hover:bg-slate-50/80">
                         <td className="px-4 py-3">
@@ -875,7 +968,7 @@ export default function AdminPortal() {
                         <td className="px-4 py-3 text-xs text-slate-500">{formatDate(buyer.created_at)}</td>
                       </tr>
                     ))}
-                  {isManufacturersView &&
+                  {isShowingManufacturers &&
                     filteredManufacturers.map((manufacturer) => (
                       <tr key={manufacturer.id} className="hover:bg-slate-50/80">
                         <td className="px-4 py-3">
@@ -929,14 +1022,171 @@ export default function AdminPortal() {
                         </td>
                       </tr>
                     ))}
-                  {(isBuyersView && filteredBuyers.length === 0) ||
-                  (isManufacturersView && filteredManufacturers.length === 0) ? (
+                  {(isShowingBuyers && filteredBuyers.length === 0) ||
+                  (isShowingManufacturers && filteredManufacturers.length === 0) ? (
                     <tr>
-                      <td colSpan={isBuyersView ? 3 : 5} className="px-4 py-6 text-center text-sm text-slate-500">
+                      <td colSpan={isShowingBuyers ? 3 : 5} className="px-4 py-6 text-center text-sm text-slate-500">
                         No records found for your current filters.
                       </td>
                     </tr>
                   ) : null}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {!isLoadingData && isDesignsView && (
+          <div className="space-y-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h1 className="text-xl font-semibold text-slate-900">Designs Directory</h1>
+                <p className="text-sm text-slate-500">
+                  View and manage all product designs in the platform.
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500">
+                  Total designs:{' '}
+                  <span className="font-semibold text-slate-800">{designs.length}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="relative flex-1 max-w-md">
+                <svg
+                  className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx={11} cy={11} r={8} />
+                  <path d="m21 21-4.3-4.3" />
+                </svg>
+                <input
+                  type="search"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Search designs by name, category, or manufacturer"
+                  className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-700 shadow-sm focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30"
+                />
+              </div>
+            </div>
+
+            <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <table className="min-w-full divide-y divide-slate-200 text-sm">
+                <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                  <tr>
+                    <th scope="col" className="px-4 py-3 text-left font-semibold">
+                      Design
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-left font-semibold">
+                      Category
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-left font-semibold">
+                      Manufacturer
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-left font-semibold">
+                      Pricing
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-left font-semibold">
+                      Created
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 text-slate-600">
+                  {designs.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-6 text-center text-sm text-slate-500">
+                        No designs found.
+                      </td>
+                    </tr>
+                  ) : (
+                    designs
+                      .filter((design) => {
+                        if (!searchQuery.trim()) return true;
+                        const q = searchQuery.toLowerCase();
+                        return (
+                          (design.product_name || '').toLowerCase().includes(q) ||
+                          (design.product_category || '').toLowerCase().includes(q) ||
+                          (design.manufacturer_profiles?.unit_name || '').toLowerCase().includes(q) ||
+                          (design.description || '').toLowerCase().includes(q)
+                        );
+                      })
+                      .map((design) => (
+                        <tr key={design.id} className="hover:bg-slate-50/80">
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              {design.image_url && (
+                                <div className="relative h-12 w-12 flex-shrink-0 rounded-lg overflow-hidden border border-slate-200">
+                                  <img
+                                    src={design.image_url}
+                                    alt={design.product_name}
+                                    className="h-full w-full object-cover"
+                                  />
+                                </div>
+                              )}
+                              <div>
+                                <div className="font-medium text-slate-900">
+                                  {design.product_name || 'Unnamed Design'}
+                                </div>
+                                {design.description && (
+                                  <div className="text-xs text-slate-500 mt-1 max-w-xs truncate">
+                                    {design.description}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            {design.product_category ? (
+                              renderBadge(design.product_category, 'info')
+                            ) : (
+                              <span className="text-xs text-slate-400">—</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-xs font-medium text-slate-700">
+                              {design.manufacturer_profiles?.unit_name || '—'}
+                            </div>
+                            {design.manufacturer_profiles?.phone_number && (
+                              <div className="text-xs text-slate-500">
+                                {design.manufacturer_profiles.phone_number}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex flex-col gap-1.5">
+                              {design.price_1_50 && (
+                                <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-emerald-500/10 text-emerald-600 w-fit">
+                                  1-50: ₹{design.price_1_50.toLocaleString('en-IN')}
+                                </span>
+                              )}
+                              {design.price_51_100 && (
+                                <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-blue-500/10 text-blue-600 w-fit">
+                                  51-100: ₹{design.price_51_100.toLocaleString('en-IN')}
+                                </span>
+                              )}
+                              {design.price_101_200 && (
+                                <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-purple-500/10 text-purple-600 w-fit">
+                                  101-200: ₹{design.price_101_200.toLocaleString('en-IN')}
+                                </span>
+                              )}
+                              {!design.price_1_50 && !design.price_51_100 && !design.price_101_200 && (
+                                <span className="text-xs text-slate-400">—</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-xs text-slate-500">
+                            {formatDate(design.created_at)}
+                          </td>
+                        </tr>
+                      ))
+                  )}
                 </tbody>
               </table>
             </div>
