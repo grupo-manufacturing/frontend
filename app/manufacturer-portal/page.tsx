@@ -132,6 +132,7 @@ export default function ManufacturerPortal() {
   });
   const [uploadingImage, setUploadingImage] = useState(false);
   const [isSubmittingDesign, setIsSubmittingDesign] = useState(false);
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   
   // Onboarding form states
   const [formData, setFormData] = useState({
@@ -541,6 +542,13 @@ export default function ManufacturerPortal() {
   // Handle create/update design
   const handleSubmitDesign = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!designForm.product_category) {
+      alert('Please select a product category');
+      return;
+    }
+    
     setIsSubmittingDesign(true);
     try {
       const designData = {
@@ -2376,20 +2384,85 @@ export default function ManufacturerPortal() {
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Product Category <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    value={designForm.product_category}
-                    onChange={(e) => setDesignForm({ ...designForm, product_category: e.target.value })}
-                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black appearance-none cursor-pointer"
-                    required
-                  >
-                    <option value="">Select category</option>
-                    <option value="t-shirts">T-Shirts</option>
-                    <option value="shirts">Shirts</option>
-                    <option value="hoodies">Hoodies</option>
-                    <option value="sweatshirts">Sweatshirts</option>
-                    <option value="cargos">Cargos</option>
-                    <option value="trackpants">Trackpants</option>
-                  </select>
+                  <div className="relative">
+                    <input
+                      type="hidden"
+                      value={designForm.product_category}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                      onBlur={() => setTimeout(() => setIsCategoryDropdownOpen(false), 200)}
+                      className={`appearance-none w-full px-4 py-3 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black cursor-pointer transition-all text-left flex items-center justify-between ${
+                        !designForm.product_category ? 'text-gray-500' : 'text-black'
+                      }`}
+                    >
+                      <span>
+                        {designForm.product_category 
+                          ? designForm.product_category
+                          : 'Select category'}
+                      </span>
+                      <svg 
+                        className={`h-5 w-5 text-gray-400 transition-transform ${isCategoryDropdownOpen ? 'transform rotate-180' : ''}`}
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
+                    
+                    {isCategoryDropdownOpen && (
+                      <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                        <div className="max-h-[300px] overflow-y-auto">
+                          {[
+                            { value: 'Tshirts Plain', label: 'Tshirts Plain' },
+                            { value: 'Tshirts Printed', label: 'Tshirts Printed' },
+                            { value: 'Acid Wash Plain', label: 'Acid Wash Plain' },
+                            { value: 'Cargos', label: 'Cargos' },
+                            { value: 'Polos', label: 'Polos' },
+                            { value: 'Mesh', label: 'Mesh' },
+                            { value: 'Denim Jeans', label: 'Denim Jeans' },
+                            { value: 'Twill Jacket', label: 'Twill Jacket' },
+                            { value: 'Wind Cheaters', label: 'Wind Cheaters' },
+                            { value: 'Vests', label: 'Vests' },
+                            { value: 'Cotton Shirts', label: 'Cotton Shirts' },
+                            { value: 'Silk Shirts', label: 'Silk Shirts' },
+                            { value: 'Carduroy Shirts', label: 'Carduroy Shirts' },
+                            { value: 'Varsity Jackets', label: 'Varsity Jackets' },
+                            { value: 'Sweatshirts', label: 'Sweatshirts' },
+                            { value: 'Hoodies Plain', label: 'Hoodies Plain' },
+                            { value: 'Hoodies Printed', label: 'Hoodies Printed' },
+                            { value: 'Tops', label: 'Tops' },
+                            { value: 'Women Dresss', label: 'Women Dresss' },
+                            { value: 'Leather Products', label: 'Leather Products' },
+                            { value: 'Caps', label: 'Caps' },
+                            { value: 'Bags', label: 'Bags' }
+                          ].map((option) => (
+                            <button
+                              key={option.value}
+                              type="button"
+                              onClick={() => {
+                                setDesignForm({ ...designForm, product_category: option.value });
+                                setIsCategoryDropdownOpen(false);
+                              }}
+                              className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${
+                                designForm.product_category === option.value ? 'bg-[#22a2f2]/10 text-[#22a2f2] font-medium' : 'text-gray-900'
+                              }`}
+                            >
+                              {option.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Product Image Upload */}
@@ -2462,9 +2535,14 @@ export default function ManufacturerPortal() {
                 {/* Pricing Tiers */}
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Pricing (₹ per unit)
                     </label>
+                    <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-xs text-blue-700">
+                        <span className="font-semibold">Note:</span> A 10% commission will be automatically added to your prices when buyers view your designs. You set the base price, and buyers will see the final price (base + 10% commission).
+                      </p>
+                    </div>
                     <div className="space-y-3">
                       <div>
                         <label className="block text-xs font-medium text-gray-600 mb-1.5">
@@ -2547,7 +2625,7 @@ export default function ManufacturerPortal() {
                         <span>Saving...</span>
                       </>
                     ) : (
-                      <span>{editingDesign ? 'Update Design' : 'Create Design'}</span>
+                      <span>{editingDesign ? 'Update Design' : 'Submit'}</span>
                     )}
                   </button>
                 </div>
