@@ -26,6 +26,9 @@ export default function DesignDetailPage() {
   const [totalQuantity, setTotalQuantity] = useState(0);
   const [displayName, setDisplayName] = useState('');
   const [userPhoneNumber, setUserPhoneNumber] = useState('');
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
+  const [orderError, setOrderError] = useState('');
+  const [orderSuccess, setOrderSuccess] = useState(false);
 
   const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'] as const;
 
@@ -169,6 +172,71 @@ export default function DesignDetailPage() {
     if (selectedQuantityRange === '51-100') return 100;
     if (selectedQuantityRange === '101-200') return 200;
     return 0;
+  };
+
+  const handleCreateOrder = async () => {
+    if (!design || !selectedQuantityRange || totalQuantity === 0) {
+      setOrderError('Please select quantity range and sizes');
+      return;
+    }
+
+    if (totalQuantity !== getMaxQuantity()) {
+      setOrderError(`Total quantity must be exactly ${getMaxQuantity()} pieces for this range`);
+      return;
+    }
+
+    setIsCreatingOrder(true);
+    setOrderError('');
+    setOrderSuccess(false);
+
+    try {
+      const pricePerUnit = getPriceForRange();
+      if (!pricePerUnit) {
+        throw new Error('Price not available for selected range');
+      }
+
+      const manufacturerId = design.manufacturer_id || design.manufacturer_profiles?.id;
+      if (!manufacturerId) {
+        throw new Error('Manufacturer information not available');
+      }
+
+      const orderData = {
+        manufacturer_id: manufacturerId,
+        design_id: design.id,
+        quantity: totalQuantity,
+        price_per_unit: pricePerUnit,
+        total_price: pricePerUnit * totalQuantity
+      };
+
+      const response = await apiService.createOrder(orderData);
+
+      if (response.success) {
+        setOrderSuccess(true);
+        // Reset form
+        setSizeQuantities({
+          XS: '',
+          S: '',
+          M: '',
+          L: '',
+          XL: '',
+          XXL: '',
+          '3XL': ''
+        });
+        setSelectedQuantityRange(null);
+        
+        // Show success message and redirect after 2 seconds
+        setTimeout(() => {
+          router.push('/buyer-portal');
+        }, 2000);
+      } else {
+        throw new Error(response.message || 'Failed to create order');
+      }
+    } catch (error: any) {
+      console.error('Failed to create order:', error);
+      setOrderError(error.message || 'Failed to create order. Please try again.');
+    } finally {
+      setIsCreatingOrder(false);
+    }
   };
 
   if (isLoading) {
@@ -431,13 +499,36 @@ export default function DesignDetailPage() {
                 </div>
               )}
 
+              {/* Order Error/Success Messages */}
+              {orderError && (
+                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                  <p className="text-sm text-red-600">{orderError}</p>
+                </div>
+              )}
+              {orderSuccess && (
+                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl">
+                  <p className="text-sm text-green-600">Order created successfully! Redirecting...</p>
+                </div>
+              )}
+
               {/* Action Buttons */}
               <div className="flex gap-4 pt-6">
                 <button
-                  className="flex-1 px-6 py-3 bg-[#22a2f2] text-white rounded-xl font-semibold hover:bg-[#1b8bd0] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={!selectedQuantityRange || totalQuantity === 0 || totalQuantity !== getMaxQuantity()}
+                  onClick={handleCreateOrder}
+                  className="flex-1 px-6 py-3 bg-[#22a2f2] text-white rounded-xl font-semibold hover:bg-[#1b8bd0] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  disabled={!selectedQuantityRange || totalQuantity === 0 || totalQuantity !== getMaxQuantity() || isCreatingOrder}
                 >
-                  Add to Cart
+                  {isCreatingOrder ? (
+                    <>
+                      <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Creating Order...
+                    </>
+                  ) : (
+                    'Create Order'
+                  )}
                 </button>
                 <button
                   className="px-6 py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-semibold hover:border-gray-300 transition-colors"

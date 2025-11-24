@@ -7,7 +7,7 @@ import apiService from '../lib/apiService';
 import ChatList from '../components/chat/ChatList';
 import ChatWindow from '../components/chat/ChatWindow';
 
-type TabType = 'chats' | 'requirements' | 'analytics' | 'my-designs' | 'profile';
+type TabType = 'chats' | 'requirements' | 'analytics' | 'my-designs' | 'my-orders' | 'profile';
 type AnalyticsTabType = 'revenue-trends' | 'product-performance' | 'order-distribution';
 
 export default function ManufacturerPortal() {
@@ -133,6 +133,11 @@ export default function ManufacturerPortal() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [isSubmittingDesign, setIsSubmittingDesign] = useState(false);
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
+  
+  // Orders states
+  const [orders, setOrders] = useState<any[]>([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const [selectedOrderStatus, setSelectedOrderStatus] = useState<string>('all');
   
   // Onboarding form states
   const [formData, setFormData] = useState({
@@ -617,6 +622,36 @@ export default function ManufacturerPortal() {
       alert(error.message || 'Failed to delete design');
     }
   };
+
+  // Fetch orders
+  const fetchOrders = async () => {
+    setIsLoadingOrders(true);
+    try {
+      const filters: any = {};
+      if (selectedOrderStatus !== 'all') {
+        filters.status = selectedOrderStatus;
+      }
+      const response = await apiService.getManufacturerOrders(filters);
+      if (response.success && response.data) {
+        setOrders(response.data || []);
+      } else {
+        console.error('Failed to fetch orders');
+        setOrders([]);
+      }
+    } catch (error) {
+      console.error('Failed to fetch orders:', error);
+      setOrders([]);
+    } finally {
+      setIsLoadingOrders(false);
+    }
+  };
+
+  // Update orders when status filter changes
+  useEffect(() => {
+    if (activeTab === 'my-orders' && step === 'dashboard') {
+      fetchOrders();
+    }
+  }, [activeTab, step, selectedOrderStatus]);
 
   // Fetch requirements when requirements tab is active
   useEffect(() => {
@@ -1380,6 +1415,34 @@ export default function ManufacturerPortal() {
                 </svg>
                 <span className="relative z-10">My Designs</span>
               </button>
+
+              {/* My Orders Tab */}
+              <button
+                onClick={() => setActiveTab('my-orders')}
+                className={`relative flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all ${
+                  activeTab === 'my-orders'
+                    ? 'text-[#22a2f2]'
+                    : 'text-gray-500 hover:text-[#22a2f2]'
+                }`}
+              >
+                {activeTab === 'my-orders' && (
+                  <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-t-lg border-b-2 border-[#22a2f2]"></div>
+                )}
+                <svg
+                  className="relative z-10 w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                  />
+                </svg>
+                <span className="relative z-10">My Orders</span>
+              </button>
             </div>
           </div>
         </nav>
@@ -1914,6 +1977,233 @@ export default function ManufacturerPortal() {
                       </svg>
                       <span>Add Your First Design</span>
                     </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          {activeTab === 'my-orders' && (
+            <div>
+              {/* Header Section */}
+              <div className="mb-8">
+                <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                  <div>
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22a2f2]/10 text-[#22a2f2] text-sm font-semibold mb-3">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                      </svg>
+                      <span>My Orders</span>
+                    </div>
+                    <h1 className="text-3xl font-bold text-black mb-2">Order Management</h1>
+                    <p className="text-gray-600">View and manage orders from buyers</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status Filter */}
+              <div className="mb-6 flex flex-wrap gap-2">
+                <button
+                  onClick={() => setSelectedOrderStatus('all')}
+                  className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                    selectedOrderStatus === 'all'
+                      ? 'bg-[#22a2f2] text-white'
+                      : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  All Orders
+                </button>
+                <button
+                  onClick={() => setSelectedOrderStatus('pending')}
+                  className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                    selectedOrderStatus === 'pending'
+                      ? 'bg-[#22a2f2] text-white'
+                      : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  Pending
+                </button>
+                <button
+                  onClick={() => setSelectedOrderStatus('confirmed')}
+                  className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                    selectedOrderStatus === 'confirmed'
+                      ? 'bg-[#22a2f2] text-white'
+                      : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  Confirmed
+                </button>
+                <button
+                  onClick={() => setSelectedOrderStatus('shipped')}
+                  className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                    selectedOrderStatus === 'shipped'
+                      ? 'bg-[#22a2f2] text-white'
+                      : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  Shipped
+                </button>
+                <button
+                  onClick={() => setSelectedOrderStatus('delivered')}
+                  className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                    selectedOrderStatus === 'delivered'
+                      ? 'bg-[#22a2f2] text-white'
+                      : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  Delivered
+                </button>
+              </div>
+
+              {/* Loading State */}
+              {isLoadingOrders && (
+                <div className="bg-white rounded-xl border border-[#22a2f2]/30 p-12">
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <svg className="animate-spin w-12 h-12 text-[#22a2f2] mb-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p className="text-gray-500">Loading orders...</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Orders List */}
+              {!isLoadingOrders && orders.length > 0 && (
+                <div className="space-y-4">
+                  {orders.map((order: any) => (
+                    <div
+                      key={order.id}
+                      className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden"
+                    >
+                      <div className="p-6">
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                          {/* Order Info */}
+                          <div className="flex-1">
+                            <div className="flex items-start gap-4">
+                              {/* Product Image */}
+                              {order.design?.image_url && (
+                                <img
+                                  src={order.design.image_url}
+                                  alt={order.design.product_name || 'Product'}
+                                  className="w-20 h-20 object-cover rounded-lg border border-gray-200"
+                                />
+                              )}
+                              <div className="flex-1">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                                  {order.design?.product_name || 'Product'}
+                                </h3>
+                                <p className="text-sm text-gray-600 mb-2">
+                                  Buyer: {order.buyer?.full_name || order.buyer?.phone_number || 'Unknown'}
+                                </p>
+                                <div className="flex flex-wrap gap-4 text-sm">
+                                  <span className="text-gray-600">
+                                    Quantity: <span className="font-medium text-gray-900">{order.quantity}</span>
+                                  </span>
+                                  <span className="text-gray-600">
+                                    Price/Unit: <span className="font-medium text-gray-900">₹{order.price_per_unit}</span>
+                                  </span>
+                                  <span className="text-gray-600">
+                                    Total: <span className="font-medium text-gray-900">₹{order.total_price}</span>
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Status and Actions */}
+                          <div className="flex flex-col items-end gap-3">
+                            <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              order.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
+                              order.status === 'shipped' ? 'bg-purple-100 text-purple-800' :
+                              order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                            </div>
+                            {order.status === 'pending' && (
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    await apiService.updateOrderStatus(order.id, 'confirmed');
+                                    fetchOrders();
+                                  } catch (error: any) {
+                                    alert(error.message || 'Failed to update order status');
+                                  }
+                                }}
+                                className="px-4 py-2 bg-[#22a2f2] text-white rounded-lg font-medium hover:bg-[#1b8bd0] transition-colors text-sm"
+                              >
+                                Confirm Order
+                              </button>
+                            )}
+                            {order.status === 'confirmed' && (
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    await apiService.updateOrderStatus(order.id, 'shipped');
+                                    fetchOrders();
+                                  } catch (error: any) {
+                                    alert(error.message || 'Failed to update order status');
+                                  }
+                                }}
+                                className="px-4 py-2 bg-[#22a2f2] text-white rounded-lg font-medium hover:bg-[#1b8bd0] transition-colors text-sm"
+                              >
+                                Mark as Shipped
+                              </button>
+                            )}
+                            {order.status === 'shipped' && (
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    await apiService.updateOrderStatus(order.id, 'delivered');
+                                    fetchOrders();
+                                  } catch (error: any) {
+                                    alert(error.message || 'Failed to update order status');
+                                  }
+                                }}
+                                className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors text-sm"
+                              >
+                                Mark as Delivered
+                              </button>
+                            )}
+                            <p className="text-xs text-gray-500">
+                              {new Date(order.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Empty State */}
+              {!isLoadingOrders && orders.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-20">
+                  <div className="text-center max-w-md">
+                    <div className="relative group mb-6">
+                      <div className="bg-[#22a2f2]/10 rounded-2xl p-8 border border-[#22a2f2]/30 shadow-sm">
+                        <svg
+                          className="mx-auto h-20 w-20 text-[#22a2f2]"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">No orders yet</h3>
+                    <p className="text-gray-500">
+                      {selectedOrderStatus === 'all'
+                        ? 'Orders from buyers will appear here once they create orders from your designs.'
+                        : `No ${selectedOrderStatus} orders at the moment.`}
+                    </p>
                   </div>
                 </div>
               )}

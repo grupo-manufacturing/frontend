@@ -141,6 +141,11 @@ export default function BuyerPortal() {
   });
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   
+  // My Orders Sub-tabs
+  const [myOrdersSubTab, setMyOrdersSubTab] = useState<'requirements' | 'orders'>('requirements');
+  const [buyerOrders, setBuyerOrders] = useState<any[]>([]);
+  const [isLoadingBuyerOrders, setIsLoadingBuyerOrders] = useState(false);
+  
   // Chats States
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [activeBuyerId, setActiveBuyerId] = useState<string | null>(null);
@@ -657,13 +662,40 @@ export default function BuyerPortal() {
     }
   };
 
+  // Fetch buyer orders
+  const fetchBuyerOrders = async () => {
+    setIsLoadingBuyerOrders(true);
+    try {
+      const filters: any = {};
+      if (orderFilter !== 'all') {
+        filters.status = orderFilter;
+      }
+      const response = await apiService.getBuyerOrders(filters);
+      if (response.success && response.data) {
+        setBuyerOrders(response.data || []);
+      } else {
+        console.error('Failed to fetch buyer orders');
+        setBuyerOrders([]);
+      }
+    } catch (error) {
+      console.error('Failed to fetch buyer orders:', error);
+      setBuyerOrders([]);
+    } finally {
+      setIsLoadingBuyerOrders(false);
+    }
+  };
+
   // Fetch statistics and requirements when my-orders tab is active
   useEffect(() => {
     if (activeTab === 'my-orders' && step === 'dashboard') {
-      fetchRequirementStatistics();
-      fetchRequirements();
+      if (myOrdersSubTab === 'requirements') {
+        fetchRequirementStatistics();
+        fetchRequirements();
+      } else if (myOrdersSubTab === 'orders') {
+        fetchBuyerOrders();
+      }
     }
-  }, [activeTab, step]);
+  }, [activeTab, step, myOrdersSubTab, orderFilter]);
 
   // Refresh profile completion when returning to dashboard (e.g., from profile page)
   useEffect(() => {
@@ -1622,8 +1654,43 @@ export default function BuyerPortal() {
                 <p className="text-gray-500">Track and manage all your orders in one place</p>
               </div>
 
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              {/* Sub-tabs Navigation */}
+              <div className="mb-6 border-b border-gray-200">
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => setMyOrdersSubTab('requirements')}
+                    className={`px-6 py-3 font-medium text-sm transition-all relative ${
+                      myOrdersSubTab === 'requirements'
+                        ? 'text-[#22a2f2]'
+                        : 'text-gray-500 hover:text-[#22a2f2]'
+                    }`}
+                  >
+                    Requirements
+                    {myOrdersSubTab === 'requirements' && (
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#22a2f2]"></div>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setMyOrdersSubTab('orders')}
+                    className={`px-6 py-3 font-medium text-sm transition-all relative ${
+                      myOrdersSubTab === 'orders'
+                        ? 'text-[#22a2f2]'
+                        : 'text-gray-500 hover:text-[#22a2f2]'
+                    }`}
+                  >
+                    Orders
+                    {myOrdersSubTab === 'orders' && (
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#22a2f2]"></div>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Requirements Sub-tab Content */}
+              {myOrdersSubTab === 'requirements' && (
+                <>
+                  {/* Stats Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {/* Total Requirements Card */}
                 <div className="group relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-[#22a2f2]/15 to-[#1b8bd0]/10 rounded-2xl blur opacity-40 group-hover:opacity-70 transition duration-300"></div>
@@ -1987,6 +2054,225 @@ export default function BuyerPortal() {
                   </div>
                 );
               })()}
+                </>
+              )}
+
+              {/* Orders Sub-tab Content */}
+              {myOrdersSubTab === 'orders' && (
+                <>
+                  {/* Search and Filter Bar for Orders */}
+                  <div className="bg-white rounded-xl border border-[#22a2f2]/30 p-4 mb-6">
+                    <div className="flex flex-col md:flex-row gap-4">
+                      {/* Search Input */}
+                      <div className="flex-1 relative group">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                          <svg
+                            className="h-5 w-5 text-gray-400 group-focus-within:text-[#22a2f2] transition-colors"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                            />
+                          </svg>
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="Search orders by product name or order ID..."
+                          value={orderSearchQuery}
+                          onChange={(e) => setOrderSearchQuery(e.target.value)}
+                          className="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 transition-all"
+                        />
+                      </div>
+
+                      {/* Filter Dropdown */}
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setIsOrderFilterDropdownOpen(!isOrderFilterDropdownOpen)}
+                          onBlur={() => setTimeout(() => setIsOrderFilterDropdownOpen(false), 200)}
+                          className="appearance-none w-full md:w-48 px-4 py-2.5 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black cursor-pointer transition-all text-left flex items-center justify-between"
+                        >
+                          <span className={orderFilter !== 'all' ? 'text-black' : 'text-gray-500'}>
+                            {orderFilter === 'all' 
+                              ? 'All Status' 
+                              : orderFilter === 'pending' 
+                              ? 'Pending' 
+                              : orderFilter === 'confirmed'
+                              ? 'Confirmed'
+                              : orderFilter === 'shipped'
+                              ? 'Shipped'
+                              : orderFilter === 'delivered'
+                              ? 'Delivered'
+                              : orderFilter === 'cancelled'
+                              ? 'Cancelled'
+                              : 'All Status'}
+                          </span>
+                          <svg 
+                            className={`h-5 w-5 text-gray-400 transition-transform ${isOrderFilterDropdownOpen ? 'transform rotate-180' : ''}`}
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        </button>
+                        
+                        {isOrderFilterDropdownOpen && (
+                          <div className="absolute z-50 w-full md:w-48 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                            <div className="max-h-[180px] overflow-y-auto">
+                              {[
+                                { value: 'all', label: 'All Status' },
+                                { value: 'pending', label: 'Pending' },
+                                { value: 'confirmed', label: 'Confirmed' },
+                                { value: 'shipped', label: 'Shipped' },
+                                { value: 'delivered', label: 'Delivered' },
+                                { value: 'cancelled', label: 'Cancelled' }
+                              ].map((option) => (
+                                <button
+                                  key={option.value}
+                                  type="button"
+                                  onClick={() => {
+                                    setOrderFilter(option.value);
+                                    setIsOrderFilterDropdownOpen(false);
+                                  }}
+                                  className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${
+                                    orderFilter === option.value ? 'bg-[#22a2f2]/10 text-[#22a2f2] font-medium' : 'text-gray-900'
+                                  }`}
+                                >
+                                  {option.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Orders List */}
+                  {isLoadingBuyerOrders ? (
+                    <div className="bg-white rounded-xl border border-[#22a2f2]/30 p-12">
+                      <div className="flex flex-col items-center justify-center text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#22a2f2] mb-4"></div>
+                        <p className="text-gray-500">Loading orders...</p>
+                      </div>
+                    </div>
+                  ) : (() => {
+                    // Filter orders based on search query
+                    const filteredOrders = buyerOrders.filter((order: any) => {
+                      const searchLower = orderSearchQuery.toLowerCase();
+                      return !orderSearchQuery || 
+                        order.design?.product_name?.toLowerCase().includes(searchLower) ||
+                        order.id?.toLowerCase().includes(searchLower) ||
+                        order.manufacturer?.unit_name?.toLowerCase().includes(searchLower);
+                    });
+
+                    return filteredOrders.length > 0 ? (
+                      <div className="space-y-4">
+                        {filteredOrders.map((order: any) => (
+                          <div
+                            key={order.id}
+                            className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden"
+                          >
+                            <div className="p-6">
+                              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                                {/* Order Info */}
+                                <div className="flex-1">
+                                  <div className="flex items-start gap-4">
+                                    {/* Product Image */}
+                                    {order.design?.image_url && (
+                                      <img
+                                        src={order.design.image_url}
+                                        alt={order.design.product_name || 'Product'}
+                                        className="w-20 h-20 object-cover rounded-lg border border-gray-200"
+                                      />
+                                    )}
+                                    <div className="flex-1">
+                                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                                        {order.design?.product_name || 'Product'}
+                                      </h3>
+                                      <p className="text-sm text-gray-600 mb-2">
+                                        Manufacturer: {order.manufacturer?.unit_name || 'Unknown'}
+                                      </p>
+                                      <div className="flex flex-wrap gap-4 text-sm">
+                                        <span className="text-gray-600">
+                                          Quantity: <span className="font-medium text-gray-900">{order.quantity}</span>
+                                        </span>
+                                        <span className="text-gray-600">
+                                          Price/Unit: <span className="font-medium text-gray-900">₹{order.price_per_unit}</span>
+                                        </span>
+                                        <span className="text-gray-600">
+                                          Total: <span className="font-medium text-gray-900">₹{order.total_price}</span>
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Status and Date */}
+                                <div className="flex flex-col items-end gap-3">
+                                  <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                    order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                    order.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
+                                    order.status === 'shipped' ? 'bg-purple-100 text-purple-800' :
+                                    order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                                    'bg-red-100 text-red-800'
+                                  }`}>
+                                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                  </div>
+                                  <p className="text-xs text-gray-500">
+                                    {new Date(order.created_at).toLocaleDateString()}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-20">
+                        <div className="text-center max-w-md">
+                          <div className="relative group mb-6">
+                            <div className="bg-[#22a2f2]/10 rounded-2xl p-8 border border-[#22a2f2]/30 shadow-sm">
+                              <svg
+                                className="mx-auto h-20 w-20 text-[#22a2f2]"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={1.5}
+                                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                                />
+                              </svg>
+                            </div>
+                          </div>
+                          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                            {orderSearchQuery || orderFilter !== 'all' ? 'No orders found' : 'No orders yet'}
+                          </h3>
+                          <p className="text-gray-500">
+                            {orderSearchQuery || orderFilter !== 'all' 
+                              ? 'Try adjusting your search or filter criteria'
+                              : 'Orders from designs will appear here once you create them.'}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </>
+              )}
             </div>
           )}
           {activeTab === 'chats' && (

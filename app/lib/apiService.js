@@ -826,6 +826,88 @@ class ApiService {
       method: 'DELETE'
     });
   }
+
+  // =============================================
+  // ORDERS API
+  // =============================================
+
+  /**
+   * Create a new order
+   * @param {Object} orderData - Order data (manufacturer_id, design_id, quantity, price_per_unit, total_price)
+   * @returns {Promise} Response data
+   */
+  async createOrder(orderData) {
+    return this.request('/orders', {
+      method: 'POST',
+      body: JSON.stringify(orderData)
+    });
+  }
+
+  /**
+   * Get manufacturer's orders
+   * @param {Object} filters - Optional filters (status, limit, offset, sortBy, sortOrder)
+   * @returns {Promise} Response data
+   */
+  async getManufacturerOrders(filters = {}) {
+    const queryParams = new URLSearchParams();
+    if (filters.status) queryParams.append('status', filters.status);
+    if (filters.limit) queryParams.append('limit', filters.limit);
+    if (filters.offset) queryParams.append('offset', filters.offset);
+    if (filters.sortBy) queryParams.append('sortBy', filters.sortBy);
+    if (filters.sortOrder) queryParams.append('sortOrder', filters.sortOrder);
+
+    const queryString = queryParams.toString();
+    const endpoint = `/orders/manufacturer${queryString ? `?${queryString}` : ''}`;
+    
+    return this.request(endpoint, {
+      method: 'GET'
+    });
+  }
+
+  /**
+   * Get buyer's orders
+   * @param {Object} filters - Optional filters (status, limit, offset, sortBy, sortOrder)
+   * @returns {Promise} Response data
+   */
+  async getBuyerOrders(filters = {}) {
+    const queryParams = new URLSearchParams();
+    if (filters.status) queryParams.append('status', filters.status);
+    if (filters.limit) queryParams.append('limit', filters.limit);
+    if (filters.offset) queryParams.append('offset', filters.offset);
+    if (filters.sortBy) queryParams.append('sortBy', filters.sortBy);
+    if (filters.sortOrder) queryParams.append('sortOrder', filters.sortOrder);
+
+    const queryString = queryParams.toString();
+    const endpoint = `/orders/buyer${queryString ? `?${queryString}` : ''}`;
+    
+    return this.request(endpoint, {
+      method: 'GET'
+    });
+  }
+
+  /**
+   * Get a single order by ID
+   * @param {string} orderId - Order ID
+   * @returns {Promise} Response data
+   */
+  async getOrder(orderId) {
+    return this.request(`/orders/${orderId}`, {
+      method: 'GET'
+    });
+  }
+
+  /**
+   * Update order status (Manufacturer only)
+   * @param {string} orderId - Order ID
+   * @param {string} status - New status ('pending', 'confirmed', 'shipped', 'delivered', 'cancelled')
+   * @returns {Promise} Response data
+   */
+  async updateOrderStatus(orderId, status) {
+    return this.request(`/orders/${orderId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status })
+    });
+  }
 }
 
 // Create singleton instance
