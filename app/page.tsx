@@ -5,7 +5,6 @@ import ProductCategories from './components/landing/ProductCategories';
 import AIFeatures from './components/landing/AIFeatures';
 import Pricing from './components/landing/Pricing';
 import PlatformFeatures from './components/landing/PlatformFeatures';
-import HowItWorks from './components/landing/HowItWorks';
 import Testimonials from './components/landing/Testimonials';
 import Footer from './components/landing/Footer';
 
@@ -19,7 +18,6 @@ export default function Home() {
       <AIFeatures />
       <Pricing />
       <PlatformFeatures />
-      <HowItWorks />
       <Testimonials />
       <Footer />
     </div>

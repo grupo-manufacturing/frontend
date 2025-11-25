@@ -8,6 +8,7 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navLinks = [
+    { name: 'How We Work', href: '/howitworks' },
     { name: 'Buyer', href: '/buyer-portal' },
     { name: 'Manufacturer', href: '/manufacturer-portal' },
   ];
