@@ -54,7 +54,7 @@ export default function ManufacturerPortal() {
             // If token expired or unauthorized, redirect to login
             if (error.message?.includes('expired') || error.message?.includes('session')) {
               setStep('phone');
-              apiService.clearAllAuthData();
+              apiService.removeToken('manufacturer');
               // Clear chat state on logout
               localStorage.removeItem('manufacturer_chat_state');
             }
@@ -304,7 +304,7 @@ export default function ManufacturerPortal() {
       console.log('OTP verified successfully:', response);
       
       // Store token and user data
-      apiService.setToken(response.data.token);
+      apiService.setToken(response.data.token, 'manufacturer');
       localStorage.setItem('manufacturerPhoneNumber', phoneNumber);
       localStorage.setItem('user_role', 'manufacturer');
       

@@ -84,7 +84,7 @@ export default function BuyerPortal() {
             // If token expired or unauthorized, redirect to login
             if (error.message?.includes('expired') || error.message?.includes('session')) {
               setStep('phone');
-              apiService.clearAllAuthData();
+              apiService.removeToken('buyer');
               // Clear chat state on logout
               localStorage.removeItem('buyer_chat_state');
             }
@@ -362,7 +362,7 @@ export default function BuyerPortal() {
         };
         
         // Store token and user data
-        apiService.setToken(mockResponse.data.token);
+        apiService.setToken(mockResponse.data.token, 'buyer');
         localStorage.setItem('buyerPhoneNumber', phoneNumber);
         localStorage.setItem('user_role', 'buyer');
         
@@ -407,7 +407,7 @@ export default function BuyerPortal() {
       console.log('OTP verified successfully:', response);
       
       // Store token and user data
-      apiService.setToken(response.data.token);
+      apiService.setToken(response.data.token, 'buyer');
       localStorage.setItem('buyerPhoneNumber', phoneNumber);
       localStorage.setItem('user_role', 'buyer');
       

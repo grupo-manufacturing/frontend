@@ -16,16 +16,20 @@ class ApiService {
     
     const currentPath = window.location.pathname;
     
-    // Clear all auth data
-    this.clearAllAuthData();
-    
-    // Redirect based on current portal
+    // Clear only the token for the current portal, not all tokens
     if (currentPath.startsWith('/buyer-portal')) {
+      this.removeToken('buyer');
       window.location.href = '/buyer-portal';
     } else if (currentPath.startsWith('/manufacturer-portal')) {
+      this.removeToken('manufacturer');
       window.location.href = '/manufacturer-portal';
+    } else if (currentPath.startsWith('/admin')) {
+      this.removeToken('admin');
+      window.location.href = '/admin';
+    } else {
+      // For other routes, clear all auth data
+      this.clearAllAuthData();
     }
-    // If on admin portal or other routes, just clear auth (don't redirect)
   }
 
   /**
@@ -279,15 +283,18 @@ class ApiService {
   /**
    * Store JWT token in localStorage and cookies
    * @param {string} token - JWT token
-   * @param {string} tokenType - Token type: 'regular' (default) or 'admin'
+   * @param {string} tokenType - Token type: 'buyer', 'manufacturer', or 'admin' (defaults to 'buyer' for backward compatibility)
    */
-  setToken(token, tokenType = 'regular') {
+  setToken(token, tokenType = 'buyer') {
     if (typeof window !== 'undefined') {
       if (tokenType === 'admin') {
         localStorage.setItem('adminToken', token);
+      } else if (tokenType === 'manufacturer') {
+        localStorage.setItem('manufacturerToken', token);
       } else {
-        localStorage.setItem('groupo_token', token);
-        // Also set cookie for server-side middleware access
+        // Default to buyer for backward compatibility
+        localStorage.setItem('buyerToken', token);
+        // Also set cookie for server-side middleware access (backward compatibility)
         document.cookie = `groupo_token=${token}; path=/; max-age=86400; SameSite=Lax`;
       }
     }
@@ -295,27 +302,29 @@ class ApiService {
 
   /**
    * Get JWT token from localStorage
-   * Route-aware: returns admin token if on admin routes, otherwise regular token
+   * Route-aware: returns the appropriate token based on current route
    * @returns {string|null} JWT token
    */
   getToken() {
     if (typeof window !== 'undefined') {
-      // Check if we're on admin routes
       const currentPath = window.location.pathname;
-      const isAdminRoute = currentPath.startsWith('/admin');
       
-      if (isAdminRoute) {
-        // On admin routes, prioritize adminToken
-        const adminToken = localStorage.getItem('adminToken');
-        if (adminToken) return adminToken;
-        // Fallback to regular token if admin token not found
-        return localStorage.getItem('groupo_token');
+      // Route-aware token selection
+      if (currentPath.startsWith('/admin')) {
+        // On admin routes, return admin token
+        return localStorage.getItem('adminToken');
+      } else if (currentPath.startsWith('/buyer-portal')) {
+        // On buyer routes, return buyer token
+        return localStorage.getItem('buyerToken');
+      } else if (currentPath.startsWith('/manufacturer-portal')) {
+        // On manufacturer routes, return manufacturer token
+        return localStorage.getItem('manufacturerToken');
       } else {
-        // On regular routes (buyer/manufacturer), prioritize groupo_token
-        const token = localStorage.getItem('groupo_token');
-        if (token) return token;
-        // Don't fallback to admin token on non-admin routes
-        return null;
+        // For other routes, try buyer token first (backward compatibility)
+        // Then try manufacturer token, then admin token
+        return localStorage.getItem('buyerToken') || 
+               localStorage.getItem('manufacturerToken') || 
+               localStorage.getItem('adminToken');
       }
     }
     return null;
@@ -323,19 +332,25 @@ class ApiService {
 
   /**
    * Remove JWT token from localStorage and cookies
-   * @param {string} tokenType - Token type: 'regular' (default), 'admin', or 'all'
+   * @param {string} tokenType - Token type: 'buyer', 'manufacturer', 'admin', or 'all' (default)
    */
   removeToken(tokenType = 'all') {
     if (typeof window !== 'undefined') {
       if (tokenType === 'admin') {
         localStorage.removeItem('adminToken');
-      } else if (tokenType === 'regular') {
-        localStorage.removeItem('groupo_token');
+      } else if (tokenType === 'buyer') {
+        localStorage.removeItem('buyerToken');
+        // Also clear legacy cookie for backward compatibility
         document.cookie = 'groupo_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      } else if (tokenType === 'manufacturer') {
+        localStorage.removeItem('manufacturerToken');
       } else {
         // Remove all tokens
-        localStorage.removeItem('groupo_token');
+        localStorage.removeItem('buyerToken');
+        localStorage.removeItem('manufacturerToken');
         localStorage.removeItem('adminToken');
+        // Also remove legacy token for backward compatibility
+        localStorage.removeItem('groupo_token');
         document.cookie = 'groupo_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
       }
     }
@@ -346,9 +361,12 @@ class ApiService {
    */
   clearAllAuthData() {
     if (typeof window !== 'undefined') {
-      // Clear tokens
-      localStorage.removeItem('groupo_token');
+      // Clear all tokens
+      localStorage.removeItem('buyerToken');
+      localStorage.removeItem('manufacturerToken');
       localStorage.removeItem('adminToken');
+      // Also remove legacy token for backward compatibility
+      localStorage.removeItem('groupo_token');
       
       // Clear buyer-related data
       localStorage.removeItem('buyerPhoneNumber');
@@ -520,6 +538,18 @@ class ApiService {
    */
   async logout(redirectPath = '/') {
     try {
+      // Determine which token to clear based on current route
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+      let tokenType = 'all';
+      
+      if (currentPath.startsWith('/buyer-portal')) {
+        tokenType = 'buyer';
+      } else if (currentPath.startsWith('/manufacturer-portal')) {
+        tokenType = 'manufacturer';
+      } else if (currentPath.startsWith('/admin')) {
+        tokenType = 'admin';
+      }
+      
       // Call backend logout endpoint if token exists
       if (this.getToken()) {
         await this.request('/auth/logout', {
@@ -530,8 +560,19 @@ class ApiService {
       console.error('Logout API call failed:', error);
       // Continue with local logout even if API call fails
     } finally {
-      // Always clear all local storage and auth data
-      this.clearAllAuthData();
+      // Clear only the token for the current portal
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+      if (currentPath.startsWith('/buyer-portal')) {
+        this.removeToken('buyer');
+      } else if (currentPath.startsWith('/manufacturer-portal')) {
+        this.removeToken('manufacturer');
+      } else if (currentPath.startsWith('/admin')) {
+        this.removeToken('admin');
+      } else {
+        // For other routes, clear all
+        this.clearAllAuthData();
+      }
+      
       if (typeof window !== 'undefined') {
         window.location.href = redirectPath;
       }
