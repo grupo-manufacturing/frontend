@@ -126,40 +126,57 @@ export default function AdminPortal() {
   const [errorMessage, setErrorMessage] = useState('');
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
+  const [deletingDesignId, setDeletingDesignId] = useState<string | null>(null);
 
   useEffect(() => {
-    const checkAuth = () => {
+    const checkAuth = async () => {
       const storedToken = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
       if (storedToken) {
-        // Set token in apiService for admin API calls
-        apiService.setToken(storedToken);
-        setStep('dashboard');
+        // Verify token is valid by attempting a lightweight API call
+        try {
+          // Try to fetch buyers as a way to verify admin token is valid
+          await apiService.getAllBuyers({ limit: 1 });
+          // Token is valid, proceed to dashboard
+          setStep('dashboard');
+        } catch (error: any) {
+          // Token is invalid or expired
+          console.error('Admin token validation failed:', error);
+          // Clear invalid token
+          apiService.removeToken('admin');
+          setStep('login');
+        }
+      } else {
+        setStep('login');
       }
       setIsCheckingAuth(false);
     };
     
-    checkAuth();
+    void checkAuth();
   }, []);
 
   useEffect(() => {
-    if (step === 'dashboard') {
+    // Only load data if we're on dashboard and not still checking auth
+    if (step === 'dashboard' && !isCheckingAuth) {
       void loadData();
     }
-  }, [step]);
+  }, [step, isCheckingAuth]);
 
   useEffect(() => {
-    if (activeView === 'overview') {
-      setSearchQuery('');
-      void loadOrders();
-      void loadDesigns();
+    // Only load view-specific data if we're on dashboard and not still checking auth
+    if (step === 'dashboard' && !isCheckingAuth) {
+      if (activeView === 'overview') {
+        setSearchQuery('');
+        void loadOrders();
+        void loadDesigns();
+      }
+      if (activeView === 'orders') {
+        void loadOrders();
+      }
+      if (activeView === 'designs') {
+        void loadDesigns();
+      }
     }
-    if (activeView === 'orders') {
-      void loadOrders();
-    }
-    if (activeView === 'designs') {
-      void loadDesigns();
-    }
-  }, [activeView, orderStatusFilter]);
+  }, [activeView, orderStatusFilter, step, isCheckingAuth]);
 
   useEffect(() => {
     if (activeView === 'users') {
@@ -179,9 +196,16 @@ export default function AdminPortal() {
       setBuyers(buyersRes.data?.buyers || []);
       setManufacturers(manufacturersRes.data?.manufacturers || []);
       setLastUpdated(new Date().toISOString());
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load admin data:', error);
-      setErrorMessage('Unable to fetch latest data. Please try again.');
+      // If token is invalid, redirect to login
+      if (error?.message?.includes('Invalid admin token') || error?.message?.includes('Access denied') || error?.message?.includes('expired') || error?.message?.includes('session')) {
+        apiService.removeToken('admin');
+        setStep('login');
+        setErrorMessage('');
+      } else {
+        setErrorMessage('Unable to fetch latest data. Please try again.');
+      }
     } finally {
       setIsLoadingData(false);
     }
@@ -198,9 +222,16 @@ export default function AdminPortal() {
       const ordersRes = await apiService.getOrders(filters);
       setOrders(ordersRes.data || []);
       setLastUpdated(new Date().toISOString());
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load orders:', error);
-      setErrorMessage('Unable to fetch orders. Please try again.');
+      // If token is invalid, redirect to login
+      if (error?.message?.includes('Invalid admin token') || error?.message?.includes('Access denied') || error?.message?.includes('expired') || error?.message?.includes('session')) {
+        apiService.removeToken('admin');
+        setStep('login');
+        setErrorMessage('');
+      } else {
+        setErrorMessage('Unable to fetch orders. Please try again.');
+      }
     } finally {
       setIsLoadingData(false);
     }
@@ -213,9 +244,16 @@ export default function AdminPortal() {
       const designsRes = await apiService.getDesigns();
       setDesigns(designsRes.data?.designs || []);
       setLastUpdated(new Date().toISOString());
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load designs:', error);
-      setErrorMessage('Unable to fetch designs. Please try again.');
+      // If token is invalid, redirect to login
+      if (error?.message?.includes('Invalid admin token') || error?.message?.includes('Access denied') || error?.message?.includes('expired') || error?.message?.includes('session')) {
+        apiService.removeToken('admin');
+        setStep('login');
+        setErrorMessage('');
+      } else {
+        setErrorMessage('Unable to fetch designs. Please try again.');
+      }
     } finally {
       setIsLoadingData(false);
     }
@@ -232,9 +270,8 @@ export default function AdminPortal() {
       const response = await apiService.adminLogin(username, password);
       const token = response.data?.token;
       if (token) {
-        localStorage.setItem('adminToken', token);
-        // Also set token in apiService for admin API calls
-        apiService.setToken(token);
+        // Store admin token using the tokenType parameter to avoid overwriting groupo_token
+        apiService.setToken(token, 'admin');
         setStep('dashboard');
         await loadData();
       }
@@ -247,8 +284,8 @@ export default function AdminPortal() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('adminToken');
-    apiService.removeToken();
+    // Only remove admin token, don't clear buyer/manufacturer tokens
+    apiService.removeToken('admin');
     setUsername('');
     setPassword('');
     setActiveView('overview');
@@ -269,6 +306,26 @@ export default function AdminPortal() {
       setErrorMessage(error?.message || 'Failed to update verification status. Please try again.');
     } finally {
       setUpdatingStatusId(null);
+    }
+  };
+
+  const handleDeleteDesign = async (designId: string) => {
+    if (!confirm('Are you sure you want to delete this design? This action cannot be undone.')) {
+      return;
+    }
+
+    setDeletingDesignId(designId);
+    setErrorMessage('');
+    
+    try {
+      await apiService.deleteDesign(designId);
+      // Reload designs to reflect the deletion
+      await loadDesigns();
+    } catch (error: any) {
+      console.error('Failed to delete design:', error);
+      setErrorMessage(error?.message || 'Failed to delete design. Please try again.');
+    } finally {
+      setDeletingDesignId(null);
     }
   };
 
@@ -1302,12 +1359,15 @@ export default function AdminPortal() {
                     <th scope="col" className="px-4 py-3 text-left font-semibold">
                       Created
                     </th>
+                    <th scope="col" className="px-4 py-3 text-left font-semibold">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 text-slate-600">
                   {designs.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-4 py-6 text-center text-sm text-slate-500">
+                      <td colSpan={6} className="px-4 py-6 text-center text-sm text-slate-500">
                         No designs found.
                       </td>
                     </tr>
@@ -1389,6 +1449,48 @@ export default function AdminPortal() {
                           </td>
                           <td className="px-4 py-3 text-xs text-slate-500">
                             {formatDate(design.created_at)}
+                          </td>
+                          <td className="px-4 py-3">
+                            <button
+                              onClick={() => handleDeleteDesign(design.id)}
+                              disabled={deletingDesignId === design.id}
+                              className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:border-red-300 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                              title="Delete design"
+                            >
+                              {deletingDesignId === design.id ? (
+                                <>
+                                  <svg
+                                    className="h-3 w-3 animate-spin"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth={2}
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <path d="M21 12a9 9 0 11-6.219-8.56" />
+                                    <path d="M21 3v6h-6" />
+                                  </svg>
+                                  Deleting...
+                                </>
+                              ) : (
+                                <>
+                                  <svg
+                                    className="h-3 w-3"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth={2}
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                                    <path d="M10 11v6M14 11v6" />
+                                  </svg>
+                                  Delete
+                                </>
+                              )}
+                            </button>
                           </td>
                         </tr>
                       ))

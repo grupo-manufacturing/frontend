@@ -279,42 +279,65 @@ class ApiService {
   /**
    * Store JWT token in localStorage and cookies
    * @param {string} token - JWT token
+   * @param {string} tokenType - Token type: 'regular' (default) or 'admin'
    */
-  setToken(token) {
+  setToken(token, tokenType = 'regular') {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('groupo_token', token);
-      // Also set cookie for server-side middleware access
-      document.cookie = `groupo_token=${token}; path=/; max-age=86400; SameSite=Lax`;
+      if (tokenType === 'admin') {
+        localStorage.setItem('adminToken', token);
+      } else {
+        localStorage.setItem('groupo_token', token);
+        // Also set cookie for server-side middleware access
+        document.cookie = `groupo_token=${token}; path=/; max-age=86400; SameSite=Lax`;
+      }
     }
   }
 
   /**
    * Get JWT token from localStorage
-   * Checks both 'groupo_token' and 'adminToken' for admin support
+   * Route-aware: returns admin token if on admin routes, otherwise regular token
    * @returns {string|null} JWT token
    */
   getToken() {
     if (typeof window !== 'undefined') {
-      // Check regular token first
-      const token = localStorage.getItem('groupo_token');
-      if (token) return token;
+      // Check if we're on admin routes
+      const currentPath = window.location.pathname;
+      const isAdminRoute = currentPath.startsWith('/admin');
       
-      // Fallback to admin token
-      const adminToken = localStorage.getItem('adminToken');
-      if (adminToken) return adminToken;
+      if (isAdminRoute) {
+        // On admin routes, prioritize adminToken
+        const adminToken = localStorage.getItem('adminToken');
+        if (adminToken) return adminToken;
+        // Fallback to regular token if admin token not found
+        return localStorage.getItem('groupo_token');
+      } else {
+        // On regular routes (buyer/manufacturer), prioritize groupo_token
+        const token = localStorage.getItem('groupo_token');
+        if (token) return token;
+        // Don't fallback to admin token on non-admin routes
+        return null;
+      }
     }
     return null;
   }
 
   /**
    * Remove JWT token from localStorage and cookies
+   * @param {string} tokenType - Token type: 'regular' (default), 'admin', or 'all'
    */
-  removeToken() {
+  removeToken(tokenType = 'all') {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('groupo_token');
-      localStorage.removeItem('adminToken');
-      // Also remove cookie
-      document.cookie = 'groupo_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      if (tokenType === 'admin') {
+        localStorage.removeItem('adminToken');
+      } else if (tokenType === 'regular') {
+        localStorage.removeItem('groupo_token');
+        document.cookie = 'groupo_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      } else {
+        // Remove all tokens
+        localStorage.removeItem('groupo_token');
+        localStorage.removeItem('adminToken');
+        document.cookie = 'groupo_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      }
     }
   }
 
