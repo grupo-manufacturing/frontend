@@ -687,6 +687,17 @@ class ApiService {
   }
 
   /**
+   * Get a single requirement response by ID
+   * @param {string} responseId - Response ID
+   * @returns {Promise} Response data
+   */
+  async getRequirementResponse(responseId) {
+    return this.request(`/requirements/responses/${responseId}`, {
+      method: 'GET'
+    });
+  }
+
+  /**
    * Get manufacturer's own responses
    * @param {Object} filters - Optional filters
    * @returns {Promise} Response data

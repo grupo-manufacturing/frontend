@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
-import apiService from '../../lib/apiService';
+import apiService from '../../../lib/apiService';
 
 // Company details - should be configurable
 const COMPANY_DETAILS = {
@@ -70,35 +70,48 @@ function numberToWords(num: number): string {
   return result.trim();
 }
 
-export default function InvoicePage() {
+export default function RequirementInvoicePage() {
   const params = useParams();
-  const orderId = params.orderId as string;
-  const [order, setOrder] = useState<any>(null);
+  const responseId = params.responseId as string;
+  const [requirementResponse, setRequirementResponse] = useState<any>(null);
+  const [requirement, setRequirement] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchOrder = async () => {
+    const fetchData = async () => {
       try {
-        // Fetch order details
-        const response = await apiService.getOrder(orderId);
+        // Fetch requirement response details (includes requirement with buyer details)
+        const responseRes = await apiService.getRequirementResponse(responseId);
         
-        if (response && response.data) {
-          setOrder(response.data);
+        if (responseRes && responseRes.success && responseRes.data) {
+          setRequirementResponse(responseRes.data);
+          
+          // Use requirement from response (already includes buyer details from backend)
+          if (responseRes.data.requirement) {
+            setRequirement(responseRes.data.requirement);
+          } else if (responseRes.data.requirement_id) {
+            // Fallback: fetch requirement separately if not included
+            const reqRes = await apiService.getRequirement(responseRes.data.requirement_id);
+            if (reqRes && reqRes.success && reqRes.data) {
+              setRequirement(reqRes.data);
+            }
+          }
         } else {
-          setError('Order not found');
+          setError('Requirement response not found');
         }
       } catch (err: any) {
-        setError(err.message || 'Failed to load order');
+        console.error('Error fetching invoice data:', err);
+        setError(err.message || 'Failed to load invoice');
       } finally {
         setLoading(false);
       }
     };
 
-    if (orderId) {
-      fetchOrder();
+    if (responseId) {
+      fetchData();
     }
-  }, [orderId]);
+  }, [responseId]);
 
   if (loading) {
     return (
@@ -108,24 +121,51 @@ export default function InvoicePage() {
     );
   }
 
-  if (error || !order) {
+  if (error || !requirementResponse || !requirement) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-red-600">{error || 'Order not found'}</p>
+        <p className="text-red-600">{error || 'Requirement response not found'}</p>
       </div>
     );
   }
 
-  // Generate invoice number (using order ID)
-  const invoiceNumber = `PFI-${order.id.slice(-2)}`;
-  const invoiceDate = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  // Only show invoice if response is accepted
+  if (requirementResponse.status !== 'accepted') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-red-600">Invoice can only be generated for accepted requirements</p>
+      </div>
+    );
+  }
+
+  // Generate invoice number (using response ID)
+  const invoiceNumber = `RFI-${responseId.slice(-6).toUpperCase()}`;
+  const invoiceDate = requirementResponse.accepted_at 
+    ? new Date(requirementResponse.accepted_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+    : new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   const dueDate = invoiceDate;
 
-  // Calculate amounts
-  const quantity = order.quantity || order.requirement?.quantity || 1;
-  const ratePerItem = order.price_per_unit || (order.quoted_price && quantity ? order.quoted_price / quantity : 0);
-  const finalValue = ratePerItem * quantity;
-  const totalAmount = finalValue;
+  // Calculate amounts with commission breakdown
+  const quantity = requirement.quantity || 1;
+  const ratePerItem = requirementResponse.price_per_unit || 0;
+  const basePrice = ratePerItem * quantity;
+  const gst = basePrice * 0.05; // 5% GST
+  const quotedPrice = requirementResponse.quoted_price || 0;
+  const platformFee = quotedPrice - basePrice - gst; // Platform fee (commission)
+  
+  // Calculate platform fee percentage for display (based on base price)
+  const platformFeePercentage = basePrice > 0 ? (platformFee / basePrice) * 100 : 0;
+  
+  // Determine fee tier based on total quoted price for transparency
+  const getFeeTier = (total: number): string => {
+    if (total <= 100000) return '20%';
+    if (total <= 200000) return '15%';
+    if (total <= 500000) return '8%';
+    return '5%';
+  };
+  
+  const feeTier = getFeeTier(quotedPrice);
+  const totalAmount = quotedPrice;
 
   return (
     <div className="min-h-screen bg-white p-8 print:p-6">
@@ -152,6 +192,8 @@ export default function InvoicePage() {
         </div>
         <div className="text-right">
           <h2 className="text-xl font-bold text-gray-900">INVOICE</h2>
+          <p className="text-sm text-gray-600 mt-2">Invoice #: {invoiceNumber}</p>
+          <p className="text-sm text-gray-600">Date: {invoiceDate}</p>
         </div>
       </div>
 
@@ -161,39 +203,30 @@ export default function InvoicePage() {
           <p className="text-sm font-semibold text-gray-700 mb-2">Buyer Details</p>
           <div className="bg-gray-50 p-4 rounded-lg print:bg-gray-100">
             <p className="font-semibold text-gray-900">
-              {order.buyer?.full_name || order.requirement?.buyer?.full_name || order.buyer?.business_name || 'Buyer'}
+              {requirement.buyer?.full_name || requirement.buyer?.business_name || 'Unknown Buyer'}
             </p>
-            {order.buyer?.business_name && (
-              <p className="text-sm text-gray-600 mt-1">{order.buyer.business_name}</p>
-            )}
             <p className="text-sm text-gray-600 mt-2">
-              {order.buyer?.business_address || order.requirement?.buyer?.business_address || 'Address not provided'}
+              Phone: {requirement.buyer?.phone_number || 'Not Available'}
             </p>
-            <p className="text-sm text-gray-600 mt-1">
-              Phone: {order.buyer?.phone_number || order.requirement?.buyer?.phone_number || 'N/A'}
-            </p>
-            {order.buyer?.gstin && (
-              <p className="text-sm text-gray-600 mt-1">GSTIN: {order.buyer.gstin}</p>
-            )}
           </div>
         </div>
         <div>
           <p className="text-sm font-semibold text-gray-700 mb-2">Manufacturer Details</p>
           <div className="bg-gray-50 p-4 rounded-lg print:bg-gray-100">
             <p className="font-semibold text-gray-900">
-              {order.manufacturer?.unit_name || order.manufacturer?.business_name || 'Manufacturer'}
+              {requirementResponse.manufacturer?.unit_name || requirementResponse.manufacturer?.business_name || 'Manufacturer'}
             </p>
-            {order.manufacturer?.business_type && (
-              <p className="text-sm text-gray-600 mt-1">{order.manufacturer.business_type}</p>
+            {requirementResponse.manufacturer?.business_type && (
+              <p className="text-sm text-gray-600 mt-1">{requirementResponse.manufacturer.business_type}</p>
             )}
             <p className="text-sm text-gray-600 mt-2">
-              {order.manufacturer?.business_address || order.manufacturer?.location || 'Address not provided'}
+              {requirementResponse.manufacturer?.business_address || requirementResponse.manufacturer?.location || 'Address not provided'}
             </p>
             <p className="text-sm text-gray-600 mt-1">
-              Phone: {order.manufacturer?.phone_number || 'N/A'}
+              Phone: {requirementResponse.manufacturer?.phone_number || 'N/A'}
             </p>
-            {order.manufacturer?.gstin && (
-              <p className="text-sm text-gray-600 mt-1">GSTIN: {order.manufacturer.gstin}</p>
+            {requirementResponse.manufacturer?.gstin && (
+              <p className="text-sm text-gray-600 mt-1">GSTIN: {requirementResponse.manufacturer.gstin}</p>
             )}
           </div>
         </div>
@@ -205,19 +238,33 @@ export default function InvoicePage() {
           <thead>
             <tr className="bg-gray-100 print:bg-gray-200">
               <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold text-gray-700">Sr. No</th>
-              <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold text-gray-700">Item</th>
+              <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold text-gray-700">Item Description</th>
               <th className="border border-gray-300 px-4 py-2 text-right text-sm font-semibold text-gray-700">Price Per Unit</th>
               <th className="border border-gray-300 px-4 py-2 text-right text-sm font-semibold text-gray-700">Qty</th>
-              <th className="border border-gray-300 px-4 py-2 text-right text-sm font-semibold text-gray-700">Final Value</th>
+              <th className="border border-gray-300 px-4 py-2 text-right text-sm font-semibold text-gray-700">Subtotal</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td className="border border-gray-300 px-4 py-3 text-sm text-gray-700">1</td>
-              <td className="border border-gray-300 px-4 py-3 text-sm text-gray-700">{order.design?.product_name || order.requirement?.product_type || order.requirement?.requirement_text || 'Product'}</td>
+              <td className="border border-gray-300 px-4 py-3 text-sm text-gray-700">
+                <div>
+                  <p className="font-medium">{requirement.product_type || 'Custom Product'}</p>
+                  {requirement.brand_name && (
+                    <p className="text-xs text-gray-500 mt-1">Brand: {requirement.brand_name}</p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">{requirement.requirement_text}</p>
+                  {requirementResponse.notes && (
+                    <p className="text-xs text-gray-500 mt-1 italic">Notes: {requirementResponse.notes}</p>
+                  )}
+                  {requirementResponse.delivery_time && (
+                    <p className="text-xs text-gray-500 mt-1">Delivery Time: {requirementResponse.delivery_time}</p>
+                  )}
+                </div>
+              </td>
               <td className="border border-gray-300 px-4 py-3 text-sm text-gray-700 text-right">₹{ratePerItem.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
               <td className="border border-gray-300 px-4 py-3 text-sm text-gray-700 text-right">{quantity}</td>
-              <td className="border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-900 text-right">₹{finalValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+              <td className="border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-900 text-right">₹{basePrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
             </tr>
           </tbody>
         </table>
@@ -228,12 +275,26 @@ export default function InvoicePage() {
         <p className="text-sm text-gray-600 mb-4">Total Items / Qty: 1 / {quantity}</p>
       </div>
 
-      {/* Totals */}
+      {/* Price Breakdown with Commission */}
       <div className="mb-8 flex justify-end">
         <div className="w-80">
-          <div className="flex justify-between text-lg font-bold pt-2 border-t border-gray-300">
-            <span className="text-gray-900">Total:</span>
-            <span className="text-gray-900">₹{totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm text-gray-700">
+              <span>Subtotal (Base Price)</span>
+              <span>₹{basePrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+            </div>
+            <div className="flex justify-between text-sm text-gray-700">
+              <span>GST (5%)</span>
+              <span>₹{gst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+            </div>
+            <div className="flex justify-between text-sm text-gray-700 border-b border-gray-200 pb-2">
+              <span>Platform Fee ({feeTier})</span>
+              <span>₹{platformFee.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+            </div>
+            <div className="flex justify-between text-lg font-bold pt-2 border-t-2 border-gray-400">
+              <span className="text-gray-900">Total Amount:</span>
+              <span className="text-gray-900">₹{totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+            </div>
           </div>
         </div>
       </div>
