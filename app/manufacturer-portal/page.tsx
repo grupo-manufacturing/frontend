@@ -7,7 +7,7 @@ import apiService from '../lib/apiService';
 import ChatList from '../components/chat/ChatList';
 import ChatWindow from '../components/chat/ChatWindow';
 
-type TabType = 'chats' | 'requirements' | 'analytics' | 'my-designs' | 'profile';
+type TabType = 'chats' | 'requirements' | 'analytics' | 'my-designs' | 'generate-designs' | 'profile';
 type AnalyticsTabType = 'revenue-trends' | 'order-distribution';
 
 export default function ManufacturerPortal() {
@@ -1559,6 +1559,27 @@ export default function ManufacturerPortal() {
                 </svg>
                 <span className="relative z-10">My Designs</span>
               </button>
+
+              {/* Generate Designs Tab */}
+              <Link
+                href="/manufacturer-portal/generate-designs"
+                className="relative flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all text-gray-500 hover:text-[#22a2f2]"
+              >
+                <svg
+                  className="relative z-10 w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+                <span className="relative z-10">Generate Designs</span>
+              </Link>
 
             </div>
           </div>
