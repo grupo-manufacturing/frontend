@@ -8,7 +8,7 @@ import apiService from '../lib/apiService';
 import ChatList from '../components/chat/ChatList';
 import ChatWindow from '../components/chat/ChatWindow';
 
-type TabType = 'designs' | 'custom-quote' | 'my-orders' | 'chats' | 'requirements';
+type TabType = 'designs' | 'custom-quote' | 'my-orders' | 'chats' | 'requirements' | 'generate-designs';
 
 export default function BuyerPortal() {
   const [countryCode, setCountryCode] = useState('+91');
@@ -1159,6 +1159,34 @@ export default function BuyerPortal() {
                 </svg>
                 <span className="relative z-10 hidden sm:inline">Requirements</span>
               </button>
+
+              {/* Generate Designs Tab */}
+              <Link
+                href="/buyer-portal/generate-designs"
+                className={`relative flex items-center gap-2 px-3 lg:px-4 py-3 font-medium text-sm whitespace-nowrap transition-all rounded-t-lg ${
+                  activeTab === 'generate-designs'
+                    ? 'text-black'
+                    : 'text-gray-500 hover:text-black'
+                }`}
+              >
+                {activeTab === 'generate-designs' && (
+                  <div className="absolute inset-0 bg-gray-100 rounded-t-lg border-b-2 border-black"></div>
+                )}
+                <svg
+                  className="relative z-10 w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+                <span className="relative z-10 hidden sm:inline">Generate Designs</span>
+              </Link>
 
             </div>
           </div>

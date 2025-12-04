@@ -40,15 +40,15 @@ export default function GenerateDesignsPage() {
     const fetchUserProfile = async () => {
       try {
         if (typeof window !== 'undefined') {
-          const storedPhone = localStorage.getItem('manufacturerPhoneNumber');
+          const storedPhone = localStorage.getItem('buyerPhoneNumber');
           if (storedPhone) {
             setUserPhoneNumber(storedPhone);
           }
         }
-        const response = await apiService.getManufacturerProfile();
+        const response = await apiService.getBuyerProfile();
         if (response && response.success && response.data && response.data.profile) {
           const profile = response.data.profile;
-          const resolvedName = (profile.unit_name || profile.full_name || '').trim();
+          const resolvedName = (profile.full_name || profile.business_name || '').trim();
           if (resolvedName) {
             setDisplayName(resolvedName);
           }
@@ -114,7 +114,7 @@ export default function GenerateDesignsPage() {
       
       setSuccess('Design published successfully! Redirecting to designs...');
       setTimeout(() => {
-        router.push('/manufacturer-portal');
+        router.push('/buyer-portal');
       }, 2000);
     } catch (err: any) {
       setError(err.message || 'Failed to publish design. Please try again.');
@@ -125,7 +125,7 @@ export default function GenerateDesignsPage() {
   };
 
   const handleLogout = async () => {
-    await apiService.logout('/manufacturer-portal');
+    await apiService.logout('/buyer-portal');
   };
 
   return (
@@ -137,7 +137,7 @@ export default function GenerateDesignsPage() {
             {/* Left Side - Logo and Back Button */}
             <div className="flex items-center gap-3">
               <button
-                onClick={() => router.push('/manufacturer-portal')}
+                onClick={() => router.push('/buyer-portal')}
                 className="flex items-center gap-2 text-gray-600 hover:text-black transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -161,7 +161,7 @@ export default function GenerateDesignsPage() {
                 </div>
                 <div className="flex flex-col">
                   <span className="text-lg font-bold text-black">Grupo</span>
-                  <span className="text-xs text-gray-600 hidden sm:block">Your Manufacturing Partner</span>
+                  <span className="text-xs text-gray-600 hidden sm:block">Your Design Marketplace</span>
                 </div>
               </div>
             </div>
@@ -179,7 +179,7 @@ export default function GenerateDesignsPage() {
               </div>
 
               <Link
-                href="/manufacturer-portal/profile"
+                href="/buyer-portal/profile"
                 className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:text-black hover:bg-gray-50 rounded-lg transition-all border border-gray-200"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
