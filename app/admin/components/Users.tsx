@@ -1,0 +1,249 @@
+'use client';
+
+import { useMemo, useState } from 'react';
+import type { Buyer, Manufacturer, UserType } from '../types';
+import { formatDate, renderBadge } from '../utils';
+import apiService from '../../lib/apiService';
+
+interface UsersProps {
+  buyers: Buyer[];
+  manufacturers: Manufacturer[];
+  isLoadingData: boolean;
+  lastUpdated: string | null;
+  onError: (message: string) => void;
+  onReload: () => Promise<void>;
+}
+
+export default function Users({
+  buyers,
+  manufacturers,
+  isLoadingData,
+  lastUpdated,
+  onError,
+  onReload
+}: UsersProps) {
+  const [userType, setUserType] = useState<UserType>('buyers');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
+
+  const isShowingBuyers = userType === 'buyers';
+  const isShowingManufacturers = userType === 'manufacturers';
+
+  const filteredBuyers = useMemo(() => {
+    if (!searchQuery.trim()) return buyers;
+    const q = searchQuery.toLowerCase();
+    return buyers.filter((buyer) =>
+      (buyer.full_name || '').toLowerCase().includes(q) ||
+      (buyer.business_name || '').toLowerCase().includes(q) ||
+      buyer.phone_number.includes(searchQuery)
+    );
+  }, [buyers, searchQuery]);
+
+  const filteredManufacturers = useMemo(() => {
+    if (!searchQuery.trim()) return manufacturers;
+    const q = searchQuery.toLowerCase();
+    return manufacturers.filter((manufacturer) =>
+      (manufacturer.unit_name || '').toLowerCase().includes(q) ||
+      (manufacturer.business_name || '').toLowerCase().includes(q) ||
+      (manufacturer.business_type || '').toLowerCase().includes(q) ||
+      manufacturer.phone_number.includes(searchQuery)
+    );
+  }, [manufacturers, searchQuery]);
+
+  const handleUpdateVerificationStatus = async (manufacturerId: string, newStatus: string) => {
+    setUpdatingStatusId(manufacturerId);
+    onError('');
+    
+    try {
+      await apiService.updateManufacturerVerificationStatus(manufacturerId, newStatus);
+      // Reload data to get updated status
+      await onReload();
+    } catch (error: any) {
+      console.error('Failed to update verification status:', error);
+      onError(error?.message || 'Failed to update verification status. Please try again.');
+    } finally {
+      setUpdatingStatusId(null);
+    }
+  };
+
+  if (isLoadingData) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-slate-900">User Directory</h1>
+          <p className="text-sm text-slate-500">
+            View and manage all registered buyers and manufacturers.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500">
+            Total records:{' '}
+            <span className="font-semibold text-slate-800">
+              {isShowingBuyers ? buyers.length : manufacturers.length}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="inline-flex rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
+            <button
+              onClick={() => setUserType('buyers')}
+              className={`rounded-md px-4 py-2 text-sm font-medium transition ${
+                isShowingBuyers
+                  ? 'bg-[#22a2f2] text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              Buyers
+            </button>
+            <button
+              onClick={() => setUserType('manufacturers')}
+              className={`rounded-md px-4 py-2 text-sm font-medium transition ${
+                isShowingManufacturers
+                  ? 'bg-[#22a2f2] text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              Manufacturers
+            </button>
+          </div>
+        </div>
+        <div className="relative flex-1 max-w-md">
+          <svg
+            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx={11} cy={11} r={8} />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder={`Search ${isShowingBuyers ? 'buyers' : 'manufacturers'} by name or phone`}
+            className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-700 shadow-sm focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30"
+          />
+        </div>
+      </div>
+
+      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <table className="min-w-full divide-y divide-slate-200 text-sm">
+          <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+            <tr>
+              <th scope="col" className="px-4 py-3 text-left font-semibold">
+                {isShowingBuyers ? 'Buyer' : 'Manufacturer'}
+              </th>
+              <th scope="col" className="px-4 py-3 text-left font-semibold">
+                Contact
+              </th>
+              {isShowingManufacturers && (
+                <>
+                  <th scope="col" className="px-4 py-3 text-left font-semibold">
+                    Onboarding
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-left font-semibold">
+                    Verification
+                  </th>
+                </>
+              )}
+              <th scope="col" className="px-4 py-3 text-left font-semibold">
+                Joined
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-200 text-slate-600">
+            {isShowingBuyers &&
+              filteredBuyers.map((buyer) => (
+                <tr key={buyer.id} className="hover:bg-slate-50/80">
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-slate-900">
+                      {buyer.full_name || buyer.business_name || 'Not provided'}
+                    </div>
+                    <div className="text-xs text-slate-500">{buyer.business_name || '—'}</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="text-xs font-medium text-slate-700">{buyer.phone_number}</div>
+                  </td>
+                  <td className="px-4 py-3 text-xs text-slate-500">{formatDate(buyer.created_at)}</td>
+                </tr>
+              ))}
+            {isShowingManufacturers &&
+              filteredManufacturers.map((manufacturer) => (
+                <tr key={manufacturer.id} className="hover:bg-slate-50/80">
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-slate-900">
+                      {manufacturer.unit_name || manufacturer.business_name || 'Not provided'}
+                    </div>
+                    <div className="text-xs text-slate-500">
+                      {manufacturer.business_type || 'Business type not provided'}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="text-xs font-medium text-slate-700">{manufacturer.phone_number}</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    {renderBadge(
+                      manufacturer.onboarding_completed ? 'Completed' : 'Pending',
+                      manufacturer.onboarding_completed ? 'info' : 'neutral'
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={manufacturer.verification_status || 'pending'}
+                        onChange={(e) => handleUpdateVerificationStatus(String(manufacturer.id), e.target.value)}
+                        disabled={updatingStatusId === String(manufacturer.id)}
+                        className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm transition hover:border-slate-400 focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="Accepted">Accepted</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Blocked">Blocked</option>
+                      </select>
+                      {updatingStatusId === String(manufacturer.id) && (
+                        <svg
+                          className="h-4 w-4 animate-spin text-[#22a2f2]"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M21 12a9 9 0 11-6.219-8.56" />
+                          <path d="M21 3v6h-6" />
+                        </svg>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-xs text-slate-500">
+                    {formatDate(manufacturer.created_at)}
+                  </td>
+                </tr>
+              ))}
+            {(isShowingBuyers && filteredBuyers.length === 0) ||
+            (isShowingManufacturers && filteredManufacturers.length === 0) ? (
+              <tr>
+                <td colSpan={isShowingBuyers ? 3 : 5} className="px-4 py-6 text-center text-sm text-slate-500">
+                  No records found for your current filters.
+                </td>
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
