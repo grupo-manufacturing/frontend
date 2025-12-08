@@ -13,24 +13,17 @@ export default function GenerateDesignsPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Form state
+  // Form state - Simplified for beginners
   const [formData, setFormData] = useState({
-    design_style: '',
     apparel_type: '',
-    theme_concept: '',
-    target_audience: '',
-    print_placement: '',
-    main_elements: '',
+    design_description: '',
     preferred_colors: '',
-    colors_to_avoid: '',
-    text_style: '',
-    text_content: '',
-    mood: '',
-    art_style: '',
-    complexity_level: '',
-    background_type: '',
-    fabric_color: ''
+    print_placement: ''
   });
+
+  // Dropdown states
+  const [isApparelTypeDropdownOpen, setIsApparelTypeDropdownOpen] = useState(false);
+  const [isPrintPlacementDropdownOpen, setIsPrintPlacementDropdownOpen] = useState(false);
 
   const [displayName, setDisplayName] = useState('');
   const [userPhoneNumber, setUserPhoneNumber] = useState('');
@@ -68,12 +61,15 @@ export default function GenerateDesignsPage() {
   };
 
   const handleGenerate = async () => {
-    // Validate required fields
-    const requiredFields = ['design_style', 'apparel_type', 'theme_concept', 'target_audience', 'print_placement'];
-    const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]?.trim());
+    // Validate required fields - only 2 essential fields now
+    if (!formData.apparel_type?.trim()) {
+      setError('Please select what product you want to design');
+      setTimeout(() => setError(''), 5000);
+      return;
+    }
     
-    if (missingFields.length > 0) {
-      setError(`Please fill in all required fields: ${missingFields.join(', ')}`);
+    if (!formData.design_description?.trim()) {
+      setError('Please describe your design idea');
       setTimeout(() => setError(''), 5000);
       return;
     }
@@ -83,13 +79,42 @@ export default function GenerateDesignsPage() {
     setSuccess('');
 
     try {
-      // For now, just simulate generation (frontend only)
-      // In the future, this would call an API endpoint
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Simulate generated design URL (placeholder)
-      setGeneratedDesign('/hero1.jpeg'); // Placeholder image
-      setSuccess('Design generated successfully! You can now publish it.');
+      // Transform simplified form data to match API expectations
+      const apiPayload = {
+        apparel_type: formData.apparel_type,
+        design_description: formData.design_description,
+        theme_concept: formData.design_description, // Use description as theme
+        design_style: 'custom', // Default style
+        target_audience: 'general', // Default audience
+        print_placement: formData.print_placement || 'Front Center',
+        main_elements: formData.design_description, // Extract from description
+        preferred_colors: formData.preferred_colors || '',
+        colors_to_avoid: '',
+        text_style: '',
+        text_content: ''
+      };
+
+      // Call the API endpoint to generate design using Nano Banana Pro
+      const response = await fetch('/api/generate-design', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(apiPayload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate design');
+      }
+
+      if (data.success && data.image) {
+        setGeneratedDesign(data.image);
+        setSuccess('Design generated successfully!');
+      } else {
+        throw new Error('Invalid response from server');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to generate design. Please try again.');
       setTimeout(() => setError(''), 5000);
@@ -98,31 +123,6 @@ export default function GenerateDesignsPage() {
     }
   };
 
-  const handlePublish = async () => {
-    if (!generatedDesign) {
-      setError('No design to publish. Please generate a design first.');
-      return;
-    }
-
-    setIsGenerating(true);
-    setError('');
-    setSuccess('');
-
-    try {
-      // For now, just simulate publishing (frontend only)
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      setSuccess('Design published successfully! Redirecting to designs...');
-      setTimeout(() => {
-        router.push('/buyer-portal');
-      }, 2000);
-    } catch (err: any) {
-      setError(err.message || 'Failed to publish design. Please try again.');
-      setTimeout(() => setError(''), 5000);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
 
   const handleLogout = async () => {
     await apiService.logout('/buyer-portal');
@@ -212,7 +212,7 @@ export default function GenerateDesignsPage() {
             <span>AI-Powered Design Generation</span>
           </div>
           <h1 className="text-3xl font-bold text-black mb-2">Generate Designs</h1>
-          <p className="text-gray-600">Create custom designs using AI and publish them to the marketplace</p>
+          <p className="text-gray-600">Simply describe your idea and let AI create your design. It's that easy!</p>
         </div>
 
         {/* Error/Success Messages */}
@@ -232,250 +232,212 @@ export default function GenerateDesignsPage() {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 lg:p-8">
               <form onSubmit={(e) => { e.preventDefault(); handleGenerate(); }} className="space-y-6">
-                {/* Basic Information Section */}
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Basic Information</h2>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Design Style <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.design_style}
-                        onChange={(e) => handleInputChange('design_style', e.target.value)}
-                        placeholder="e.g., minimalist, vintage, modern, abstract"
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-400"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Apparel Type <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        value={formData.apparel_type}
-                        onChange={(e) => handleInputChange('apparel_type', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black bg-white"
-                        required
+                {/* Simplified Form - Only Essential Fields */}
+                <div className="space-y-6">
+                  {/* Step 1: What Product? */}
+                  <div>
+                    <label className="block text-base font-semibold text-gray-900 mb-3">
+                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#22a2f2] text-white text-sm font-bold mr-2">1</span>
+                      What product do you want to design?
+                      <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setIsApparelTypeDropdownOpen(!isApparelTypeDropdownOpen)}
+                        onBlur={() => setTimeout(() => setIsApparelTypeDropdownOpen(false), 200)}
+                        className={`appearance-none w-full px-4 py-3 pr-10 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black cursor-pointer transition-all text-left flex items-center justify-between text-base ${
+                          !formData.apparel_type ? 'text-gray-500' : 'text-black'
+                        }`}
                       >
-                        <option value="">Select apparel type</option>
-                        <option value="T-Shirt">T-Shirt</option>
-                        <option value="Hoodie">Hoodie</option>
-                        <option value="Sweatshirt">Sweatshirt</option>
-                        <option value="Tank Top">Tank Top</option>
-                        <option value="Polo Shirt">Polo Shirt</option>
-                        <option value="Long Sleeve">Long Sleeve</option>
-                        <option value="Crop Top">Crop Top</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Theme Concept <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.theme_concept}
-                        onChange={(e) => handleInputChange('theme_concept', e.target.value)}
-                        placeholder="e.g., nature, space, music, sports, abstract"
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-400"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Target Audience <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.target_audience}
-                        onChange={(e) => handleInputChange('target_audience', e.target.value)}
-                        placeholder="e.g., teenagers, young adults, professionals, athletes"
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-400"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Print Placement <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        value={formData.print_placement}
-                        onChange={(e) => handleInputChange('print_placement', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black bg-white"
-                        required
-                      >
-                        <option value="">Select placement</option>
-                        <option value="Front Center">Front Center</option>
-                        <option value="Back Center">Back Center</option>
-                        <option value="Front & Back">Front & Back</option>
-                        <option value="Left Chest">Left Chest</option>
-                        <option value="Sleeve">Sleeve</option>
-                        <option value="Full Print">Full Print</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Design Preferences Section */}
-                <div className="pt-6 border-t border-gray-200">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Design Preferences</h2>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Main Elements
-                      </label>
-                      <textarea
-                        value={formData.main_elements}
-                        onChange={(e) => handleInputChange('main_elements', e.target.value)}
-                        placeholder="e.g., geometric shapes, animals, text, logos, illustrations"
-                        rows={3}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-400 resize-none"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Colors to Use
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.preferred_colors}
-                          onChange={(e) => handleInputChange('preferred_colors', e.target.value)}
-                          placeholder="e.g., blue, red, white"
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-400"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Colors to Avoid
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.colors_to_avoid}
-                          onChange={(e) => handleInputChange('colors_to_avoid', e.target.value)}
-                          placeholder="e.g., yellow, orange"
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-400"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Typography Style (if text included)
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.text_style}
-                          onChange={(e) => handleInputChange('text_style', e.target.value)}
-                          placeholder="e.g., bold, script, sans-serif, handwritten"
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-400"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Text Content (if any)
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.text_content}
-                          onChange={(e) => handleInputChange('text_content', e.target.value)}
-                          placeholder="Enter text to include in design"
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-400"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Additional Details Section */}
-                <div className="pt-6 border-t border-gray-200">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Additional Details</h2>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Mood/Feel
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.mood}
-                          onChange={(e) => handleInputChange('mood', e.target.value)}
-                          placeholder="e.g., energetic, calm, playful, serious"
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-400"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Art Style
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.art_style}
-                          onChange={(e) => handleInputChange('art_style', e.target.value)}
-                          placeholder="e.g., realistic, cartoon, abstract, line art"
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-400"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Complexity Level
-                        </label>
-                        <select
-                          value={formData.complexity_level}
-                          onChange={(e) => handleInputChange('complexity_level', e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black bg-white"
+                        <span>
+                          {formData.apparel_type || 'Choose a product type...'}
+                        </span>
+                        <svg 
+                          className={`w-5 h-5 text-gray-400 transition-transform ${isApparelTypeDropdownOpen ? 'transform rotate-180' : ''}`}
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
                         >
-                          <option value="">Select complexity</option>
-                          <option value="minimal">Minimal</option>
-                          <option value="detailed">Detailed</option>
-                          <option value="extremely intricate">Extremely Intricate</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Background Type
-                        </label>
-                        <select
-                          value={formData.background_type}
-                          onChange={(e) => handleInputChange('background_type', e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black bg-white"
-                        >
-                          <option value="">Select background</option>
-                          <option value="transparent">Transparent</option>
-                          <option value="plain">Plain</option>
-                          <option value="full art background">Full Art Background</option>
-                        </select>
-                      </div>
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
+                        </svg>
+                      </button>
+                      
+                      {isApparelTypeDropdownOpen && (
+                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                          <div className="max-h-[180px] overflow-y-auto">
+                            {[
+                              'Tshirts Plain',
+                              'Tshirts Printed',
+                              'Acid Wash Plain',
+                              'Cargos',
+                              'Polos',
+                              'Mesh',
+                              'Denim Jeans',
+                              'Twill Jacket',
+                              'Wind Cheaters',
+                              'Vests',
+                              'Cotton Shirts',
+                              'Silk Shirts',
+                              'Carduroy Shirts',
+                              'Varsity Jackets',
+                              'Sweatshirts',
+                              'Hoodies Plain',
+                              'Hoodies Printed',
+                              'Tops',
+                              'Women Dresss',
+                              'Leather Products',
+                              'Caps',
+                              'Bags'
+                            ].map((option) => (
+                              <button
+                                key={option}
+                                type="button"
+                                onClick={() => {
+                                  handleInputChange('apparel_type', option);
+                                  setIsApparelTypeDropdownOpen(false);
+                                }}
+                                className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${
+                                  formData.apparel_type === option ? 'bg-[#22a2f2]/10 text-[#22a2f2] font-medium' : 'text-gray-900'
+                                }`}
+                              >
+                                {option}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
+                    <p className="mt-2 text-sm text-gray-500">Select the type of clothing you want to create a design for</p>
+                  </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Fabric Color
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.fabric_color}
-                        onChange={(e) => handleInputChange('fabric_color', e.target.value)}
-                        placeholder="e.g., white, black, navy blue, gray"
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-400"
-                      />
-                    </div>
+                  {/* Step 2: Describe Your Design */}
+                  <div>
+                    <label className="block text-base font-semibold text-gray-900 mb-3">
+                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#22a2f2] text-white text-sm font-bold mr-2">2</span>
+                      Describe your design idea
+                      <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <textarea
+                      value={formData.design_description}
+                      onChange={(e) => handleInputChange('design_description', e.target.value)}
+                      placeholder="Tell us what you want! For example: A minimalist design with geometric shapes in blue and white. Include the text 'Stay Creative' in bold letters. Nature theme with mountains."
+                      rows={5}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-400 resize-none text-base"
+                      required
+                    />
+                    <p className="mt-2 text-sm text-gray-500 mb-3">
+                      Describe your design in simple words. Include style, colors, text, images, or any ideas you have!
+                    </p>
+                    
+                    {/* Example Prompts */}
+                    <details className="group">
+                      <summary className="cursor-pointer text-sm text-[#22a2f2] hover:text-[#1b8bd0] font-medium flex items-center gap-2">
+                        <svg className="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                        Need inspiration? See example prompts
+                      </summary>
+                      <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
+                        <p className="text-xs font-medium text-gray-700 mb-2">Try these examples:</p>
+                        <div className="space-y-2 text-sm text-gray-600">
+                          <div className="p-2 bg-white rounded border border-gray-200">
+                            <span className="font-medium">Example 1:</span> "A vintage retro design with faded colors, featuring a mountain landscape and the text 'Adventure Awaits' in bold script font"
+                          </div>
+                          <div className="p-2 bg-white rounded border border-gray-200">
+                            <span className="font-medium">Example 2:</span> "Modern minimalist style with geometric shapes in black and white. Include a small logo on the left chest"
+                          </div>
+                          <div className="p-2 bg-white rounded border border-gray-200">
+                            <span className="font-medium">Example 3:</span> "Bold and colorful design with abstract patterns in blue, red, and yellow. Sports theme with motivational text"
+                          </div>
+                        </div>
+                      </div>
+                    </details>
+                  </div>
+
+                  {/* Optional Fields - Collapsed by Default */}
+                  <div className="pt-4 border-t border-gray-200">
+                    <details className="group">
+                      <summary className="cursor-pointer text-sm font-medium text-gray-600 hover:text-gray-900 flex items-center gap-2">
+                        <svg className="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                        Optional: Add more details (colors, placement)
+                      </summary>
+                      
+                      <div className="mt-4 space-y-4 pl-6">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Preferred Colors <span className="text-gray-400 text-xs">(optional)</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.preferred_colors}
+                            onChange={(e) => handleInputChange('preferred_colors', e.target.value)}
+                            placeholder="e.g., blue, red, white, black"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-400"
+                          />
+                          <p className="mt-1 text-xs text-gray-500">Leave blank if you want AI to choose colors</p>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Where should the design be printed? <span className="text-gray-400 text-xs">(optional)</span>
+                          </label>
+                          <div className="relative">
+                            <button
+                              type="button"
+                              onClick={() => setIsPrintPlacementDropdownOpen(!isPrintPlacementDropdownOpen)}
+                              onBlur={() => setTimeout(() => setIsPrintPlacementDropdownOpen(false), 200)}
+                              className={`appearance-none w-full px-4 py-3 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black cursor-pointer transition-all text-left flex items-center justify-between ${
+                                !formData.print_placement ? 'text-gray-500' : 'text-black'
+                              }`}
+                            >
+                              <span>
+                                {formData.print_placement || 'Choose placement (default: Front Center)'}
+                              </span>
+                              <svg 
+                                className={`w-5 h-5 text-gray-400 transition-transform ${isPrintPlacementDropdownOpen ? 'transform rotate-180' : ''}`}
+                                fill="none" 
+                                stroke="currentColor" 
+                                viewBox="0 0 24 24"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
+                              </svg>
+                            </button>
+                            
+                            {isPrintPlacementDropdownOpen && (
+                              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                                <div className="max-h-[180px] overflow-y-auto">
+                                  {[
+                                    'Front Center',
+                                    'Back Center',
+                                    'Front & Back',
+                                    'Left Chest',
+                                    'Sleeve',
+                                    'Full Print'
+                                  ].map((option) => (
+                                    <button
+                                      key={option}
+                                      type="button"
+                                      onClick={() => {
+                                        handleInputChange('print_placement', option);
+                                        setIsPrintPlacementDropdownOpen(false);
+                                      }}
+                                      className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${
+                                        formData.print_placement === option ? 'bg-[#22a2f2]/10 text-[#22a2f2] font-medium' : 'text-gray-900'
+                                      }`}
+                                    >
+                                      {option}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </details>
                   </div>
                 </div>
 
@@ -514,37 +476,12 @@ export default function GenerateDesignsPage() {
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Design Preview</h2>
               
               {generatedDesign ? (
-                <div className="space-y-4">
-                  <div className="relative aspect-square bg-gray-100 rounded-xl overflow-hidden border border-gray-200">
-                    <img
-                      src={generatedDesign}
-                      alt="Generated Design"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  
-                  <button
-                    onClick={handlePublish}
-                    disabled={isGenerating}
-                    className="w-full px-4 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    {isGenerating ? (
-                      <>
-                        <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Publishing...
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                        </svg>
-                        Publish Design
-                      </>
-                    )}
-                  </button>
+                <div className="relative aspect-square bg-gray-100 rounded-xl overflow-hidden border border-gray-200">
+                  <img
+                    src={generatedDesign}
+                    alt="Generated Design"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
               ) : (
                 <div className="relative aspect-square bg-gray-50 rounded-xl overflow-hidden border-2 border-dashed border-gray-300 flex items-center justify-center">

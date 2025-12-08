@@ -485,6 +485,34 @@ export default function BuyerPortal() {
         <nav className="relative z-40 bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-1">
+              {/* Generate Designs Tab */}
+              <Link
+                href="/buyer-portal/generate-designs"
+                className={`relative flex items-center gap-2 px-3 lg:px-4 py-3 font-medium text-sm whitespace-nowrap transition-all rounded-t-lg ${
+                  activeTab === 'generate-designs'
+                    ? 'text-black'
+                    : 'text-gray-500 hover:text-black'
+                }`}
+              >
+                {activeTab === 'generate-designs' && (
+                  <div className="absolute inset-0 bg-gray-100 rounded-t-lg border-b-2 border-black"></div>
+                )}
+                <svg
+                  className="relative z-10 w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+                <span className="relative z-10 hidden sm:inline">Generate Designs</span>
+              </Link>
+
               {/* Designs Tab */}
               <button
                 onClick={() => setActiveTab('designs')}
@@ -513,7 +541,7 @@ export default function BuyerPortal() {
                 <span className="relative z-10 hidden sm:inline">Designs</span>
               </button>
 
-              {/* Custom Quote Tab */}
+              {/* Get Manufacturers Tab */}
               <button
                 onClick={() => setActiveTab('custom-quote')}
                 className={`relative flex items-center gap-2 px-3 lg:px-4 py-3 font-medium text-sm whitespace-nowrap transition-all rounded-t-lg ${
@@ -538,7 +566,7 @@ export default function BuyerPortal() {
                     d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                   />
                 </svg>
-                <span className="relative z-10 hidden sm:inline">Custom Quote</span>
+                <span className="relative z-10 hidden sm:inline">Get Manufacturers</span>
               </button>
 
               {/* My Orders Tab */}
@@ -629,34 +657,6 @@ export default function BuyerPortal() {
                 </svg>
                 <span className="relative z-10 hidden sm:inline">Requirements</span>
               </button>
-
-              {/* Generate Designs Tab */}
-              <Link
-                href="/buyer-portal/generate-designs"
-                className={`relative flex items-center gap-2 px-3 lg:px-4 py-3 font-medium text-sm whitespace-nowrap transition-all rounded-t-lg ${
-                  activeTab === 'generate-designs'
-                    ? 'text-black'
-                    : 'text-gray-500 hover:text-black'
-                }`}
-              >
-                {activeTab === 'generate-designs' && (
-                  <div className="absolute inset-0 bg-gray-100 rounded-t-lg border-b-2 border-black"></div>
-                )}
-                <svg
-                  className="relative z-10 w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
-                <span className="relative z-10 hidden sm:inline">Generate Designs</span>
-              </Link>
 
             </div>
           </div>
