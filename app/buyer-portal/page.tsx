@@ -1022,10 +1022,6 @@ export default function BuyerPortal() {
                                 <span className="font-medium text-gray-900">{aiDesign.quantity}</span>
                               </div>
                               <div className="flex items-center justify-between text-sm">
-                                <span className="text-gray-500">Price/Unit:</span>
-                                <span className="font-medium text-gray-900">₹{aiDesign.price_per_unit}</span>
-                              </div>
-                              <div className="flex items-center justify-between text-sm">
                                 <span className="text-gray-500">Status:</span>
                                 <span className={`px-2 py-0.5 rounded text-xs font-medium ${
                                   aiDesign.status === 'published' 
@@ -1185,7 +1181,6 @@ export default function BuyerPortal() {
                       )}
                       <div className="flex items-center gap-4 text-xs text-gray-500">
                         <span>Your Qty: {selectedDesignForResponses.quantity?.toLocaleString()}</span>
-                        <span>Your Price: ₹{selectedDesignForResponses.price_per_unit?.toLocaleString()}</span>
                       </div>
                     </div>
                   </div>

@@ -8,15 +8,14 @@ export async function POST(request: NextRequest) {
       apparel_type,
       design_description,
       quantity,
-      price_per_unit,
       preferred_colors,
       print_placement
     } = body;
 
     // Validate required fields
-    if (!image_url || !apparel_type || !quantity || !price_per_unit) {
+    if (!image_url || !apparel_type || !quantity) {
       return NextResponse.json(
-        { error: 'Missing required fields: image_url, apparel_type, quantity, and price_per_unit are required' },
+        { error: 'Missing required fields: image_url, apparel_type, and quantity are required' },
         { status: 400 }
       );
     }
@@ -45,7 +44,6 @@ export async function POST(request: NextRequest) {
         apparel_type,
         design_description: design_description || null,
         quantity: parseInt(quantity),
-        price_per_unit: parseFloat(price_per_unit),
         preferred_colors: preferred_colors || null,
         print_placement: print_placement || null,
         status: 'published'

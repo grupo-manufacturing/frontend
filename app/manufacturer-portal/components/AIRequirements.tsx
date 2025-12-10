@@ -234,18 +234,9 @@ export default function AIRequirements() {
               
               {/* Details */}
               <div className="space-y-2 mb-4 flex-1">
-                {aiDesign.design_description && (
-                  <div className="text-sm text-gray-600 line-clamp-2">
-                    {aiDesign.design_description}
-                  </div>
-                )}
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-400 font-normal">Quantity</span>
                   <span className="text-gray-900 font-semibold">{aiDesign.quantity?.toLocaleString() || 'N/A'}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400 font-normal">Price/Unit</span>
-                  <span className="text-gray-900 font-semibold">₹{aiDesign.price_per_unit?.toLocaleString() || 'N/A'}</span>
                 </div>
                 {aiDesign.buyer && (
                   <div className="flex items-center justify-between text-sm">
@@ -361,12 +352,8 @@ export default function AIRequirements() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="text-base font-bold text-gray-900 mb-1">{selectedAiDesign.apparel_type}</h4>
-                    {selectedAiDesign.design_description && (
-                      <p className="text-sm text-gray-600 line-clamp-2 mb-2">{selectedAiDesign.design_description}</p>
-                    )}
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                    <div className="flex items-center gap-4 text-xs text-gray-500 mt-2">
                       <span>Buyer Qty: {selectedAiDesign.quantity?.toLocaleString()}</span>
-                      <span>Buyer Price: ₹{selectedAiDesign.price_per_unit?.toLocaleString()}</span>
                     </div>
                   </div>
                 </div>

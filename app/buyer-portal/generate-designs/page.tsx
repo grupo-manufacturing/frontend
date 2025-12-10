@@ -16,8 +16,7 @@ export default function GenerateDesignsPage() {
   // Publish modal state
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [publishData, setPublishData] = useState({
-    quantity: '',
-    pricePerUnit: ''
+    quantity: ''
   });
   const [isPublishing, setIsPublishing] = useState(false);
 
@@ -138,23 +137,16 @@ export default function GenerateDesignsPage() {
     }
 
     // Validate publish data
-    if (!publishData.quantity || !publishData.pricePerUnit) {
-      setError('Please fill in both quantity and price per unit');
+    if (!publishData.quantity) {
+      setError('Please enter the quantity');
       setTimeout(() => setError(''), 5000);
       return;
     }
 
     const quantity = parseInt(publishData.quantity);
-    const pricePerUnit = parseFloat(publishData.pricePerUnit);
 
     if (isNaN(quantity) || quantity <= 0) {
       setError('Please enter a valid quantity');
-      setTimeout(() => setError(''), 5000);
-      return;
-    }
-
-    if (isNaN(pricePerUnit) || pricePerUnit <= 0) {
-      setError('Please enter a valid price per unit');
       setTimeout(() => setError(''), 5000);
       return;
     }
@@ -181,7 +173,6 @@ export default function GenerateDesignsPage() {
           apparel_type: formData.apparel_type,
           design_description: formData.design_description,
           quantity: quantity,
-          price_per_unit: pricePerUnit,
           preferred_colors: formData.preferred_colors || null,
           print_placement: formData.print_placement || null
         }),
@@ -196,7 +187,7 @@ export default function GenerateDesignsPage() {
       if (data.success) {
         setSuccess('Design published successfully! It will be visible to all manufacturers.');
         setIsPublishModalOpen(false);
-        setPublishData({ quantity: '', pricePerUnit: '' });
+        setPublishData({ quantity: '' });
         // Optionally clear the generated design or keep it
       } else {
         throw new Error('Failed to publish design');
@@ -631,25 +622,6 @@ export default function GenerateDesignsPage() {
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black"
                   disabled={isPublishing}
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Price Per Unit <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">₹</span>
-                  <input
-                    type="number"
-                    value={publishData.pricePerUnit}
-                    onChange={(e) => setPublishData({ ...publishData, pricePerUnit: e.target.value })}
-                    placeholder="0.00"
-                    min="0"
-                    step="0.01"
-                    className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black"
-                    disabled={isPublishing}
-                  />
-                </div>
               </div>
             </div>
 
