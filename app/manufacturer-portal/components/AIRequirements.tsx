@@ -1,19 +1,85 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import apiService from '../../lib/apiService';
 
 export default function AIRequirements() {
   const [aiDesigns, setAiDesigns] = useState<any[]>([]);
   const [isLoadingAiDesigns, setIsLoadingAiDesigns] = useState(false);
+  const [selectedAiDesign, setSelectedAiDesign] = useState<any | null>(null);
+  const [showResponseModal, setShowResponseModal] = useState(false);
+  const [responseForm, setResponseForm] = useState({
+    pricePerUnit: '',
+    quantity: ''
+  });
+  const [isSubmittingResponse, setIsSubmittingResponse] = useState(false);
+  const [manufacturerId, setManufacturerId] = useState<string | null>(null);
+  const [respondedDesignIds, setRespondedDesignIds] = useState<Set<string>>(new Set());
 
-  // Fetch AI Designs
+  // Fetch manufacturer profile to get ID
+  useEffect(() => {
+    const fetchManufacturerProfile = async () => {
+      try {
+        const response = await apiService.getManufacturerProfile();
+        if (response.success && response.data?.profile?.id) {
+          setManufacturerId(response.data.profile.id);
+        }
+      } catch (error) {
+        console.error('Failed to fetch manufacturer profile:', error);
+      }
+    };
+    fetchManufacturerProfile();
+  }, []);
+
+  // Fetch AI Designs with response status
   const fetchAiDesigns = async () => {
     setIsLoadingAiDesigns(true);
     try {
       const response = await apiService.getAIDesigns();
       if (response.success && response.data) {
-        setAiDesigns(response.data || []);
+        const designs = response.data || [];
+        
+        // Fetch responses for each design to check if manufacturer has responded
+        const designsWithResponseStatus = await Promise.all(
+          designs.map(async (design: any) => {
+            try {
+              const responsesResponse = await apiService.getAIDesignResponses(design.id);
+              if (responsesResponse.success && responsesResponse.data) {
+                const responses = responsesResponse.data || [];
+                // Check if current manufacturer has responded
+                const hasResponded = manufacturerId && responses.some(
+                  (resp: any) => resp.manufacturer_id === manufacturerId
+                );
+                return {
+                  ...design,
+                  hasResponded: hasResponded || false
+                };
+              }
+              return {
+                ...design,
+                hasResponded: false
+              };
+            } catch (error) {
+              console.error(`Failed to fetch responses for AI design ${design.id}:`, error);
+              return {
+                ...design,
+                hasResponded: false
+              };
+            }
+          })
+        );
+        
+        setAiDesigns(designsWithResponseStatus);
+        
+        // Update responded design IDs set
+        const respondedIds = new Set<string>();
+        designsWithResponseStatus.forEach((design: any) => {
+          if (design.hasResponded) {
+            respondedIds.add(design.id);
+          }
+        });
+        setRespondedDesignIds(respondedIds);
       } else {
         console.error('Failed to fetch AI designs');
         setAiDesigns([]);
@@ -26,10 +92,78 @@ export default function AIRequirements() {
     }
   };
 
-  // Fetch AI designs on mount
+  // Fetch AI designs on mount and when manufacturer ID is available
   useEffect(() => {
-    fetchAiDesigns();
-  }, []);
+    if (manufacturerId) {
+      fetchAiDesigns();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [manufacturerId]);
+
+  // Handle submit response
+  const handleSubmitResponse = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedAiDesign) return;
+
+    // Validate form
+    if (!responseForm.pricePerUnit || parseFloat(responseForm.pricePerUnit) <= 0) {
+      alert('Please enter a valid price per unit');
+      return;
+    }
+
+    if (!responseForm.quantity || parseInt(responseForm.quantity) <= 0) {
+      alert('Please enter a valid quantity');
+      return;
+    }
+
+    setIsSubmittingResponse(true);
+
+    try {
+      const response = await apiService.createAIDesignResponse({
+        ai_design_id: selectedAiDesign.id,
+        price_per_unit: parseFloat(responseForm.pricePerUnit),
+        quantity: parseInt(responseForm.quantity)
+      });
+
+      if (response.success) {
+        // Reset form and close modal
+        setResponseForm({ pricePerUnit: '', quantity: '' });
+        setShowResponseModal(false);
+        setSelectedAiDesign(null);
+        
+        // Refresh AI designs list
+        await fetchAiDesigns();
+        
+        alert('Response submitted successfully!');
+      } else {
+        // Handle specific error messages
+        const errorMessage = response.message || 'Failed to submit response';
+        if (errorMessage.includes('already responded') || errorMessage.includes('already responded')) {
+          alert('You have already responded to this AI design. You can only respond once per design.');
+          setShowResponseModal(false);
+          setSelectedAiDesign(null);
+        } else {
+          alert(errorMessage);
+        }
+      }
+    } catch (error: any) {
+      console.error('Error submitting response:', error);
+      const errorMessage = error.message || 'Failed to submit response. Please try again.';
+      // Check for 409 status (conflict) or duplicate response message
+      if (errorMessage.includes('already responded') || 
+          errorMessage.includes('409') || 
+          (error.response && error.response.status === 409)) {
+        alert('You have already responded to this AI design. You can only respond once per design.');
+        setShowResponseModal(false);
+        setSelectedAiDesign(null);
+      } else {
+        alert(errorMessage);
+      }
+    } finally {
+      setIsSubmittingResponse(false);
+    }
+  };
 
   return (
     <div>
@@ -124,19 +258,36 @@ export default function AIRequirements() {
               {/* Divider */}
               <div className="border-t border-gray-100 my-3"></div>
 
-              {/* View Details Button */}
+              {/* Respond Button */}
               <button
-                className="w-full bg-[#22a2f2] hover:bg-[#1b8bd0] text-white px-4 py-2.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                className={`w-full px-4 py-2.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm ${
+                  aiDesign.hasResponded
+                    ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                    : 'bg-[#22a2f2] hover:bg-[#1b8bd0] text-white hover:shadow-md'
+                }`}
                 onClick={() => {
-                  // For now, just show an alert. Later can add a modal or detail page
-                  alert(`AI Design Details:\n\nApparel Type: ${aiDesign.apparel_type}\nQuantity: ${aiDesign.quantity}\nPrice Per Unit: ₹${aiDesign.price_per_unit}\n${aiDesign.design_description ? `Description: ${aiDesign.design_description}` : ''}`);
+                  if (!aiDesign.hasResponded) {
+                    setSelectedAiDesign(aiDesign);
+                    setShowResponseModal(true);
+                  }
                 }}
+                disabled={aiDesign.hasResponded}
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-                <span>View Details</span>
+                {aiDesign.hasResponded ? (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Already Responded</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    <span>Respond</span>
+                  </>
+                )}
               </button>
             </div>
           ))}
@@ -172,6 +323,135 @@ export default function AIRequirements() {
             </p>
           </div>
         </div>
+      )}
+
+      {/* Response Modal */}
+      {showResponseModal && selectedAiDesign && typeof window !== 'undefined' && createPortal(
+        <div 
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" 
+          onClick={() => !isSubmittingResponse && setShowResponseModal(false)}
+        >
+          <div 
+            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col" 
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-white px-6 py-4 border-b border-gray-200 flex items-center justify-between z-10 shrink-0">
+              <h3 className="text-xl font-bold text-black">Respond to AI Design</h3>
+              <button
+                onClick={() => !isSubmittingResponse && setShowResponseModal(false)}
+                className="p-2 text-gray-500 hover:text-black hover:bg-gray-100 rounded-lg transition-all"
+                disabled={isSubmittingResponse}
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto flex-1 min-h-0">
+              {/* AI Design Info */}
+              <div className="mb-6 p-4 bg-gray-50 rounded-xl">
+                <div className="flex items-start gap-4">
+                  <div className="relative w-20 h-20 flex-shrink-0 overflow-hidden bg-gray-200 rounded-lg">
+                    <img
+                      src={selectedAiDesign.image_url}
+                      alt={selectedAiDesign.apparel_type || 'AI Design'}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-base font-bold text-gray-900 mb-1">{selectedAiDesign.apparel_type}</h4>
+                    {selectedAiDesign.design_description && (
+                      <p className="text-sm text-gray-600 line-clamp-2 mb-2">{selectedAiDesign.design_description}</p>
+                    )}
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <span>Buyer Qty: {selectedAiDesign.quantity?.toLocaleString()}</span>
+                      <span>Buyer Price: ₹{selectedAiDesign.price_per_unit?.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <form onSubmit={handleSubmitResponse} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Price Per Unit <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">₹</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      value={responseForm.pricePerUnit}
+                      onChange={(e) => setResponseForm({...responseForm, pricePerUnit: e.target.value})}
+                      placeholder="0.00"
+                      className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black"
+                      required
+                      disabled={isSubmittingResponse}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Quantity <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={responseForm.quantity}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Only allow integers (no decimals)
+                      if (value === '' || /^\d+$/.test(value)) {
+                        setResponseForm({...responseForm, quantity: value});
+                      }
+                    }}
+                    placeholder="Enter quantity"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black"
+                    required
+                    disabled={isSubmittingResponse}
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => !isSubmittingResponse && setShowResponseModal(false)}
+                    disabled={isSubmittingResponse}
+                    className="flex-1 px-4 py-3 bg-white hover:bg-gray-100 border border-gray-300 text-black font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmittingResponse}
+                    className={`flex-1 px-4 py-3 ${isSubmittingResponse ? 'bg-gray-400' : 'bg-[#22a2f2] hover:bg-[#1b8bd0]'} text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 disabled:cursor-not-allowed`}
+                  >
+                    {isSubmittingResponse ? (
+                      <>
+                        <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Submitting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Submit Response</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

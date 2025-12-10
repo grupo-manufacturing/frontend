@@ -56,7 +56,18 @@ class ApiService {
 
     try {
       const response = await fetch(url, config);
-      const data = await response.json();
+      
+      // Check if response has JSON content
+      const contentType = response.headers.get('content-type');
+      let data;
+      
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        // If not JSON, get text response
+        const text = await response.text();
+        data = { message: text || `HTTP error! status: ${response.status}` };
+      }
 
       if (!response.ok) {
         // Handle token expiration (401 Unauthorized)
@@ -64,13 +75,20 @@ class ApiService {
           this.handleTokenExpiration();
           throw new Error('Your session has expired. Please log in again.');
         }
-        throw new Error(data.message || `HTTP error! status: ${response.status}`);
+        // Handle 404 and other errors more gracefully
+        const errorMessage = data?.message || data?.error || `HTTP error! status: ${response.status}`;
+        throw new Error(errorMessage);
       }
 
       return data;
     } catch (error) {
       console.error('API request failed:', error);
-      throw error;
+      // If it's already an Error object, re-throw it
+      if (error instanceof Error) {
+        throw error;
+      }
+      // Otherwise, wrap it in an Error
+      throw new Error(error.message || 'API request failed');
     }
   }
 
@@ -1001,6 +1019,42 @@ class ApiService {
     return this.request(`/orders/${orderId}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status })
+    });
+  }
+
+  // =============================================
+  // AI DESIGN RESPONSES METHODS
+  // =============================================
+
+  /**
+   * Create a response to an AI design (manufacturer responds)
+   * @param {Object} responseData - Response data (ai_design_id, price_per_unit, quantity)
+   * @returns {Promise} Response data
+   */
+  async createAIDesignResponse(responseData) {
+    try {
+      return await this.request('/ai-design-responses', {
+        method: 'POST',
+        body: JSON.stringify(responseData)
+      });
+    } catch (error) {
+      // Re-throw with better error handling for duplicate responses
+      if (error.response && error.response.status === 409) {
+        throw new Error('You have already responded to this AI design. You can only respond once per design.');
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Get AI design responses
+   * @param {string} aiDesignId - Optional AI design ID to filter responses
+   * @returns {Promise} Response data
+   */
+  async getAIDesignResponses(aiDesignId = null) {
+    const query = aiDesignId ? `?ai_design_id=${aiDesignId}` : '';
+    return this.request(`/ai-design-responses${query}`, {
+      method: 'GET'
     });
   }
 }
