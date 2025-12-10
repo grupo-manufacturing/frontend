@@ -12,6 +12,14 @@ export default function GenerateDesignsPage() {
   const [generatedDesign, setGeneratedDesign] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  
+  // Publish modal state
+  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+  const [publishData, setPublishData] = useState({
+    quantity: '',
+    pricePerUnit: ''
+  });
+  const [isPublishing, setIsPublishing] = useState(false);
 
   // Form state - Simplified for beginners
   const [formData, setFormData] = useState({
@@ -123,6 +131,83 @@ export default function GenerateDesignsPage() {
     }
   };
 
+  const handlePublish = async () => {
+    if (!generatedDesign) {
+      setError('No design to publish. Please generate a design first.');
+      return;
+    }
+
+    // Validate publish data
+    if (!publishData.quantity || !publishData.pricePerUnit) {
+      setError('Please fill in both quantity and price per unit');
+      setTimeout(() => setError(''), 5000);
+      return;
+    }
+
+    const quantity = parseInt(publishData.quantity);
+    const pricePerUnit = parseFloat(publishData.pricePerUnit);
+
+    if (isNaN(quantity) || quantity <= 0) {
+      setError('Please enter a valid quantity');
+      setTimeout(() => setError(''), 5000);
+      return;
+    }
+
+    if (isNaN(pricePerUnit) || pricePerUnit <= 0) {
+      setError('Please enter a valid price per unit');
+      setTimeout(() => setError(''), 5000);
+      return;
+    }
+
+    setIsPublishing(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      // Get the auth token
+      const token = apiService.getToken();
+      if (!token) {
+        throw new Error('You must be logged in to publish designs');
+      }
+
+      const response = await fetch('/api/publish-ai-design', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          image_url: generatedDesign,
+          apparel_type: formData.apparel_type,
+          design_description: formData.design_description,
+          quantity: quantity,
+          price_per_unit: pricePerUnit,
+          preferred_colors: formData.preferred_colors || null,
+          print_placement: formData.print_placement || null
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to publish design');
+      }
+
+      if (data.success) {
+        setSuccess('Design published successfully! It will be visible to all manufacturers.');
+        setIsPublishModalOpen(false);
+        setPublishData({ quantity: '', pricePerUnit: '' });
+        // Optionally clear the generated design or keep it
+      } else {
+        throw new Error('Failed to publish design');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to publish design. Please try again.');
+      setTimeout(() => setError(''), 5000);
+    } finally {
+      setIsPublishing(false);
+    }
+  };
 
   const handleLogout = async () => {
     await apiService.logout('/buyer-portal');
@@ -476,12 +561,25 @@ export default function GenerateDesignsPage() {
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Design Preview</h2>
               
               {generatedDesign ? (
-                <div className="relative aspect-square bg-gray-100 rounded-xl overflow-hidden border border-gray-200">
-                  <img
-                    src={generatedDesign}
-                    alt="Generated Design"
-                    className="w-full h-full object-cover"
-                  />
+                <div className="space-y-4">
+                  <div className="relative aspect-square bg-gray-100 rounded-xl overflow-hidden border border-gray-200">
+                    <img
+                      src={generatedDesign}
+                      alt="Generated Design"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  
+                  <button
+                    onClick={() => setIsPublishModalOpen(true)}
+                    disabled={isGenerating}
+                    className="w-full px-4 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    Publish Design
+                  </button>
                 </div>
               ) : (
                 <div className="relative aspect-square bg-gray-50 rounded-xl overflow-hidden border-2 border-dashed border-gray-300 flex items-center justify-center">
@@ -497,6 +595,98 @@ export default function GenerateDesignsPage() {
           </div>
         </div>
       </main>
+
+      {/* Publish Modal */}
+      {isPublishModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 p-6 lg:p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Publish Design</h2>
+              <button
+                onClick={() => setIsPublishModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+                disabled={isPublishing}
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <p className="text-sm text-gray-600 mb-6">
+              Add details about your design to publish it to all manufacturers in the network.
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Quantity <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={publishData.quantity}
+                  onChange={(e) => setPublishData({ ...publishData, quantity: e.target.value })}
+                  placeholder="Enter quantity"
+                  min="1"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black"
+                  disabled={isPublishing}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Price Per Unit <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">₹</span>
+                  <input
+                    type="number"
+                    value={publishData.pricePerUnit}
+                    onChange={(e) => setPublishData({ ...publishData, pricePerUnit: e.target.value })}
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                    className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black"
+                    disabled={isPublishing}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setIsPublishModalOpen(false)}
+                disabled={isPublishing}
+                className="flex-1 px-4 py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handlePublish}
+                disabled={isPublishing}
+                className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isPublishing ? (
+                  <>
+                    <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Publishing...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    Publish
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

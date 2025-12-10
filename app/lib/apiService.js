@@ -868,6 +868,26 @@ class ApiService {
   }
 
   /**
+   * Get AI designs for the authenticated buyer
+   * @param {Object} filters - Optional filters (status, apparel_type, limit, offset)
+   * @returns {Promise} Response data
+   */
+  async getAIDesigns(filters = {}) {
+    const queryParams = new URLSearchParams();
+    if (filters.status) queryParams.append('status', filters.status);
+    if (filters.apparel_type) queryParams.append('apparel_type', filters.apparel_type);
+    if (filters.limit) queryParams.append('limit', filters.limit);
+    if (filters.offset) queryParams.append('offset', filters.offset);
+
+    const queryString = queryParams.toString();
+    const endpoint = `/ai-designs${queryString ? `?${queryString}` : ''}`;
+    
+    return this.request(endpoint, {
+      method: 'GET'
+    });
+  }
+
+  /**
    * Get a single design by ID
    * @param {string} designId - Design ID
    * @returns {Promise} Response data

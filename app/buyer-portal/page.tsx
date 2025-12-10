@@ -78,11 +78,16 @@ export default function BuyerPortal() {
     checkAuthAndProfile();
   }, []);
   const [activeTab, setActiveTab] = useState<TabType>('designs');
+  const [designsSubTab, setDesignsSubTab] = useState<'all-designs' | 'my-ai-designs'>('all-designs');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [designs, setDesigns] = useState<any[]>([]);
   const [isLoadingDesigns, setIsLoadingDesigns] = useState(false);
+  
+  // AI Designs States
+  const [aiDesigns, setAiDesigns] = useState<any[]>([]);
+  const [isLoadingAiDesigns, setIsLoadingAiDesigns] = useState(false);
   
   
   // Requirements States
@@ -163,12 +168,35 @@ export default function BuyerPortal() {
     }
   };
 
+  // Fetch AI designs
+  const fetchAiDesigns = async () => {
+    setIsLoadingAiDesigns(true);
+    try {
+      const response = await apiService.getAIDesigns();
+      if (response.success && response.data) {
+        setAiDesigns(response.data || []);
+      } else {
+        console.error('Failed to fetch AI designs');
+        setAiDesigns([]);
+      }
+    } catch (error) {
+      console.error('Failed to fetch AI designs:', error);
+      setAiDesigns([]);
+    } finally {
+      setIsLoadingAiDesigns(false);
+    }
+  };
+
   // Fetch designs when designs tab is active
   useEffect(() => {
     if (activeTab === 'designs' && step === 'dashboard') {
-      fetchDesigns();
+      if (designsSubTab === 'all-designs') {
+        fetchDesigns();
+      } else if (designsSubTab === 'my-ai-designs') {
+        fetchAiDesigns();
+      }
     }
-  }, [activeTab, step, selectedCategory, searchQuery]);
+  }, [activeTab, step, selectedCategory, searchQuery, designsSubTab]);
 
   // Helper function to determine requirement status based on responses
   const getRequirementStatus = (requirement: any): 'accepted' | 'pending' | 'negotiation' => {
@@ -683,193 +711,345 @@ export default function BuyerPortal() {
                       d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                     />
                   </svg>
-                  <span>Curated designs</span>
+                  <span>{designsSubTab === 'all-designs' ? 'Curated designs' : 'AI Generated Designs'}</span>
                 </div>
                 <h1 className="text-3xl font-bold text-black mb-2">Design Marketplace</h1>
-                <p className="text-gray-600">Browse our curated collection of ready-to-manufacture designs</p>
+                <p className="text-gray-600">
+                  {designsSubTab === 'all-designs' 
+                    ? 'Browse our curated collection of ready-to-manufacture designs'
+                    : 'View your AI-generated designs that are published to manufacturers'}
+                </p>
               </div>
 
-              {/* Search and Filter Bar */}
-              <div className="mb-8">
-                <div className="bg-white rounded-2xl border border-[#22a2f2]/30 p-6 shadow-sm">
-                  <div className="flex flex-col md:flex-row gap-4">
-                    {/* Search Input */}
-                    <div className="flex-1 relative group">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <svg
-                          className="h-5 w-5 text-gray-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                          />
-                        </svg>
-                      </div>
-                      <input
-                        type="text"
-                        placeholder="Search designs..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-400 transition-all"
-                      />
-                    </div>
+              {/* Sub-tabs for Designs */}
+              <div className="mb-6 flex gap-2 border-b border-gray-200">
+                <button
+                  onClick={() => setDesignsSubTab('all-designs')}
+                  className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${
+                    designsSubTab === 'all-designs'
+                      ? 'border-[#22a2f2] text-[#22a2f2]'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  All Designs
+                </button>
+                <button
+                  onClick={() => setDesignsSubTab('my-ai-designs')}
+                  className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${
+                    designsSubTab === 'my-ai-designs'
+                      ? 'border-[#22a2f2] text-[#22a2f2]'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  My AI Designs
+                </button>
+              </div>
 
-                    {/* Category Dropdown */}
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-                        onBlur={() => setTimeout(() => setIsCategoryDropdownOpen(false), 200)}
-                        className="appearance-none w-full md:w-64 px-4 py-3 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black cursor-pointer transition-all text-left flex items-center justify-between"
-                      >
-                        <span className={selectedCategory !== 'all' ? 'text-black' : 'text-gray-500'}>
-                          {selectedCategory === 'all' 
-                            ? 'All Categories' 
-                            : selectedCategory === 't-shirts' 
-                            ? 'T-Shirts' 
-                            : selectedCategory === 'shirts'
-                            ? 'Shirts'
-                            : selectedCategory === 'hoodies'
-                            ? 'Hoodies'
-                            : selectedCategory === 'sweatshirts'
-                            ? 'Sweatshirts'
-                            : selectedCategory === 'cargos'
-                            ? 'Cargos'
-                            : selectedCategory === 'trackpants'
-                            ? 'Trackpants'
-                            : 'All Categories'}
-                        </span>
-                        <svg 
-                          className={`h-5 w-5 text-gray-400 transition-transform ${isCategoryDropdownOpen ? 'transform rotate-180' : ''}`}
-                          fill="none" 
-                          stroke="currentColor" 
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 9l-7 7-7-7"
-                          />
-                        </svg>
-                      </button>
-                      
-                      {isCategoryDropdownOpen && (
-                        <div className="absolute z-50 w-full md:w-64 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
-                          <div className="max-h-[180px] overflow-y-auto">
-                            {[
-                              { value: 'all', label: 'All Categories' },
-                              { value: 't-shirts', label: 'T-Shirts' },
-                              { value: 'shirts', label: 'Shirts' },
-                              { value: 'hoodies', label: 'Hoodies' },
-                              { value: 'sweatshirts', label: 'Sweatshirts' },
-                              { value: 'cargos', label: 'Cargos' },
-                              { value: 'trackpants', label: 'Trackpants' }
-                            ].map((option) => (
-                              <button
-                                key={option.value}
-                                type="button"
-                                onClick={() => {
-                                  setSelectedCategory(option.value);
-                                  setIsCategoryDropdownOpen(false);
-                                }}
-                                className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${
-                                  selectedCategory === option.value ? 'bg-[#22a2f2]/10 text-[#22a2f2] font-medium' : 'text-gray-900'
-                                }`}
-                              >
-                                {option.label}
-                              </button>
-                            ))}
-                          </div>
+              {/* Search and Filter Bar - Only for All Designs */}
+              {designsSubTab === 'all-designs' && (
+                <div className="mb-8">
+                  <div className="bg-white rounded-2xl border border-[#22a2f2]/30 p-6 shadow-sm">
+                    <div className="flex flex-col md:flex-row gap-4">
+                      {/* Search Input */}
+                      <div className="flex-1 relative group">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                          <svg
+                            className="h-5 w-5 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                            />
+                          </svg>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Loading State */}
-              {isLoadingDesigns && (
-                <div className="flex flex-col items-center justify-center py-20">
-                  <svg className="animate-spin w-12 h-12 text-[#22a2f2] mb-4" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  <p className="text-gray-500">Loading designs...</p>
-                </div>
-              )}
-
-              {/* Designs Grid */}
-              {!isLoadingDesigns && designs.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {designs.map((design: any) => (
-                    <div
-                      key={design.id}
-                      className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-[#22a2f2]/50 transition-all duration-200 overflow-hidden group cursor-pointer"
-                      onClick={() => {
-                        window.location.href = `/buyer-portal/designs/${design.id}`;
-                      }}
-                    >
-                      {/* Product Image */}
-                      <div className="relative aspect-square overflow-hidden bg-gray-100">
-                        <img
-                          src={design.image_url}
-                          alt={design.product_name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        <input
+                          type="text"
+                          placeholder="Search designs..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-400 transition-all"
                         />
                       </div>
-                      
-                      {/* Product Info */}
-                      <div className="p-5">
-                        <div className="mb-2 flex items-center justify-between gap-2">
-                          <h3 className="text-lg font-bold text-gray-900 line-clamp-1 group-hover:text-[#22a2f2] transition-colors flex-1">{design.product_name}</h3>
+
+                      {/* Category Dropdown */}
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                          onBlur={() => setTimeout(() => setIsCategoryDropdownOpen(false), 200)}
+                          className="appearance-none w-full md:w-64 px-4 py-3 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black cursor-pointer transition-all text-left flex items-center justify-between"
+                        >
+                          <span className={selectedCategory !== 'all' ? 'text-black' : 'text-gray-500'}>
+                            {selectedCategory === 'all' 
+                              ? 'All Categories' 
+                              : selectedCategory === 't-shirts' 
+                              ? 'T-Shirts' 
+                              : selectedCategory === 'shirts'
+                              ? 'Shirts'
+                              : selectedCategory === 'hoodies'
+                              ? 'Hoodies'
+                              : selectedCategory === 'sweatshirts'
+                              ? 'Sweatshirts'
+                              : selectedCategory === 'cargos'
+                              ? 'Cargos'
+                              : selectedCategory === 'trackpants'
+                              ? 'Trackpants'
+                              : 'All Categories'}
+                          </span>
                           <svg 
-                            className="w-5 h-5 text-gray-400 group-hover:text-[#22a2f2] transition-colors flex-shrink-0" 
+                            className={`h-5 w-5 text-gray-400 transition-transform ${isCategoryDropdownOpen ? 'transform rotate-180' : ''}`}
                             fill="none" 
                             stroke="currentColor" 
                             viewBox="0 0 24 24"
                           >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 9l-7 7-7-7"
+                            />
                           </svg>
-                        </div>
+                        </button>
+                        
+                        {isCategoryDropdownOpen && (
+                          <div className="absolute z-50 w-full md:w-64 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                            <div className="max-h-[180px] overflow-y-auto">
+                              {[
+                                { value: 'all', label: 'All Categories' },
+                                { value: 't-shirts', label: 'T-Shirts' },
+                                { value: 'shirts', label: 'Shirts' },
+                                { value: 'hoodies', label: 'Hoodies' },
+                                { value: 'sweatshirts', label: 'Sweatshirts' },
+                                { value: 'cargos', label: 'Cargos' },
+                                { value: 'trackpants', label: 'Trackpants' }
+                              ].map((option) => (
+                                <button
+                                  key={option.value}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedCategory(option.value);
+                                    setIsCategoryDropdownOpen(false);
+                                  }}
+                                  className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${
+                                    selectedCategory === option.value ? 'bg-[#22a2f2]/10 text-[#22a2f2] font-medium' : 'text-gray-900'
+                                  }`}
+                                >
+                                  {option.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
               )}
 
-              {/* Empty State */}
-              {!isLoadingDesigns && designs.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-20">
-                  <div className="text-center max-w-md">
-                    <div className="relative group mb-6">
-                      <div className="bg-[#22a2f2]/10 rounded-2xl p-8 border border-[#22a2f2]/30 shadow-sm">
-                        <svg
-                          className="mx-auto h-20 w-20 text-[#22a2f2]"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+              {/* All Designs Content */}
+              {designsSubTab === 'all-designs' && (
+                <>
+                  {/* Loading State */}
+                  {isLoadingDesigns && (
+                    <div className="flex flex-col items-center justify-center py-20">
+                      <svg className="animate-spin w-12 h-12 text-[#22a2f2] mb-4" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <p className="text-gray-500">Loading designs...</p>
+                    </div>
+                  )}
+
+                  {/* Designs Grid */}
+                  {!isLoadingDesigns && designs.length > 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                      {designs.map((design: any) => (
+                        <div
+                          key={design.id}
+                          className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-[#22a2f2]/50 transition-all duration-200 overflow-hidden group cursor-pointer"
+                          onClick={() => {
+                            window.location.href = `/buyer-portal/designs/${design.id}`;
+                          }}
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={1.5}
-                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                          />
-                        </svg>
+                          {/* Product Image */}
+                          <div className="relative aspect-square overflow-hidden bg-gray-100">
+                            <img
+                              src={design.image_url}
+                              alt={design.product_name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          </div>
+                          
+                          {/* Product Info */}
+                          <div className="p-5">
+                            <div className="mb-2 flex items-center justify-between gap-2">
+                              <h3 className="text-lg font-bold text-gray-900 line-clamp-1 group-hover:text-[#22a2f2] transition-colors flex-1">{design.product_name}</h3>
+                              <svg 
+                                className="w-5 h-5 text-gray-400 group-hover:text-[#22a2f2] transition-colors flex-shrink-0" 
+                                fill="none" 
+                                stroke="currentColor" 
+                                viewBox="0 0 24 24"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Empty State */}
+                  {!isLoadingDesigns && designs.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-20">
+                      <div className="text-center max-w-md">
+                        <div className="relative group mb-6">
+                          <div className="bg-[#22a2f2]/10 rounded-2xl p-8 border border-[#22a2f2]/30 shadow-sm">
+                            <svg
+                              className="mx-auto h-20 w-20 text-[#22a2f2]"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={1.5}
+                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                        <p className="text-lg font-semibold text-[#22a2f2] mb-2">No designs found matching your criteria</p>
+                        <p className="text-sm text-gray-500">
+                          Try adjusting your search terms or category filter
+                        </p>
                       </div>
                     </div>
-                    <p className="text-lg font-semibold text-[#22a2f2] mb-2">No designs found matching your criteria</p>
-                    <p className="text-sm text-gray-500">
-                      Try adjusting your search terms or category filter
-                    </p>
-                  </div>
-                </div>
+                  )}
+                </>
+              )}
+
+              {/* My AI Designs Content */}
+              {designsSubTab === 'my-ai-designs' && (
+                <>
+                  {/* Loading State */}
+                  {isLoadingAiDesigns && (
+                    <div className="flex flex-col items-center justify-center py-20">
+                      <svg className="animate-spin w-12 h-12 text-[#22a2f2] mb-4" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <p className="text-gray-500">Loading your AI designs...</p>
+                    </div>
+                  )}
+
+                  {/* AI Designs Grid */}
+                  {!isLoadingAiDesigns && aiDesigns.length > 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                      {aiDesigns.map((aiDesign: any) => (
+                        <div
+                          key={aiDesign.id}
+                          className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-[#22a2f2]/50 transition-all duration-200 overflow-hidden group"
+                        >
+                          {/* Product Image */}
+                          <div className="relative aspect-square overflow-hidden bg-gray-100">
+                            <img
+                              src={aiDesign.image_url}
+                              alt={aiDesign.apparel_type || 'AI Design'}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                            {/* AI Badge */}
+                            <div className="absolute top-2 right-2 px-2 py-1 bg-[#22a2f2] text-white text-xs font-semibold rounded-lg">
+                              AI
+                            </div>
+                          </div>
+                          
+                          {/* Product Info */}
+                          <div className="p-5">
+                            <div className="mb-2">
+                              <h3 className="text-lg font-bold text-gray-900 line-clamp-1 group-hover:text-[#22a2f2] transition-colors">
+                                {aiDesign.apparel_type}
+                              </h3>
+                              {aiDesign.design_description && (
+                                <p className="text-sm text-gray-600 line-clamp-2 mt-1">
+                                  {aiDesign.design_description}
+                                </p>
+                              )}
+                            </div>
+                            
+                            {/* Design Details */}
+                            <div className="mt-3 pt-3 border-t border-gray-100 space-y-1">
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-gray-500">Quantity:</span>
+                                <span className="font-medium text-gray-900">{aiDesign.quantity}</span>
+                              </div>
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-gray-500">Price/Unit:</span>
+                                <span className="font-medium text-gray-900">₹{aiDesign.price_per_unit}</span>
+                              </div>
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-gray-500">Status:</span>
+                                <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                  aiDesign.status === 'published' 
+                                    ? 'bg-green-100 text-green-700' 
+                                    : aiDesign.status === 'draft'
+                                    ? 'bg-gray-100 text-gray-700'
+                                    : 'bg-gray-100 text-gray-700'
+                                }`}>
+                                  {aiDesign.status}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Empty State for AI Designs */}
+                  {!isLoadingAiDesigns && aiDesigns.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-20">
+                      <div className="text-center max-w-md">
+                        <div className="relative group mb-6">
+                          <div className="bg-[#22a2f2]/10 rounded-2xl p-8 border border-[#22a2f2]/30 shadow-sm">
+                            <svg
+                              className="mx-auto h-20 w-20 text-[#22a2f2]"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={1.5}
+                                d="M13 10V3L4 14h7v7l9-11h-7z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                        <p className="text-lg font-semibold text-[#22a2f2] mb-2">No AI designs yet</p>
+                        <p className="text-sm text-gray-500 mb-4">
+                          Generate and publish your first AI design to see it here
+                        </p>
+                        <Link
+                          href="/buyer-portal/generate-designs"
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-[#22a2f2] text-white rounded-lg font-medium hover:bg-[#1b8bd0] transition-colors"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                          </svg>
+                          Generate Design
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}
