@@ -14,31 +14,21 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const {
-      design_style,
       apparel_type,
       theme_concept,
-      target_audience,
       print_placement,
       main_elements,
-      preferred_colors,
-      colors_to_avoid,
-      text_style,
-      text_content
+      preferred_colors
     } = body;
 
     // Build a comprehensive prompt from all the form data
     let prompt = `Generate a high-quality apparel design for a ${apparel_type}. `;
     
-    if (design_style) {
-      prompt += `Design style: ${design_style}. `;
-    }
+    // Image specifications: Fixed layout, aspect ratio, and angle
+    prompt += `IMPORTANT IMAGE SPECIFICATIONS: The image must have a fixed 1:1 square aspect ratio (equal width and height). The apparel must be shown from a front-facing, straight-on view only - absolutely no side angles, no angled perspectives, no 3/4 views, no profile views. The garment should be displayed flat or on a model facing directly forward, centered in the frame. `;
     
     if (theme_concept) {
       prompt += `Theme: ${theme_concept}. `;
-    }
-    
-    if (target_audience) {
-      prompt += `Target audience: ${target_audience}. `;
     }
     
     if (print_placement) {
@@ -53,18 +43,7 @@ export async function POST(request: NextRequest) {
       prompt += `Use these colors: ${preferred_colors}. `;
     }
     
-    if (colors_to_avoid) {
-      prompt += `Avoid these colors: ${colors_to_avoid}. `;
-    }
-    
-    if (text_content) {
-      prompt += `Include this text: "${text_content}". `;
-      if (text_style) {
-        prompt += `Text style should be: ${text_style}. `;
-      }
-    }
-    
-    prompt += `Create a professional, print-ready design suitable for apparel manufacturing. The design should be visually appealing and appropriate for the target audience.`;
+    prompt += `Create a professional, print-ready design suitable for apparel manufacturing. The design should be visually appealing and appropriate for the target audience. Maintain consistent layout and composition across all generated designs.`;
 
     // Initialize the Gemini client
     const ai = new GoogleGenAI({ apiKey });
