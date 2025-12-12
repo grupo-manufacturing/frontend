@@ -10,6 +10,7 @@ import CustomQuote from './components/CustomQuote';
 import MyOrders from './components/MyOrders';
 import ChatsTab, { ChatsTabRef } from './components/ChatsTab';
 import MyRequirements from './components/MyRequirements';
+import GenerateDesigns from './components/GenerateDesigns';
 import Login from './components/Login';
 
 type TabType = 'designs' | 'custom-quote' | 'my-orders' | 'chats' | 'requirements' | 'generate-designs';
@@ -546,8 +547,8 @@ export default function BuyerPortal() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-1">
               {/* Generate Designs Tab */}
-              <Link
-                href="/buyer-portal/generate-designs"
+              <button
+                onClick={() => setActiveTab('generate-designs')}
                 className={`relative flex items-center gap-2 px-3 lg:px-4 py-3 font-medium text-sm whitespace-nowrap transition-all rounded-t-lg ${
                   activeTab === 'generate-designs'
                     ? 'text-black'
@@ -571,7 +572,7 @@ export default function BuyerPortal() {
                   />
                 </svg>
                 <span className="relative z-10 hidden sm:inline">Generate Designs</span>
-              </Link>
+              </button>
 
               {/* Designs Tab */}
               <button
@@ -1008,30 +1009,13 @@ export default function BuyerPortal() {
                               <h3 className="text-lg font-bold text-gray-900 line-clamp-1 group-hover:text-[#22a2f2] transition-colors">
                                 {aiDesign.apparel_type}
                               </h3>
-                              {aiDesign.design_description && (
-                                <p className="text-sm text-gray-600 line-clamp-2 mt-1">
-                                  {aiDesign.design_description}
-                                </p>
-                              )}
                             </div>
                             
                             {/* Design Details */}
-                            <div className="mt-3 pt-3 border-t border-gray-100 space-y-1">
+                            <div className="mt-3 pt-3 border-t border-gray-100">
                               <div className="flex items-center justify-between text-sm">
                                 <span className="text-gray-500">Quantity:</span>
                                 <span className="font-medium text-gray-900">{aiDesign.quantity}</span>
-                              </div>
-                              <div className="flex items-center justify-between text-sm">
-                                <span className="text-gray-500">Status:</span>
-                                <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                  aiDesign.status === 'published' 
-                                    ? 'bg-green-100 text-green-700' 
-                                    : aiDesign.status === 'draft'
-                                    ? 'bg-gray-100 text-gray-700'
-                                    : 'bg-gray-100 text-gray-700'
-                                }`}>
-                                  {aiDesign.status}
-                                </span>
                               </div>
                             </div>
 
@@ -1084,15 +1068,15 @@ export default function BuyerPortal() {
                         <p className="text-sm text-gray-500 mb-4">
                           Generate and publish your first AI design to see it here
                         </p>
-                        <Link
-                          href="/buyer-portal/generate-designs"
+                        <button
+                          onClick={() => setActiveTab('generate-designs')}
                           className="inline-flex items-center gap-2 px-4 py-2 bg-[#22a2f2] text-white rounded-lg font-medium hover:bg-[#1b8bd0] transition-colors"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                           </svg>
                           Generate Design
-                        </Link>
+                        </button>
                       </div>
                     </div>
                   )}
@@ -1132,6 +1116,16 @@ export default function BuyerPortal() {
               fetchRequirements={fetchRequirements}
               onNegotiateResponse={handleNegotiateResponse}
               onSwitchToCustomQuote={() => setActiveTab('custom-quote')}
+            />
+          )}
+          {activeTab === 'generate-designs' && (
+            <GenerateDesigns
+              onDesignPublished={() => {
+                // Refresh AI designs when a new design is published
+                if (designsSubTab === 'my-ai-designs') {
+                  fetchAiDesigns();
+                }
+              }}
             />
           )}
         </main>
