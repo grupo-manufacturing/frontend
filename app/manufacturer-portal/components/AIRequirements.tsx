@@ -40,31 +40,34 @@ export default function AIRequirements() {
       if (response.success && response.data) {
         const designs = response.data || [];
         
-        // Fetch responses for each design to check if manufacturer has responded
+        // Fetch responses for each design to check if manufacturer has responded and get status
         const designsWithResponseStatus = await Promise.all(
           designs.map(async (design: any) => {
             try {
               const responsesResponse = await apiService.getAIDesignResponses(design.id);
               if (responsesResponse.success && responsesResponse.data) {
                 const responses = responsesResponse.data || [];
-                // Check if current manufacturer has responded
-                const hasResponded = manufacturerId && responses.some(
+                // Check if current manufacturer has responded and get their response status
+                const manufacturerResponse = manufacturerId ? responses.find(
                   (resp: any) => resp.manufacturer_id === manufacturerId
-                );
+                ) : null;
                 return {
                   ...design,
-                  hasResponded: hasResponded || false
+                  hasResponded: !!manufacturerResponse,
+                  responseStatus: manufacturerResponse?.status || null
                 };
               }
               return {
                 ...design,
-                hasResponded: false
+                hasResponded: false,
+                responseStatus: null
               };
             } catch (error) {
               console.error(`Failed to fetch responses for AI design ${design.id}:`, error);
               return {
                 ...design,
-                hasResponded: false
+                hasResponded: false,
+                responseStatus: null
               };
             }
           })
@@ -225,6 +228,24 @@ export default function AIRequirements() {
                   alt={aiDesign.apparel_type || 'AI Design'}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
+                {/* Status Badge */}
+                {aiDesign.responseStatus ? (
+                  <div className={`absolute top-2 right-2 px-2 py-1 text-white text-xs font-semibold rounded-lg ${
+                    aiDesign.responseStatus === 'accepted'
+                      ? 'bg-green-600'
+                      : aiDesign.responseStatus === 'rejected'
+                      ? 'bg-red-600'
+                      : 'bg-gray-600'
+                  }`}>
+                    {aiDesign.responseStatus === 'accepted' ? 'Accepted' : 
+                     aiDesign.responseStatus === 'rejected' ? 'Rejected' : 
+                     'Submitted'}
+                  </div>
+                ) : (
+                  <div className="absolute top-2 right-2 px-2 py-1 bg-[#22a2f2] text-white text-xs font-semibold rounded-lg">
+                    AI
+                  </div>
+                )}
               </div>
               
               {/* Design Title */}

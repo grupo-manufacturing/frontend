@@ -906,6 +906,42 @@ class ApiService {
   }
 
   /**
+   * Push an AI design to manufacturers (change status to published)
+   * @param {string} designId - AI design ID
+   * @returns {Promise} Response data
+   */
+  async pushAIDesign(designId) {
+    const token = this.getToken();
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+    const url = `${baseUrl}/api/push-ai-design?id=${designId}`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token ? `Bearer ${token}` : ''
+        }
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          this.handleTokenExpiration();
+          throw new Error('Your session has expired. Please log in again.');
+        }
+        throw new Error(data.error || `Failed to push design! status: ${response.status}`);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Push AI design failed:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get a single design by ID
    * @param {string} designId - Design ID
    * @returns {Promise} Response data
@@ -1055,6 +1091,19 @@ class ApiService {
     const query = aiDesignId ? `?ai_design_id=${aiDesignId}` : '';
     return this.request(`/ai-design-responses${query}`, {
       method: 'GET'
+    });
+  }
+
+  /**
+   * Update AI design response status (accept/reject)
+   * @param {string} responseId - AI design response ID
+   * @param {string} status - New status ('accepted' or 'rejected')
+   * @returns {Promise} Response data
+   */
+  async updateAIDesignResponseStatus(responseId, status) {
+    return this.request(`/ai-design-responses/${responseId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status })
     });
   }
 }

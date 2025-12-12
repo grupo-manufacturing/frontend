@@ -92,6 +92,9 @@ export default function BuyerPortal() {
   const [isLoadingAiDesigns, setIsLoadingAiDesigns] = useState(false);
   const [selectedDesignForResponses, setSelectedDesignForResponses] = useState<any | null>(null);
   const [showResponsesModal, setShowResponsesModal] = useState(false);
+  const [pushingDesignId, setPushingDesignId] = useState<string | null>(null);
+  const [updatingResponseId, setUpdatingResponseId] = useState<string | null>(null);
+  const [updatingResponseAction, setUpdatingResponseAction] = useState<'accept' | 'reject' | null>(null);
   
   
   // Requirements States
@@ -997,10 +1000,16 @@ export default function BuyerPortal() {
                               alt={aiDesign.apparel_type || 'AI Design'}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             />
-                            {/* AI Badge */}
+                            {/* Status Badge (Accepted) or AI Badge */}
+                            {aiDesign.responses && aiDesign.responses.some((r: any) => r.status === 'accepted') ? (
+                              <div className="absolute top-2 right-2 px-2 py-1 bg-green-600 text-white text-xs font-semibold rounded-lg">
+                                Accepted
+                              </div>
+                            ) : (
                             <div className="absolute top-2 right-2 px-2 py-1 bg-[#22a2f2] text-white text-xs font-semibold rounded-lg">
                               AI
                             </div>
+                            )}
                           </div>
                           
                           {/* Product Info */}
@@ -1019,24 +1028,86 @@ export default function BuyerPortal() {
                               </div>
                             </div>
 
-                            {/* View Responses Button */}
-                            {aiDesign.responses && aiDesign.responses.length > 0 && (
+                            {/* Push To Manufacturer or View Responses Button */}
                               <div className="mt-3 pt-3 border-t border-gray-200">
+                              {aiDesign.status === 'published' ? (
+                                // If published, check if there's an accepted response
+                                aiDesign.responses && aiDesign.responses.length > 0 ? (
+                                  // Check if any response is accepted
+                                  aiDesign.responses.some((r: any) => r.status === 'accepted') ? (
+                                    <button
+                                      disabled
+                                      className="w-full px-3 py-2 text-xs font-semibold text-gray-500 bg-gray-100 rounded-lg cursor-not-allowed flex items-center justify-center gap-1"
+                                    >
+                                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                      </svg>
+                                      <span>Already Accepted</span>
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={() => {
+                                        setSelectedDesignForResponses(aiDesign);
+                                        setShowResponsesModal(true);
+                                      }}
+                                      className="w-full px-3 py-2 text-xs font-semibold text-[#22a2f2] bg-[#22a2f2]/10 hover:bg-[#22a2f2]/20 rounded-lg transition-colors flex items-center justify-center gap-1"
+                                    >
+                                      <span>View {aiDesign.responses.length} Response{aiDesign.responses.length !== 1 ? 's' : ''}</span>
+                                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                      </svg>
+                                    </button>
+                                  )
+                                ) : (
+                                  <button
+                                    disabled
+                                    className="w-full px-3 py-2 text-xs font-semibold text-gray-500 bg-gray-100 rounded-lg cursor-not-allowed flex items-center justify-center gap-1"
+                                  >
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span>Pushed</span>
+                                  </button>
+                                )
+                              ) : (
+                                // If draft, show Push To Manufacturer button
                                 <button
-                                  onClick={() => {
-                                    setSelectedDesignForResponses(aiDesign);
-                                    setShowResponsesModal(true);
+                                  onClick={async () => {
+                                    setPushingDesignId(aiDesign.id);
+                                    try {
+                                      await apiService.pushAIDesign(aiDesign.id);
+                                      // Refresh AI designs to show updated status
+                                      await fetchAiDesigns();
+                                    } catch (error: any) {
+                                      console.error('Failed to push design:', error);
+                                      alert(error?.message || 'Failed to push design to manufacturers. Please try again.');
+                                    } finally {
+                                      setPushingDesignId(null);
+                                    }
                                   }}
-                                  className="w-full px-3 py-2 text-xs font-semibold text-[#22a2f2] bg-[#22a2f2]/10 hover:bg-[#22a2f2]/20 rounded-lg transition-colors flex items-center justify-center gap-1"
+                                  disabled={pushingDesignId === aiDesign.id}
+                                  className="w-full px-3 py-2 text-xs font-semibold text-white bg-[#22a2f2] hover:bg-[#1b8bd0] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
                                 >
-                                  <span>View {aiDesign.responses.length} Response{aiDesign.responses.length !== 1 ? 's' : ''}</span>
-                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                  </svg>
+                                  {pushingDesignId === aiDesign.id ? (
+                                    <>
+                                      <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                      </svg>
+                                      <span>Pushing...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
+                                      </svg>
+                                      <span>Push To Manufacturer</span>
+                                    </>
+                                  )}
                                 </button>
-                              </div>
-                            )}
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -1234,21 +1305,113 @@ export default function BuyerPortal() {
                           </div>
                         </div>
 
-                        {response.status && (
+                        {/* Status and Action Buttons */}
                           <div className="mt-3 pt-3 border-t border-gray-100">
-                            <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${
-                              response.status === 'accepted' 
-                                ? 'bg-green-100 text-green-700'
-                                : response.status === 'rejected'
-                                ? 'bg-red-100 text-red-700'
-                                : response.status === 'negotiating'
-                                ? 'bg-yellow-100 text-yellow-700'
-                                : 'bg-gray-100 text-gray-700'
-                            }`}>
-                              {response.status.charAt(0).toUpperCase() + response.status.slice(1)}
+                          {response.status === 'accepted' ? (
+                            <div className="flex items-center justify-between">
+                              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-700">
+                                Accepted
                             </span>
                           </div>
-                        )}
+                          ) : response.status === 'rejected' ? (
+                            <div className="flex items-center justify-between">
+                              <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-red-100 text-red-700">
+                                Rejected
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={async () => {
+                                  setUpdatingResponseId(response.id);
+                                  setUpdatingResponseAction('accept');
+                                  try {
+                                    await apiService.updateAIDesignResponseStatus(response.id, 'accepted');
+                                    // Refresh AI designs to show updated status
+                                    await fetchAiDesigns();
+                                    // Update the modal's selected design
+                                    const updatedResponses = selectedDesignForResponses.responses.map((r: any) =>
+                                      r.id === response.id ? { ...r, status: 'accepted' } : r
+                                    );
+                                    setSelectedDesignForResponses({
+                                      ...selectedDesignForResponses,
+                                      responses: updatedResponses
+                                    });
+                                  } catch (error: any) {
+                                    console.error('Failed to accept response:', error);
+                                    alert(error?.message || 'Failed to accept response. Please try again.');
+                                  } finally {
+                                    setUpdatingResponseId(null);
+                                    setUpdatingResponseAction(null);
+                                  }
+                                }}
+                                disabled={updatingResponseId !== null}
+                                className="flex-1 px-3 py-2 text-xs font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+                              >
+                                {updatingResponseId === response.id && updatingResponseAction === 'accept' ? (
+                                  <>
+                                    <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Accepting...
+                                  </>
+                                ) : (
+                                  <>
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Accept
+                                  </>
+                                )}
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  setUpdatingResponseId(response.id);
+                                  setUpdatingResponseAction('reject');
+                                  try {
+                                    await apiService.updateAIDesignResponseStatus(response.id, 'rejected');
+                                    // Refresh AI designs to show updated status
+                                    await fetchAiDesigns();
+                                    // Update the modal's selected design
+                                    const updatedResponses = selectedDesignForResponses.responses.map((r: any) =>
+                                      r.id === response.id ? { ...r, status: 'rejected' } : r
+                                    );
+                                    setSelectedDesignForResponses({
+                                      ...selectedDesignForResponses,
+                                      responses: updatedResponses
+                                    });
+                                  } catch (error: any) {
+                                    console.error('Failed to reject response:', error);
+                                    alert(error?.message || 'Failed to reject response. Please try again.');
+                                  } finally {
+                                    setUpdatingResponseId(null);
+                                    setUpdatingResponseAction(null);
+                                  }
+                                }}
+                                disabled={updatingResponseId !== null}
+                                className="flex-1 px-3 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+                              >
+                                {updatingResponseId === response.id && updatingResponseAction === 'reject' ? (
+                                  <>
+                                    <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Rejecting...
+                                  </>
+                                ) : (
+                                  <>
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    Reject
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ))
                   ) : (

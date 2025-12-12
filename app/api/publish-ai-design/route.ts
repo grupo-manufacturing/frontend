@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
         quantity: parseInt(quantity),
         preferred_colors: preferred_colors || null,
         print_placement: print_placement || null,
-        status: 'published'
+        status: 'draft'
       })
     });
 
