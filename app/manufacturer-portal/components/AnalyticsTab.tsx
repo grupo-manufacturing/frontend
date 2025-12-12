@@ -3,11 +3,7 @@
 import { useState, useEffect } from 'react';
 import apiService from '../../lib/apiService';
 
-type AnalyticsTabType = 'revenue-trends' | 'order-distribution';
-
 export default function AnalyticsTab() {
-  const [activeAnalyticsTab, setActiveAnalyticsTab] = useState<AnalyticsTabType>('revenue-trends');
-  
   // Analytics states
   const [analyticsData, setAnalyticsData] = useState({
     totalRevenue: 0,
@@ -21,11 +17,6 @@ export default function AnalyticsTab() {
     totalRequirementsCount: 0
   });
   const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
-  const [revenueTrendsData, setRevenueTrendsData] = useState<Array<{month: string, count: number, revenue: number}>>([]);
-  
-  // Orders states
-  const [orders, setOrders] = useState<any[]>([]);
-  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
 
   // Fetch Analytics Data
   const fetchAnalytics = async () => {
@@ -71,9 +62,6 @@ export default function AnalyticsTab() {
       let negotiatingCount = 0;
       let rejectedCount = 0;
 
-      // Monthly revenue trends data
-      const monthlyData: {[key: string]: {count: number, revenue: number, label: string}} = {};
-
       // Process each requirement
       allRequirements.forEach((req: any) => {
         const response = responseMap.get(req.id);
@@ -85,17 +73,6 @@ export default function AnalyticsTab() {
           if (status === 'accepted') {
             totalRevenue += quotedPrice;
             acceptedCount++;
-            
-            // Group by month for revenue trends
-            const responseDate = new Date(response.created_at || response.updated_at || Date.now());
-            const monthKey = `${responseDate.getFullYear()}-${String(responseDate.getMonth() + 1).padStart(2, '0')}`;
-            const monthLabel = responseDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-            
-            if (!monthlyData[monthKey]) {
-              monthlyData[monthKey] = { count: 0, revenue: 0, label: monthLabel };
-            }
-            monthlyData[monthKey].count++;
-            monthlyData[monthKey].revenue += quotedPrice;
           } else if (status === 'negotiating') {
             potentialRevenue += quotedPrice;
             negotiatingCount++;
@@ -107,22 +84,6 @@ export default function AnalyticsTab() {
           pendingCount++;
         }
       });
-
-      // Convert monthly data to array and sort by month
-      const trendsArray = Object.entries(monthlyData)
-        .map(([key, data]) => ({
-          month: data.label,
-          count: data.count,
-          revenue: data.revenue
-        }))
-        .sort((a, b) => {
-          // Sort by date
-          const dateA = new Date(a.month);
-          const dateB = new Date(b.month);
-          return dateA.getTime() - dateB.getTime();
-        });
-      
-      setRevenueTrendsData(trendsArray);
 
       // Calculate average order value
       const avgOrderValue = acceptedCount > 0 ? totalRevenue / acceptedCount : 0;
@@ -156,35 +117,14 @@ export default function AnalyticsTab() {
         rejectedCount: 0,
         totalRequirementsCount: 0
       });
-      setRevenueTrendsData([]);
     } finally {
       setIsLoadingAnalytics(false);
     }
   };
 
-  // Fetch orders
-  const fetchOrders = async () => {
-    setIsLoadingOrders(true);
-    try {
-      const response = await apiService.getManufacturerOrders({});
-      if (response.success && response.data) {
-        setOrders(response.data || []);
-      } else {
-        console.error('Failed to fetch orders');
-        setOrders([]);
-      }
-    } catch (error) {
-      console.error('Failed to fetch orders:', error);
-      setOrders([]);
-    } finally {
-      setIsLoadingOrders(false);
-    }
-  };
-
-  // Fetch analytics and orders on mount
+  // Fetch analytics on mount
   useEffect(() => {
     fetchAnalytics();
-    fetchOrders();
   }, []);
 
   return (
@@ -493,301 +433,6 @@ export default function AnalyticsTab() {
         </div>
       </div>
 
-      {/* Analytics Tabs */}
-      <div className="relative overflow-hidden animate-fade-in-up animation-delay-300">
-        <div className="absolute inset-0 rounded-2xl opacity-0"></div>
-        <div className="relative bg-white rounded-2xl border border-[#22a2f2]/30 shadow-sm">
-          {/* Tab Navigation */}
-          <div className="border-b border-[#22a2f2]/20">
-            <nav className="flex space-x-2 px-6 overflow-x-auto">
-              <button
-                onClick={() => setActiveAnalyticsTab('revenue-trends')}
-                className={`relative flex items-center gap-2 py-4 px-4 font-medium text-sm whitespace-nowrap transition-all rounded-xl ${
-                  activeAnalyticsTab === 'revenue-trends'
-                    ? 'text-[#22a2f2] bg-[#22a2f2]/10'
-                    : 'text-gray-500 hover:text-[#22a2f2]'
-                }`}
-              >
-                {activeAnalyticsTab === 'revenue-trends' && (
-                  <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-[#22a2f2] rounded-full"></div>
-                )}
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                </svg>
-                Revenue Trends
-              </button>
-              <button
-                onClick={() => setActiveAnalyticsTab('order-distribution')}
-                className={`relative flex items-center gap-2 py-4 px-4 font-medium text-sm whitespace-nowrap transition-all rounded-xl ${
-                  activeAnalyticsTab === 'order-distribution'
-                    ? 'text-[#22a2f2] bg-[#22a2f2]/10'
-                    : 'text-gray-500 hover:text-[#22a2f2]'
-                }`}
-              >
-                {activeAnalyticsTab === 'order-distribution' && (
-                  <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-[#22a2f2] rounded-full"></div>
-                )}
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                </svg>
-                Order Distribution
-              </button>
-            </nav>
-          </div>
-
-          {/* Tab Content */}
-          <div className="p-6">
-            {activeAnalyticsTab === 'revenue-trends' && (
-              <div>
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-black mb-2">Accepted Orders vs Month</h3>
-                  <p className="text-sm text-gray-600">Track your accepted orders over time</p>
-                </div>
-                {isLoadingAnalytics ? (
-                  <div className="flex items-center justify-center py-16">
-                    <div className="text-center">
-                      <svg className="animate-spin w-12 h-12 text-[#22a2f2] mx-auto mb-4" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <p className="text-gray-500">Loading chart data...</p>
-                    </div>
-                  </div>
-                ) : revenueTrendsData.length === 0 ? (
-                  <div className="flex items-center justify-center py-16">
-                    <div className="text-center">
-                      <div className="relative group">
-                        <div className="absolute inset-0 bg-[#22a2f2]/15 rounded-2xl opacity-0 group-hover:opacity-100 transition"></div>
-                        <div className="relative bg-white rounded-2xl p-8 mb-4 border border-[#22a2f2]/30">
-                          <svg className="w-16 h-16 text-[#22a2f2] mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                          </svg>
-                        </div>
-                      </div>
-                      <p className="text-lg font-medium text-gray-600 mb-2">No revenue data yet</p>
-                      <p className="text-sm text-gray-500">Accept orders to start tracking revenue</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {/* Bar Chart */}
-                    <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                      <div className="flex items-end justify-between gap-2 h-64">
-                        {revenueTrendsData.map((data, index) => {
-                          const maxCount = Math.max(...revenueTrendsData.map(d => d.count), 1);
-                          const barHeight = (data.count / maxCount) * 100;
-                          return (
-                            <div key={index} className="flex-1 flex flex-col items-center gap-2">
-                              <div className="relative w-full flex items-end justify-center" style={{ height: '200px' }}>
-                                <div
-                                  className="w-full bg-[#22a2f2] rounded-t-lg hover:bg-[#1b8bd0] transition-all duration-300 cursor-pointer group relative"
-                                  style={{ height: `${barHeight}%`, minHeight: '4px' }}
-                                  title={`${data.count} orders - ₹${data.revenue.toLocaleString('en-IN')}`}
-                                >
-                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
-                                    {data.count} orders
-                                    <br />
-                                    ₹{data.revenue.toLocaleString('en-IN')}
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="text-xs font-medium text-gray-600 text-center mt-2">
-                                {data.month}
-                              </div>
-                              <div className="text-xs text-gray-500 text-center">
-                                {data.count} {data.count === 1 ? 'order' : 'orders'}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                    
-                    {/* Summary Stats */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="bg-[#22a2f2]/5 rounded-xl p-4 border border-[#22a2f2]/20">
-                        <p className="text-sm text-gray-600 mb-1">Total Months</p>
-                        <p className="text-2xl font-bold text-[#22a2f2]">{revenueTrendsData.length}</p>
-                      </div>
-                      <div className="bg-[#22a2f2]/5 rounded-xl p-4 border border-[#22a2f2]/20">
-                        <p className="text-sm text-gray-600 mb-1">Total Orders</p>
-                        <p className="text-2xl font-bold text-[#22a2f2]">{revenueTrendsData.reduce((sum, d) => sum + d.count, 0)}</p>
-                      </div>
-                      <div className="bg-[#22a2f2]/5 rounded-xl p-4 border border-[#22a2f2]/20">
-                        <p className="text-sm text-gray-600 mb-1">Total Revenue</p>
-                        <p className="text-2xl font-bold text-[#22a2f2]">₹{revenueTrendsData.reduce((sum, d) => sum + d.revenue, 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {activeAnalyticsTab === 'order-distribution' && (
-              <div>
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-black mb-2">Design Orders</h3>
-                  <p className="text-sm text-gray-600">View and manage all your design orders</p>
-                </div>
-                {isLoadingOrders ? (
-                  <div className="flex items-center justify-center py-16">
-                    <div className="text-center">
-                      <svg className="animate-spin w-12 h-12 text-[#22a2f2] mx-auto mb-4" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <p className="text-gray-500">Loading orders...</p>
-                    </div>
-                  </div>
-                ) : orders.length === 0 ? (
-                  <div className="flex items-center justify-center py-16">
-                    <div className="text-center">
-                      <div className="relative group">
-                        <div className="absolute inset-0 bg-[#22a2f2]/15 rounded-2xl opacity-0 group-hover:opacity-100 transition"></div>
-                        <div className="relative bg-white rounded-2xl p-8 mb-4 border border-[#22a2f2]/30">
-                          <svg className="w-16 h-16 text-[#22a2f2] mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                          </svg>
-                        </div>
-                      </div>
-                      <p className="text-lg font-medium text-gray-600 mb-2">No orders yet</p>
-                      <p className="text-sm text-gray-500">Receive orders to start tracking distribution</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {orders.map((order: any) => (
-                      <div
-                        key={order.id}
-                        className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-all overflow-hidden group"
-                      >
-                        {/* Product Image */}
-                        {order.design?.image_url && (
-                          <div className="relative h-48 overflow-hidden bg-gray-100">
-                            <img
-                              src={order.design.image_url}
-                              alt={order.design.product_name || 'Product'}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                            <div className="absolute top-3 right-3">
-                              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                order.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
-                                order.status === 'shipped' ? 'bg-purple-100 text-purple-800' :
-                                order.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                                'bg-gray-100 text-gray-800'
-                              }`}>
-                                {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Order Details */}
-                        <div className="p-5">
-                          <h4 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
-                            {order.design?.product_name || 'Product'}
-                          </h4>
-                          <p className="text-sm text-gray-600 mb-4">
-                            Buyer: {order.buyer?.full_name || order.buyer?.phone_number || 'Unknown'}
-                          </p>
-                          
-                          <div className="space-y-2 mb-4">
-                            <div className="flex justify-between items-center text-sm">
-                              <span className="text-gray-600">Quantity:</span>
-                              <span className="font-medium text-gray-900">{order.quantity}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm">
-                              <span className="text-gray-600">Price/Unit:</span>
-                              <span className="font-medium text-gray-900">₹{order.price_per_unit}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm pt-2 border-t border-gray-200">
-                              <span className="text-gray-900 font-semibold">Total:</span>
-                              <span className="font-bold text-[#22a2f2] text-lg">₹{order.total_price}</span>
-                            </div>
-                          </div>
-                          
-                          <div className="text-xs text-gray-500 mb-4">
-                            {new Date(order.created_at).toLocaleDateString('en-US', { 
-                              month: 'short', 
-                              day: 'numeric',
-                              year: 'numeric'
-                            })}
-                          </div>
-
-                          {/* Action Buttons */}
-                          <div className="flex flex-col gap-2 pt-4 border-t border-gray-200">
-                            {/* Status Change Buttons */}
-                            {order.status === 'pending' && (
-                              <button
-                                onClick={async () => {
-                                  try {
-                                    await apiService.updateOrderStatus(order.id, 'confirmed');
-                                    fetchOrders();
-                                  } catch (error: any) {
-                                    alert(error.message || 'Failed to update order status');
-                                  }
-                                }}
-                                className="w-full px-4 py-2 bg-[#22a2f2] text-white rounded-lg font-medium hover:bg-[#1b8bd0] transition-colors text-sm"
-                              >
-                                Confirm Order
-                              </button>
-                            )}
-                            {order.status === 'confirmed' && (
-                              <button
-                                onClick={async () => {
-                                  try {
-                                    await apiService.updateOrderStatus(order.id, 'shipped');
-                                    fetchOrders();
-                                  } catch (error: any) {
-                                    alert(error.message || 'Failed to update order status');
-                                  }
-                                }}
-                                className="w-full px-4 py-2 bg-[#22a2f2] text-white rounded-lg font-medium hover:bg-[#1b8bd0] transition-colors text-sm"
-                              >
-                                Mark as Shipped
-                              </button>
-                            )}
-                            {order.status === 'shipped' && (
-                              <button
-                                onClick={async () => {
-                                  try {
-                                    await apiService.updateOrderStatus(order.id, 'delivered');
-                                    fetchOrders();
-                                  } catch (error: any) {
-                                    alert(error.message || 'Failed to update order status');
-                                  }
-                                }}
-                                className="w-full px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors text-sm"
-                              >
-                                Mark as Delivered
-                              </button>
-                            )}
-                            
-                            {/* Print Invoice Button - Available for all statuses */}
-                            <button
-                              onClick={() => {
-                                // Open invoice in new tab as PDF
-                                window.open(`/invoice/${order.id}`, '_blank');
-                              }}
-                              className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm flex items-center justify-center gap-2"
-                            >
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                              </svg>
-                              Print Invoice
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

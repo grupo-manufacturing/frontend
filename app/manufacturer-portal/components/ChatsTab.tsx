@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import ChatList from '../../components/chat/ChatList';
 import ChatWindow from '../../components/chat/ChatWindow';
 
-type TabType = 'chats' | 'requirements' | 'analytics' | 'my-designs' | 'profile';
+type TabType = 'chats' | 'all-requirements' | 'analytics' | 'my-designs' | 'profile';
 
 interface ChatsTabProps {
   onUnreadCountChange: (count: number) => void;
@@ -33,7 +33,9 @@ export default function ChatsTab({ onUnreadCountChange, activeTab, onActiveTabCh
             setActiveManufacturerId(chatState.manufacturerId);
             setActiveTitle(chatState.title || undefined);
             if (chatState.activeTab && onActiveTabChange) {
-              onActiveTabChange(chatState.activeTab);
+              // Convert old 'requirements' tab to 'all-requirements'
+              const tab = chatState.activeTab === 'requirements' ? 'all-requirements' : chatState.activeTab;
+              onActiveTabChange(tab as TabType);
             } else if (chatState.conversationId && onActiveTabChange) {
               onActiveTabChange('chats');
             }
