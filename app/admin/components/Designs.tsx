@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Design, AIDesign } from '../types';
 import { formatDate, renderBadge } from '../utils';
 import apiService from '../../lib/apiService';
@@ -31,6 +31,9 @@ export default function Designs({
   const [activeTab, setActiveTab] = useState<DesignTab>('regular');
   const [searchQuery, setSearchQuery] = useState('');
   const [deletingDesignId, setDeletingDesignId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [currentAIPage, setCurrentAIPage] = useState(1);
+  const itemsPerPage = 7;
 
   const handleDeleteDesign = async (designId: string) => {
     if (!confirm('Are you sure you want to delete this design? This action cannot be undone.')) {
@@ -62,6 +65,33 @@ export default function Designs({
       (design.description || '').toLowerCase().includes(q)
     );
   });
+
+  // Reset to page 1 when filters or tab change
+  useEffect(() => {
+    if (activeTab === 'regular') {
+      setCurrentPage(1);
+    } else {
+      setCurrentAIPage(1);
+    }
+  }, [activeTab, searchQuery]);
+
+  // Calculate pagination for regular designs
+  const totalDesignPages = Math.ceil(filteredDesigns.length / itemsPerPage);
+  const designStartIndex = (currentPage - 1) * itemsPerPage;
+  const designEndIndex = designStartIndex + itemsPerPage;
+  const paginatedDesigns = filteredDesigns.slice(designStartIndex, designEndIndex);
+
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => Math.max(1, prev - 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(totalDesignPages, prev + 1));
+  };
+
+  const handlePageClick = (page: number) => {
+    setCurrentPage(page);
+  };
 
   if (isLoadingData) {
     return null;
@@ -301,6 +331,8 @@ export default function Designs({
           isLoadingAIDesigns={isLoadingAIDesigns}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
+          currentPage={currentAIPage}
+          setCurrentPage={setCurrentAIPage}
         />
       )}
     </div>
@@ -312,13 +344,18 @@ function AIDesignsTable({
   aiDesigns,
   isLoadingAIDesigns,
   searchQuery,
-  setSearchQuery
+  setSearchQuery,
+  currentPage,
+  setCurrentPage
 }: {
   aiDesigns: AIDesign[];
   isLoadingAIDesigns: boolean;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  currentPage: number;
+  setCurrentPage: (page: number) => void;
 }) {
+  const itemsPerPage = 7;
   const filteredAIDesigns = aiDesigns.filter((design) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
@@ -329,6 +366,29 @@ function AIDesignsTable({
       (design.buyer?.phone_number || '').toLowerCase().includes(q)
     );
   });
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, setCurrentPage]);
+
+  // Calculate pagination for AI designs
+  const totalPages = Math.ceil(filteredAIDesigns.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedAIDesigns = filteredAIDesigns.slice(startIndex, endIndex);
+
+  const handlePreviousPage = () => {
+    setCurrentPage(Math.max(1, currentPage - 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage(Math.min(totalPages, currentPage + 1));
+  };
+
+  const handlePageClick = (page: number) => {
+    setCurrentPage(page);
+  };
 
   return (
     <>
@@ -410,7 +470,7 @@ function AIDesignsTable({
                 </td>
               </tr>
             ) : (
-              filteredAIDesigns.map((design) => (
+              paginatedAIDesigns.map((design) => (
                 <tr key={design.id} className="hover:bg-slate-50/80">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
@@ -474,6 +534,66 @@ function AIDesignsTable({
           </tbody>
         </table>
       </div>
+
+      {/* Pagination for AI Designs */}
+      {!isLoadingAIDesigns && filteredAIDesigns.length > 0 && totalPages > 1 && (
+        <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
+          <div className="text-sm text-slate-600">
+            Showing <span className="font-medium text-slate-900">{startIndex + 1}</span> to{' '}
+            <span className="font-medium text-slate-900">
+              {Math.min(endIndex, filteredAIDesigns.length)}
+            </span>{' '}
+            of <span className="font-medium text-slate-900">{filteredAIDesigns.length}</span> AI designs
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handlePreviousPage}
+              disabled={currentPage === 1}
+              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white"
+            >
+              Previous
+            </button>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                // Show first page, last page, current page, and pages around current
+                if (
+                  page === 1 ||
+                  page === totalPages ||
+                  (page >= currentPage - 1 && page <= currentPage + 1)
+                ) {
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => handlePageClick(page)}
+                      className={`min-w-[2.5rem] rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                        currentPage === page
+                          ? 'border-[#22a2f2] bg-[#22a2f2] text-white'
+                          : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                } else if (page === currentPage - 2 || page === currentPage + 2) {
+                  return (
+                    <span key={page} className="px-2 text-sm text-slate-400">
+                      ...
+                    </span>
+                  );
+                }
+                return null;
+              })}
+            </div>
+            <button
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

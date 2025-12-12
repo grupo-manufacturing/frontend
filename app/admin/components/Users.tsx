@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { Buyer, Manufacturer, UserType } from '../types';
 import { formatDate, renderBadge } from '../utils';
 import apiService from '../../lib/apiService';
@@ -25,6 +25,8 @@ export default function Users({
   const [userType, setUserType] = useState<UserType>('buyers');
   const [searchQuery, setSearchQuery] = useState('');
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 7;
 
   const isShowingBuyers = userType === 'buyers';
   const isShowingManufacturers = userType === 'manufacturers';
@@ -49,6 +51,31 @@ export default function Users({
       manufacturer.phone_number.includes(searchQuery)
     );
   }, [manufacturers, searchQuery]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [userType, searchQuery]);
+
+  // Calculate pagination based on active tab
+  const currentFilteredData = isShowingBuyers ? filteredBuyers : filteredManufacturers;
+  const totalPages = Math.ceil(currentFilteredData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedBuyers = isShowingBuyers ? filteredBuyers.slice(startIndex, endIndex) : [];
+  const paginatedManufacturers = isShowingManufacturers ? filteredManufacturers.slice(startIndex, endIndex) : [];
+
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => Math.max(1, prev - 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+  };
+
+  const handlePageClick = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const handleUpdateVerificationStatus = async (manufacturerId: string, newStatus: string) => {
     setUpdatingStatusId(manufacturerId);
@@ -164,7 +191,7 @@ export default function Users({
           </thead>
           <tbody className="divide-y divide-slate-200 text-slate-600">
             {isShowingBuyers &&
-              filteredBuyers.map((buyer) => (
+              paginatedBuyers.map((buyer) => (
                 <tr key={buyer.id} className="hover:bg-slate-50/80">
                   <td className="px-4 py-3">
                     <div className="font-medium text-slate-900">
@@ -179,7 +206,7 @@ export default function Users({
                 </tr>
               ))}
             {isShowingManufacturers &&
-              filteredManufacturers.map((manufacturer) => (
+              paginatedManufacturers.map((manufacturer) => (
                 <tr key={manufacturer.id} className="hover:bg-slate-50/80">
                   <td className="px-4 py-3">
                     <div className="font-medium text-slate-900">
@@ -243,6 +270,66 @@ export default function Users({
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      {currentFilteredData.length > 0 && totalPages > 1 && (
+        <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
+          <div className="text-sm text-slate-600">
+            Showing <span className="font-medium text-slate-900">{startIndex + 1}</span> to{' '}
+            <span className="font-medium text-slate-900">
+              {Math.min(endIndex, currentFilteredData.length)}
+            </span>{' '}
+            of <span className="font-medium text-slate-900">{currentFilteredData.length}</span> {isShowingBuyers ? 'buyers' : 'manufacturers'}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handlePreviousPage}
+              disabled={currentPage === 1}
+              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white"
+            >
+              Previous
+            </button>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                // Show first page, last page, current page, and pages around current
+                if (
+                  page === 1 ||
+                  page === totalPages ||
+                  (page >= currentPage - 1 && page <= currentPage + 1)
+                ) {
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => handlePageClick(page)}
+                      className={`min-w-[2.5rem] rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                        currentPage === page
+                          ? 'border-[#22a2f2] bg-[#22a2f2] text-white'
+                          : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                } else if (page === currentPage - 2 || page === currentPage + 2) {
+                  return (
+                    <span key={page} className="px-2 text-sm text-slate-400">
+                      ...
+                    </span>
+                  );
+                }
+                return null;
+              })}
+            </div>
+            <button
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
