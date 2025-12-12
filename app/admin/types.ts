@@ -61,6 +61,25 @@ export interface Design {
   updated_at?: string;
 }
 
+export interface AIDesign {
+  id: string;
+  buyer_id: string;
+  image_url: string;
+  apparel_type: string;
+  design_description?: string;
+  quantity: number;
+  preferred_colors?: string;
+  print_placement?: string;
+  status: string;
+  created_at: string;
+  updated_at?: string;
+  buyer?: {
+    id: string;
+    full_name?: string;
+    phone_number: string;
+  };
+}
+
 export type UserType = 'buyers' | 'manufacturers';
 export type OrderStatusFilter = 'all' | 'accepted' | 'rejected' | 'submitted';
 

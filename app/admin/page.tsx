@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import apiService from '../lib/apiService';
-import type { Buyer, Manufacturer, Order, Design } from './types';
+import type { Buyer, Manufacturer, Order, Design, AIDesign } from './types';
 import { formatDate } from './utils';
 import Overview from './components/Overview';
 import Users from './components/Users';
@@ -29,7 +29,9 @@ export default function AdminPortal() {
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [designs, setDesigns] = useState<Design[]>([]);
+  const [aiDesigns, setAiDesigns] = useState<AIDesign[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
+  const [isLoadingAIDesigns, setIsLoadingAIDesigns] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
@@ -78,6 +80,7 @@ export default function AdminPortal() {
       }
       if (activeView === 'designs') {
         void loadDesigns();
+        void loadAIDesigns();
       }
     }
   }, [activeView, step, isCheckingAuth]);
@@ -151,6 +154,28 @@ export default function AdminPortal() {
       }
     } finally {
       setIsLoadingData(false);
+    }
+  };
+
+  const loadAIDesigns = async () => {
+    setIsLoadingAIDesigns(true);
+    setErrorMessage('');
+    try {
+      const aiDesignsRes = await apiService.getAIDesigns({ limit: 1000 });
+      setAiDesigns(aiDesignsRes.data || []);
+      setLastUpdated(new Date().toISOString());
+    } catch (error: any) {
+      console.error('Failed to load AI designs:', error);
+      // If token is invalid, redirect to login
+      if (error?.message?.includes('Invalid admin token') || error?.message?.includes('Access denied') || error?.message?.includes('expired') || error?.message?.includes('session')) {
+        apiService.removeToken('admin');
+        setStep('login');
+        setErrorMessage('');
+      } else {
+        setErrorMessage('Unable to fetch AI designs. Please try again.');
+      }
+    } finally {
+      setIsLoadingAIDesigns(false);
     }
   };
 
@@ -251,6 +276,7 @@ export default function AdminPortal() {
                 void loadOrders();
               } else if (activeView === 'designs') {
                 void loadDesigns();
+                void loadAIDesigns();
               } else {
                 void loadData();
               }
@@ -345,10 +371,13 @@ export default function AdminPortal() {
         {!isLoadingData && isDesignsView && (
           <Designs
             designs={designs}
+            aiDesigns={aiDesigns}
             isLoadingData={isLoadingData}
+            isLoadingAIDesigns={isLoadingAIDesigns}
             lastUpdated={lastUpdated}
             onError={setErrorMessage}
             onReload={loadDesigns}
+            onReloadAI={loadAIDesigns}
           />
         )}
       </main>
