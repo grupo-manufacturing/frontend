@@ -244,10 +244,16 @@ export default function BuyerPortal() {
       console.error('Failed to update response status:', statusError);
     }
 
-    if (chatsTabRef.current) {
-      await chatsTabRef.current.openChatFromNegotiation(requirement, response);
-      setActiveTab('chats');
-    }
+    // Switch to chats tab first to ensure ChatsTab is mounted
+    setActiveTab('chats');
+    
+    // Wait a moment for the tab to switch and component to mount
+    setTimeout(async () => {
+      if (chatsTabRef.current) {
+        // openChatFromNegotiation will set up the chat state
+        await chatsTabRef.current.openChatFromNegotiation(requirement, response);
+      }
+    }, 50);
   };
 
   // Form handlers

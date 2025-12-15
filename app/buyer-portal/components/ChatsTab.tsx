@@ -78,9 +78,9 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onUnreadCountChange, 
     }
   }, [onTabChange]);
 
-  // Restore chat state from localStorage on mount
+  // Restore chat state from localStorage on mount (only if no active conversation is set)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && !activeConversationId) {
       const stored = localStorage.getItem('buyer_chat_state');
       if (stored) {
         try {
@@ -97,7 +97,7 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onUnreadCountChange, 
         }
       }
     }
-  }, []);
+  }, [activeConversationId]);
 
   // Expose methods to parent via ref
   useImperativeHandle(ref, () => ({
@@ -160,27 +160,42 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onUnreadCountChange, 
           return;
         }
 
-        if (onTabChange) onTabChange();
-
         const ensureRes = await apiService.ensureConversation(buyerId, manufacturerId);
         const conversationId = ensureRes?.data?.conversation?.id;
 
         if (conversationId) {
-          setActiveConversationId(conversationId);
-          setActiveBuyerId(buyerId);
-          setActiveManufacturerId(manufacturerId);
-
           const manufacturerName = response?.manufacturer?.unit_name;
           const requirementSummary = requirement?.requirement_text;
           const fallbackTitle = requirementSummary
             ? requirementSummary.slice(0, 60) + (requirementSummary.length > 60 ? '...' : '')
             : undefined;
 
+          // Set state first
+          setActiveConversationId(conversationId);
+          setActiveBuyerId(buyerId);
+          setActiveManufacturerId(manufacturerId);
           setActiveTitle(manufacturerName || fallbackTitle);
           setActiveRequirement(requirement);
           setChatUnreadClearSignal({ conversationId, at: Date.now() });
+          
+          // Manually save to localStorage immediately
+          if (typeof window !== 'undefined') {
+            const chatState = {
+              conversationId,
+              buyerId,
+              manufacturerId,
+              title: manufacturerName || fallbackTitle,
+              requirement: requirement
+            };
+            localStorage.setItem('buyer_chat_state', JSON.stringify(chatState));
+          }
+          
+          // Note: Tab switching is handled by the parent component
+          // The state is set and saved, so the chat window should open
         } else {
           console.error('Failed to create or get conversation');
+          if (onTabChange) onTabChange();
+          alert('Failed to create conversation. Please try again.');
         }
       } catch (error: any) {
         console.error('Failed to open chat from negotiation:', error);

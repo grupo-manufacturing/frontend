@@ -383,6 +383,18 @@ export default function AIDesignsTab({ onSwitchToGenerateDesigns }: AIDesignsTab
                         </div>
                       </div>
 
+                      {/* Total Price */}
+                      {response.quoted_price && (
+                        <div className="mt-3 pt-3 border-t border-gray-100">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-semibold text-gray-700">Total Price</span>
+                            <span className="text-lg font-bold text-gray-900">
+                              ₹{response.quoted_price?.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Status and Action Buttons */}
                       <div className="mt-3 pt-3 border-t border-gray-100">
                         {response.status === 'accepted' ? (

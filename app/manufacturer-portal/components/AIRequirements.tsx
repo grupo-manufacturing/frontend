@@ -14,6 +14,55 @@ export default function AIRequirements() {
     quantity: ''
   });
   const [isSubmittingResponse, setIsSubmittingResponse] = useState(false);
+  const [showPriceBreakdown, setShowPriceBreakdown] = useState(false);
+
+  /**
+   * Calculate platform fee based on tiered structure
+   * Fee percentage is determined by the total quote price (base + GST + platform fee)
+   * Uses iterative approach to handle circular dependency
+   * @param basePrice - Base price before GST and platform fee
+   * @param gst - GST amount
+   * @returns Object with platformFee amount and feePercentage for display
+   */
+  const calculatePlatformFee = (basePrice: number, gst: number): { platformFee: number; feePercentage: number } => {
+    // Start with an estimate based on base + GST to determine bracket
+    let platformFeeRate = 0.15; // Default
+    let platformFee = basePrice * platformFeeRate;
+    
+    // Iterate a few times to converge on the correct fee
+    // The fee percentage depends on the final total, so we need to approximate
+    for (let i = 0; i < 5; i++) {
+      const total = basePrice + gst + platformFee;
+      
+      // Determine fee percentage based on total quote price
+      // Tiered structure:
+      // 0 to 1 Lakh (0-100000) → 20%
+      // 1 Lakh to 2 Lakh (100001-200000) → 15%
+      // 2 Lakh to 5 Lakh (200001-500000) → 8%
+      // Above 5 Lakh (500001+) → 5%
+      if (total <= 100000) {
+        platformFeeRate = 0.20; // 20%
+      } else if (total <= 200000) {
+        platformFeeRate = 0.15; // 15%
+      } else if (total <= 500000) {
+        platformFeeRate = 0.08; // 8%
+      } else {
+        platformFeeRate = 0.05; // 5%
+      }
+      
+      // Recalculate platform fee based on new rate
+      const newPlatformFee = basePrice * platformFeeRate;
+      
+      // Check if we've converged (change is less than 0.01)
+      if (Math.abs(newPlatformFee - platformFee) < 0.01) {
+        break;
+      }
+      
+      platformFee = newPlatformFee;
+    }
+    
+    return { platformFee, feePercentage: platformFeeRate };
+  };
   const [manufacturerId, setManufacturerId] = useState<string | null>(null);
   const [respondedDesignIds, setRespondedDesignIds] = useState<Set<string>>(new Set());
 
@@ -422,6 +471,102 @@ export default function AIRequirements() {
                     disabled={isSubmittingResponse}
                   />
                 </div>
+
+                {/* Total Quote Price Section */}
+                {responseForm.pricePerUnit && responseForm.quantity && (
+                  <div className="border-t border-gray-200 pt-4">
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <button
+                        type="button"
+                        onClick={() => setShowPriceBreakdown(!showPriceBreakdown)}
+                        className="w-full flex items-center justify-between text-left"
+                      >
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 mb-1">Total Quote Price</p>
+                          <p className="text-2xl font-bold text-gray-900">
+                            ₹{(() => {
+                              const quantity = parseInt(responseForm.quantity) || 1;
+                              const pricePerUnit = parseFloat(responseForm.pricePerUnit) || 0;
+                              const basePrice = pricePerUnit * quantity;
+                              const gst = basePrice * 0.05;
+                              const { platformFee } = calculatePlatformFee(basePrice, gst);
+                              return (basePrice + gst + platformFee).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+                            })()}
+                          </p>
+                        </div>
+                        <svg
+                          className={`w-5 h-5 text-gray-500 transition-transform ${showPriceBreakdown ? 'transform rotate-180' : ''}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+
+                      {showPriceBreakdown && (
+                        <div className="mt-4 pt-4 border-t border-gray-200 space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Base Price ({parseInt(responseForm.quantity || '0').toLocaleString()} × ₹{parseFloat(responseForm.pricePerUnit || '0').toLocaleString('en-IN', { maximumFractionDigits: 2 })})</span>
+                            <span className="font-semibold text-gray-900">
+                              ₹{(() => {
+                                const quantity = parseInt(responseForm.quantity) || 1;
+                                const pricePerUnit = parseFloat(responseForm.pricePerUnit) || 0;
+                                return (pricePerUnit * quantity).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+                              })()}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">GST (5%)</span>
+                            <span className="font-semibold text-gray-900">
+                              ₹{(() => {
+                                const quantity = parseInt(responseForm.quantity) || 1;
+                                const pricePerUnit = parseFloat(responseForm.pricePerUnit) || 0;
+                                const basePrice = pricePerUnit * quantity;
+                                return (basePrice * 0.05).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+                              })()}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">
+                              Platform Fee ({(() => {
+                                const quantity = parseInt(responseForm.quantity) || 1;
+                                const pricePerUnit = parseFloat(responseForm.pricePerUnit) || 0;
+                                const basePrice = pricePerUnit * quantity;
+                                const gst = basePrice * 0.05;
+                                const { feePercentage } = calculatePlatformFee(basePrice, gst);
+                                return `${(feePercentage * 100).toFixed(0)}%`;
+                              })()})
+                            </span>
+                            <span className="font-semibold text-gray-900">
+                              ₹{(() => {
+                                const quantity = parseInt(responseForm.quantity) || 1;
+                                const pricePerUnit = parseFloat(responseForm.pricePerUnit) || 0;
+                                const basePrice = pricePerUnit * quantity;
+                                const gst = basePrice * 0.05;
+                                const { platformFee } = calculatePlatformFee(basePrice, gst);
+                                return platformFee.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+                              })()}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm pt-2 border-t border-gray-200">
+                            <span className="font-semibold text-gray-900">Total</span>
+                            <span className="font-bold text-gray-900">
+                              ₹{(() => {
+                                const quantity = parseInt(responseForm.quantity) || 1;
+                                const pricePerUnit = parseFloat(responseForm.pricePerUnit) || 0;
+                                const basePrice = pricePerUnit * quantity;
+                                const gst = basePrice * 0.05;
+                                const { platformFee } = calculatePlatformFee(basePrice, gst);
+                                return (basePrice + gst + platformFee).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+                              })()}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex gap-3 pt-4">
                   <button
