@@ -3,21 +3,19 @@
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import apiService from '../lib/apiService';
-import type { Buyer, Manufacturer, Order, Design, AIDesign } from './types';
+import type { Buyer, Manufacturer, Order } from './types';
 import { formatDate } from './utils';
 import Overview from './components/Overview';
 import Users from './components/Users';
-import Designs from './components/Designs';
 import Orders from './components/Orders';
 import Login from './components/Login';
 
 type AdminStep = 'login' | 'dashboard';
-type AdminView = 'overview' | 'users' | 'designs' | 'orders';
+type AdminView = 'overview' | 'users' | 'orders';
 
 const VIEW_TABS: Array<{ id: AdminView; label: string; description: string }> = [
   { id: 'overview', label: 'Overview', description: 'Key metrics across buyers and manufacturers' },
   { id: 'users', label: 'Users', description: 'Manage buyers and manufacturers' },
-  { id: 'designs', label: 'Designs', description: 'View and manage all product designs' },
   { id: 'orders', label: 'Orders', description: 'View and filter all orders by status' }
 ];
 
@@ -28,10 +26,7 @@ export default function AdminPortal() {
   const [buyers, setBuyers] = useState<Buyer[]>([]);
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [designs, setDesigns] = useState<Design[]>([]);
-  const [aiDesigns, setAiDesigns] = useState<AIDesign[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
-  const [isLoadingAIDesigns, setIsLoadingAIDesigns] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
@@ -73,14 +68,9 @@ export default function AdminPortal() {
     if (step === 'dashboard' && !isCheckingAuth) {
       if (activeView === 'overview') {
         void loadOrders();
-        void loadDesigns();
       }
       if (activeView === 'orders') {
         void loadOrders();
-      }
-      if (activeView === 'designs') {
-        void loadDesigns();
-        void loadAIDesigns();
       }
     }
   }, [activeView, step, isCheckingAuth]);
@@ -135,49 +125,6 @@ export default function AdminPortal() {
     }
   };
 
-  const loadDesigns = async () => {
-    setIsLoadingData(true);
-    setErrorMessage('');
-    try {
-      const designsRes = await apiService.getDesigns();
-      setDesigns(designsRes.data?.designs || []);
-      setLastUpdated(new Date().toISOString());
-    } catch (error: any) {
-      console.error('Failed to load designs:', error);
-      // If token is invalid, redirect to login
-      if (error?.message?.includes('Invalid admin token') || error?.message?.includes('Access denied') || error?.message?.includes('expired') || error?.message?.includes('session')) {
-        apiService.removeToken('admin');
-        setStep('login');
-        setErrorMessage('');
-      } else {
-        setErrorMessage('Unable to fetch designs. Please try again.');
-      }
-    } finally {
-      setIsLoadingData(false);
-    }
-  };
-
-  const loadAIDesigns = async () => {
-    setIsLoadingAIDesigns(true);
-    setErrorMessage('');
-    try {
-      const aiDesignsRes = await apiService.getAIDesigns({ limit: 1000 });
-      setAiDesigns(aiDesignsRes.data || []);
-      setLastUpdated(new Date().toISOString());
-    } catch (error: any) {
-      console.error('Failed to load AI designs:', error);
-      // If token is invalid, redirect to login
-      if (error?.message?.includes('Invalid admin token') || error?.message?.includes('Access denied') || error?.message?.includes('expired') || error?.message?.includes('session')) {
-        apiService.removeToken('admin');
-        setStep('login');
-        setErrorMessage('');
-      } else {
-        setErrorMessage('Unable to fetch AI designs. Please try again.');
-      }
-    } finally {
-      setIsLoadingAIDesigns(false);
-    }
-  };
 
   const handleLoginSuccess = async () => {
     setStep('dashboard');
@@ -193,7 +140,6 @@ export default function AdminPortal() {
 
   const isOverview = activeView === 'overview';
   const isUsersView = activeView === 'users';
-  const isDesignsView = activeView === 'designs';
   const isOrdersView = activeView === 'orders';
 
   if (isCheckingAuth) {
@@ -274,9 +220,6 @@ export default function AdminPortal() {
             onClick={() => {
               if (activeView === 'orders') {
                 void loadOrders();
-              } else if (activeView === 'designs') {
-                void loadDesigns();
-                void loadAIDesigns();
               } else {
                 void loadData();
               }
@@ -343,7 +286,6 @@ export default function AdminPortal() {
             buyers={buyers}
             manufacturers={manufacturers}
             orders={orders}
-            designs={designs}
             isLoadingData={isLoadingData}
             lastUpdated={lastUpdated}
           />
@@ -368,18 +310,6 @@ export default function AdminPortal() {
           />
         )}
 
-        {!isLoadingData && isDesignsView && (
-          <Designs
-            designs={designs}
-            aiDesigns={aiDesigns}
-            isLoadingData={isLoadingData}
-            isLoadingAIDesigns={isLoadingAIDesigns}
-            lastUpdated={lastUpdated}
-            onError={setErrorMessage}
-            onReload={loadDesigns}
-            onReloadAI={loadAIDesigns}
-          />
-        )}
       </main>
     </div>
   );

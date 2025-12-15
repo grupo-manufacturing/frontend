@@ -42,25 +42,6 @@ export interface Order {
   updated_at: string;
 }
 
-export interface Design {
-  id: string;
-  product_name: string;
-  image_url?: string;
-  product_category?: string;
-  description?: string;
-  price_1_50?: number;
-  price_51_100?: number;
-  price_101_200?: number;
-  min_quantity?: number;
-  tags?: string[];
-  manufacturer_profiles?: {
-    unit_name?: string;
-    phone_number?: string;
-  };
-  created_at: string;
-  updated_at?: string;
-}
-
 export interface AIDesign {
   id: string;
   buyer_id: string;

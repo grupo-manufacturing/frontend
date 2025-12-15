@@ -7,13 +7,11 @@ import apiService from '../lib/apiService';
 import RequirementsTab from './components/RequirementsTab';
 import AIRequirements from './components/AIRequirements';
 import AnalyticsTab from './components/AnalyticsTab';
-import MyDesignsTab from './components/MyDesignsTab';
 import ChatsTab from './components/ChatsTab';
 import Login from './components/Login';
 import Onboarding from './components/Onboarding';
 
-type TabType = 'chats' | 'all-requirements' | 'analytics' | 'my-designs' | 'profile';
-type SubTabType = 'requirements' | 'ai-requirements';
+type TabType = 'chats' | 'requirements' | 'ai-requirements' | 'analytics' | 'profile';
 
 export default function ManufacturerPortal() {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -67,7 +65,6 @@ export default function ManufacturerPortal() {
   }, []);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('chats');
-  const [activeSubTab, setActiveSubTab] = useState<SubTabType>('requirements');
   const [totalUnreadChats, setTotalUnreadChats] = useState<number>(0);
   
 
@@ -285,16 +282,16 @@ export default function ManufacturerPortal() {
                 )}
               </button>
 
-              {/* All Requirements Tab */}
+              {/* Requirements Tab */}
               <button
-                onClick={() => setActiveTab('all-requirements')}
+                onClick={() => setActiveTab('requirements')}
                 className={`relative flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all ${
-                  activeTab === 'all-requirements'
+                  activeTab === 'requirements'
                     ? 'text-[#22a2f2]'
                     : 'text-gray-500 hover:text-[#22a2f2]'
                 }`}
               >
-                {activeTab === 'all-requirements' && (
+                {activeTab === 'requirements' && (
                   <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-t-lg border-b-2 border-[#22a2f2]"></div>
                 )}
                 <svg
@@ -310,7 +307,35 @@ export default function ManufacturerPortal() {
                     d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
                   />
                 </svg>
-                <span className="relative z-10">All Requirements</span>
+                <span className="relative z-10">Requirements</span>
+              </button>
+
+              {/* AI Requirements Tab */}
+              <button
+                onClick={() => setActiveTab('ai-requirements')}
+                className={`relative flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all ${
+                  activeTab === 'ai-requirements'
+                    ? 'text-[#22a2f2]'
+                    : 'text-gray-500 hover:text-[#22a2f2]'
+                }`}
+              >
+                {activeTab === 'ai-requirements' && (
+                  <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-t-lg border-b-2 border-[#22a2f2]"></div>
+                )}
+                <svg
+                  className="relative z-10 w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+                <span className="relative z-10">AI Requirements</span>
               </button>
 
               {/* Analytics Tab */}
@@ -341,34 +366,6 @@ export default function ManufacturerPortal() {
                 <span className="relative z-10">Analytics</span>
               </button>
 
-              {/* My Designs Tab */}
-              <button
-                onClick={() => setActiveTab('my-designs')}
-                className={`relative flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all ${
-                  activeTab === 'my-designs'
-                    ? 'text-[#22a2f2]'
-                    : 'text-gray-500 hover:text-[#22a2f2]'
-                }`}
-              >
-                {activeTab === 'my-designs' && (
-                  <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-t-lg border-b-2 border-[#22a2f2]"></div>
-                )}
-                <svg
-                  className="relative z-10 w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-                <span className="relative z-10">My Designs</span>
-              </button>
-
             </div>
           </div>
         </nav>
@@ -384,75 +381,8 @@ export default function ManufacturerPortal() {
             />
           )}
           {activeTab === 'analytics' && <AnalyticsTab />}
-          {activeTab === 'all-requirements' && (
-            <div>
-              {/* Sub-tab Navigation */}
-              <div className="mb-6 border-b border-gray-200">
-                <div className="flex items-center space-x-1">
-                  <button
-                    onClick={() => setActiveSubTab('requirements')}
-                    className={`relative flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all ${
-                      activeSubTab === 'requirements'
-                        ? 'text-[#22a2f2]'
-                        : 'text-gray-500 hover:text-[#22a2f2]'
-                    }`}
-                  >
-                    {activeSubTab === 'requirements' && (
-                      <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-t-lg border-b-2 border-[#22a2f2]"></div>
-                    )}
-                    <svg
-                      className="relative z-10 w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-                      />
-                    </svg>
-                    <span className="relative z-10">Requirements</span>
-                  </button>
-
-                  <button
-                    onClick={() => setActiveSubTab('ai-requirements')}
-                    className={`relative flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all ${
-                      activeSubTab === 'ai-requirements'
-                        ? 'text-[#22a2f2]'
-                        : 'text-gray-500 hover:text-[#22a2f2]'
-                    }`}
-                  >
-                    {activeSubTab === 'ai-requirements' && (
-                      <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-t-lg border-b-2 border-[#22a2f2]"></div>
-                    )}
-                    <svg
-                      className="relative z-10 w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 10V3L4 14h7v7l9-11h-7z"
-                      />
-                    </svg>
-                    <span className="relative z-10">AI Requirements</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Sub-tab Content */}
-              <div>
-                {activeSubTab === 'requirements' && <RequirementsTab />}
-                {activeSubTab === 'ai-requirements' && <AIRequirements />}
-              </div>
-            </div>
-          )}
-          {activeTab === 'my-designs' && <MyDesignsTab />}
+          {activeTab === 'requirements' && <RequirementsTab />}
+          {activeTab === 'ai-requirements' && <AIRequirements />}
         </main>
       </div>
     );

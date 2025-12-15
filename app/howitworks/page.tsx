@@ -40,7 +40,7 @@ export default function HowItWorksPage() {
       ),
       details: [
         'Fill out product specifications',
-        'Upload design files or browse marketplace',
+        'Upload design files',
         'Set quantity and timeline requirements',
         'Get instant price estimates',
       ],

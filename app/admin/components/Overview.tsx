@@ -1,14 +1,13 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { Buyer, Manufacturer, Order, Design } from '../types';
+import type { Buyer, Manufacturer, Order } from '../types';
 import { formatDate } from '../utils';
 
 interface OverviewProps {
   buyers: Buyer[];
   manufacturers: Manufacturer[];
   orders: Order[];
-  designs: Design[];
   isLoadingData: boolean;
   lastUpdated: string | null;
 }
@@ -17,7 +16,6 @@ export default function Overview({
   buyers,
   manufacturers,
   orders,
-  designs,
   isLoadingData,
   lastUpdated
 }: OverviewProps) {
@@ -86,55 +84,6 @@ export default function Overview({
     return top;
   }, [acceptedOrders]);
 
-  // Calculate design metrics
-  const totalDesigns = useMemo(() => designs.length, [designs]);
-
-  const topDesignCategory = useMemo(() => {
-    const categoryCounts = new Map<string, number>();
-    
-    designs.forEach((design) => {
-      const category = design.product_category || 'Uncategorized';
-      const count = categoryCounts.get(category) || 0;
-      categoryCounts.set(category, count + 1);
-    });
-
-    let topCategory = 'N/A';
-    let maxCount = 0;
-    
-    categoryCounts.forEach((count, category) => {
-      if (count > maxCount) {
-        maxCount = count;
-        topCategory = category;
-      }
-    });
-
-    return { category: topCategory, count: maxCount };
-  }, [designs]);
-
-  const mostValuableDesigner = useMemo(() => {
-    const manufacturerCounts = new Map<string, { name: string; phone: string; count: number }>();
-    
-    designs.forEach((design) => {
-      const manufacturerId = design.manufacturer_profiles?.phone_number || '';
-      const manufacturerName = design.manufacturer_profiles?.unit_name || 'Unknown Manufacturer';
-      const existing = manufacturerCounts.get(manufacturerId);
-      
-      manufacturerCounts.set(manufacturerId, {
-        name: manufacturerName,
-        phone: manufacturerId,
-        count: (existing?.count || 0) + 1
-      });
-    });
-
-    let top = { name: 'N/A', phone: '', count: 0 };
-    manufacturerCounts.forEach((manufacturer) => {
-      if (manufacturer.count > top.count) {
-        top = manufacturer;
-      }
-    });
-
-    return top;
-  }, [designs]);
 
   const topManufacturer = useMemo(() => {
     const manufacturerTotals = new Map<string, { name: string; phone: string; total: number; deliveryTimes: string[]; orderCount: number }>();
@@ -292,45 +241,6 @@ export default function Overview({
         </div>
       </section>
 
-      <section className="grid gap-3 md:grid-cols-3">
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm flex flex-col">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Total No of Designs</p>
-          <p className="flex-1 flex items-center text-2xl font-semibold text-slate-900">{totalDesigns}</p>
-        </div>
-
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Top Design Category</p>
-          <div className="mt-4 space-y-2">
-            <p className="text-lg font-semibold text-slate-900">
-              {topDesignCategory.category}
-            </p>
-            <div className="mt-4 pt-4 border-t border-slate-200">
-              <p className="text-xs text-slate-500">No of Designs</p>
-              <p className="mt-1 text-2xl font-semibold text-slate-900">
-                {topDesignCategory.count}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Most Valuable Designer</p>
-          <div className="mt-4 space-y-2">
-            <p className="text-lg font-semibold text-slate-900">
-              {mostValuableDesigner.name}
-            </p>
-            {mostValuableDesigner.phone && (
-              <p className="text-sm text-slate-500">{mostValuableDesigner.phone}</p>
-            )}
-            <div className="mt-4 pt-4 border-t border-slate-200">
-              <p className="text-xs text-slate-500">No of Designs</p>
-              <p className="mt-1 text-2xl font-semibold text-slate-900">
-                {mostValuableDesigner.count}
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
