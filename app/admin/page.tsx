@@ -3,20 +3,22 @@
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import apiService from '../lib/apiService';
-import type { Buyer, Manufacturer, Order } from './types';
+import type { Buyer, Manufacturer, Order, AIDesign } from './types';
 import { formatDate } from './utils';
 import Overview from './components/Overview';
 import Users from './components/Users';
 import Orders from './components/Orders';
+import AIDesigns from './components/AIDesigns';
 import Login from './components/Login';
 
 type AdminStep = 'login' | 'dashboard';
-type AdminView = 'overview' | 'users' | 'orders';
+type AdminView = 'overview' | 'users' | 'orders' | 'ai-designs';
 
 const VIEW_TABS: Array<{ id: AdminView; label: string; description: string }> = [
   { id: 'overview', label: 'Overview', description: 'Key metrics across buyers and manufacturers' },
   { id: 'users', label: 'Users', description: 'Manage buyers and manufacturers' },
-  { id: 'orders', label: 'Orders', description: 'View and filter all orders by status' }
+  { id: 'orders', label: 'Orders', description: 'View and filter all orders by status' },
+  { id: 'ai-designs', label: 'AI Designs', description: 'View all AI-generated designs created by buyers' }
 ];
 
 export default function AdminPortal() {
@@ -26,6 +28,7 @@ export default function AdminPortal() {
   const [buyers, setBuyers] = useState<Buyer[]>([]);
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [aiDesigns, setAiDesigns] = useState<AIDesign[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
@@ -71,6 +74,9 @@ export default function AdminPortal() {
       }
       if (activeView === 'orders') {
         void loadOrders();
+      }
+      if (activeView === 'ai-designs') {
+        void loadAIDesigns();
       }
     }
   }, [activeView, step, isCheckingAuth]);
@@ -125,6 +131,29 @@ export default function AdminPortal() {
     }
   };
 
+  const loadAIDesigns = async () => {
+    setIsLoadingData(true);
+    setErrorMessage('');
+    try {
+      const filters: any = { sortBy: 'created_at', sortOrder: 'desc' };
+      const aiDesignsRes = await apiService.getAIDesigns(filters);
+      setAiDesigns(aiDesignsRes.data || []);
+      setLastUpdated(new Date().toISOString());
+    } catch (error: any) {
+      console.error('Failed to load AI designs:', error);
+      // If token is invalid, redirect to login
+      if (error?.message?.includes('Invalid admin token') || error?.message?.includes('Access denied') || error?.message?.includes('expired') || error?.message?.includes('session')) {
+        apiService.removeToken('admin');
+        setStep('login');
+        setErrorMessage('');
+      } else {
+        setErrorMessage('Unable to fetch AI designs. Please try again.');
+      }
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
 
   const handleLoginSuccess = async () => {
     setStep('dashboard');
@@ -141,6 +170,7 @@ export default function AdminPortal() {
   const isOverview = activeView === 'overview';
   const isUsersView = activeView === 'users';
   const isOrdersView = activeView === 'orders';
+  const isAIDesignsView = activeView === 'ai-designs';
 
   if (isCheckingAuth) {
     return (
@@ -220,6 +250,8 @@ export default function AdminPortal() {
             onClick={() => {
               if (activeView === 'orders') {
                 void loadOrders();
+              } else if (activeView === 'ai-designs') {
+                void loadAIDesigns();
               } else {
                 void loadData();
               }
@@ -307,6 +339,14 @@ export default function AdminPortal() {
             lastUpdated={lastUpdated}
             onError={setErrorMessage}
             onReload={loadData}
+          />
+        )}
+
+        {!isLoadingData && isAIDesignsView && (
+          <AIDesigns
+            aiDesigns={aiDesigns}
+            isLoadingData={isLoadingData}
+            lastUpdated={lastUpdated}
           />
         )}
 
