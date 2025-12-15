@@ -95,18 +95,25 @@ export default function MyRequirements({
             <div key={req.id} className="bg-white rounded-xl border border-[#22a2f2]/30 p-6 hover:shadow-md transition-shadow">
               <div className="flex justify-between items-start mb-4">
                 <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-xs text-gray-500">
-                      {new Date(req.created_at).toLocaleDateString('en-US', { 
-                        year: 'numeric', 
-                        month: 'short', 
-                        day: 'numeric' 
-                      })}
-                    </span>
-                    {/* Pending Badge - Show when there are no responses */}
-                    {(!req.responses || req.responses.length === 0 || req.manufacturer_count === 0) && (
-                      <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
-                        Pending
+                  <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-gray-500">
+                        {new Date(req.created_at).toLocaleDateString('en-US', { 
+                          year: 'numeric', 
+                          month: 'short', 
+                          day: 'numeric' 
+                        })}
+                      </span>
+                      {/* Pending Badge - Show when there are no responses */}
+                      {(!req.responses || req.responses.length === 0 || req.manufacturer_count === 0) && (
+                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
+                          Pending
+                        </span>
+                      )}
+                    </div>
+                    {req.requirement_no && (
+                      <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-[#22a2f2]/10 text-[#22a2f2] border border-[#22a2f2]/20">
+                        {req.requirement_no}
                       </span>
                     )}
                   </div>

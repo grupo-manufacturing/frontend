@@ -46,6 +46,7 @@ interface ChatMessage {
 interface RequirementTab {
   id: string;
   requirement_text: string;
+  requirement_no?: string;
   created_at?: string;
 }
 
@@ -53,6 +54,7 @@ interface RequirementDetails {
   id: string;
   buyer_id: string;
   requirement_text: string;
+  requirement_no?: string;
   quantity?: number | null;
   brand_name?: string | null;
   product_type?: string | null;
@@ -147,6 +149,7 @@ export default function ChatWindow({
           const requirements: RequirementTab[] = res.data.map((req: any) => ({
             id: req.id,
             requirement_text: req.requirement_text || 'Requirement',
+            requirement_no: req.requirement_no,
             created_at: req.created_at
           }));
 
@@ -611,11 +614,9 @@ export default function ChatWindow({
                       ? 'bg-[#22a2f2] text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
-                  title={reqTab.requirement_text}
+                  title={reqTab.requirement_no || reqTab.requirement_text}
                 >
-                  {reqTab.requirement_text.length > 30 
-                    ? reqTab.requirement_text.substring(0, 30) + '...'
-                    : reqTab.requirement_text}
+                  {reqTab.requirement_no || 'Requirement'}
                 </button>
               ))
             ) : null}

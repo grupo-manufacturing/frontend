@@ -278,6 +278,11 @@ export default function RequirementsTab() {
                 {/* Date badge - smaller and positioned better */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2 flex-wrap">
+                    {req.requirement_no && (
+                      <span className="px-2 py-1 rounded-md text-xs font-semibold bg-[#22a2f2]/10 text-[#22a2f2] border border-[#22a2f2]/20">
+                        {req.requirement_no}
+                      </span>
+                    )}
                     <span className={`px-2 py-1 rounded-md text-xs font-semibold ${statusTag.color}`}>
                       {statusTag.label}
                     </span>

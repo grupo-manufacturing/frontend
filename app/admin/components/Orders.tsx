@@ -135,7 +135,7 @@ export default function Orders({
           <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
             <tr>
               <th scope="col" className="px-4 py-3 text-left font-semibold">
-                Requirement
+                Requirement ID
               </th>
               <th scope="col" className="px-4 py-3 text-left font-semibold">
                 Buyer
@@ -170,21 +170,13 @@ export default function Orders({
               paginatedOrders.map((order) => (
                 <tr key={order.id} className="hover:bg-slate-50/80">
                   <td className="px-4 py-3">
-                    <div className="font-medium text-slate-900 max-w-xs">
-                      {order.requirement?.requirement_text
-                        ? order.requirement.requirement_text.length > 60
-                          ? `${order.requirement.requirement_text.substring(0, 60)}...`
-                          : order.requirement.requirement_text
-                        : '—'}
-                    </div>
-                    <div className="text-xs text-slate-500 mt-1">
-                      {order.requirement?.quantity && (
-                        <span>Qty: {order.requirement.quantity.toLocaleString()}</span>
-                      )}
-                      {order.requirement?.product_type && (
-                        <span className="ml-2">Type: {order.requirement.product_type}</span>
-                      )}
-                    </div>
+                    {order.requirement?.requirement_no ? (
+                      <span className="inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold bg-[#22a2f2]/10 text-[#22a2f2] border border-[#22a2f2]/20">
+                        {order.requirement.requirement_no}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <div className="font-medium text-slate-900">

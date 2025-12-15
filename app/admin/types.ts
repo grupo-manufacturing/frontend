@@ -21,6 +21,7 @@ export interface Buyer {
 export interface Order {
   id: string;
   requirement: {
+    requirement_no?: string;
     requirement_text: string;
     quantity?: number;
     product_type?: string;
