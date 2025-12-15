@@ -4,13 +4,18 @@ import { useState, useEffect } from 'react';
 import ChatList from '../../components/chat/ChatList';
 import ChatWindow from '../../components/chat/ChatWindow';
 
-type TabType = 'chats' | 'requirements' | 'analytics' | 'my-designs' | 'profile';
+type TabType = 'chats' | 'requirements' | 'ai-requirements' | 'analytics' | 'profile';
 
 interface ChatsTabProps {
   onUnreadCountChange: (count: number) => void;
   activeTab: TabType;
   onActiveTabChange?: (tab: TabType) => void;
 }
+
+// Type guard to ensure tab is valid
+const isValidTab = (tab: string): tab is TabType => {
+  return ['chats', 'requirements', 'ai-requirements', 'analytics', 'profile'].includes(tab);
+};
 
 export default function ChatsTab({ onUnreadCountChange, activeTab, onActiveTabChange }: ChatsTabProps) {
   // Chat state (chats inbox)
@@ -34,8 +39,12 @@ export default function ChatsTab({ onUnreadCountChange, activeTab, onActiveTabCh
             setActiveTitle(chatState.title || undefined);
             if (chatState.activeTab && onActiveTabChange) {
               // Convert old 'all-requirements' tab to 'requirements' for backward compatibility
-              const tab = chatState.activeTab === 'all-requirements' ? 'requirements' : chatState.activeTab;
-              onActiveTabChange(tab as TabType);
+              let tab = chatState.activeTab === 'all-requirements' ? 'requirements' : chatState.activeTab;
+              // Filter out invalid tabs (like 'my-designs' which was removed)
+              if (!isValidTab(tab)) {
+                tab = 'chats'; // Default to chats if invalid tab
+              }
+              onActiveTabChange(tab);
             } else if (chatState.conversationId && onActiveTabChange) {
               onActiveTabChange('chats');
             }
