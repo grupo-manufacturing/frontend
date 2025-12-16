@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Image from 'next/image';
 import type { AIDesign } from '../types';
 import { formatDate } from '../utils';
 
@@ -155,11 +154,10 @@ export default function AIDesigns({
               >
                 {/* Design Image */}
                 <div className="relative mb-3 aspect-square overflow-hidden rounded-lg bg-slate-100">
-                  <Image
+                  <img
                     src={design.image_url || '/placeholder-design.png'}
                     alt={design.apparel_type || 'AI Design'}
-                    fill
-                    className="object-cover transition-transform group-hover:scale-105"
+                    className="h-full w-full object-cover transition-transform group-hover:scale-105"
                   />
                   {/* Design Number - Top Left */}
                   {design.design_no && (
