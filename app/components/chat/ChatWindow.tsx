@@ -15,6 +15,7 @@ interface ChatWindowProps {
   selfRole?: 'buyer' | 'manufacturer';
   onConversationRead?: (conversationId: string) => void;
   requirement?: any | null;
+  aiDesign?: any | null;
 }
 
 interface Attachment {
@@ -99,7 +100,8 @@ export default function ChatWindow({
   inline,
   selfRole = 'buyer',
   onConversationRead,
-  requirement
+  requirement,
+  aiDesign
 }: ChatWindowProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [allMessages, setAllMessages] = useState<ChatMessage[]>([]); // Store all messages
@@ -125,7 +127,7 @@ export default function ChatWindow({
   const [acceptedResponseId, setAcceptedResponseId] = useState<string | null>(null);
   
   // AI Design tabs state
-  const [activeAIDesignId, setActiveAIDesignId] = useState<string | null>(null);
+  const [activeAIDesignId, setActiveAIDesignId] = useState<string | null>(aiDesign?.id || null);
   const [aiDesignTabs, setAiDesignTabs] = useState<AIDesignTab[]>([]);
   const [loadingAIDesigns, setLoadingAIDesigns] = useState(false);
   const [activeAIDesignDetails, setActiveAIDesignDetails] = useState<AIDesignDetails | null>(null);
@@ -291,8 +293,22 @@ export default function ChatWindow({
             setAiDesignTabs(aiDesigns);
             console.log('[ChatWindow] Loaded accepted AI designs as tabs:', aiDesigns.length, aiDesigns);
             
-            // Auto-select first AI design if no requirement is selected and no requirement tabs exist
-            if (aiDesigns.length > 0 && !activeAIDesignId && requirementTabs.length === 0 && !activeRequirementId) {
+            // If aiDesign prop is provided, ensure it's selected (it might be set before tabs load)
+            if (aiDesign?.id) {
+              // Verify the design exists in the loaded tabs
+              const designExists = aiDesigns.some(d => d.id === aiDesign.id);
+              if (designExists) {
+                // Force selection even if already set, to ensure it's active
+                setActiveAIDesignId(aiDesign.id);
+                setActiveTabType('ai-design');
+                setContentType('designs');
+                console.log('[ChatWindow] Selected AI design from prop after tabs loaded:', aiDesign.id);
+              } else {
+                console.warn('[ChatWindow] AI design from prop not found in loaded tabs:', aiDesign.id);
+              }
+            } else if (aiDesigns.length > 0 && !activeAIDesignId && requirementTabs.length === 0 && !activeRequirementId) {
+              // Auto-select first AI design if no requirement is selected and no requirement tabs exist
+              // Only if aiDesign prop is not provided
               setActiveAIDesignId(aiDesigns[0].id);
               setActiveTabType('ai-design');
               console.log('[ChatWindow] Auto-selected first AI design:', aiDesigns[0].id);
@@ -528,15 +544,16 @@ export default function ChatWindow({
   }, [requirementTabs, activeRequirementId, requirement?.id, contentType]);
 
   // Auto-select first AI design tab when tabs load and no design is selected
+  // But don't override if aiDesign prop is provided
   useEffect(() => {
-    if (contentType === 'designs' && aiDesignTabs.length > 0 && !activeAIDesignId) {
+    if (contentType === 'designs' && aiDesignTabs.length > 0 && !activeAIDesignId && !aiDesign?.id) {
       // Auto-select the first AI design tab
       const firstDesignId = aiDesignTabs[0].id;
       setActiveAIDesignId(firstDesignId);
       setActiveTabType('ai-design');
       console.log('[ChatWindow] Auto-selected first AI design tab:', firstDesignId);
     }
-  }, [aiDesignTabs, activeAIDesignId, contentType]);
+  }, [aiDesignTabs, activeAIDesignId, contentType, aiDesign?.id]);
 
   // Set active requirement when requirement prop changes (e.g., from "Negotiate" button)
   useEffect(() => {
@@ -551,6 +568,49 @@ export default function ChatWindow({
     // Note: We don't default to null anymore since we removed "All Messages" tab
     // The active requirement will be set when tabs load or from requirement prop
   }, [requirement?.id]);
+
+  // Set active AI design when aiDesign prop changes (e.g., from "Accept" button)
+  useEffect(() => {
+    if (aiDesign?.id) {
+      // Set as active AI design when prop is provided
+      setContentType('designs');
+      setActiveAIDesignId(aiDesign.id);
+      setActiveRequirementId(null);
+      setActiveTabType('ai-design');
+      console.log('[ChatWindow] Set active AI design from prop:', aiDesign.id);
+    }
+  }, [aiDesign?.id]);
+
+  // Ensure the AI design from prop is selected when tabs load
+  useEffect(() => {
+    if (aiDesign?.id) {
+      if (aiDesignTabs.length > 0) {
+        // Verify the design exists in the loaded tabs and ensure it's selected
+        const designExists = aiDesignTabs.some(d => d.id === aiDesign.id);
+        if (designExists) {
+          // Design exists in tabs, ensure it's selected
+          if (activeAIDesignId !== aiDesign.id) {
+            setActiveAIDesignId(aiDesign.id);
+            setActiveTabType('ai-design');
+            setContentType('designs');
+            console.log('[ChatWindow] Verified and selected AI design from prop after tabs loaded:', aiDesign.id);
+          }
+        } else {
+          // Design not in tabs yet (might be loading or just accepted)
+          // Keep it selected anyway - it will appear when tabs refresh
+          console.log('[ChatWindow] AI design from prop not yet in tabs, keeping selection:', aiDesign.id);
+        }
+      } else {
+        // Tabs haven't loaded yet, but we have the prop - ensure selection is set
+        if (activeAIDesignId !== aiDesign.id) {
+          setActiveAIDesignId(aiDesign.id);
+          setActiveTabType('ai-design');
+          setContentType('designs');
+          console.log('[ChatWindow] Set AI design from prop before tabs loaded:', aiDesign.id);
+        }
+      }
+    }
+  }, [aiDesign?.id, aiDesignTabs.length, activeAIDesignId]);
 
   useEffect(() => {
     if (!token || !wsUrl) return;

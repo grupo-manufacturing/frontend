@@ -6,9 +6,10 @@ import apiService from '../../lib/apiService';
 
 interface AIDesignsTabProps {
   onSwitchToGenerateDesigns?: () => void;
+  onAcceptAIDesignResponse?: (aiDesign: any, response: any) => Promise<void>;
 }
 
-export default function AIDesignsTab({ onSwitchToGenerateDesigns }: AIDesignsTabProps) {
+export default function AIDesignsTab({ onSwitchToGenerateDesigns, onAcceptAIDesignResponse }: AIDesignsTabProps) {
   // AI Designs States
   const [aiDesigns, setAiDesigns] = useState<any[]>([]);
   const [isLoadingAiDesigns, setIsLoadingAiDesigns] = useState(false);
@@ -417,6 +418,17 @@ export default function AIDesignsTab({ onSwitchToGenerateDesigns }: AIDesignsTab
                                 setUpdatingResponseAction('accept');
                                 try {
                                   await apiService.updateAIDesignResponseStatus(response.id, 'accepted');
+                                  
+                                  // If handler is provided, open chat with the AI design
+                                  if (onAcceptAIDesignResponse) {
+                                    // Close the modal first
+                                    setShowResponsesModal(false);
+                                    // Wait a moment for modal to close
+                                    await new Promise(resolve => setTimeout(resolve, 100));
+                                    // Open chat
+                                    await onAcceptAIDesignResponse(selectedDesignForResponses, response);
+                                  }
+                                  
                                   // Refresh AI designs to show updated status
                                   await fetchAiDesigns();
                                   // Update the modal's selected design

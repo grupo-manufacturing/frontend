@@ -256,6 +256,19 @@ export default function BuyerPortal() {
     }, 50);
   };
 
+  const handleAcceptAIDesignResponse = async (aiDesign: any, response: any) => {
+    // Switch to chats tab first to ensure ChatsTab is mounted
+    setActiveTab('chats');
+    
+    // Wait a moment for the tab to switch and component to mount
+    setTimeout(async () => {
+      if (chatsTabRef.current) {
+        // openChatFromAIDesignAccept will set up the chat state
+        await chatsTabRef.current.openChatFromAIDesignAccept(aiDesign, response);
+      }
+    }, 50);
+  };
+
   // Form handlers
 
   // Load phone number from localStorage on component mount
@@ -665,6 +678,7 @@ export default function BuyerPortal() {
           {activeTab === 'ai-designs' && (
             <AIDesignsTab
               onSwitchToGenerateDesigns={() => setActiveTab('generate-designs')}
+              onAcceptAIDesignResponse={handleAcceptAIDesignResponse}
             />
           )}
         </main>
