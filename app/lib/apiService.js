@@ -846,7 +846,8 @@ class ApiService {
 
   /**
    * Get AI designs for the authenticated buyer
-   * @param {Object} filters - Optional filters (status, apparel_type, limit, offset)
+   * @param {Object} filters - Optional filters (status, apparel_type, limit, offset, include_responses)
+   * @param {boolean} filters.include_responses - If true, includes responses in the response (optimizes N+1 queries)
    * @returns {Promise} Response data
    */
   async getAIDesigns(filters = {}) {
@@ -855,6 +856,7 @@ class ApiService {
     if (filters.apparel_type) queryParams.append('apparel_type', filters.apparel_type);
     if (filters.limit) queryParams.append('limit', filters.limit);
     if (filters.offset) queryParams.append('offset', filters.offset);
+    if (filters.include_responses === true) queryParams.append('include_responses', 'true');
 
     const queryString = queryParams.toString();
     const endpoint = `/ai-designs${queryString ? `?${queryString}` : ''}`;

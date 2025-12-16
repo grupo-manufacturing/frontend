@@ -85,42 +85,24 @@ export default function AIRequirements() {
   const fetchAiDesigns = async () => {
     setIsLoadingAiDesigns(true);
     try {
-      const response = await apiService.getAIDesigns();
+      // Use include_responses to optimize N+1 queries - responses are fetched in batch
+      const response = await apiService.getAIDesigns({ include_responses: true });
       if (response.success && response.data) {
         const designs = response.data || [];
         
-        // Fetch responses for each design to check if manufacturer has responded and get status
-        const designsWithResponseStatus = await Promise.all(
-          designs.map(async (design: any) => {
-            try {
-              const responsesResponse = await apiService.getAIDesignResponses(design.id);
-              if (responsesResponse.success && responsesResponse.data) {
-                const responses = responsesResponse.data || [];
-                // Check if current manufacturer has responded and get their response status
-                const manufacturerResponse = manufacturerId ? responses.find(
-                  (resp: any) => resp.manufacturer_id === manufacturerId
-                ) : null;
-                return {
-                  ...design,
-                  hasResponded: !!manufacturerResponse,
-                  responseStatus: manufacturerResponse?.status || null
-                };
-              }
-              return {
-                ...design,
-                hasResponded: false,
-                responseStatus: null
-              };
-            } catch (error) {
-              console.error(`Failed to fetch responses for AI design ${design.id}:`, error);
-              return {
-                ...design,
-                hasResponded: false,
-                responseStatus: null
-              };
-            }
-          })
-        );
+        // Process designs with responses (already included in response)
+        const designsWithResponseStatus = designs.map((design: any) => {
+          const responses = design.responses || [];
+          // Check if current manufacturer has responded and get their response status
+          const manufacturerResponse = manufacturerId ? responses.find(
+            (resp: any) => resp.manufacturer_id === manufacturerId
+          ) : null;
+          return {
+            ...design,
+            hasResponded: !!manufacturerResponse,
+            responseStatus: manufacturerResponse?.status || null
+          };
+        });
         
         setAiDesigns(designsWithResponseStatus);
         

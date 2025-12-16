@@ -23,38 +23,16 @@ export default function AIDesignsTab({ onSwitchToGenerateDesigns, onAcceptAIDesi
   const fetchAiDesigns = async () => {
     setIsLoadingAiDesigns(true);
     try {
-      const response = await apiService.getAIDesigns();
+      // Use include_responses to optimize N+1 queries - responses are fetched in batch
+      const response = await apiService.getAIDesigns({ include_responses: true });
       if (response.success && response.data) {
         const designs = response.data || [];
         
-        // Fetch responses for each AI design
-        const designsWithResponses = await Promise.all(
-          designs.map(async (design: any) => {
-            try {
-              const responsesResponse = await apiService.getAIDesignResponses(design.id);
-              if (responsesResponse.success && responsesResponse.data) {
-                return {
-                  ...design,
-                  responses: responsesResponse.data || []
-                };
-              } else {
-                console.warn(`Failed to fetch responses for AI design ${design.id}:`, responsesResponse.message);
-                return {
-                  ...design,
-                  responses: []
-                };
-              }
-            } catch (error: any) {
-              console.error(`Error fetching responses for AI design ${design.id}:`, error);
-              return {
-                ...design,
-                responses: []
-              };
-            }
-          })
-        );
-        
-        setAiDesigns(designsWithResponses);
+        // Responses are already included in the response, no need for separate API calls
+        setAiDesigns(designs.map((design: any) => ({
+          ...design,
+          responses: design.responses || []
+        })));
       } else {
         console.error('Failed to fetch AI designs');
         setAiDesigns([]);
