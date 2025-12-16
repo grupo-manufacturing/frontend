@@ -46,6 +46,7 @@ export interface Order {
 export interface AIDesign {
   id: string;
   buyer_id: string;
+  design_no?: string;
   image_url: string;
   apparel_type: string;
   design_description?: string;

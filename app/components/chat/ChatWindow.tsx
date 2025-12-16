@@ -41,6 +41,7 @@ interface ChatMessage {
   is_read?: boolean;
   attachments?: Attachment[];
   requirement_id?: string | null;
+  ai_design_id?: string | null;
 }
 
 interface RequirementTab {
@@ -64,6 +65,29 @@ interface RequirementDetails {
   created_at?: string;
   updated_at?: string;
   status?: 'accepted' | 'negotiating' | null;
+}
+
+interface AIDesignTab {
+  id: string;
+  design_no?: string;
+  apparel_type: string;
+  design_description?: string;
+  image_url?: string;
+  created_at?: string;
+}
+
+interface AIDesignDetails {
+  id: string;
+  buyer_id: string;
+  apparel_type: string;
+  design_description?: string;
+  image_url?: string;
+  quantity?: number;
+  preferred_colors?: string;
+  print_placement?: string;
+  status?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export default function ChatWindow({
@@ -99,6 +123,34 @@ export default function ChatWindow({
   const [activeRequirementDetails, setActiveRequirementDetails] = useState<RequirementDetails | null>(null);
   const [loadingRequirementDetails, setLoadingRequirementDetails] = useState(false);
   const [acceptedResponseId, setAcceptedResponseId] = useState<string | null>(null);
+  
+  // AI Design tabs state
+  const [activeAIDesignId, setActiveAIDesignId] = useState<string | null>(null);
+  const [aiDesignTabs, setAiDesignTabs] = useState<AIDesignTab[]>([]);
+  const [loadingAIDesigns, setLoadingAIDesigns] = useState(false);
+  const [activeAIDesignDetails, setActiveAIDesignDetails] = useState<AIDesignDetails | null>(null);
+  const [loadingAIDesignDetails, setLoadingAIDesignDetails] = useState(false);
+  
+  // Track active tab type: 'requirement' or 'ai-design'
+  const [activeTabType, setActiveTabType] = useState<'requirement' | 'ai-design' | null>(null);
+  
+  // Toggle between Requirements and Designs
+  const [contentType, setContentType] = useState<'requirements' | 'designs'>('requirements');
+
+  // Clear active selections when switching content types
+  useEffect(() => {
+    if (contentType === 'requirements') {
+      setActiveAIDesignId(null);
+      setActiveAIDesignDetails(null);
+    } else {
+      setActiveRequirementId(null);
+      setActiveRequirementDetails(null);
+      setAcceptedResponseId(null);
+    }
+    setActiveTabType(null);
+    setMessages([]);
+    setAllMessages([]);
+  }, [contentType]);
 
   const token = useMemo(() => apiService.getToken(), []);
   const wsUrl = useMemo(() => process.env.NEXT_PUBLIC_WS_URL || getApiBaseOrigin(), []);
@@ -124,7 +176,7 @@ export default function ChatWindow({
 
   // Load negotiating requirements for this conversation as tabs
   useEffect(() => {
-    if (!conversationId) {
+    if (!conversationId || contentType !== 'requirements') {
       setRequirementTabs([]);
       setLoadingRequirements(false);
       return;
@@ -167,6 +219,7 @@ export default function ChatWindow({
             // Auto-select first requirement if none selected yet
             if (requirements.length > 0 && !activeRequirementId && !requirement?.id) {
               setActiveRequirementId(requirements[0].id);
+              setActiveTabType('requirement');
               console.log('[ChatWindow] Auto-selected first requirement:', requirements[0].id);
             }
           }
@@ -192,7 +245,82 @@ export default function ChatWindow({
     return () => {
       mounted = false;
     };
-  }, [conversationId, manufacturerId]); // Re-run when conversation or manufacturer changes
+  }, [conversationId, manufacturerId, contentType]); // Re-run when conversation, manufacturer, or contentType changes
+
+  // Load accepted AI designs for this conversation as tabs
+  useEffect(() => {
+    if (!conversationId || contentType !== 'designs') {
+      setAiDesignTabs([]);
+      setLoadingAIDesigns(false);
+      return;
+    }
+
+    let mounted = true;
+    setLoadingAIDesigns(true);
+
+    async function loadAcceptedAIDesigns() {
+      try {
+        // Fetch accepted AI designs for this specific conversation
+        // These are AI designs where:
+        // - ai_design_responses.status = 'accepted'
+        // - ai_design_responses.manufacturer_id = conversation.manufacturer_id
+        // - ai_designs.buyer_id = conversation.buyer_id
+        const res = await apiService.getAcceptedAIDesignsForConversation(conversationId);
+        
+        if (!mounted) return;
+        
+        if (res.success && res.data && Array.isArray(res.data)) {
+          // Map AI designs to tabs
+          const aiDesigns: AIDesignTab[] = res.data.map((design: any) => ({
+            id: design.id,
+            design_no: design.design_no,
+            apparel_type: design.apparel_type || 'AI Design',
+            design_description: design.design_description,
+            image_url: design.image_url,
+            created_at: design.created_at
+          }));
+
+          // Sort by created_at (newest first)
+          aiDesigns.sort((a, b) => {
+            const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+            const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+            return dateB - dateA;
+          });
+
+          if (mounted) {
+            setAiDesignTabs(aiDesigns);
+            console.log('[ChatWindow] Loaded accepted AI designs as tabs:', aiDesigns.length, aiDesigns);
+            
+            // Auto-select first AI design if no requirement is selected and no requirement tabs exist
+            if (aiDesigns.length > 0 && !activeAIDesignId && requirementTabs.length === 0 && !activeRequirementId) {
+              setActiveAIDesignId(aiDesigns[0].id);
+              setActiveTabType('ai-design');
+              console.log('[ChatWindow] Auto-selected first AI design:', aiDesigns[0].id);
+            }
+          }
+        } else {
+          if (mounted) {
+            setAiDesignTabs([]);
+          }
+        }
+      } catch (err) {
+        console.error('[ChatWindow] Failed to load accepted AI designs:', err);
+        if (mounted) {
+          setAiDesignTabs([]);
+        }
+      } finally {
+        if (mounted) {
+          setLoadingAIDesigns(false);
+        }
+      }
+    }
+
+    loadAcceptedAIDesigns();
+
+    return () => {
+      mounted = false;
+    };
+  }, [conversationId, manufacturerId, contentType]); // Re-run when conversation, manufacturer, or contentType changes
 
   // Fetch requirement details when activeRequirementId changes
   useEffect(() => {
@@ -274,9 +402,56 @@ export default function ChatWindow({
     };
   }, [activeRequirementId, manufacturerId]);
 
-  // Load messages filtered by conversation_id AND requirement_id from backend
+  // Fetch AI design details when activeAIDesignId changes
   useEffect(() => {
-    if (!conversationId || !activeRequirementId) {
+    if (!activeAIDesignId) {
+      setActiveAIDesignDetails(null);
+      setLoadingAIDesignDetails(false);
+      return;
+    }
+
+    let mounted = true;
+    let cancelled = false;
+
+    async function loadAIDesignDetails() {
+      try {
+        setLoadingAIDesignDetails(true);
+        const res = await apiService.getAIDesign(activeAIDesignId!);
+        
+        if (cancelled || !mounted) return;
+        
+        if (res.success && res.data) {
+          setActiveAIDesignDetails(res.data);
+          console.log('[ChatWindow] Loaded AI design details:', res.data);
+        } else {
+          setActiveAIDesignDetails(null);
+        }
+      } catch (err) {
+        console.error('[ChatWindow] Failed to load AI design details:', err);
+        if (!cancelled && mounted) {
+          setActiveAIDesignDetails(null);
+        }
+      } finally {
+        if (!cancelled && mounted) {
+          setLoadingAIDesignDetails(false);
+        }
+      }
+    }
+    
+    loadAIDesignDetails();
+
+    return () => {
+      cancelled = true;
+      mounted = false;
+    };
+  }, [activeAIDesignId]);
+
+  // Load messages filtered by conversation_id AND requirement_id/ai_design_id from backend
+  useEffect(() => {
+    // Determine active ID based on tab type
+    const activeId = activeTabType === 'ai-design' ? activeAIDesignId : activeRequirementId;
+    
+    if (!conversationId || !activeId) {
       setAllMessages([]);
       setMessages([]);
       setLoading(false);
@@ -286,13 +461,20 @@ export default function ChatWindow({
     let mounted = true;
     let cancelled = false;
 
-    async function loadMessagesForRequirement() {
+    async function loadMessagesForActiveTab() {
       try {
         setLoading(true);
-        // Fetch messages from dedicated endpoint that filters by both conversation_id AND requirement_id
-        const res = await apiService.getMessagesForRequirement(conversationId, activeRequirementId!, { 
-          limit: 200 
-        });
+        // Use the appropriate endpoint based on tab type
+        let res;
+        if (activeTabType === 'ai-design') {
+          res = await apiService.getMessagesForAIDesign(conversationId, activeId!, { 
+            limit: 200 
+          });
+        } else {
+          res = await apiService.getMessagesForRequirement(conversationId, activeId!, { 
+            limit: 200 
+          });
+        }
         
         if (cancelled || !mounted) return;
         
@@ -301,9 +483,10 @@ export default function ChatWindow({
         setAllMessages(loadedMessages);
         setMessages(loadedMessages);
         
-        console.log('[ChatWindow] Loaded messages for requirement:', {
+        console.log('[ChatWindow] Loaded messages for active tab:', {
           conversationId,
-          requirementId: activeRequirementId,
+          activeId,
+          tabType: activeTabType,
           count: loadedMessages.length
         });
 
@@ -313,7 +496,7 @@ export default function ChatWindow({
           markConversationReadRef.current(lastMessage.id);
         }
       } catch (err) {
-        console.error('[ChatWindow] Failed to load messages for requirement:', err);
+        console.error('[ChatWindow] Failed to load messages for active tab:', err);
         if (!cancelled && mounted) {
           setMessages([]);
           setAllMessages([]);
@@ -325,29 +508,44 @@ export default function ChatWindow({
       }
     }
     
-    loadMessagesForRequirement();
+    loadMessagesForActiveTab();
 
     return () => {
       cancelled = true;
       mounted = false;
     };
-  }, [conversationId, activeRequirementId]); // Removed markConversationRead from dependencies
+  }, [conversationId, activeRequirementId, activeAIDesignId, activeTabType]); // Removed markConversationRead from dependencies
   
   // Auto-select first requirement tab when tabs load and no requirement is selected
   useEffect(() => {
-    if (requirementTabs.length > 0 && !activeRequirementId && !requirement?.id) {
+    if (contentType === 'requirements' && requirementTabs.length > 0 && !activeRequirementId && !requirement?.id) {
       // Auto-select the first requirement tab
       const firstReqId = requirementTabs[0].id;
       setActiveRequirementId(firstReqId);
+      setActiveTabType('requirement');
       console.log('[ChatWindow] Auto-selected first requirement tab:', firstReqId);
     }
-  }, [requirementTabs, activeRequirementId, requirement?.id]);
+  }, [requirementTabs, activeRequirementId, requirement?.id, contentType]);
+
+  // Auto-select first AI design tab when tabs load and no design is selected
+  useEffect(() => {
+    if (contentType === 'designs' && aiDesignTabs.length > 0 && !activeAIDesignId) {
+      // Auto-select the first AI design tab
+      const firstDesignId = aiDesignTabs[0].id;
+      setActiveAIDesignId(firstDesignId);
+      setActiveTabType('ai-design');
+      console.log('[ChatWindow] Auto-selected first AI design tab:', firstDesignId);
+    }
+  }, [aiDesignTabs, activeAIDesignId, contentType]);
 
   // Set active requirement when requirement prop changes (e.g., from "Negotiate" button)
   useEffect(() => {
     if (requirement?.id) {
       // Set as active requirement when prop is provided
+      setContentType('requirements');
       setActiveRequirementId(requirement.id);
+      setActiveAIDesignId(null);
+      setActiveTabType('requirement');
       console.log('[ChatWindow] Set active requirement from prop:', requirement.id);
     }
     // Note: We don't default to null anymore since we removed "All Messages" tab
@@ -380,12 +578,21 @@ export default function ChatWindow({
         return [...prev, message];
       });
 
-      // Add to messages if it matches active requirement
-      // Compare requirement_id as strings to handle UUID differences
+      // Add to messages if it matches active requirement or AI design
+      // Check both requirement_id and ai_design_id fields
       const messageReqId = message.requirement_id ? String(message.requirement_id) : null;
-      const activeReqId = activeRequirementId ? String(activeRequirementId) : null;
+      const messageAiDesignId = (message as any).ai_design_id ? String((message as any).ai_design_id) : null;
       
-      if (messageReqId === activeReqId) {
+      let shouldAdd = false;
+      if (activeTabType === 'ai-design') {
+        const activeId = activeAIDesignId ? String(activeAIDesignId) : null;
+        shouldAdd = messageAiDesignId === activeId;
+      } else if (activeTabType === 'requirement') {
+        const activeId = activeRequirementId ? String(activeRequirementId) : null;
+        shouldAdd = messageReqId === activeId;
+      }
+      
+      if (shouldAdd) {
         setMessages((prev) => {
           // Replace optimistic by client_temp_id if present
           if (message.client_temp_id) {
@@ -483,6 +690,11 @@ export default function ChatWindow({
         setUploadingFiles(false);
       }
 
+      // Determine active ID based on tab type
+      const activeId = activeTabType === 'ai-design' ? activeAIDesignId : activeRequirementId;
+      const requirementId = activeTabType === 'requirement' ? activeRequirementId : null;
+      const aiDesignId = activeTabType === 'ai-design' ? activeAIDesignId : null;
+      
       // optimistic append
       const optimistic: ChatMessage = {
         client_temp_id: clientTempId,
@@ -493,7 +705,7 @@ export default function ChatWindow({
         created_at: new Date().toISOString(),
         is_read: false,
         attachments: uploadedAttachments,
-        requirement_id: activeRequirementId || null
+        requirement_id: requirementId || null
       };
       setMessages((prev) => [...prev, optimistic]);
       setAllMessages((prev) => [...prev, optimistic]);
@@ -506,7 +718,8 @@ export default function ChatWindow({
           body, 
           clientTempId,
           attachments: uploadedAttachments,
-          requirementId: activeRequirementId
+          requirementId: requirementId,
+          aiDesignId: aiDesignId
         });
       } else {
         // fallback to REST
@@ -514,7 +727,8 @@ export default function ChatWindow({
           body, 
           clientTempId,
           attachments: uploadedAttachments,
-          requirementId: activeRequirementId
+          requirementId: requirementId,
+          aiDesignId: aiDesignId
         });
       }
     } catch (err) {
@@ -595,31 +809,101 @@ export default function ChatWindow({
     <div className={containerClass}>
       <div className={headerClass}>
         <div className={titleClass}>{title || 'Chat'}</div>
-        <button onClick={onClose} className={closeClass}>✕</button>
+        <div className="flex items-center gap-2">
+          {/* Toggle between Requirements and Designs */}
+          {conversationId && (
+            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => {
+                  setContentType('requirements');
+                  setActiveAIDesignId(null);
+                  setActiveTabType(null);
+                }}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                  contentType === 'requirements'
+                    ? 'bg-white text-[#22a2f2] shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+                title="Requirements"
+              >
+                Requirements
+              </button>
+              <button
+                onClick={() => {
+                  setContentType('designs');
+                  setActiveRequirementId(null);
+                  setActiveTabType(null);
+                }}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                  contentType === 'designs'
+                    ? 'bg-white text-[#22a2f2] shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+                title="AI Designs"
+              >
+                Designs
+              </button>
+            </div>
+          )}
+          <button onClick={onClose} className={closeClass}>✕</button>
+        </div>
       </div>
 
-      {/* Requirement Tabs - ALWAYS show when conversation is active, even if loading */}
+      {/* Requirement or AI Design Tabs - Show based on contentType toggle */}
       {conversationId && (
         <div className="border-b border-gray-200 bg-white overflow-x-auto">
           <div className="flex gap-2 px-4 py-2">
-            {loadingRequirements ? (
-              <div className="px-4 py-2 text-sm text-gray-500 animate-pulse">Loading requirements...</div>
-            ) : requirementTabs.length > 0 ? (
-              requirementTabs.map((reqTab) => (
-                <button
-                  key={reqTab.id}
-                  onClick={() => setActiveRequirementId(reqTab.id)}
-                  className={`px-4 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap ${
-                    activeRequirementId === reqTab.id
-                      ? 'bg-[#22a2f2] text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                  title={reqTab.requirement_no || reqTab.requirement_text}
-                >
-                  {reqTab.requirement_no || 'Requirement'}
-                </button>
-              ))
-            ) : null}
+            {contentType === 'requirements' ? (
+              loadingRequirements ? (
+                <div className="px-4 py-2 text-sm text-gray-500 animate-pulse">Loading requirements...</div>
+              ) : requirementTabs.length > 0 ? (
+                requirementTabs.map((reqTab) => (
+                  <button
+                    key={`req-${reqTab.id}`}
+                    onClick={() => {
+                      setActiveRequirementId(reqTab.id);
+                      setActiveAIDesignId(null);
+                      setActiveTabType('requirement');
+                    }}
+                    className={`px-4 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap ${
+                      activeTabType === 'requirement' && activeRequirementId === reqTab.id
+                        ? 'bg-[#22a2f2] text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                    title={reqTab.requirement_no || reqTab.requirement_text}
+                  >
+                    {reqTab.requirement_no || 'Requirement'}
+                  </button>
+                ))
+              ) : (
+                <div className="px-4 py-2 text-sm text-gray-400">No requirements found</div>
+              )
+            ) : (
+              loadingAIDesigns ? (
+                <div className="px-4 py-2 text-sm text-gray-500 animate-pulse">Loading designs...</div>
+              ) : aiDesignTabs.length > 0 ? (
+                aiDesignTabs.map((designTab) => (
+                  <button
+                    key={`design-${designTab.id}`}
+                    onClick={() => {
+                      setActiveAIDesignId(designTab.id);
+                      setActiveRequirementId(null);
+                      setActiveTabType('ai-design');
+                    }}
+                    className={`px-4 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap ${
+                      activeTabType === 'ai-design' && activeAIDesignId === designTab.id
+                        ? 'bg-[#22a2f2] text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                    title={designTab.design_no || designTab.apparel_type || 'AI Design'}
+                  >
+                    {designTab.design_no || designTab.apparel_type || 'AI Design'}
+                  </button>
+                ))
+              ) : (
+                <div className="px-4 py-2 text-sm text-gray-400">No designs found</div>
+              )
+            )}
           </div>
         </div>
       )}
@@ -684,6 +968,61 @@ export default function ChatWindow({
                       </svg>
                       View Invoice
                     </a>
+                  </div>
+                )}
+              </div>
+            ) : null
+          ) : null}
+        </div>
+      )}
+
+      {/* AI Design Details - Compact info bar below tabs */}
+      {activeAIDesignId && (
+        <div className="border-b border-gray-200 bg-white px-4 py-2">
+          {loadingAIDesignDetails ? (
+            <div className="text-xs text-gray-400 animate-pulse">Loading...</div>
+          ) : activeAIDesignDetails ? (
+            (activeAIDesignDetails.quantity || 
+             activeAIDesignDetails.apparel_type || 
+             activeAIDesignDetails.preferred_colors ||
+             activeAIDesignDetails.print_placement) ? (
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-gray-500">Status:</span>
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                    Accepted
+                  </span>
+                </div>
+                {activeAIDesignDetails.quantity && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-gray-500">Qty:</span>
+                    <span className="text-xs font-medium text-gray-900 bg-gray-100 px-2 py-0.5 rounded-full">
+                      {activeAIDesignDetails.quantity.toLocaleString()}
+                    </span>
+                  </div>
+                )}
+                {activeAIDesignDetails.apparel_type && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-gray-500">Type:</span>
+                    <span className="text-xs font-medium text-gray-900 bg-gray-100 px-2 py-0.5 rounded-full">
+                      {activeAIDesignDetails.apparel_type}
+                    </span>
+                  </div>
+                )}
+                {activeAIDesignDetails.preferred_colors && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-gray-500">Colors:</span>
+                    <span className="text-xs font-medium text-gray-900 bg-gray-100 px-2 py-0.5 rounded-full">
+                      {activeAIDesignDetails.preferred_colors}
+                    </span>
+                  </div>
+                )}
+                {activeAIDesignDetails.print_placement && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-gray-500">Print:</span>
+                    <span className="text-xs font-medium text-gray-900 bg-gray-100 px-2 py-0.5 rounded-full">
+                      {activeAIDesignDetails.print_placement}
+                    </span>
                   </div>
                 )}
               </div>

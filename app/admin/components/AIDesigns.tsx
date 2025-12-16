@@ -33,6 +33,7 @@ export default function AIDesigns({
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       filtered = filtered.filter((design) =>
+        (design.design_no || '').toLowerCase().includes(q) ||
         (design.buyer?.full_name || '').toLowerCase().includes(q) ||
         (design.apparel_type || '').toLowerCase().includes(q) ||
         (design.design_description || '').toLowerCase().includes(q) ||
@@ -160,6 +161,15 @@ export default function AIDesigns({
                     fill
                     className="object-cover transition-transform group-hover:scale-105"
                   />
+                  {/* Design Number - Top Left */}
+                  {design.design_no && (
+                    <div className="absolute top-2 left-2">
+                      <span className="rounded-md bg-black/70 px-2 py-1 text-xs font-semibold text-white backdrop-blur-sm">
+                        {design.design_no}
+                      </span>
+                    </div>
+                  )}
+                  {/* Status Badge - Top Right */}
                   <div className="absolute top-2 right-2">
                     <span
                       className={`rounded-full px-2 py-1 text-xs font-semibold ${getStatusBadgeColor(

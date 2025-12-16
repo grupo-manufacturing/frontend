@@ -139,10 +139,27 @@ class ApiService {
     });
   }
 
-  async sendMessage(conversationId, { body, clientTempId, attachments, requirementId }) {
+  /**
+   * Get messages for a specific AI design in a conversation
+   * @param {string} conversationId - Conversation ID
+   * @param {string} aiDesignId - AI Design ID
+   * @param {Object} options - Query options (before, limit)
+   * @returns {Promise} Response data with messages
+   */
+  async getMessagesForAIDesign(conversationId, aiDesignId, { before, limit = 200 } = {}) {
+    const params = new URLSearchParams();
+    if (before) params.append('before', before);
+    if (limit) params.append('limit', String(limit));
+    const qs = params.toString();
+    return this.request(`/chat/conversations/${conversationId}/messages/ai-design/${aiDesignId}${qs ? `?${qs}` : ''}`, { 
+      method: 'GET' 
+    });
+  }
+
+  async sendMessage(conversationId, { body, clientTempId, attachments, requirementId, aiDesignId }) {
     return this.request(`/chat/conversations/${conversationId}/messages`, {
       method: 'POST',
-      body: JSON.stringify({ body, clientTempId, attachments, requirementId })
+      body: JSON.stringify({ body, clientTempId, attachments, requirementId, aiDesignId })
     });
   }
 
@@ -646,6 +663,18 @@ class ApiService {
   }
 
   /**
+   * Get accepted AI designs for a conversation
+   * Returns AI designs where response status is 'accepted' and matches the conversation's buyer_id and manufacturer_id
+   * @param {string} conversationId - Conversation ID
+   * @returns {Promise} Response data
+   */
+  async getAcceptedAIDesignsForConversation(conversationId) {
+    return this.request(`/ai-designs/conversation/${conversationId}/accepted`, {
+      method: 'GET'
+    });
+  }
+
+  /**
    * Get a single requirement by ID
    * @param {string} requirementId - Requirement ID
    * @returns {Promise} Response data
@@ -831,6 +860,17 @@ class ApiService {
     const endpoint = `/ai-designs${queryString ? `?${queryString}` : ''}`;
     
     return this.request(endpoint, {
+      method: 'GET'
+    });
+  }
+
+  /**
+   * Get a single AI design by ID
+   * @param {string} aiDesignId - AI design ID
+   * @returns {Promise} Response data
+   */
+  async getAIDesign(aiDesignId) {
+    return this.request(`/ai-designs/${aiDesignId}`, {
       method: 'GET'
     });
   }
