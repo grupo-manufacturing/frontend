@@ -912,58 +912,74 @@ export default function ChatWindow({
       {/* Requirement or AI Design Tabs - Show based on contentType toggle */}
       {conversationId && (
         <div className="border-b border-gray-200 bg-white overflow-x-auto">
-          <div className="flex gap-2 px-4 py-2">
-            {contentType === 'requirements' ? (
-              loadingRequirements ? (
-                <div className="px-4 py-2 text-sm text-gray-500 animate-pulse">Loading requirements...</div>
-              ) : requirementTabs.length > 0 ? (
-                requirementTabs.map((reqTab) => (
-                  <button
-                    key={`req-${reqTab.id}`}
-                    onClick={() => {
-                      setActiveRequirementId(reqTab.id);
-                      setActiveAIDesignId(null);
-                      setActiveTabType('requirement');
-                    }}
-                    className={`px-4 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap ${
-                      activeTabType === 'requirement' && activeRequirementId === reqTab.id
-                        ? 'bg-[#22a2f2] text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                    title={reqTab.requirement_no || reqTab.requirement_text}
-                  >
-                    {reqTab.requirement_no || 'Requirement'}
-                  </button>
-                ))
-              ) : (
-                <div className="px-4 py-2 text-sm text-gray-400">No requirements found</div>
-              )
-            ) : (
-              loadingAIDesigns ? (
-                <div className="px-4 py-2 text-sm text-gray-500 animate-pulse">Loading designs...</div>
-              ) : aiDesignTabs.length > 0 ? (
-                aiDesignTabs.map((designTab) => (
-                  <button
-                    key={`design-${designTab.id}`}
-                    onClick={() => {
-                      setActiveAIDesignId(designTab.id);
-                      setActiveRequirementId(null);
-                      setActiveTabType('ai-design');
-                    }}
-                    className={`px-4 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap ${
-                      activeTabType === 'ai-design' && activeAIDesignId === designTab.id
-                        ? 'bg-[#22a2f2] text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                    title={designTab.design_no || designTab.apparel_type || 'AI Design'}
-                  >
-                    {designTab.design_no || designTab.apparel_type || 'AI Design'}
-                  </button>
-                ))
-              ) : (
-                <div className="px-4 py-2 text-sm text-gray-400">No designs found</div>
-              )
+          <div className="flex items-center gap-3 px-4 py-2">
+            {/* Design Thumbnail Preview - Show when viewing an AI design */}
+            {activeAIDesignId && activeAIDesignDetails?.image_url && (
+              <div className="flex-shrink-0">
+                <div className="relative w-12 h-12 rounded-lg overflow-hidden border-2 border-[#22a2f2]/30 shadow-sm">
+                  <img
+                    src={activeAIDesignDetails.image_url.replace(/^http:\/\//i, 'https://')}
+                    alt={activeAIDesignDetails.apparel_type || 'AI Design'}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
             )}
+            
+            {/* Tabs */}
+            <div className="flex gap-2 flex-1 min-w-0">
+              {contentType === 'requirements' ? (
+                loadingRequirements ? (
+                  <div className="px-4 py-2 text-sm text-gray-500 animate-pulse">Loading requirements...</div>
+                ) : requirementTabs.length > 0 ? (
+                  requirementTabs.map((reqTab) => (
+                    <button
+                      key={`req-${reqTab.id}`}
+                      onClick={() => {
+                        setActiveRequirementId(reqTab.id);
+                        setActiveAIDesignId(null);
+                        setActiveTabType('requirement');
+                      }}
+                      className={`px-4 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap ${
+                        activeTabType === 'requirement' && activeRequirementId === reqTab.id
+                          ? 'bg-[#22a2f2] text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                      title={reqTab.requirement_no || reqTab.requirement_text}
+                    >
+                      {reqTab.requirement_no || 'Requirement'}
+                    </button>
+                  ))
+                ) : (
+                  <div className="px-4 py-2 text-sm text-gray-400">No requirements found</div>
+                )
+              ) : (
+                loadingAIDesigns ? (
+                  <div className="px-4 py-2 text-sm text-gray-500 animate-pulse">Loading designs...</div>
+                ) : aiDesignTabs.length > 0 ? (
+                  aiDesignTabs.map((designTab) => (
+                    <button
+                      key={`design-${designTab.id}`}
+                      onClick={() => {
+                        setActiveAIDesignId(designTab.id);
+                        setActiveRequirementId(null);
+                        setActiveTabType('ai-design');
+                      }}
+                      className={`px-4 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap ${
+                        activeTabType === 'ai-design' && activeAIDesignId === designTab.id
+                          ? 'bg-[#22a2f2] text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                      title={designTab.design_no || designTab.apparel_type || 'AI Design'}
+                    >
+                      {designTab.design_no || designTab.apparel_type || 'AI Design'}
+                    </button>
+                  ))
+                ) : (
+                  <div className="px-4 py-2 text-sm text-gray-400">No designs found</div>
+                )
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -1038,37 +1054,14 @@ export default function ChatWindow({
 
       {/* AI Design Details - Compact info bar below tabs */}
       {activeAIDesignId && (
-        <div className="border-b border-gray-200 bg-white px-4 py-2">
-          {loadingAIDesignDetails ? (
-            <div className="text-xs text-gray-400 animate-pulse">Loading...</div>
-          ) : activeAIDesignDetails ? (
-            (activeAIDesignDetails.quantity || 
-             activeAIDesignDetails.apparel_type || 
-             activeAIDesignDetails.preferred_colors ||
-             activeAIDesignDetails.print_placement) ? (
+        (loadingAIDesignDetails || 
+         (activeAIDesignDetails && 
+          (activeAIDesignDetails.preferred_colors || activeAIDesignDetails.print_placement))) && (
+          <div className="border-b border-gray-200 bg-white px-4 py-2">
+            {loadingAIDesignDetails ? (
+              <div className="text-xs text-gray-400 animate-pulse">Loading...</div>
+            ) : activeAIDesignDetails ? (
               <div className="flex items-center gap-3 flex-wrap">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs text-gray-500">Status:</span>
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">
-                    Accepted
-                  </span>
-                </div>
-                {activeAIDesignDetails.quantity && (
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs text-gray-500">Qty:</span>
-                    <span className="text-xs font-medium text-gray-900 bg-gray-100 px-2 py-0.5 rounded-full">
-                      {activeAIDesignDetails.quantity.toLocaleString()}
-                    </span>
-                  </div>
-                )}
-                {activeAIDesignDetails.apparel_type && (
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs text-gray-500">Type:</span>
-                    <span className="text-xs font-medium text-gray-900 bg-gray-100 px-2 py-0.5 rounded-full">
-                      {activeAIDesignDetails.apparel_type}
-                    </span>
-                  </div>
-                )}
                 {activeAIDesignDetails.preferred_colors && (
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs text-gray-500">Colors:</span>
@@ -1086,9 +1079,9 @@ export default function ChatWindow({
                   </div>
                 )}
               </div>
-            ) : null
-          ) : null}
-        </div>
+            ) : null}
+          </div>
+        )
       )}
 
       <div ref={listRef} className={listClass}>
