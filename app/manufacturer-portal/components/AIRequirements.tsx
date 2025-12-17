@@ -20,23 +20,52 @@ export default function AIRequirements() {
   // Download image as PNG
   const downloadImageAsPNG = async (imageUrl: string, designNo: string, apparelType: string) => {
     try {
-      // Fetch the image
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
+      // Convert HTTP to HTTPS to avoid mixed content issues
+      const secureUrl = imageUrl.replace(/^http:\/\//i, 'https://');
       
-      // Create a temporary URL for the blob
-      const blobUrl = URL.createObjectURL(blob);
+      // Create an image element to load the image
+      const img = new Image();
+      img.crossOrigin = 'anonymous'; // Enable CORS
       
-      // Create a temporary anchor element to trigger download
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = `${designNo || 'GRUPO-AI'}-${apparelType?.replace(/\s+/g, '-') || 'design'}.png`;
-      document.body.appendChild(link);
-      link.click();
+      // Load the image
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = secureUrl;
+      });
       
-      // Clean up
-      document.body.removeChild(link);
-      URL.revokeObjectURL(blobUrl);
+      // Create a canvas and draw the image
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) {
+        throw new Error('Could not get canvas context');
+      }
+      
+      ctx.drawImage(img, 0, 0);
+      
+      // Convert canvas to blob
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          throw new Error('Failed to create blob');
+        }
+        
+        // Create a temporary URL for the blob
+        const blobUrl = URL.createObjectURL(blob);
+        
+        // Create a temporary anchor element to trigger download
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = `${designNo || 'GRUPO-AI'}-${apparelType?.replace(/\s+/g, '-') || 'design'}.png`;
+        document.body.appendChild(link);
+        link.click();
+        
+        // Clean up
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+      }, 'image/png');
     } catch (error) {
       console.error('Failed to download image:', error);
       alert('Failed to download image. Please try again.');
