@@ -78,7 +78,23 @@ export default function BuyerPortal() {
     
     checkAuthAndProfile();
   }, []);
-  const [activeTab, setActiveTab] = useState<TabType>('generate-designs');
+  // Restore active tab from localStorage on mount
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    if (typeof window !== 'undefined') {
+      const storedTab = localStorage.getItem('buyer_active_tab');
+      if (storedTab && ['custom-quote', 'my-orders', 'chats', 'requirements', 'generate-designs', 'ai-designs'].includes(storedTab)) {
+        return storedTab as TabType;
+      }
+    }
+    return 'generate-designs';
+  });
+  
+  // Save active tab to localStorage whenever it changes
+  useEffect(() => {
+    if (step === 'dashboard') {
+      localStorage.setItem('buyer_active_tab', activeTab);
+    }
+  }, [activeTab, step]);
   
   // Requirements States
   const [requirements, setRequirements] = useState<any[]>([]);

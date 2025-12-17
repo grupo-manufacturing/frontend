@@ -28,21 +28,19 @@ export default function ManufacturerPortal() {
             const response = await apiService.getManufacturerProfile();
             if (response && response.success) {
               const onboardingComplete = localStorage.getItem('manufacturerOnboardingComplete');
-              setStep(onboardingComplete === 'true' ? 'dashboard' : 'onboarding');
+              const isDashboard = onboardingComplete === 'true';
+              setStep(isDashboard ? 'dashboard' : 'onboarding');
               
-              // Restore active tab from localStorage if available
-              const storedChatState = localStorage.getItem('manufacturer_chat_state');
-              if (storedChatState) {
-                try {
-                  const chatState = JSON.parse(storedChatState);
-                  if (chatState.activeTab) {
-                    setActiveTab(chatState.activeTab);
-                  } else if (chatState.conversationId) {
-                    setActiveTab('chats');
-                  }
-                } catch (e) {
-                  console.error('Failed to restore chat state:', e);
+              // Restore active tab from localStorage if on dashboard
+              // This ensures the tab is restored after authentication is confirmed
+              if (isDashboard) {
+                const storedTab = localStorage.getItem('manufacturer_active_tab');
+                if (storedTab && ['chats', 'requirements', 'ai-requirements', 'analytics', 'profile'].includes(storedTab)) {
+                  // Restore the saved tab (this will override the initializer if needed)
+                  setActiveTab(storedTab as TabType);
                 }
+                // Note: We don't check chat state here anymore to avoid overriding the saved tab
+                // The chat state restoration is handled by the ChatsTab component itself
               }
             }
           } catch (error: any) {
@@ -64,8 +62,24 @@ export default function ManufacturerPortal() {
     checkAuth();
   }, []);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabType>('chats');
+  // Restore active tab from localStorage on mount
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    if (typeof window !== 'undefined') {
+      const storedTab = localStorage.getItem('manufacturer_active_tab');
+      if (storedTab && ['chats', 'requirements', 'ai-requirements', 'analytics', 'profile'].includes(storedTab)) {
+        return storedTab as TabType;
+      }
+    }
+    return 'chats';
+  });
   const [totalUnreadChats, setTotalUnreadChats] = useState<number>(0);
+  
+  // Save active tab to localStorage whenever it changes
+  useEffect(() => {
+    if (step === 'dashboard') {
+      localStorage.setItem('manufacturer_active_tab', activeTab);
+    }
+  }, [activeTab, step]);
   
 
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
