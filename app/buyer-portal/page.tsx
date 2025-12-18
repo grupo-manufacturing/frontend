@@ -39,6 +39,11 @@ export default function BuyerPortal() {
             if (response && response.success && response.data && response.data.profile) {
               const profile = response.data.profile;
               
+              // Store buyerId in localStorage for chat functionality
+              if (profile.id && typeof window !== 'undefined') {
+                localStorage.setItem('buyerId', String(profile.id));
+              }
+              
               // Check if all required fields are filled
               const requiredFields = [
                 profile.full_name,

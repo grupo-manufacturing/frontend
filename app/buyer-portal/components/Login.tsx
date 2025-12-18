@@ -151,6 +151,10 @@ export default function Login({ onLoginSuccess, onProfileUpdate, isCheckingAuth 
           const response = await apiService.getBuyerProfile();
           if (response && response.success && response.data && response.data.profile) {
             const profile = response.data.profile;
+            // Store buyerId in localStorage for chat functionality
+            if (profile.id && typeof window !== 'undefined') {
+              localStorage.setItem('buyerId', String(profile.id));
+            }
             const requiredFields = [
               profile.full_name,
               profile.email,
@@ -195,6 +199,10 @@ export default function Login({ onLoginSuccess, onProfileUpdate, isCheckingAuth 
         const profileResponse = await apiService.getBuyerProfile();
         if (profileResponse && profileResponse.success && profileResponse.data && profileResponse.data.profile) {
           const profile = profileResponse.data.profile;
+          // Store buyerId in localStorage for chat functionality
+          if (profile.id && typeof window !== 'undefined') {
+            localStorage.setItem('buyerId', String(profile.id));
+          }
           // Check if all required fields are filled
           const requiredFields = [
             profile.full_name,

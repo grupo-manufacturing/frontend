@@ -36,9 +36,18 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onUnreadCountChange, 
     try {
       const prof = await apiService.getBuyerProfile();
       const id = prof?.data?.profile?.id;
-      if (id && typeof window !== 'undefined') localStorage.setItem('buyerId', id);
-      return id || null;
-    } catch {
+      if (id) {
+        const idString = String(id);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('buyerId', idString);
+        }
+        return idString;
+      }
+      // If profile exists but no id, this is an error condition
+      console.error('Buyer profile exists but has no id field:', prof);
+      return null;
+    } catch (error) {
+      console.error('Failed to get buyer profile for buyerId:', error);
       return null;
     }
   };
@@ -118,8 +127,14 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onUnreadCountChange, 
       try {
         const buyerId = await getBuyerId();
         const manufacturerId = String(quote.id);
-        if (!buyerId || !manufacturerId) {
+        if (!buyerId) {
           if (onTabChange) onTabChange();
+          alert('We could not load your buyer profile. Please refresh the page and try again. If the issue persists, please contact support.');
+          return;
+        }
+        if (!manufacturerId) {
+          if (onTabChange) onTabChange();
+          alert('Unable to determine the manufacturer. Please try again later.');
           return;
         }
         const res = await apiService.ensureConversation(buyerId, manufacturerId);
@@ -148,20 +163,21 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onUnreadCountChange, 
       }
 
       try {
+        // Get buyerId first before updating status
+        const buyerId = await getBuyerId();
+
+        if (!buyerId) {
+          if (onTabChange) onTabChange();
+          alert('We could not load your buyer profile. Please refresh the page and try again. If the issue persists, please contact support.');
+          return;
+        }
+
         // Update response status to 'negotiating' first
         try {
           await apiService.updateRequirementResponseStatus(response.id, 'negotiating');
         } catch (statusError: any) {
           console.error('Failed to update response status:', statusError);
           // Continue with chat opening even if status update fails
-        }
-
-        const buyerId = await getBuyerId();
-
-        if (!buyerId) {
-          if (onTabChange) onTabChange();
-          alert('We could not load your buyer profile. Please refresh and try again.');
-          return;
         }
 
         const ensureRes = await apiService.ensureConversation(buyerId, manufacturerId);
@@ -221,7 +237,7 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onUnreadCountChange, 
 
         if (!buyerId) {
           if (onTabChange) onTabChange();
-          alert('We could not load your buyer profile. Please refresh and try again.');
+          alert('We could not load your buyer profile. Please refresh the page and try again. If the issue persists, please contact support.');
           return;
         }
 
