@@ -74,49 +74,14 @@ export default function AIRequirements() {
   };
 
   /**
-   * Calculate platform fee based on tiered structure
-   * Fee percentage is determined by the total quote price (base + GST + platform fee)
-   * Uses iterative approach to handle circular dependency
+   * Calculate platform fee - fixed 10% of base price
    * @param basePrice - Base price before GST and platform fee
-   * @param gst - GST amount
+   * @param gst - GST amount (not used but kept for consistency)
    * @returns Object with platformFee amount and feePercentage for display
    */
   const calculatePlatformFee = (basePrice: number, gst: number): { platformFee: number; feePercentage: number } => {
-    // Start with an estimate based on base + GST to determine bracket
-    let platformFeeRate = 0.15; // Default
-    let platformFee = basePrice * platformFeeRate;
-    
-    // Iterate a few times to converge on the correct fee
-    // The fee percentage depends on the final total, so we need to approximate
-    for (let i = 0; i < 5; i++) {
-      const total = basePrice + gst + platformFee;
-      
-      // Determine fee percentage based on total quote price
-      // Tiered structure:
-      // 0 to 1 Lakh (0-100000) → 20%
-      // 1 Lakh to 2 Lakh (100001-200000) → 15%
-      // 2 Lakh to 5 Lakh (200001-500000) → 8%
-      // Above 5 Lakh (500001+) → 5%
-      if (total <= 100000) {
-        platformFeeRate = 0.20; // 20%
-      } else if (total <= 200000) {
-        platformFeeRate = 0.15; // 15%
-      } else if (total <= 500000) {
-        platformFeeRate = 0.08; // 8%
-      } else {
-        platformFeeRate = 0.05; // 5%
-      }
-      
-      // Recalculate platform fee based on new rate
-      const newPlatformFee = basePrice * platformFeeRate;
-      
-      // Check if we've converged (change is less than 0.01)
-      if (Math.abs(newPlatformFee - platformFee) < 0.01) {
-        break;
-      }
-      
-      platformFee = newPlatformFee;
-    }
+    const platformFeeRate = 0.10; // Fixed 10%
+    const platformFee = basePrice * platformFeeRate;
     
     return { platformFee, feePercentage: platformFeeRate };
   };
