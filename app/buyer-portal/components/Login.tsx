@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import apiService from '../../lib/apiService';
+import { useToast } from '../../components/Toast';
 
 interface LoginProps {
   onLoginSuccess: (phoneNumber: string) => void;
@@ -15,6 +16,7 @@ interface LoginProps {
 }
 
 export default function Login({ onLoginSuccess, onProfileUpdate, isCheckingAuth = false }: LoginProps) {
+  const toast = useToast();
   const [countryCode, setCountryCode] = useState('+91');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
@@ -68,7 +70,6 @@ export default function Login({ onLoginSuccess, onProfileUpdate, isCheckingAuth 
     
     // Demo credentials bypass
     if (phoneNumber === '1234567890') {
-      console.log('Demo credentials detected - bypassing OTP');
       setIsLoadingOtp(true);
       setTimeout(() => {
         setIsLoadingOtp(false);
@@ -80,13 +81,10 @@ export default function Login({ onLoginSuccess, onProfileUpdate, isCheckingAuth 
     
     setIsLoadingOtp(true);
     try {
-      console.log('Sending OTP to:', fullPhoneNumber);
       const response = await apiService.sendOTP(fullPhoneNumber, 'buyer');
-      console.log('OTP sent successfully:', response);
       setStep('otp');
       setOtpTimer(120); // 2 minutes (120 seconds)
     } catch (error: any) {
-      console.error('Failed to send OTP:', error);
       setOtpErrorMessage(error.message || 'Failed to send OTP. Please try again.');
       if (!error.message?.includes('maximum')) {
         setTimeout(() => setOtpErrorMessage(''), 5000);
@@ -111,7 +109,6 @@ export default function Login({ onLoginSuccess, onProfileUpdate, isCheckingAuth 
       setOtpSuccessMessage('OTP resent successfully! Please check your phone.');
       setTimeout(() => setOtpSuccessMessage(''), 5000);
     } catch (error: any) {
-      console.error('Failed to resend OTP:', error);
       setOtpErrorMessage(error.message || 'Failed to resend OTP. Please try again.');
       if (!error.message?.includes('maximum')) {
         setTimeout(() => setOtpErrorMessage(''), 5000);
@@ -128,8 +125,6 @@ export default function Login({ onLoginSuccess, onProfileUpdate, isCheckingAuth 
     try {
       // Demo credentials bypass
       if (phoneNumber === '1234567890' && otp === '123456') {
-        console.log('Demo credentials verified - bypassing API call');
-        
         // Create mock response for demo
         const mockResponse = {
           data: {
@@ -172,12 +167,14 @@ export default function Login({ onLoginSuccess, onProfileUpdate, isCheckingAuth 
             });
           }
         } catch (error) {
-          console.error('Failed to fetch buyer profile:', error);
           onProfileUpdate({
             displayName: '',
             profileCompletion: 0
           });
         }
+        
+        // Show success toast
+        toast.success('Login successful! Welcome back.');
         
         // Notify parent of successful login
         onLoginSuccess(phoneNumber);
@@ -185,9 +182,7 @@ export default function Login({ onLoginSuccess, onProfileUpdate, isCheckingAuth 
       }
       
       const fullPhoneNumber = countryCode + phoneNumber;
-      console.log('Verifying OTP:', otp);
       const response = await apiService.verifyOTP(fullPhoneNumber, otp, 'buyer');
-      console.log('OTP verified successfully:', response);
       
       // Store token and user data
       apiService.setToken(response.data.token, 'buyer');
@@ -221,18 +216,19 @@ export default function Login({ onLoginSuccess, onProfileUpdate, isCheckingAuth 
           });
         }
       } catch (error) {
-        console.error('Failed to fetch buyer profile:', error);
         onProfileUpdate({
           displayName: '',
           profileCompletion: 0
         });
       }
       
+      // Show success toast
+      toast.success('Login successful! Welcome back.');
+      
       // Notify parent of successful login
       onLoginSuccess(phoneNumber);
     } catch (error) {
-      console.error('Failed to verify OTP:', error);
-      alert('Invalid OTP. Please try again.');
+      toast.error('Invalid OTP. Please try again.');
     } finally {
       setIsVerifyingOtp(false);
     }

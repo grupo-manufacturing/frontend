@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import apiService from '../../lib/apiService';
+import { useToast } from '../../components/Toast';
 
 interface AIDesignsTabProps {
   onSwitchToGenerateDesigns?: () => void;
@@ -10,6 +11,7 @@ interface AIDesignsTabProps {
 }
 
 export default function AIDesignsTab({ onSwitchToGenerateDesigns, onAcceptAIDesignResponse }: AIDesignsTabProps) {
+  const toast = useToast();
   // AI Designs States
   const [aiDesigns, setAiDesigns] = useState<any[]>([]);
   const [isLoadingAiDesigns, setIsLoadingAiDesigns] = useState(false);
@@ -70,8 +72,7 @@ export default function AIDesignsTab({ onSwitchToGenerateDesigns, onAcceptAIDesi
         URL.revokeObjectURL(blobUrl);
       }, 'image/png');
     } catch (error) {
-      console.error('Failed to download image:', error);
-      alert('Failed to download image. Please try again.');
+      toast.error('Failed to download image. Please try again.');
     }
   };
 
@@ -90,11 +91,9 @@ export default function AIDesignsTab({ onSwitchToGenerateDesigns, onAcceptAIDesi
           responses: design.responses || []
         })));
       } else {
-        console.error('Failed to fetch AI designs');
         setAiDesigns([]);
       }
     } catch (error) {
-      console.error('Failed to fetch AI designs:', error);
       setAiDesigns([]);
     } finally {
       setIsLoadingAiDesigns(false);
@@ -262,11 +261,11 @@ export default function AIDesignsTab({ onSwitchToGenerateDesigns, onAcceptAIDesi
                           setPushingDesignId(aiDesign.id);
                           try {
                             await apiService.pushAIDesign(aiDesign.id);
+                            toast.success('Design pushed to manufacturers successfully!');
                             // Refresh AI designs to show updated status
                             await fetchAiDesigns();
                           } catch (error: any) {
-                            console.error('Failed to push design:', error);
-                            alert(error?.message || 'Failed to push design to manufacturers. Please try again.');
+                            toast.error(error?.message || 'Failed to push design to manufacturers. Please try again.');
                           } finally {
                             setPushingDesignId(null);
                           }
@@ -499,9 +498,9 @@ export default function AIDesignsTab({ onSwitchToGenerateDesigns, onAcceptAIDesi
                                     ...selectedDesignForResponses,
                                     responses: updatedResponses
                                   });
+                                  toast.success('Response accepted successfully!');
                                 } catch (error: any) {
-                                  console.error('Failed to accept response:', error);
-                                  alert(error?.message || 'Failed to accept response. Please try again.');
+                                  toast.error(error?.message || 'Failed to accept response. Please try again.');
                                 } finally {
                                   setUpdatingResponseId(null);
                                   setUpdatingResponseAction(null);
@@ -543,9 +542,9 @@ export default function AIDesignsTab({ onSwitchToGenerateDesigns, onAcceptAIDesi
                                     ...selectedDesignForResponses,
                                     responses: updatedResponses
                                   });
+                                  toast.success('Response rejected successfully.');
                                 } catch (error: any) {
-                                  console.error('Failed to reject response:', error);
-                                  alert(error?.message || 'Failed to reject response. Please try again.');
+                                  toast.error(error?.message || 'Failed to reject response. Please try again.');
                                 } finally {
                                   setUpdatingResponseId(null);
                                   setUpdatingResponseAction(null);

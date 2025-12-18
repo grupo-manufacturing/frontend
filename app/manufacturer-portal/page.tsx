@@ -10,10 +10,12 @@ import AnalyticsTab from './components/AnalyticsTab';
 import ChatsTab from './components/ChatsTab';
 import Login from './components/Login';
 import Onboarding from './components/Onboarding';
+import { useToast } from '../components/Toast';
 
 type TabType = 'chats' | 'requirements' | 'ai-requirements' | 'analytics' | 'profile';
 
 export default function ManufacturerPortal() {
+  const toast = useToast();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [step, setStep] = useState<'phone' | 'otp' | 'onboarding' | 'dashboard'>('phone');
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
@@ -89,6 +91,9 @@ export default function ManufacturerPortal() {
     // Show loading immediately
     setIsLoggingOut(true);
     
+    // Show logout toast
+    toast.info('Logging out...');
+    
     // Clear all localStorage (apiService.logout will handle this)
     // Reset state before redirect
     setPhoneNumber('');
@@ -99,6 +104,11 @@ export default function ManufacturerPortal() {
     
     // Logout will clear localStorage and redirect to login
     await apiService.logout('/manufacturer-portal');
+    
+    // Show success toast after logout
+    setTimeout(() => {
+      toast.success('Logged out successfully. See you soon!');
+    }, 200);
   };
 
   const handleLoginSuccess = (nextStep: 'onboarding' | 'dashboard') => {

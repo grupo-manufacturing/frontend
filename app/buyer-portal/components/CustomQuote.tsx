@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import apiService from '../../lib/apiService';
+import { useToast } from '../../components/Toast';
 
 interface CustomQuoteProps {
   onRequirementSubmitted?: () => void;
@@ -9,6 +10,7 @@ interface CustomQuoteProps {
 }
 
 export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirements }: CustomQuoteProps) {
+  const toast = useToast();
   // Custom Quote Form States
   const [requirement, setRequirement] = useState('');
   const [customQuantity, setCustomQuantity] = useState('');
@@ -23,7 +25,7 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
   const handleSubmitRequirement = async () => {
     // Validate required field
     if (!requirement || requirement.trim().length === 0) {
-      alert('Please enter your requirement details');
+      toast.error('Please enter your requirement details');
       return;
     }
 
@@ -34,7 +36,7 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
       let imageUrl = null;
       if (uploadedImage) {
         // For now, we'll skip image upload - can be implemented later with cloudinary
-        console.log('Image upload not yet implemented:', uploadedImage.name);
+        // Image upload not yet implemented
       }
 
       // Create requirement data
@@ -51,7 +53,7 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
       const response = await apiService.createRequirement(requirementData);
 
       if (response.success) {
-        alert('Requirement submitted successfully! Manufacturers will review and respond shortly.');
+        toast.success('Requirement submitted successfully! Manufacturers will review and respond shortly.');
         
         // Clear form
         setRequirement('');
@@ -70,11 +72,10 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
           onSwitchToRequirements();
         }
       } else {
-        alert('Failed to submit requirement. Please try again.');
+        toast.error('Failed to submit requirement. Please try again.');
       }
     } catch (error) {
-      console.error('Failed to submit requirement:', error);
-      alert('Failed to submit requirement. Please try again.');
+      toast.error('Failed to submit requirement. Please try again.');
     } finally {
       setIsSubmittingRequirement(false);
     }

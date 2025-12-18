@@ -2,16 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import apiService from '../../lib/apiService';
+import { useToast } from '../../components/Toast';
 
 interface GenerateDesignsProps {
   onDesignPublished?: () => void;
 }
 
 export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsProps) {
+  const toast = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedDesign, setGeneratedDesign] = useState<string | null>(null);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   
   // Publish modal state
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
@@ -42,20 +42,16 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
   const handleGenerate = async () => {
     // Validate required fields - only 2 essential fields now
     if (!formData.apparel_type?.trim()) {
-      setError('Please select what product you want to design');
-      setTimeout(() => setError(''), 5000);
+      toast.error('Please select what product you want to design');
       return;
     }
     
     if (!formData.design_description?.trim()) {
-      setError('Please describe your design idea');
-      setTimeout(() => setError(''), 5000);
+      toast.error('Please describe your design idea');
       return;
     }
 
     setIsGenerating(true);
-    setError('');
-    setSuccess('');
 
     try {
       // Transform simplified form data to match API expectations
@@ -90,13 +86,12 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
 
       if (data.success && data.image) {
         setGeneratedDesign(data.image);
-        setSuccess('Design generated successfully!');
+        toast.success('Design generated successfully!');
       } else {
         throw new Error('Invalid response from server');
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to generate design. Please try again.');
-      setTimeout(() => setError(''), 5000);
+      toast.error(err.message || 'Failed to generate design. Please try again.');
     } finally {
       setIsGenerating(false);
     }
@@ -104,28 +99,24 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
 
   const handlePublish = async () => {
     if (!generatedDesign) {
-      setError('No design to publish. Please generate a design first.');
+      toast.error('No design to publish. Please generate a design first.');
       return;
     }
 
     // Validate publish data
     if (!publishData.quantity) {
-      setError('Please enter the quantity');
-      setTimeout(() => setError(''), 5000);
+      toast.error('Please enter the quantity');
       return;
     }
 
     const quantity = parseInt(publishData.quantity);
 
     if (isNaN(quantity) || quantity <= 0) {
-      setError('Please enter a valid quantity');
-      setTimeout(() => setError(''), 5000);
+      toast.error('Please enter a valid quantity');
       return;
     }
 
     setIsPublishing(true);
-    setError('');
-    setSuccess('');
 
     try {
       // Get the auth token
@@ -157,7 +148,7 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
       }
 
       if (data.success) {
-        setSuccess('Design published successfully! It will be visible to all manufacturers.');
+        toast.success('Design published successfully! It will be visible to all manufacturers.');
         setIsPublishModalOpen(false);
         setPublishData({ quantity: '' });
         // Optionally clear the generated design or keep it
@@ -168,8 +159,7 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
         throw new Error('Failed to publish design');
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to publish design. Please try again.');
-      setTimeout(() => setError(''), 5000);
+      toast.error(err.message || 'Failed to publish design. Please try again.');
     } finally {
       setIsPublishing(false);
     }
@@ -187,18 +177,6 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
         <h1 className="text-3xl font-bold text-black mb-2">Generate Designs</h1>
         <p className="text-gray-600">Simply describe your idea and let AI create your design. It's that easy!</p>
       </div>
-
-      {/* Error/Success Messages */}
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
-          <p className="text-sm text-red-600">{error}</p>
-        </div>
-      )}
-      {success && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl">
-          <p className="text-sm text-green-600">{success}</p>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Side - Form */}

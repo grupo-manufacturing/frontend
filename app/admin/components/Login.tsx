@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import apiService from '../../lib/apiService';
+import { useToast } from '../../components/Toast';
 
 interface LoginProps {
   onLoginSuccess: () => void;
@@ -10,6 +11,7 @@ interface LoginProps {
 }
 
 export default function Login({ onLoginSuccess, isCheckingAuth = false }: LoginProps) {
+  const toast = useToast();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -29,11 +31,12 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false }: LoginP
       if (token) {
         // Store admin token using the tokenType parameter to avoid overwriting groupo_token
         apiService.setToken(token, 'admin');
+        toast.success('Login successful! Welcome back.');
         onLoginSuccess();
       }
     } catch (error: any) {
-      console.error('Failed to login:', error);
       setErrorMessage(error?.message || 'Invalid credentials. Please try again.');
+      toast.error('Login failed. Please check your credentials.');
     } finally {
       setIsLoggingIn(false);
     }

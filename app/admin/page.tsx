@@ -10,6 +10,7 @@ import Users from './components/Users';
 import Orders from './components/Orders';
 import AIDesigns from './components/AIDesigns';
 import Login from './components/Login';
+import { useToast } from '../components/Toast';
 
 type AdminStep = 'login' | 'dashboard';
 type AdminView = 'overview' | 'users' | 'orders' | 'ai-designs';
@@ -22,6 +23,7 @@ const VIEW_TABS: Array<{ id: AdminView; label: string; description: string }> = 
 ];
 
 export default function AdminPortal() {
+  const toast = useToast();
   const [step, setStep] = useState<AdminStep>('login');
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [activeView, setActiveView] = useState<AdminView>('overview');
@@ -161,10 +163,18 @@ export default function AdminPortal() {
   };
 
   const handleLogout = () => {
+    // Show logout toast
+    toast.info('Logging out...');
+    
     // Only remove admin token, don't clear buyer/manufacturer tokens
     apiService.removeToken('admin');
     setActiveView('overview');
     setStep('login');
+    
+    // Show success toast after logout
+    setTimeout(() => {
+      toast.success('Logged out successfully. See you soon!');
+    }, 200);
   };
 
   const isOverview = activeView === 'overview';

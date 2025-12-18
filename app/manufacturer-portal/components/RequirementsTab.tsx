@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import apiService from '../../lib/apiService';
+import { useToast } from '../../components/Toast';
 
 export default function RequirementsTab() {
+  const toast = useToast();
   const [requirements, setRequirements] = useState<any[]>([]);
   const [isLoadingRequirements, setIsLoadingRequirements] = useState(false);
   const [selectedRequirement, setSelectedRequirement] = useState<any | null>(null);
@@ -44,11 +46,9 @@ export default function RequirementsTab() {
         
         setRequirements(enrichedRequirements);
       } else {
-        console.error('Failed to fetch requirements');
         setRequirements([]);
       }
     } catch (error) {
-      console.error('Failed to fetch requirements:', error);
       setRequirements([]);
     } finally {
       setIsLoadingRequirements(false);
@@ -76,7 +76,7 @@ export default function RequirementsTab() {
   const handleRespondToRequirement = (requirement: any) => {
     // Check if manufacturer has already responded to this requirement
     if (requirement.hasResponse) {
-      alert('You have already submitted a quote for this requirement.');
+      toast.warning('You have already submitted a quote for this requirement.');
       return;
     }
     
@@ -146,7 +146,7 @@ export default function RequirementsTab() {
 
     // Validate required fields
     if (!responseForm.pricePerUnit || !responseForm.deliveryTime) {
-      alert('Please fill in all required fields');
+      toast.error('Please fill in all required fields');
       return;
     }
 
@@ -170,17 +170,16 @@ export default function RequirementsTab() {
       const response = await apiService.createRequirementResponse(selectedRequirement.id, responseData);
 
       if (response.success) {
-        alert('Response submitted successfully!');
+        toast.success('Quote submitted successfully!');
         setShowResponseModal(false);
         setSelectedRequirement(null);
         // Refresh requirements list
         fetchRequirements();
       } else {
-        alert(response.message || 'Failed to submit response. Please try again.');
+        toast.error(response.message || 'Failed to submit response. Please try again.');
       }
     } catch (error: any) {
-      console.error('Failed to submit response:', error);
-      alert(error.message || 'Failed to submit response. Please try again.');
+      toast.error(error.message || 'Failed to submit response. Please try again.');
     } finally {
       setIsSubmittingResponse(false);
     }

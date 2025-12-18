@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import apiService from '../../lib/apiService';
+import { useToast } from '../../components/Toast';
 
 type LoginStep = 'phone' | 'otp';
 
@@ -14,6 +15,7 @@ interface LoginProps {
 }
 
 export default function Login({ onLoginSuccess, isCheckingAuth = false, isLoggingOut = false }: LoginProps) {
+  const toast = useToast();
   const [countryCode, setCountryCode] = useState('+91');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
@@ -36,7 +38,6 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false, isLoggin
     
     // Demo credentials bypass
     if (phoneNumber === '1234567890') {
-      console.log('Demo credentials detected - bypassing OTP');
       setIsLoadingOtp(true);
       setTimeout(() => {
         setIsLoadingOtp(false);
@@ -48,13 +49,10 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false, isLoggin
     
     setIsLoadingOtp(true);
     try {
-      console.log('Sending OTP to:', fullPhoneNumber);
       const response = await apiService.sendOTP(fullPhoneNumber, 'manufacturer');
-      console.log('OTP sent successfully:', response);
       setStep('otp');
       setOtpTimer(120); // 2 minutes (120 seconds)
     } catch (error: any) {
-      console.error('Failed to send OTP:', error);
       setOtpErrorMessage(error.message || 'Failed to send OTP. Please try again.');
       if (!error.message?.includes('maximum')) {
         setTimeout(() => setOtpErrorMessage(''), 5000);
@@ -79,7 +77,6 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false, isLoggin
       setOtpSuccessMessage('OTP resent successfully! Please check your phone.');
       setTimeout(() => setOtpSuccessMessage(''), 5000);
     } catch (error: any) {
-      console.error('Failed to resend OTP:', error);
       setOtpErrorMessage(error.message || 'Failed to resend OTP. Please try again.');
       if (!error.message?.includes('maximum')) {
         setTimeout(() => setOtpErrorMessage(''), 5000);
@@ -127,18 +124,15 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false, isLoggin
     try {
       // Demo credentials bypass
       if (phoneNumber === '1234567890' && otp === '123456') {
-        console.log('Demo credentials verified - bypassing API call');
-        
         // Check if onboarding is complete, if not show onboarding form
         const onboardingComplete = localStorage.getItem('manufacturerOnboardingComplete');
+        toast.success('Login successful! Welcome back.');
         onLoginSuccess(onboardingComplete === 'true' ? 'dashboard' : 'onboarding');
         return;
       }
       
       const fullPhoneNumber = countryCode + phoneNumber;
-      console.log('Verifying OTP:', otp);
       const response = await apiService.verifyOTP(fullPhoneNumber, otp, 'manufacturer');
-      console.log('OTP verified successfully:', response);
       
       // Store token and user data
       apiService.setToken(response.data.token, 'manufacturer');
@@ -152,25 +146,27 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false, isLoggin
           const profile = profileResponse.data.profile;
           if (profile.onboarding_completed) {
             localStorage.setItem('manufacturerOnboardingComplete', 'true');
+            toast.success('Login successful! Welcome back.');
             onLoginSuccess('dashboard');
           } else {
             localStorage.removeItem('manufacturerOnboardingComplete');
+            toast.success('Login successful! Please complete your profile.');
             onLoginSuccess('onboarding');
           }
         } else {
           // No profile found, show onboarding
           localStorage.removeItem('manufacturerOnboardingComplete');
+          toast.success('Login successful! Please complete your profile.');
           onLoginSuccess('onboarding');
         }
       } catch (error) {
-        console.error('Failed to check onboarding status:', error);
         // On error, default to onboarding
         localStorage.removeItem('manufacturerOnboardingComplete');
+        toast.success('Login successful! Please complete your profile.');
         onLoginSuccess('onboarding');
       }
     } catch (error) {
-      console.error('Failed to verify OTP:', error);
-      alert('Invalid OTP. Please try again.');
+      toast.error('Invalid OTP. Please try again.');
     } finally {
       setIsVerifyingOtp(false);
     }

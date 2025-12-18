@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import apiService from '../../lib/apiService';
+import { useToast } from '../../components/Toast';
 
 export default function AIRequirements() {
+  const toast = useToast();
   const [aiDesigns, setAiDesigns] = useState<any[]>([]);
   const [isLoadingAiDesigns, setIsLoadingAiDesigns] = useState(false);
   const [selectedAiDesign, setSelectedAiDesign] = useState<any | null>(null);
@@ -67,8 +69,7 @@ export default function AIRequirements() {
         URL.revokeObjectURL(blobUrl);
       }, 'image/png');
     } catch (error) {
-      console.error('Failed to download image:', error);
-      alert('Failed to download image. Please try again.');
+      toast.error('Failed to download image. Please try again.');
     }
   };
 
@@ -131,7 +132,7 @@ export default function AIRequirements() {
           setManufacturerId(response.data.profile.id);
         }
       } catch (error) {
-        console.error('Failed to fetch manufacturer profile:', error);
+        // Failed to fetch manufacturer profile
       }
     };
     fetchManufacturerProfile();
@@ -171,11 +172,9 @@ export default function AIRequirements() {
         });
         setRespondedDesignIds(respondedIds);
       } else {
-        console.error('Failed to fetch AI designs');
         setAiDesigns([]);
       }
     } catch (error) {
-      console.error('Failed to fetch AI designs:', error);
       setAiDesigns([]);
     } finally {
       setIsLoadingAiDesigns(false);
@@ -198,12 +197,12 @@ export default function AIRequirements() {
 
     // Validate form
     if (!responseForm.pricePerUnit || parseFloat(responseForm.pricePerUnit) <= 0) {
-      alert('Please enter a valid price per unit');
+      toast.error('Please enter a valid price per unit');
       return;
     }
 
     if (!responseForm.quantity || parseInt(responseForm.quantity) <= 0) {
-      alert('Please enter a valid quantity');
+      toast.error('Please enter a valid quantity');
       return;
     }
 
@@ -225,30 +224,29 @@ export default function AIRequirements() {
         // Refresh AI designs list
         await fetchAiDesigns();
         
-        alert('Response submitted successfully!');
+        toast.success('Response submitted successfully!');
       } else {
         // Handle specific error messages
         const errorMessage = response.message || 'Failed to submit response';
         if (errorMessage.includes('already responded') || errorMessage.includes('already responded')) {
-          alert('You have already responded to this AI design. You can only respond once per design.');
+          toast.warning('You have already responded to this AI design. You can only respond once per design.');
           setShowResponseModal(false);
           setSelectedAiDesign(null);
         } else {
-          alert(errorMessage);
+          toast.error(errorMessage);
         }
       }
     } catch (error: any) {
-      console.error('Error submitting response:', error);
       const errorMessage = error.message || 'Failed to submit response. Please try again.';
       // Check for 409 status (conflict) or duplicate response message
       if (errorMessage.includes('already responded') || 
           errorMessage.includes('409') || 
           (error.response && error.response.status === 409)) {
-        alert('You have already responded to this AI design. You can only respond once per design.');
+        toast.warning('You have already responded to this AI design. You can only respond once per design.');
         setShowResponseModal(false);
         setSelectedAiDesign(null);
       } else {
-        alert(errorMessage);
+        toast.error(errorMessage);
       }
     } finally {
       setIsSubmittingResponse(false);

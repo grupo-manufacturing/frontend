@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import apiService from '../../lib/apiService';
+import { useToast } from '../../components/Toast';
 
 interface MyRequirementsProps {
   requirements: any[];
@@ -18,6 +19,7 @@ export default function MyRequirements({
   onNegotiateResponse,
   onSwitchToCustomQuote
 }: MyRequirementsProps) {
+  const toast = useToast();
   const [negotiatingResponseId, setNegotiatingResponseId] = useState<string | null>(null);
 
   const formatCurrency = (value: number | null | undefined) => {
@@ -29,27 +31,18 @@ export default function MyRequirements({
 
   // Handle Accept/Reject Response
   const handleUpdateResponseStatus = async (responseId: string, status: 'accepted' | 'rejected', manufacturerName: string) => {
-    const confirmMessage = status === 'accepted' 
-      ? `Are you sure you want to accept the quote from ${manufacturerName}?`
-      : `Are you sure you want to reject the quote from ${manufacturerName}?`;
-    
-    if (!confirm(confirmMessage)) {
-      return;
-    }
-
     try {
       const response = await apiService.updateRequirementResponseStatus(responseId, status);
       
       if (response.success) {
-        alert(`Quote ${status} successfully!`);
+        toast.success(`Quote ${status} successfully!`);
         // Refresh requirements to show updated status
         fetchRequirements();
       } else {
-        alert(response.message || `Failed to ${status} quote. Please try again.`);
+        toast.error(response.message || `Failed to ${status} quote. Please try again.`);
       }
     } catch (error: any) {
-      console.error(`Failed to ${status} response:`, error);
-      alert(error.message || `Failed to ${status} quote. Please try again.`);
+      toast.error(error.message || `Failed to ${status} quote. Please try again.`);
     }
   };
 

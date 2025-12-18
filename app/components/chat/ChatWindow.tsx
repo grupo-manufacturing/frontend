@@ -104,9 +104,7 @@ export default function ChatWindow({
   aiDesign
 }: ChatWindowProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [allMessages, setAllMessages] = useState<ChatMessage[]>([]); // Store all messages
   const [input, setInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
   const [peerTyping, setPeerTyping] = useState(false);
   const typingTimerRef = useRef<any>(null);
   const [loading, setLoading] = useState(true);
@@ -139,20 +137,34 @@ export default function ChatWindow({
   // Toggle between Requirements and Designs
   const [contentType, setContentType] = useState<'requirements' | 'designs'>('requirements');
 
-  // Clear active selections when switching content types
+  // Clear active selections when switching content types and auto-select first item
   useEffect(() => {
     if (contentType === 'requirements') {
       setActiveAIDesignId(null);
       setActiveAIDesignDetails(null);
+      // Auto-select first requirement if available
+      if (requirementTabs.length > 0 && !requirement?.id) {
+        setActiveRequirementId(requirementTabs[0].id);
+        setActiveTabType('requirement');
+      } else {
+        setActiveRequirementId(null);
+        setActiveTabType(null);
+      }
     } else {
       setActiveRequirementId(null);
       setActiveRequirementDetails(null);
       setAcceptedResponseId(null);
+      // Auto-select first AI design if available
+      if (aiDesignTabs.length > 0 && !aiDesign?.id) {
+        setActiveAIDesignId(aiDesignTabs[0].id);
+        setActiveTabType('ai-design');
+      } else {
+        setActiveAIDesignId(null);
+        setActiveTabType(null);
+      }
     }
-    setActiveTabType(null);
     setMessages([]);
-    setAllMessages([]);
-  }, [contentType]);
+  }, [contentType, requirementTabs, aiDesignTabs, requirement?.id, aiDesign?.id]);
 
   const token = useMemo(() => apiService.getToken(), []);
   const wsUrl = useMemo(() => process.env.NEXT_PUBLIC_WS_URL || getApiBaseOrigin(), []);
@@ -216,13 +228,14 @@ export default function ChatWindow({
 
           if (mounted) {
             setRequirementTabs(requirements);
-            console.log('[ChatWindow] Loaded negotiating requirements as tabs:', requirements.length, requirements);
             
-            // Auto-select first requirement if none selected yet
-            if (requirements.length > 0 && !activeRequirementId && !requirement?.id) {
-              setActiveRequirementId(requirements[0].id);
-              setActiveTabType('requirement');
-              console.log('[ChatWindow] Auto-selected first requirement:', requirements[0].id);
+            // Auto-select first requirement if available (always select first when tabs load)
+            if (requirements.length > 0 && !requirement?.id) {
+              // Only auto-select if we're on requirements tab or if no tab type is set
+              if (contentType === 'requirements' || !activeTabType) {
+                setActiveRequirementId(requirements[0].id);
+                setActiveTabType('requirement');
+              }
             }
           }
         } else {
@@ -291,7 +304,6 @@ export default function ChatWindow({
 
           if (mounted) {
             setAiDesignTabs(aiDesigns);
-            console.log('[ChatWindow] Loaded accepted AI designs as tabs:', aiDesigns.length, aiDesigns);
             
             // If aiDesign prop is provided, ensure it's selected (it might be set before tabs load)
             if (aiDesign?.id) {
@@ -302,16 +314,14 @@ export default function ChatWindow({
                 setActiveAIDesignId(aiDesign.id);
                 setActiveTabType('ai-design');
                 setContentType('designs');
-                console.log('[ChatWindow] Selected AI design from prop after tabs loaded:', aiDesign.id);
-              } else {
-                console.warn('[ChatWindow] AI design from prop not found in loaded tabs:', aiDesign.id);
               }
-            } else if (aiDesigns.length > 0 && !activeAIDesignId && requirementTabs.length === 0 && !activeRequirementId) {
-              // Auto-select first AI design if no requirement is selected and no requirement tabs exist
-              // Only if aiDesign prop is not provided
-              setActiveAIDesignId(aiDesigns[0].id);
-              setActiveTabType('ai-design');
-              console.log('[ChatWindow] Auto-selected first AI design:', aiDesigns[0].id);
+            } else if (aiDesigns.length > 0) {
+              // Auto-select first AI design if available (always select first when tabs load)
+              // Only if we're on designs tab or if no tab type is set
+              if (contentType === 'designs' || (!activeTabType && requirementTabs.length === 0)) {
+                setActiveAIDesignId(aiDesigns[0].id);
+                setActiveTabType('ai-design');
+              }
             }
           }
         } else {
@@ -389,7 +399,6 @@ export default function ChatWindow({
               ...res.data,
               status
             });
-            console.log('[ChatWindow] Loaded requirement details:', { ...res.data, status });
           } catch (responsesErr) {
             // If fetching responses fails, still set the requirement details without status
             console.error('[ChatWindow] Failed to load requirement responses:', responsesErr);
@@ -438,7 +447,6 @@ export default function ChatWindow({
         
         if (res.success && res.data) {
           setActiveAIDesignDetails(res.data);
-          console.log('[ChatWindow] Loaded AI design details:', res.data);
         } else {
           setActiveAIDesignDetails(null);
         }
@@ -462,13 +470,27 @@ export default function ChatWindow({
     };
   }, [activeAIDesignId]);
 
+  // Clear selections and messages when conversationId changes, then auto-select first items
+  useEffect(() => {
+    // Clear all selections when switching conversations
+    setActiveRequirementId(null);
+    setActiveAIDesignId(null);
+    setActiveTabType(null);
+    setActiveRequirementDetails(null);
+    setActiveAIDesignDetails(null);
+    setAcceptedResponseId(null);
+    setMessages([]);
+    setLoading(true);
+    // Reset to requirements tab by default
+    setContentType('requirements');
+  }, [conversationId]);
+
   // Load messages filtered by conversation_id AND requirement_id/ai_design_id from backend
   useEffect(() => {
     // Determine active ID based on tab type
     const activeId = activeTabType === 'ai-design' ? activeAIDesignId : activeRequirementId;
     
     if (!conversationId || !activeId) {
-      setAllMessages([]);
       setMessages([]);
       setLoading(false);
       return;
@@ -480,6 +502,7 @@ export default function ChatWindow({
     async function loadMessagesForActiveTab() {
       try {
         setLoading(true);
+        setMessages([]); // Clear messages immediately when starting to load
         // Use the appropriate endpoint based on tab type
         let res;
         if (activeTabType === 'ai-design') {
@@ -495,16 +518,7 @@ export default function ChatWindow({
         if (cancelled || !mounted) return;
         
         const loadedMessages = res.data.messages || [];
-        // Store in both allMessages and messages
-        setAllMessages(loadedMessages);
         setMessages(loadedMessages);
-        
-        console.log('[ChatWindow] Loaded messages for active tab:', {
-          conversationId,
-          activeId,
-          tabType: activeTabType,
-          count: loadedMessages.length
-        });
 
         // Mark as read (use ref to avoid dependency issues)
         const lastMessage = loadedMessages.length ? loadedMessages[loadedMessages.length - 1] : null;
@@ -515,7 +529,6 @@ export default function ChatWindow({
         console.error('[ChatWindow] Failed to load messages for active tab:', err);
         if (!cancelled && mounted) {
           setMessages([]);
-          setAllMessages([]);
         }
       } finally {
         if (!cancelled && mounted) {
@@ -530,30 +543,31 @@ export default function ChatWindow({
       cancelled = true;
       mounted = false;
     };
-  }, [conversationId, activeRequirementId, activeAIDesignId, activeTabType]); // Removed markConversationRead from dependencies
+  }, [conversationId, activeRequirementId, activeAIDesignId, activeTabType]);
   
-  // Auto-select first requirement tab when tabs load and no requirement is selected
+  // Auto-select first requirement tab when tabs load (for new conversations or when switching to requirements)
   useEffect(() => {
-    if (contentType === 'requirements' && requirementTabs.length > 0 && !activeRequirementId && !requirement?.id) {
-      // Auto-select the first requirement tab
-      const firstReqId = requirementTabs[0].id;
-      setActiveRequirementId(firstReqId);
-      setActiveTabType('requirement');
-      console.log('[ChatWindow] Auto-selected first requirement tab:', firstReqId);
+    if (contentType === 'requirements' && requirementTabs.length > 0 && !requirement?.id) {
+      // Always select first requirement if none is selected or if we just switched conversations
+      if (!activeRequirementId || activeTabType !== 'requirement') {
+        const firstReqId = requirementTabs[0].id;
+        setActiveRequirementId(firstReqId);
+        setActiveTabType('requirement');
+      }
     }
-  }, [requirementTabs, activeRequirementId, requirement?.id, contentType]);
+  }, [requirementTabs, contentType, requirement?.id, conversationId]);
 
-  // Auto-select first AI design tab when tabs load and no design is selected
-  // But don't override if aiDesign prop is provided
+  // Auto-select first AI design tab when tabs load (for new conversations or when switching to designs)
   useEffect(() => {
-    if (contentType === 'designs' && aiDesignTabs.length > 0 && !activeAIDesignId && !aiDesign?.id) {
-      // Auto-select the first AI design tab
-      const firstDesignId = aiDesignTabs[0].id;
-      setActiveAIDesignId(firstDesignId);
-      setActiveTabType('ai-design');
-      console.log('[ChatWindow] Auto-selected first AI design tab:', firstDesignId);
+    if (contentType === 'designs' && aiDesignTabs.length > 0 && !aiDesign?.id) {
+      // Always select first design if none is selected or if we just switched conversations
+      if (!activeAIDesignId || activeTabType !== 'ai-design') {
+        const firstDesignId = aiDesignTabs[0].id;
+        setActiveAIDesignId(firstDesignId);
+        setActiveTabType('ai-design');
+      }
     }
-  }, [aiDesignTabs, activeAIDesignId, contentType, aiDesign?.id]);
+  }, [aiDesignTabs, contentType, aiDesign?.id, conversationId]);
 
   // Set active requirement when requirement prop changes (e.g., from "Negotiate" button)
   useEffect(() => {
@@ -563,10 +577,7 @@ export default function ChatWindow({
       setActiveRequirementId(requirement.id);
       setActiveAIDesignId(null);
       setActiveTabType('requirement');
-      console.log('[ChatWindow] Set active requirement from prop:', requirement.id);
     }
-    // Note: We don't default to null anymore since we removed "All Messages" tab
-    // The active requirement will be set when tabs load or from requirement prop
   }, [requirement?.id]);
 
   // Set active AI design when aiDesign prop changes (e.g., from "Accept" button)
@@ -577,7 +588,6 @@ export default function ChatWindow({
       setActiveAIDesignId(aiDesign.id);
       setActiveRequirementId(null);
       setActiveTabType('ai-design');
-      console.log('[ChatWindow] Set active AI design from prop:', aiDesign.id);
     }
   }, [aiDesign?.id]);
 
@@ -587,27 +597,16 @@ export default function ChatWindow({
       if (aiDesignTabs.length > 0) {
         // Verify the design exists in the loaded tabs and ensure it's selected
         const designExists = aiDesignTabs.some(d => d.id === aiDesign.id);
-        if (designExists) {
-          // Design exists in tabs, ensure it's selected
-          if (activeAIDesignId !== aiDesign.id) {
-            setActiveAIDesignId(aiDesign.id);
-            setActiveTabType('ai-design');
-            setContentType('designs');
-            console.log('[ChatWindow] Verified and selected AI design from prop after tabs loaded:', aiDesign.id);
-          }
-        } else {
-          // Design not in tabs yet (might be loading or just accepted)
-          // Keep it selected anyway - it will appear when tabs refresh
-          console.log('[ChatWindow] AI design from prop not yet in tabs, keeping selection:', aiDesign.id);
-        }
-      } else {
-        // Tabs haven't loaded yet, but we have the prop - ensure selection is set
-        if (activeAIDesignId !== aiDesign.id) {
+        if (designExists && activeAIDesignId !== aiDesign.id) {
           setActiveAIDesignId(aiDesign.id);
           setActiveTabType('ai-design');
           setContentType('designs');
-          console.log('[ChatWindow] Set AI design from prop before tabs loaded:', aiDesign.id);
         }
+      } else if (activeAIDesignId !== aiDesign.id) {
+        // Tabs haven't loaded yet, but we have the prop - ensure selection is set
+        setActiveAIDesignId(aiDesign.id);
+        setActiveTabType('ai-design');
+        setContentType('designs');
       }
     }
   }, [aiDesign?.id, aiDesignTabs.length, activeAIDesignId]);
@@ -624,20 +623,6 @@ export default function ChatWindow({
     socket.on('message:new', async ({ message }) => {
       if (message.conversation_id !== conversationId) return;
       
-      // Add to allMessages
-      setAllMessages((prev) => {
-        // Replace optimistic by client_temp_id if present
-        if (message.client_temp_id) {
-          const idx = prev.findIndex(m => m.client_temp_id === message.client_temp_id);
-          if (idx !== -1) {
-            const clone = prev.slice();
-            clone[idx] = message;
-            return clone;
-          }
-        }
-        return [...prev, message];
-      });
-
       // Add to messages if it matches active requirement or AI design
       // Check both requirement_id and ai_design_id fields
       const messageReqId = message.requirement_id ? String(message.requirement_id) : null;
@@ -768,7 +753,6 @@ export default function ChatWindow({
         requirement_id: requirementId || null
       };
       setMessages((prev) => [...prev, optimistic]);
-      setAllMessages((prev) => [...prev, optimistic]);
       scrollToBottom();
 
       // Prefer WebSocket

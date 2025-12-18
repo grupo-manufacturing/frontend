@@ -11,10 +11,12 @@ import MyRequirements from './components/MyRequirements';
 import GenerateDesigns from './components/GenerateDesigns';
 import AIDesignsTab from './components/AIDesignsTab';
 import Login from './components/Login';
+import { useToast } from '../components/Toast';
 
 type TabType = 'custom-quote' | 'my-orders' | 'chats' | 'requirements' | 'generate-designs' | 'ai-designs';
 
 export default function BuyerPortal() {
+  const toast = useToast();
   const [step, setStep] = useState<'phone' | 'otp' | 'dashboard'>('phone');
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   
@@ -62,7 +64,6 @@ export default function BuyerPortal() {
               // Chat state restoration is now handled by ChatsTab component
             }
           } catch (error: any) {
-            console.error('Failed to fetch buyer profile:', error);
             // If token expired or unauthorized, redirect to login
             if (error.message?.includes('expired') || error.message?.includes('session')) {
               setStep('phone');
@@ -121,12 +122,20 @@ export default function BuyerPortal() {
     // Show loading immediately
     setIsLoggingOut(true);
     
+    // Show logout toast
+    toast.info('Logging out...');
+    
     // Small delay to ensure loading state is shown before redirect
     await new Promise(resolve => setTimeout(resolve, 100));
     
     // Logout will clear localStorage and redirect to login
     await apiService.logout('/buyer-portal');
     setStep('phone');
+    
+    // Show success toast after logout
+    setTimeout(() => {
+      toast.success('Logged out successfully. See you soon!');
+    }, 200);
   };
 
   // Handle login success from Login component

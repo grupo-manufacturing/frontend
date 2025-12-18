@@ -24,18 +24,13 @@ export default function ChatList({
   const [error, setError] = useState<string | null>(null);
   
   // Real-time socket connection
-  const { isConnected, on, off } = useSocket({
-    onConnect: () => console.log('[ChatList] Socket connected'),
-    onDisconnect: () => console.log('[ChatList] Socket disconnected'),
-  });
+  const { isConnected, on, off } = useSocket();
 
   const loadConversations = async () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('[ChatList] Loading conversations...');
       const res = await apiService.listConversations({ limit: 50 });
-      console.log('[ChatList] Loaded conversations:', res.data.conversations?.length || 0);
       setItems(res.data.conversations || []);
     } catch (err: any) {
       console.error('[ChatList] Failed to load conversations:', err);
@@ -55,7 +50,6 @@ export default function ChatList({
     if (!isConnected) return;
 
     const handleNewMessage = (data: any) => {
-      console.log('[ChatList] Received new message:', data);
       const { conversationSummary, message } = data;
       
       if (conversationSummary) {
