@@ -165,6 +165,42 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
     }
   };
 
+  // Full-screen loading state when generating
+  if (isGenerating) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] py-12">
+        <div className="relative mb-8">
+          {/* Main animated icon */}
+          <div className="relative w-32 h-32 flex items-center justify-center bg-gradient-to-br from-[#22a2f2] to-[#1b8bd0] rounded-full shadow-lg shadow-[#22a2f2]/30">
+            <svg 
+              className="w-16 h-16 text-white animate-pulse" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+        </div>
+        
+        {/* Loading text */}
+        <h2 className="text-2xl font-bold text-gray-900 mb-3 text-center">
+          Generating AI Mockup For You 
+        </h2>
+        <p className="text-gray-600 text-center max-w-md mb-6">
+          Our AI is crafting your unique design. This usually takes 15-30 seconds.
+        </p>
+        
+        {/* Animated progress dots */}
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 bg-[#22a2f2] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+          <div className="w-3 h-3 bg-[#22a2f2] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+          <div className="w-3 h-3 bg-[#22a2f2] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="mb-8">

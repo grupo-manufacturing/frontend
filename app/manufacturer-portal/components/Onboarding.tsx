@@ -20,9 +20,12 @@ export default function Onboarding({ phoneNumber, onComplete }: OnboardingProps)
     location: '',
     panNumber: '',
     coiNumber: '',
+    manufacturingUnitImage: null as File | null,
     msmeFile: null as File | null,
     otherCertificates: null as File | null
   });
+  
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
@@ -75,6 +78,28 @@ export default function Onboarding({ phoneNumber, onComplete }: OnboardingProps)
     }
     
     try {
+      // Upload manufacturing unit image if provided
+      let manufacturingUnitImageUrl = null;
+      if (formData.manufacturingUnitImage) {
+        setIsUploadingImage(true);
+        try {
+          // Use chat file upload endpoint (it accepts any file)
+          const uploadResponse = await apiService.uploadChatFile(formData.manufacturingUnitImage, 'onboarding');
+          if (uploadResponse && uploadResponse.success && uploadResponse.data && uploadResponse.data.url) {
+            manufacturingUnitImageUrl = uploadResponse.data.url;
+          } else {
+            throw new Error('Failed to upload image');
+          }
+        } catch (uploadError) {
+          console.error('Image upload error:', uploadError);
+          alert('Failed to upload manufacturing unit image. Please try again.');
+          setIsUploadingImage(false);
+          return;
+        } finally {
+          setIsUploadingImage(false);
+        }
+      }
+      
       // Convert form data to backend format
       const onboardingData = {
         unit_name: formData.unitName,
@@ -85,6 +110,7 @@ export default function Onboarding({ phoneNumber, onComplete }: OnboardingProps)
         location: formData.location,
         pan_number: formData.panNumber,
         coi_number: formData.coiNumber,
+        manufacturing_unit_image_url: manufacturingUnitImageUrl,
         // For now, skip file uploads until we implement proper file handling
         // msme_file: formData.msmeFile,
         // other_certificates: formData.otherCertificates
@@ -430,6 +456,80 @@ export default function Onboarding({ phoneNumber, onComplete }: OnboardingProps)
                     </div>
                   </div>
 
+                  {/* Manufacturing Unit Image */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Manufacturing Unit Image
+                    </label>
+                    <div className="relative group">
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#22a2f2] to-[#1b8bd0] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                      <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-[#22a2f2] transition-all">
+                        <label className="flex flex-col items-center justify-center cursor-pointer">
+                          {formData.manufacturingUnitImage ? (
+                            <div className="w-full">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm text-gray-700 font-medium">
+                                  {formData.manufacturingUnitImage.name}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    setFormData(prev => ({ ...prev, manufacturingUnitImage: null }));
+                                  }}
+                                  className="text-red-500 hover:text-red-700 text-sm"
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                              {formData.manufacturingUnitImage.type.startsWith('image/') && (
+                                <img
+                                  src={URL.createObjectURL(formData.manufacturingUnitImage)}
+                                  alt="Manufacturing unit preview"
+                                  className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                                />
+                              )}
+                            </div>
+                          ) : (
+                            <>
+                              <div className="p-3 bg-[#22a2f2]/10 rounded-xl mb-3">
+                                <svg
+                                  className="w-8 h-8 text-[#22a2f2]"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                  />
+                                </svg>
+                              </div>
+                              <span className="text-sm text-gray-700 font-medium mb-1">
+                                Click to upload image
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                PNG, JPG or GIF (Max 10MB)
+                              </span>
+                            </>
+                          )}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              if (e.target.files && e.target.files[0]) {
+                                handleFileChange('manufacturingUnitImage', e.target.files[0]);
+                              }
+                            }}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Capacity Info Cards */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                     <div className="p-4 rounded-xl bg-gradient-to-br from-[#22a2f2]/10 to-[#1b8bd0]/10 border border-[#22a2f2]/20">
@@ -503,12 +603,25 @@ export default function Onboarding({ phoneNumber, onComplete }: OnboardingProps)
                 ) : (
                   <button
                     type="submit"
-                    className="ml-auto px-8 py-3 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition-colors flex items-center gap-2"
+                    disabled={isUploadingImage}
+                    className="ml-auto px-8 py-3 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition-colors flex items-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>Complete Registration</span>
+                    {isUploadingImage ? (
+                      <>
+                        <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Uploading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Complete Registration</span>
+                      </>
+                    )}
                   </button>
                 )}
               </div>

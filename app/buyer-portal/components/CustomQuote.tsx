@@ -195,10 +195,10 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
             </div>
           </div>
 
-          {/* Product Link (Optional) */}
+          {/* Tech Packs Link (Optional) */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Product Link (Optional)
+              Tech Packs
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -298,33 +298,6 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
             </div>
           </button>
         </form>
-      </div>
-
-      {/* Info Box */}
-      <div className="w-full max-w-3xl mt-6 bg-[#22a2f2]/10 border border-[#22a2f2]/30 rounded-xl p-4">
-        <div className="flex items-start gap-3">
-          <svg
-            className="w-5 h-5 text-[#22a2f2] mt-0.5 flex-shrink-0"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <div>
-            <p className="text-sm text-[#22a2f2] font-medium mb-1">
-              How it works
-            </p>
-            <p className="text-sm text-gray-600">
-              Submit your custom requirements and our verified manufacturers will review them. 
-              You&apos;ll receive personalized quotes within 24-48 hours. The more details you provide, 
-              the more accurate the quotes will be.
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   );

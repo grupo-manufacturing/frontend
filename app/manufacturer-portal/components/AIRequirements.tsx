@@ -8,7 +8,7 @@ import { useToast } from '../../components/Toast';
 export default function AIRequirements() {
   const toast = useToast();
   const [aiDesigns, setAiDesigns] = useState<any[]>([]);
-  const [isLoadingAiDesigns, setIsLoadingAiDesigns] = useState(false);
+  const [isLoadingAiDesigns, setIsLoadingAiDesigns] = useState(true);
   const [selectedAiDesign, setSelectedAiDesign] = useState<any | null>(null);
   const [showResponseModal, setShowResponseModal] = useState(false);
   const [responseForm, setResponseForm] = useState({

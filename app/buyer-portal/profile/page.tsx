@@ -5,9 +5,11 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import apiService from '../../lib/apiService';
+import { useToast } from '../../components/Toast';
 
 export default function BuyerProfile() {
   const router = useRouter();
+  const toast = useToast();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -80,7 +82,7 @@ export default function BuyerProfile() {
         // Reload profile data to ensure we have the latest
         await loadProfileData();
         
-        alert('Profile updated successfully!');
+        toast.success('Profile updated successfully!');
         
         // Redirect back to dashboard after a short delay
         setTimeout(() => {
@@ -96,7 +98,7 @@ export default function BuyerProfile() {
       const displayMessage = errorMessage.includes('Validation failed') || errorMessage.includes('Please fill up all fields')
         ? 'Please fill up all fields'
         : errorMessage;
-      alert(displayMessage);
+      toast.error(displayMessage);
     } finally {
       setIsSaving(false);
     }

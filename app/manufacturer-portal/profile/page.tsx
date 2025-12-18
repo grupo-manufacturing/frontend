@@ -5,9 +5,11 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import apiService from '../../lib/apiService';
+import { useToast } from '../../components/Toast';
 
 export default function ManufacturerProfile() {
   const router = useRouter();
+  const toast = useToast();
   const [formData, setFormData] = useState({
     unitName: '',
     businessType: '',
@@ -17,11 +19,14 @@ export default function ManufacturerProfile() {
     location: '',
     panNumber: '',
     coiNumber: '',
+    manufacturingUnitImage: null as File | null,
     msmeFile: null as File | null,
     otherCertificates: null as File | null
   });
+  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [displayName, setDisplayName] = useState('');
 
@@ -61,10 +66,12 @@ export default function ManufacturerProfile() {
           location: profile.location || '',
           panNumber: profile.pan_number || '',
           coiNumber: profile.coi_number || '',
+          manufacturingUnitImage: null,
           msmeFile: null,
           otherCertificates: null
         });
         
+        setExistingImageUrl(profile.manufacturing_unit_image_url || null);
         setDisplayName(profile.unit_name || storedPhone || '');
       }
     } catch (error) {
@@ -87,8 +94,12 @@ export default function ManufacturerProfile() {
     });
   };
 
-  const handleFileChange = (field: 'msmeFile' | 'otherCertificates', file: File | null) => {
+  const handleFileChange = (field: 'manufacturingUnitImage' | 'msmeFile' | 'otherCertificates', file: File | null) => {
     setFormData(prev => ({ ...prev, [field]: file }));
+    // Clear existing image URL when a new file is selected
+    if (field === 'manufacturingUnitImage' && file) {
+      setExistingImageUrl(null);
+    }
   };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -96,8 +107,31 @@ export default function ManufacturerProfile() {
     setIsSaving(true);
     
     try {
-      // For now, files need to be uploaded separately via the upload API
-      // This update only handles text fields
+      // Upload manufacturing unit image if a new file is provided
+      let manufacturingUnitImageUrl = existingImageUrl;
+      if (formData.manufacturingUnitImage) {
+        setIsUploadingImage(true);
+        try {
+          // Use chat file upload endpoint (it accepts any file)
+          const uploadResponse = await apiService.uploadChatFile(formData.manufacturingUnitImage, 'profile');
+          if (uploadResponse && uploadResponse.success && uploadResponse.data && uploadResponse.data.url) {
+            manufacturingUnitImageUrl = uploadResponse.data.url;
+            setExistingImageUrl(uploadResponse.data.url);
+          } else {
+            throw new Error('Failed to upload image');
+          }
+        } catch (uploadError) {
+          console.error('Image upload error:', uploadError);
+          toast.error('Failed to upload manufacturing unit image. Please try again.');
+          setIsUploadingImage(false);
+          setIsSaving(false);
+          return;
+        } finally {
+          setIsUploadingImage(false);
+        }
+      }
+      
+      // Prepare profile data
       const profileData: any = {
         unit_name: formData.unitName,
         business_type: formData.businessType,
@@ -106,16 +140,20 @@ export default function ManufacturerProfile() {
         daily_capacity: parseInt(formData.capacity) || 0,
         location: formData.location,
         pan_number: formData.panNumber,
-        coi_number: formData.coiNumber
+        coi_number: formData.coiNumber,
+        manufacturing_unit_image_url: manufacturingUnitImageUrl
       };
 
       await apiService.updateManufacturerProfile(profileData);
       setDisplayName(formData.unitName);
       
-      alert('Profile updated successfully!');
+      // Clear the file input after successful update
+      setFormData(prev => ({ ...prev, manufacturingUnitImage: null }));
+      
+      toast.success('Profile updated successfully!');
     } catch (error) {
       console.error('Failed to update profile:', error);
-      alert('Failed to update profile. Please try again.');
+      toast.error('Failed to update profile. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -373,6 +411,103 @@ export default function ManufacturerProfile() {
                 />
               </div>
 
+              {/* Manufacturing Unit Image */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Manufacturing Unit Image
+                </label>
+                <div className="relative group">
+                  <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-[#22a2f2] transition-all">
+                    <label className="flex flex-col items-center justify-center cursor-pointer">
+                      {formData.manufacturingUnitImage ? (
+                        <div className="w-full">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm text-gray-700 font-medium">
+                              {formData.manufacturingUnitImage.name}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setFormData(prev => ({ ...prev, manufacturingUnitImage: null }));
+                              }}
+                              className="text-red-500 hover:text-red-700 text-sm"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                          {formData.manufacturingUnitImage.type.startsWith('image/') && (
+                            <img
+                              src={URL.createObjectURL(formData.manufacturingUnitImage)}
+                              alt="Manufacturing unit preview"
+                              className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                            />
+                          )}
+                        </div>
+                      ) : existingImageUrl ? (
+                        <div className="w-full">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm text-gray-700 font-medium">
+                              Current Image
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setExistingImageUrl(null);
+                                setFormData(prev => ({ ...prev, manufacturingUnitImage: null }));
+                              }}
+                              className="text-red-500 hover:text-red-700 text-sm"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                          <img
+                            src={existingImageUrl}
+                            alt="Manufacturing unit"
+                            className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                          />
+                        </div>
+                      ) : (
+                        <>
+                          <div className="p-3 bg-[#22a2f2]/10 rounded-xl mb-3">
+                            <svg
+                              className="w-8 h-8 text-[#22a2f2]"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                              />
+                            </svg>
+                          </div>
+                          <span className="text-sm text-gray-700 font-medium mb-1">
+                            Click to upload image
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            PNG, JPG or GIF (Max 10MB)
+                          </span>
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            handleFileChange('manufacturingUnitImage', e.target.files[0]);
+                          }
+                        }}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+
               {/* MSME Certificate Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -422,18 +557,18 @@ export default function ManufacturerProfile() {
                 </Link>
                 <button
                   type="submit"
-                  disabled={isSaving}
+                  disabled={isSaving || isUploadingImage}
                   className="relative flex-1 group overflow-hidden rounded-xl disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   <div className="absolute inset-0 bg-[#22a2f2] transition-transform group-hover:scale-105"></div>
                   <div className="relative px-4 py-3 font-semibold text-white flex items-center justify-center gap-2">
-                    {isSaving ? (
+                    {isSaving || isUploadingImage ? (
                       <>
                         <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        <span>Saving...</span>
+                        <span>{isUploadingImage ? 'Uploading...' : 'Saving...'}</span>
                       </>
                     ) : (
                       <>
