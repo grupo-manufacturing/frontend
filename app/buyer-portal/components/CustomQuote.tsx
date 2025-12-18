@@ -14,7 +14,6 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
   // Custom Quote Form States
   const [requirement, setRequirement] = useState('');
   const [customQuantity, setCustomQuantity] = useState('');
-  const [customBrandName, setCustomBrandName] = useState('');
   const [customProductType, setCustomProductType] = useState('');
   const [isProductTypeDropdownOpen, setIsProductTypeDropdownOpen] = useState(false);
   const [productLink, setProductLink] = useState('');
@@ -43,7 +42,6 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
       const requirementData = {
         requirement_text: requirement.trim(),
         quantity: customQuantity ? parseInt(customQuantity) : null,
-        brand_name: customBrandName.trim() || null,
         product_type: customProductType || null,
         product_link: productLink.trim() || null,
         image_url: imageUrl
@@ -58,7 +56,6 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
         // Clear form
         setRequirement('');
         setCustomQuantity('');
-        setCustomBrandName('');
         setCustomProductType('');
         setProductLink('');
         setUploadedImage(null);
@@ -112,33 +109,18 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
             />
           </div>
 
-          {/* Quantity and Brand Name Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Quantity
-              </label>
-              <input
-                type="number"
-                value={customQuantity}
-                onChange={(e) => setCustomQuantity(e.target.value)}
-                placeholder="Enter quantity"
-                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 transition-all"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Brand Name
-              </label>
-              <input
-                type="text"
-                value={customBrandName}
-                onChange={(e) => setCustomBrandName(e.target.value)}
-                placeholder="Enter brand name"
-                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 transition-all"
-              />
-            </div>
+          {/* Quantity */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Quantity
+            </label>
+            <input
+              type="number"
+              value={customQuantity}
+              onChange={(e) => setCustomQuantity(e.target.value)}
+              placeholder="Enter quantity"
+              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 transition-all"
+            />
           </div>
 
           {/* Product Type */}

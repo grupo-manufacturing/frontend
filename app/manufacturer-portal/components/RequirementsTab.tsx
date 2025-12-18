@@ -265,7 +265,6 @@ export default function RequirementsTab() {
           {requirements.map((req: any) => {
             const statusTag = getStatusTag(req);
             const formattedRequirement = formatText(req.requirement_text);
-            const formattedBrand = req.brand_name ? formatBrand(req.brand_name) : '';
             const formattedType = req.product_type ? formatBrand(req.product_type) : '';
 
             return (
@@ -311,12 +310,6 @@ export default function RequirementsTab() {
                       <span className="text-gray-900 font-semibold">{req.quantity.toLocaleString()}</span>
                     </div>
                   )}
-                  {formattedBrand && (
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-400 font-normal">Brand</span>
-                      <span className="text-gray-900 font-semibold text-right truncate ml-2">{formattedBrand}</span>
-                    </div>
-                  )}
                   {formattedType && (
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-400 font-normal">Type</span>
@@ -332,23 +325,6 @@ export default function RequirementsTab() {
                 <div className="mt-auto">
                   {req.hasResponse ? (
                     (() => {
-                      const status = (req.myResponse?.status || req.myResponse?.response_status || '').toLowerCase().trim();
-                      if (status === 'accepted' && req.myResponse?.id) {
-                        return (
-                          <a
-                            href={`/invoice/requirement/${req.myResponse.id}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            <span>View Invoice</span>
-                          </a>
-                        );
-                      }
                       return (
                         <div className="w-full bg-gray-50 border border-gray-200 text-gray-600 px-4 py-2.5 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 cursor-not-allowed">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

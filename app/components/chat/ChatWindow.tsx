@@ -58,7 +58,6 @@ interface RequirementDetails {
   requirement_text: string;
   requirement_no?: string;
   quantity?: number | null;
-  brand_name?: string | null;
   product_type?: string | null;
   product_link?: string | null;
   image_url?: string | null;
@@ -122,7 +121,6 @@ export default function ChatWindow({
   const [loadingRequirements, setLoadingRequirements] = useState(false);
   const [activeRequirementDetails, setActiveRequirementDetails] = useState<RequirementDetails | null>(null);
   const [loadingRequirementDetails, setLoadingRequirementDetails] = useState(false);
-  const [acceptedResponseId, setAcceptedResponseId] = useState<string | null>(null);
   
   // AI Design tabs state
   const [activeAIDesignId, setActiveAIDesignId] = useState<string | null>(aiDesign?.id || null);
@@ -153,7 +151,6 @@ export default function ChatWindow({
     } else {
       setActiveRequirementId(null);
       setActiveRequirementDetails(null);
-      setAcceptedResponseId(null);
       // Auto-select first AI design if available
       if (aiDesignTabs.length > 0 && !aiDesign?.id) {
         setActiveAIDesignId(aiDesignTabs[0].id);
@@ -353,7 +350,6 @@ export default function ChatWindow({
     if (!activeRequirementId) {
       setActiveRequirementDetails(null);
       setLoadingRequirementDetails(false);
-      setAcceptedResponseId(null);
       return;
     }
 
@@ -382,17 +378,7 @@ export default function ChatWindow({
               
               if (manufacturerResponse) {
                 status = manufacturerResponse.status === 'accepted' ? 'accepted' : 'negotiating';
-                // Store accepted response ID for invoice link
-                if (manufacturerResponse.status === 'accepted') {
-                  setAcceptedResponseId(manufacturerResponse.id);
-                } else {
-                  setAcceptedResponseId(null);
-                }
-              } else {
-                setAcceptedResponseId(null);
               }
-            } else {
-              setAcceptedResponseId(null);
             }
             
             setActiveRequirementDetails({
@@ -478,7 +464,6 @@ export default function ChatWindow({
     setActiveTabType(null);
     setActiveRequirementDetails(null);
     setActiveAIDesignDetails(null);
-    setAcceptedResponseId(null);
     setMessages([]);
     setLoading(true);
     // Reset to requirements tab by default
@@ -975,7 +960,6 @@ export default function ChatWindow({
             <div className="text-xs text-gray-400 animate-pulse">Loading...</div>
           ) : activeRequirementDetails ? (
             (activeRequirementDetails.quantity || 
-             activeRequirementDetails.brand_name || 
              activeRequirementDetails.product_type ||
              activeRequirementDetails.status) ? (
               <div className="flex items-center gap-3 flex-wrap">
@@ -999,35 +983,12 @@ export default function ChatWindow({
                     </span>
                   </div>
                 )}
-                {activeRequirementDetails.brand_name && (
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs text-gray-500">Brand:</span>
-                    <span className="text-xs font-medium text-gray-900 bg-gray-100 px-2 py-0.5 rounded-full">
-                      {activeRequirementDetails.brand_name}
-                    </span>
-                  </div>
-                )}
                 {activeRequirementDetails.product_type && (
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs text-gray-500">Type:</span>
                     <span className="text-xs font-medium text-gray-900 bg-gray-100 px-2 py-0.5 rounded-full">
                       {activeRequirementDetails.product_type}
                     </span>
-                  </div>
-                )}
-                {acceptedResponseId && (
-                  <div className="flex items-center gap-1.5 ml-auto">
-                    <a
-                      href={`/invoice/requirement/${acceptedResponseId}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
-                    >
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      View Invoice
-                    </a>
                   </div>
                 )}
               </div>

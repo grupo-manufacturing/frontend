@@ -316,7 +316,6 @@ export default function MyOrders({
               const searchLower = orderSearchQuery.toLowerCase();
               const matchesSearch = !orderSearchQuery || 
                 req.requirement_text?.toLowerCase().includes(searchLower) ||
-                req.brand_name?.toLowerCase().includes(searchLower) ||
                 req.product_type?.toLowerCase().includes(searchLower) ||
                 req.id?.toLowerCase().includes(searchLower);
               
@@ -334,12 +333,11 @@ export default function MyOrders({
                 {/* Table Header */}
                 <div className="bg-gray-50 border-b border-gray-200 px-6 py-3">
                   <div className="grid grid-cols-12 gap-4 text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                    <div className="col-span-4">Requirement</div>
-                    <div className="col-span-2">Brand</div>
+                    <div className="col-span-5">Requirement</div>
                     <div className="col-span-2">Type</div>
                     <div className="col-span-1">Quantity</div>
                     <div className="col-span-2">Status</div>
-                    <div className="col-span-1">Delivery</div>
+                    <div className="col-span-2">Delivery</div>
                   </div>
                 </div>
                 
@@ -367,7 +365,7 @@ export default function MyOrders({
                       <div key={req.id} className="px-6 py-4 hover:bg-gray-50 transition-colors">
                         <div className="grid grid-cols-12 gap-4 items-center">
                           {/* Requirement */}
-                          <div className="col-span-4">
+                          <div className="col-span-5">
                             <p className="text-sm font-medium text-black line-clamp-2">
                               {req.requirement_text || 'Requirement'}
                             </p>
@@ -378,13 +376,6 @@ export default function MyOrders({
                                 className="w-12 h-12 object-cover rounded mt-2 border border-gray-200"
                               />
                             )}
-                          </div>
-                          
-                          {/* Brand */}
-                          <div className="col-span-2">
-                            <p className="text-sm text-gray-600">
-                              {req.brand_name || '—'}
-                            </p>
                           </div>
                           
                           {/* Type */}
@@ -409,7 +400,7 @@ export default function MyOrders({
                           </div>
                           
                           {/* Delivery */}
-                          <div className="col-span-1">
+                          <div className="col-span-2">
                             {bestResponse?.delivery_time ? (
                               <p className="text-sm text-gray-600">
                                 {bestResponse.delivery_time}

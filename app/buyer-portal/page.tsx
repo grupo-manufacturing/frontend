@@ -540,7 +540,7 @@ export default function BuyerPortal() {
                 <span className="relative z-10 hidden sm:inline">AI Designs</span>
               </button>
 
-              {/* Get Manufacturers Tab */}
+              {/* Find Manufacturers Tab */}
               <button
                 onClick={() => setActiveTab('custom-quote')}
                 className={`relative flex items-center gap-2 px-3 lg:px-4 py-3 font-medium text-sm whitespace-nowrap transition-all rounded-t-lg ${
@@ -565,7 +565,7 @@ export default function BuyerPortal() {
                     d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                   />
                 </svg>
-                <span className="relative z-10 hidden sm:inline">Get Manufacturers</span>
+                <span className="relative z-10 hidden sm:inline">Find Manufacturers</span>
               </button>
 
               {/* My Orders Tab */}

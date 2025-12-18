@@ -11,7 +11,6 @@ interface OrderFormProps {
 }
 
 interface OrderData {
-  brandName: string;
   productType: string;
   quantity: string;
   requirements: string;
@@ -25,7 +24,6 @@ export default function OrderForm({
   onCancel
 }: OrderFormProps) {
   const [formData, setFormData] = useState<OrderData>({
-    brandName: '',
     productType: '',
     quantity: '',
     requirements: ''
@@ -44,9 +42,6 @@ export default function OrderForm({
   const validateForm = () => {
     const newErrors: Partial<OrderData> = {};
     
-    if (!formData.brandName.trim()) {
-      newErrors.brandName = 'Brand name is required';
-    }
     if (!formData.productType.trim()) {
       newErrors.productType = 'Product type is required';
     }
@@ -80,25 +75,6 @@ export default function OrderForm({
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="p-4 space-y-4">
-        {/* Brand Name */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Brand Name <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            value={formData.brandName}
-            onChange={(e) => handleInputChange('brandName', e.target.value)}
-            placeholder="e.g., Urban Threads"
-            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm ${
-              errors.brandName ? 'border-red-300' : 'border-gray-300'
-            }`}
-          />
-          {errors.brandName && (
-            <p className="text-xs text-red-500 mt-1">{errors.brandName}</p>
-          )}
-        </div>
-
         {/* Product Type and Quantity Row */}
         <div className="grid grid-cols-2 gap-3">
           <div>
