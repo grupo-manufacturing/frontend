@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import apiService from '../../lib/apiService';
 import { useToast } from '../../components/Toast';
@@ -18,6 +18,34 @@ export default function AIRequirements() {
   const [isSubmittingResponse, setIsSubmittingResponse] = useState(false);
   const [showPriceBreakdown, setShowPriceBreakdown] = useState(false);
   const [downloadingDesignId, setDownloadingDesignId] = useState<string | null>(null);
+
+  // Audio ref for click sound
+  const clickSoundRef = useRef<HTMLAudioElement | null>(null);
+
+  // Initialize audio element
+  useEffect(() => {
+    clickSoundRef.current = new Audio('/click.mp3');
+    clickSoundRef.current.volume = 0.5; // Set volume to 50%
+
+    // Cleanup on unmount
+    return () => {
+      if (clickSoundRef.current) {
+        clickSoundRef.current.pause();
+        clickSoundRef.current = null;
+      }
+    };
+  }, []);
+
+  // Helper function to play click sound
+  const playClickSound = () => {
+    if (clickSoundRef.current) {
+      clickSoundRef.current.currentTime = 0; // Reset to start
+      clickSoundRef.current.play().catch((err) => {
+        // Silently handle autoplay restrictions
+        console.log('Could not play sound:', err);
+      });
+    }
+  };
 
   // Download image as PNG
   const downloadImageAsPNG = async (imageUrl: string, designNo: string, apparelType: string) => {
@@ -171,6 +199,8 @@ export default function AIRequirements() {
       return;
     }
 
+    // Play click sound when submitting response
+    playClickSound();
     setIsSubmittingResponse(true);
 
     try {

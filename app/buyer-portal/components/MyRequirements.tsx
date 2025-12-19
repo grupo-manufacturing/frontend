@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import apiService from '../../lib/apiService';
 import { useToast } from '../../components/Toast';
 
@@ -22,6 +22,34 @@ export default function MyRequirements({
   const toast = useToast();
   const [negotiatingResponseId, setNegotiatingResponseId] = useState<string | null>(null);
 
+  // Audio ref for click sound
+  const clickSoundRef = useRef<HTMLAudioElement | null>(null);
+
+  // Initialize audio element
+  useEffect(() => {
+    clickSoundRef.current = new Audio('/click.mp3');
+    clickSoundRef.current.volume = 0.5; // Set volume to 50%
+
+    // Cleanup on unmount
+    return () => {
+      if (clickSoundRef.current) {
+        clickSoundRef.current.pause();
+        clickSoundRef.current = null;
+      }
+    };
+  }, []);
+
+  // Helper function to play click sound
+  const playClickSound = () => {
+    if (clickSoundRef.current) {
+      clickSoundRef.current.currentTime = 0; // Reset to start
+      clickSoundRef.current.play().catch((err) => {
+        // Silently handle autoplay restrictions
+        console.log('Could not play sound:', err);
+      });
+    }
+  };
+
   const formatCurrency = (value: number | null | undefined) => {
     if (value === null || value === undefined) return '—';
     const numericValue = Number(value);
@@ -31,6 +59,8 @@ export default function MyRequirements({
 
   // Handle Accept/Reject Response
   const handleUpdateResponseStatus = async (responseId: string, status: 'accepted' | 'rejected', manufacturerName: string) => {
+    // Play click sound when accepting or rejecting
+    playClickSound();
     try {
       const response = await apiService.updateRequirementResponseStatus(responseId, status);
       
@@ -47,6 +77,8 @@ export default function MyRequirements({
   };
 
   const handleNegotiate = async (requirement: any, response: any) => {
+    // Play click sound when negotiating
+    playClickSound();
     setNegotiatingResponseId(response.id);
     if (onNegotiateResponse) {
       await onNegotiateResponse(requirement, response);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import apiService from '../../lib/apiService';
 import { useToast } from '../../components/Toast';
@@ -21,6 +21,53 @@ export default function AIDesignsTab({ onSwitchToGenerateDesigns, onAcceptAIDesi
   const [updatingResponseId, setUpdatingResponseId] = useState<string | null>(null);
   const [updatingResponseAction, setUpdatingResponseAction] = useState<'accept' | 'reject' | null>(null);
   const [downloadingDesignId, setDownloadingDesignId] = useState<string | null>(null);
+
+  // Audio refs for sounds
+  const notifySoundRef = useRef<HTMLAudioElement | null>(null);
+  const clickSoundRef = useRef<HTMLAudioElement | null>(null);
+
+  // Initialize audio elements
+  useEffect(() => {
+    notifySoundRef.current = new Audio('/notify.mp3');
+    notifySoundRef.current.volume = 0.5; // Set volume to 50%
+
+    clickSoundRef.current = new Audio('/click.mp3');
+    clickSoundRef.current.volume = 0.5; // Set volume to 50%
+
+    // Cleanup on unmount
+    return () => {
+      if (notifySoundRef.current) {
+        notifySoundRef.current.pause();
+        notifySoundRef.current = null;
+      }
+      if (clickSoundRef.current) {
+        clickSoundRef.current.pause();
+        clickSoundRef.current = null;
+      }
+    };
+  }, []);
+
+  // Helper function to play notification sound
+  const playNotifySound = () => {
+    if (notifySoundRef.current) {
+      notifySoundRef.current.currentTime = 0; // Reset to start
+      notifySoundRef.current.play().catch((err) => {
+        // Silently handle autoplay restrictions
+        console.log('Could not play sound:', err);
+      });
+    }
+  };
+
+  // Helper function to play click sound
+  const playClickSound = () => {
+    if (clickSoundRef.current) {
+      clickSoundRef.current.currentTime = 0; // Reset to start
+      clickSoundRef.current.play().catch((err) => {
+        // Silently handle autoplay restrictions
+        console.log('Could not play sound:', err);
+      });
+    }
+  };
 
   // Download image as PNG
   const downloadImageAsPNG = async (imageUrl: string, designNo: string, apparelType: string) => {
@@ -262,6 +309,8 @@ export default function AIDesignsTab({ onSwitchToGenerateDesigns, onAcceptAIDesi
                           try {
                             await apiService.pushAIDesign(aiDesign.id);
                             toast.success('Design pushed to manufacturers successfully!');
+                            // Play notification sound when design is pushed
+                            playNotifySound();
                             // Refresh AI designs to show updated status
                             await fetchAiDesigns();
                           } catch (error: any) {
@@ -473,6 +522,8 @@ export default function AIDesignsTab({ onSwitchToGenerateDesigns, onAcceptAIDesi
                           <div className="flex items-center gap-2">
                             <button
                               onClick={async () => {
+                                // Play click sound when accepting
+                                playClickSound();
                                 setUpdatingResponseId(response.id);
                                 setUpdatingResponseAction('accept');
                                 try {
@@ -528,6 +579,8 @@ export default function AIDesignsTab({ onSwitchToGenerateDesigns, onAcceptAIDesi
                             </button>
                             <button
                               onClick={async () => {
+                                // Play click sound when rejecting
+                                playClickSound();
                                 setUpdatingResponseId(response.id);
                                 setUpdatingResponseAction('reject');
                                 try {

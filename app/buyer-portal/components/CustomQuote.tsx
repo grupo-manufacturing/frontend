@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import apiService from '../../lib/apiService';
 import { useToast } from '../../components/Toast';
 
@@ -19,6 +19,34 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
   const [productLink, setProductLink] = useState('');
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [isSubmittingRequirement, setIsSubmittingRequirement] = useState(false);
+
+  // Audio ref for notification sound
+  const notifySoundRef = useRef<HTMLAudioElement | null>(null);
+
+  // Initialize audio element
+  useEffect(() => {
+    notifySoundRef.current = new Audio('/notify.mp3');
+    notifySoundRef.current.volume = 0.5; // Set volume to 50%
+
+    // Cleanup on unmount
+    return () => {
+      if (notifySoundRef.current) {
+        notifySoundRef.current.pause();
+        notifySoundRef.current = null;
+      }
+    };
+  }, []);
+
+  // Helper function to play notification sound
+  const playNotifySound = () => {
+    if (notifySoundRef.current) {
+      notifySoundRef.current.currentTime = 0; // Reset to start
+      notifySoundRef.current.play().catch((err) => {
+        // Silently handle autoplay restrictions
+        console.log('Could not play sound:', err);
+      });
+    }
+  };
 
   // Handle Custom Quote Submission
   const handleSubmitRequirement = async () => {
@@ -52,6 +80,9 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
 
       if (response.success) {
         toast.success('Requirement submitted successfully! Manufacturers will review and respond shortly.');
+        
+        // Play notification sound when requirement is submitted
+        playNotifySound();
         
         // Clear form
         setRequirement('');

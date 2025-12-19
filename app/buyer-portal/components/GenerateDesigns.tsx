@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import apiService from '../../lib/apiService';
 import { useToast } from '../../components/Toast';
 
@@ -12,6 +12,53 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
   const toast = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedDesign, setGeneratedDesign] = useState<string | null>(null);
+  
+  // Audio refs for sound effects
+  const successSoundRef = useRef<HTMLAudioElement | null>(null);
+  const publishSoundRef = useRef<HTMLAudioElement | null>(null);
+
+  // Initialize audio elements
+  useEffect(() => {
+    successSoundRef.current = new Audio('/chime.mp3');
+    successSoundRef.current.volume = 0.5; // Set volume to 50%
+    
+    publishSoundRef.current = new Audio('/chime.mp3');
+    publishSoundRef.current.volume = 0.5;
+
+    // Cleanup on unmount
+    return () => {
+      if (successSoundRef.current) {
+        successSoundRef.current.pause();
+        successSoundRef.current = null;
+      }
+      if (publishSoundRef.current) {
+        publishSoundRef.current.pause();
+        publishSoundRef.current = null;
+      }
+    };
+  }, []);
+
+  // Helper function to play success sound
+  const playSuccessSound = () => {
+    if (successSoundRef.current) {
+      successSoundRef.current.currentTime = 0; // Reset to start
+      successSoundRef.current.play().catch((err) => {
+        // Silently handle autoplay restrictions
+        console.log('Could not play sound:', err);
+      });
+    }
+  };
+
+  // Helper function to play publish sound
+  const playPublishSound = () => {
+    if (publishSoundRef.current) {
+      publishSoundRef.current.currentTime = 0; // Reset to start
+      publishSoundRef.current.play().catch((err) => {
+        // Silently handle autoplay restrictions
+        console.log('Could not play sound:', err);
+      });
+    }
+  };
   
   // Publish modal state
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
@@ -87,6 +134,8 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
       if (data.success && data.image) {
         setGeneratedDesign(data.image);
         toast.success('Design generated successfully!');
+        // Play success sound when design is generated
+        playSuccessSound();
       } else {
         throw new Error('Invalid response from server');
       }
@@ -151,6 +200,8 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
         toast.success('Design published successfully! It will be visible to all manufacturers.');
         setIsPublishModalOpen(false);
         setPublishData({ quantity: '' });
+        // Play success sound when design is published
+        playPublishSound();
         // Optionally clear the generated design or keep it
         if (onDesignPublished) {
           onDesignPublished();

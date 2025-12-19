@@ -114,6 +114,34 @@ export default function ChatWindow({
   const [uploadingFiles, setUploadingFiles] = useState<boolean>(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   
+  // Audio ref for sent message sound
+  const sentSoundRef = useRef<HTMLAudioElement | null>(null);
+
+  // Initialize audio element
+  useEffect(() => {
+    sentSoundRef.current = new Audio('/sent.mp3');
+    sentSoundRef.current.volume = 0.5; // Set volume to 50%
+
+    // Cleanup on unmount
+    return () => {
+      if (sentSoundRef.current) {
+        sentSoundRef.current.pause();
+        sentSoundRef.current = null;
+      }
+    };
+  }, []);
+
+  // Helper function to play sent sound
+  const playSentSound = () => {
+    if (sentSoundRef.current) {
+      sentSoundRef.current.currentTime = 0; // Reset to start
+      sentSoundRef.current.play().catch((err) => {
+        // Silently handle autoplay restrictions
+        console.log('Could not play sound:', err);
+      });
+    }
+  };
+  
   // Initialize activeRequirementId from requirement prop only (no localStorage)
   // Default to first requirement tab if available, otherwise null
   const [activeRequirementId, setActiveRequirementId] = useState<string | null>(requirement?.id || null);
@@ -739,6 +767,9 @@ export default function ChatWindow({
       };
       setMessages((prev) => [...prev, optimistic]);
       scrollToBottom();
+      
+      // Play sent sound when message is sent
+      playSentSound();
 
       // Prefer WebSocket
       if (socketRef.current?.connected) {
