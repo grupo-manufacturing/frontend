@@ -11,7 +11,6 @@ interface GenerateDesignsProps {
 export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsProps) {
   const toast = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedDesign, setGeneratedDesign] = useState<string | null>(null);
   
   // Audio refs for sound effects
   const successSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -67,23 +66,63 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
   });
   const [isPublishing, setIsPublishing] = useState(false);
 
-  // Form state - Simplified for beginners
-  const [formData, setFormData] = useState({
-    apparel_type: '',
-    design_description: '',
-    preferred_colors: '',
-    print_placement: ''
-  });
+  // Load form data from localStorage on mount
+  const loadFormDataFromStorage = () => {
+    if (typeof window !== 'undefined') {
+      const savedFormData = localStorage.getItem('generateDesigns_formData');
+      
+      if (savedFormData) {
+        try {
+          return JSON.parse(savedFormData);
+        } catch (e) {
+          console.error('Failed to parse saved form data:', e);
+        }
+      }
+    }
+    return {
+      apparel_type: '',
+      design_description: '',
+      preferred_colors: '',
+      print_placement: ''
+    };
+  };
+
+  // Form state - Simplified for beginners, initialized from localStorage
+  const [formData, setFormData] = useState(() => loadFormDataFromStorage());
+
+  // Generated design state - not persisted
+  const [generatedDesign, setGeneratedDesign] = useState<string | null>(null);
+
+  // Save form data to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('generateDesigns_formData', JSON.stringify(formData));
+    }
+  }, [formData]);
 
   // Dropdown states
   const [isApparelTypeDropdownOpen, setIsApparelTypeDropdownOpen] = useState(false);
   const [isPrintPlacementDropdownOpen, setIsPrintPlacementDropdownOpen] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev: typeof formData) => ({
       ...prev,
       [field]: value
     }));
+  };
+
+  // Clear form data and localStorage
+  const clearFormData = () => {
+    setFormData({
+      apparel_type: '',
+      design_description: '',
+      preferred_colors: '',
+      print_placement: ''
+    });
+    setGeneratedDesign(null);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('generateDesigns_formData');
+    }
   };
 
   const handleGenerate = async () => {
@@ -165,6 +204,12 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
       return;
     }
 
+    // Validate minimum quantity of 50
+    if (quantity < 50) {
+      toast.error('Minimum quantity must be at least 50. Please enter a quantity of 50 or more.');
+      return;
+    }
+
     setIsPublishing(true);
 
     try {
@@ -202,6 +247,8 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
         setPublishData({ quantity: '' });
         // Play success sound when design is published
         playPublishSound();
+        // Clear form data and generated design only after successful publish
+        clearFormData();
         // Optionally clear the generated design or keep it
         if (onDesignPublished) {
           onDesignPublished();
@@ -578,11 +625,14 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
                   type="number"
                   value={publishData.quantity}
                   onChange={(e) => setPublishData({ ...publishData, quantity: e.target.value })}
-                  placeholder="Enter quantity"
-                  min="1"
+                  placeholder="Enter quantity (minimum 50)"
+                  min="50"
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black"
                   disabled={isPublishing}
                 />
+                <p className="mt-2 text-xs text-gray-500">
+                  Minimum quantity required: 50 units
+                </p>
               </div>
             </div>
 

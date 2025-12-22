@@ -268,13 +268,10 @@ export default function Login({ onLoginSuccess, onProfileUpdate, isCheckingAuth 
             <div className="space-y-8">
               <div>
                 <h2 className="text-5xl font-bold text-black leading-tight mb-4">
-                  Manufacture<br />
-                  <span className="text-black">
-                    Anything, Anywhere
-                  </span>
+                  Manufacture Anything !
                 </h2>
                 <p className="text-lg text-gray-600 leading-relaxed max-w-lg">
-                  Connect with 1000+ verified manufacturers worldwide. Get instant quotes, 
+                  Connect with 100+ verified manufacturers worldwide. Get instant quotes, 
                   AI-powered matching, and real-time order tracking.
                 </p>
               </div>
@@ -284,7 +281,7 @@ export default function Login({ onLoginSuccess, onProfileUpdate, isCheckingAuth 
                 {[
                   { icon: "⚡", title: "Instant Quotes", desc: "AI-powered matching in seconds" },
                   { icon: "🌍", title: "Global Network", desc: "10+ countries, 100+ manufacturers, 1000+ brands" },
-                  { icon: "🔒", title: "Secure & Verified", desc: "All manufacturers QC certified" }
+                  { icon: "🔒", title: "Secure & Verified", desc: "All manufacturers are QC certified" }
                 ].map((feature, index) => (
                   <div 
                     key={index}

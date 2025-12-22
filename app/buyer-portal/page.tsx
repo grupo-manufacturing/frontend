@@ -696,12 +696,14 @@ export default function BuyerPortal() {
               fetchRequirements={fetchRequirements}
               onNegotiateResponse={handleNegotiateResponse}
               onSwitchToCustomQuote={() => setActiveTab('custom-quote')}
+              onAcceptAIDesignResponse={handleAcceptAIDesignResponse}
             />
           )}
           {activeTab === 'generate-designs' && (
             <GenerateDesigns
               onDesignPublished={() => {
-                // Design published callback - handled by AIDesignsTab component
+                // Switch to AI Designs tab when design is published
+                setActiveTab('ai-designs');
               }}
             />
           )}
