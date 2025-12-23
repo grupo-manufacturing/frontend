@@ -11,6 +11,7 @@ import ChatsTab from './components/ChatsTab';
 import Login from './components/Login';
 import Onboarding from './components/Onboarding';
 import { useToast } from '../components/Toast';
+import BrandSafetyModal from '../components/BrandSafetyModal';
 
 type TabType = 'chats' | 'requirements' | 'ai-requirements' | 'analytics' | 'profile';
 
@@ -86,6 +87,7 @@ export default function ManufacturerPortal() {
 
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
   const [displayName, setDisplayName] = useState('');
+  const [showBrandSafetyModal, setShowBrandSafetyModal] = useState(false);
 
   const handleLogout = async () => {
     // Show loading immediately
@@ -158,6 +160,28 @@ export default function ManufacturerPortal() {
         setStep('dashboard');
   };
 
+  // Check if user has agreed to Brand Safety Guidelines
+  useEffect(() => {
+    if (step === 'dashboard' && typeof window !== 'undefined') {
+      const hasAgreed = localStorage.getItem('manufacturer_brand_safety_agreed');
+      if (!hasAgreed) {
+        setShowBrandSafetyModal(true);
+      }
+    }
+  }, [step]);
+
+  const handleBrandSafetyAgree = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('manufacturer_brand_safety_agreed', 'true');
+    }
+    setShowBrandSafetyModal(false);
+  };
+
+  const handleBrandSafetyClose = () => {
+    // Just close the modal without saving agreement, so it shows again on refresh
+    setShowBrandSafetyModal(false);
+  };
+
   // Onboarding View
   if (step === 'onboarding') {
     return <Onboarding phoneNumber={phoneNumber} onComplete={handleOnboardingComplete} />;
@@ -182,6 +206,9 @@ export default function ManufacturerPortal() {
   if (step === 'dashboard') {
     return (
       <div className="min-h-screen bg-white">
+        {showBrandSafetyModal && (
+          <BrandSafetyModal onAgree={handleBrandSafetyAgree} onClose={handleBrandSafetyClose} />
+        )}
         {/* Header */}
         <header className="relative z-50 bg-white/90 backdrop-blur-sm border-b border-gray-200 sticky top-0">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -12,6 +12,7 @@ import GenerateDesigns from './components/GenerateDesigns';
 import AIDesignsTab from './components/AIDesignsTab';
 import Login from './components/Login';
 import { useToast } from '../components/Toast';
+import BrandSafetyModal from '../components/BrandSafetyModal';
 
 type TabType = 'custom-quote' | 'my-orders' | 'chats' | 'requirements' | 'generate-designs' | 'ai-designs';
 
@@ -84,6 +85,28 @@ export default function BuyerPortal() {
     
     checkAuthAndProfile();
   }, []);
+
+  // Check if user has agreed to Brand Safety Guidelines
+  useEffect(() => {
+    if (step === 'dashboard' && typeof window !== 'undefined') {
+      const hasAgreed = localStorage.getItem('buyer_brand_safety_agreed');
+      if (!hasAgreed) {
+        setShowBrandSafetyModal(true);
+      }
+    }
+  }, [step]);
+
+  const handleBrandSafetyAgree = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('buyer_brand_safety_agreed', 'true');
+    }
+    setShowBrandSafetyModal(false);
+  };
+
+  const handleBrandSafetyClose = () => {
+    // Just close the modal without saving agreement, so it shows again on refresh
+    setShowBrandSafetyModal(false);
+  };
   // Restore active tab from localStorage on mount
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     if (typeof window !== 'undefined') {
@@ -117,6 +140,7 @@ export default function BuyerPortal() {
   const [profileCompletion, setProfileCompletion] = useState(0);
   const [isCheckingProfile, setIsCheckingProfile] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showBrandSafetyModal, setShowBrandSafetyModal] = useState(false);
 
   const handleLogout = async () => {
     // Show loading immediately
@@ -371,6 +395,9 @@ export default function BuyerPortal() {
   if (step === 'dashboard') {
     return (
       <div className="min-h-screen bg-white">
+        {showBrandSafetyModal && (
+          <BrandSafetyModal onAgree={handleBrandSafetyAgree} onClose={handleBrandSafetyClose} />
+        )}
         {/* Header */}
         <header className="relative z-50 bg-white/90 backdrop-blur-sm border-b border-gray-200 sticky top-0">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
