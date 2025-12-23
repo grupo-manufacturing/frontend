@@ -3,13 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 import apiService from '../../lib/apiService';
 import { useToast } from '../../components/Toast';
-import { 
-  canGenerateDesign, 
-  getRemainingDesigns, 
-  incrementDesignCount, 
-  getTodayDesignCount,
-  getDailyLimit 
-} from '../../lib/services/utils/designLimit';
+import designGenerationService from '../../lib/services/features/DesignGenerationService.js';
+
+const DAILY_LIMIT = 5;
 
 interface GenerateDesignsProps {
   onDesignPublished?: () => void;
@@ -18,7 +14,8 @@ interface GenerateDesignsProps {
 export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsProps) {
   const toast = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [remainingDesigns, setRemainingDesigns] = useState(() => getRemainingDesigns());
+  const [remainingDesigns, setRemainingDesigns] = useState(5); // Initial optimistic value
+  const [isLoadingStatus, setIsLoadingStatus] = useState(true);
   
   // Audio refs for sound effects
   const successSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -108,16 +105,27 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
     }
   }, [formData]);
 
-  // Refresh remaining designs count on mount and periodically (to handle date changes)
+  // Load remaining designs count from backend on mount and periodically
   useEffect(() => {
-    const updateRemainingDesigns = () => {
-      setRemainingDesigns(getRemainingDesigns());
+    const updateRemainingDesigns = async () => {
+      try {
+        setIsLoadingStatus(true);
+        const response = await designGenerationService.getStatus();
+        if (response.success && response.data) {
+          setRemainingDesigns(response.data.remaining);
+        }
+      } catch (error) {
+        console.error('Failed to load design generation status:', error);
+        // Keep current value on error
+      } finally {
+        setIsLoadingStatus(false);
+      }
     };
 
     // Update on mount
     updateRemainingDesigns();
 
-    // Update every minute to catch date changes
+    // Update every minute to catch date changes and sync across devices
     const interval = setInterval(updateRemainingDesigns, 60000);
 
     return () => clearInterval(interval);
@@ -149,10 +157,24 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
   };
 
   const handleGenerate = async () => {
-    // Check daily limit first
-    if (!canGenerateDesign()) {
-      toast.error(`Daily limit reached! You can generate up to ${getDailyLimit()} designs per day. Please try again tomorrow.`);
-      return;
+    // Check daily limit first (async check)
+    try {
+      const response = await designGenerationService.getStatus();
+      if (response.success && response.data) {
+        if (!response.data.canGenerate) {
+          toast.error(`Daily limit reached! You can generate up to ${DAILY_LIMIT} designs per day. Please try again tomorrow.`);
+          setRemainingDesigns(response.data.remaining);
+          return;
+        }
+      }
+    } catch (error: any) {
+      console.error('Error checking design limit:', error);
+      // If it's a limit error, show message
+      if (error.message?.includes('limit')) {
+        toast.error(error.message || `Daily limit reached! You can generate up to ${DAILY_LIMIT} designs per day.`);
+        return;
+      }
+      // Otherwise continue (might be network error, allow user to try)
     }
 
     // Validate required fields - only 2 essential fields now
@@ -202,14 +224,31 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
       if (data.success && data.image) {
         setGeneratedDesign(data.image);
         // Increment design count after successful generation
-        incrementDesignCount();
-        const remaining = getRemainingDesigns();
-        setRemainingDesigns(remaining);
-        
-        if (remaining > 0) {
-          toast.success(`Design generated successfully! ${remaining} design${remaining === 1 ? '' : 's'} remaining today.`);
-        } else {
-          toast.success('Design generated successfully! You\'ve reached your daily limit of 5 designs.');
+        try {
+          const incrementResponse = await designGenerationService.increment();
+          if (incrementResponse.success && incrementResponse.data) {
+            const remaining = incrementResponse.data.remaining;
+            setRemainingDesigns(remaining);
+            
+            if (remaining > 0) {
+              toast.success(`Design generated successfully! ${remaining} design${remaining === 1 ? '' : 's'} remaining today.`);
+            } else {
+              toast.success('Design generated successfully! You\'ve reached your daily limit of 5 designs.');
+            }
+          }
+        } catch (incrementError: any) {
+          // If increment fails but design was generated, still show success
+          console.error('Failed to increment design count:', incrementError);
+          // Refresh status to get accurate count
+          try {
+            const statusResponse = await designGenerationService.getStatus();
+            if (statusResponse.success && statusResponse.data) {
+              setRemainingDesigns(statusResponse.data.remaining);
+            }
+          } catch (statusError) {
+            console.error('Failed to refresh status:', statusError);
+          }
+          toast.success('Design generated successfully!');
         }
         // Play success sound when design is generated
         playSuccessSound();
@@ -366,7 +405,7 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                {remainingDesigns} of {getDailyLimit()} remaining today
+                {remainingDesigns} of {DAILY_LIMIT} remaining today
               </span>
             )}
           </div>
@@ -600,7 +639,7 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
                       <div>
                         <p className="text-sm font-semibold text-red-900">Daily Limit Reached</p>
                         <p className="text-sm text-red-700 mt-1">
-                          You've reached your daily limit of {getDailyLimit()} designs. Please try again tomorrow.
+                          You've reached your daily limit of {DAILY_LIMIT} designs. Please try again tomorrow.
                         </p>
                       </div>
                     </div>

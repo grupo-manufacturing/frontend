@@ -15,6 +15,7 @@ import requirementService from './features/RequirementService.js';
 import aiDesignService from './features/AIDesignService.js';
 import userService from './features/UserService.js';
 import adminService from './features/AdminService.js';
+import designGenerationService from './features/DesignGenerationService.js';
 
 // Utils
 import * as tokenManager from './utils/tokenManager.js';
@@ -118,6 +119,7 @@ export {
   aiDesignService,
   userService,
   adminService,
+  designGenerationService,
   tokenManager,
   API_BASE_URL
 };
