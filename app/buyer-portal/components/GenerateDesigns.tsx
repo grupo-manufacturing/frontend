@@ -3,6 +3,13 @@
 import { useState, useEffect, useRef } from 'react';
 import apiService from '../../lib/apiService';
 import { useToast } from '../../components/Toast';
+import { 
+  canGenerateDesign, 
+  getRemainingDesigns, 
+  incrementDesignCount, 
+  getTodayDesignCount,
+  getDailyLimit 
+} from '../../lib/services/utils/designLimit';
 
 interface GenerateDesignsProps {
   onDesignPublished?: () => void;
@@ -11,6 +18,7 @@ interface GenerateDesignsProps {
 export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsProps) {
   const toast = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
+  const [remainingDesigns, setRemainingDesigns] = useState(() => getRemainingDesigns());
   
   // Audio refs for sound effects
   const successSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -100,6 +108,21 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
     }
   }, [formData]);
 
+  // Refresh remaining designs count on mount and periodically (to handle date changes)
+  useEffect(() => {
+    const updateRemainingDesigns = () => {
+      setRemainingDesigns(getRemainingDesigns());
+    };
+
+    // Update on mount
+    updateRemainingDesigns();
+
+    // Update every minute to catch date changes
+    const interval = setInterval(updateRemainingDesigns, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   // Dropdown states
   const [isApparelTypeDropdownOpen, setIsApparelTypeDropdownOpen] = useState(false);
   const [isPrintPlacementDropdownOpen, setIsPrintPlacementDropdownOpen] = useState(false);
@@ -126,6 +149,12 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
   };
 
   const handleGenerate = async () => {
+    // Check daily limit first
+    if (!canGenerateDesign()) {
+      toast.error(`Daily limit reached! You can generate up to ${getDailyLimit()} designs per day. Please try again tomorrow.`);
+      return;
+    }
+
     // Validate required fields - only 2 essential fields now
     if (!formData.apparel_type?.trim()) {
       toast.error('Please select what product you want to design');
@@ -172,7 +201,16 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
 
       if (data.success && data.image) {
         setGeneratedDesign(data.image);
-        toast.success('Design generated successfully!');
+        // Increment design count after successful generation
+        incrementDesignCount();
+        const remaining = getRemainingDesigns();
+        setRemainingDesigns(remaining);
+        
+        if (remaining > 0) {
+          toast.success(`Design generated successfully! ${remaining} design${remaining === 1 ? '' : 's'} remaining today.`);
+        } else {
+          toast.success('Design generated successfully! You\'ve reached your daily limit of 5 designs.');
+        }
         // Play success sound when design is generated
         playSuccessSound();
       } else {
@@ -302,11 +340,36 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
   return (
     <div>
       <div className="mb-8">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22a2f2]/10 text-[#22a2f2] text-sm font-semibold mb-3">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-          <span>AI-Powered Design Generation</span>
+        <div className="flex items-start justify-between mb-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22a2f2]/10 text-[#22a2f2] text-sm font-semibold">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span>AI-Powered Design Generation</span>
+          </div>
+          <div className={`px-3 py-1.5 rounded-full text-sm font-semibold ${
+            remainingDesigns === 0 
+              ? 'bg-red-100 text-red-700' 
+              : remainingDesigns <= 2 
+                ? 'bg-amber-100 text-amber-700' 
+                : 'bg-green-100 text-green-700'
+          }`}>
+            {remainingDesigns === 0 ? (
+              <span className="flex items-center gap-1.5">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                Limit Reached
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {remainingDesigns} of {getDailyLimit()} remaining today
+              </span>
+            )}
+          </div>
         </div>
         <h1 className="text-3xl font-bold text-black mb-2">Generate Designs</h1>
         <p className="text-gray-600">Simply describe your idea and let AI create your design. It's that easy!</p>
@@ -528,9 +591,24 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
 
               {/* Generate Button */}
               <div className="pt-6 border-t border-gray-200">
+                {remainingDesigns === 0 && (
+                  <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                    <div className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      <div>
+                        <p className="text-sm font-semibold text-red-900">Daily Limit Reached</p>
+                        <p className="text-sm text-red-700 mt-1">
+                          You've reached your daily limit of {getDailyLimit()} designs. Please try again tomorrow.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <button
                   type="submit"
-                  disabled={isGenerating}
+                  disabled={isGenerating || remainingDesigns === 0}
                   className="w-full px-6 py-3 bg-[#22a2f2] text-white rounded-xl font-semibold hover:bg-[#1b8bd0] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isGenerating ? (
