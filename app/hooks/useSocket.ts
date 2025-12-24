@@ -27,12 +27,10 @@ export function useSocket(options: UseSocketOptions = {}) {
     const token = typeof window !== 'undefined' ? localStorage.getItem('groupo_token') : null;
     
     if (!token) {
-      console.log('[useSocket] No token found, skipping connection');
       return;
     }
 
     // Create socket connection with auth
-    console.log('[useSocket] Connecting to', SOCKET_URL);
     const socket = io(SOCKET_URL, {
       auth: { token },
       reconnection: true,
@@ -43,14 +41,12 @@ export function useSocket(options: UseSocketOptions = {}) {
     socketRef.current = socket;
 
     socket.on('connect', () => {
-      console.log('[useSocket] Connected');
       setIsConnected(true);
       setError(null);
       optionsRef.current.onConnect?.();
     });
 
-    socket.on('disconnect', (reason) => {
-      console.log('[useSocket] Disconnected:', reason);
+    socket.on('disconnect', () => {
       setIsConnected(false);
       optionsRef.current.onDisconnect?.();
     });
@@ -64,7 +60,6 @@ export function useSocket(options: UseSocketOptions = {}) {
 
     // Cleanup on unmount
     return () => {
-      console.log('[useSocket] Cleaning up socket connection');
       socket.disconnect();
     };
   }, []); // Empty deps - only connect once
@@ -72,8 +67,6 @@ export function useSocket(options: UseSocketOptions = {}) {
   const emit = (event: string, data?: any) => {
     if (socketRef.current?.connected) {
       socketRef.current.emit(event, data);
-    } else {
-      console.warn('[useSocket] Cannot emit, socket not connected');
     }
   };
 

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import apiService from '../../lib/apiService';
+import { io, Socket } from 'socket.io-client';
+import apiService, { getApiBaseOrigin } from '../../lib/apiService';
 import { useToast } from '../../components/Toast';
 
 export default function RequirementsTab() {
@@ -18,6 +19,12 @@ export default function RequirementsTab() {
     notes: ''
   });
   const [isSubmittingResponse, setIsSubmittingResponse] = useState(false);
+  const socketRef = useRef<Socket | null>(null);
+  
+  // Get token and WS URL for socket connection
+  const token = useMemo(() => apiService.getToken(), []);
+  const wsUrl = useMemo(() => process.env.NEXT_PUBLIC_WS_URL || getApiBaseOrigin(), []);
+  const wsPath = useMemo(() => process.env.NEXT_PUBLIC_WS_PATH || '/socket.io', []);
 
   // Audio ref for click sound
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -40,9 +47,8 @@ export default function RequirementsTab() {
   const playClickSound = () => {
     if (clickSoundRef.current) {
       clickSoundRef.current.currentTime = 0; // Reset to start
-      clickSoundRef.current.play().catch((err) => {
+      clickSoundRef.current.play().catch(() => {
         // Silently handle autoplay restrictions
-        console.log('Could not play sound:', err);
       });
     }
   };
@@ -72,6 +78,13 @@ export default function RequirementsTab() {
           myResponse: responseMap.get(req.id)
         }));
         
+        // Sort by created_at (newest first)
+        enrichedRequirements.sort((a: any, b: any) => {
+          const dateA = new Date(a.created_at || 0).getTime();
+          const dateB = new Date(b.created_at || 0).getTime();
+          return dateB - dateA;
+        });
+        
         setRequirements(enrichedRequirements);
       } else {
         setRequirements([]);
@@ -82,6 +95,86 @@ export default function RequirementsTab() {
       setIsLoadingRequirements(false);
     }
   };
+
+  // Socket connection for real-time requirement updates
+  useEffect(() => {
+    if (!token || !wsUrl) return;
+
+    const socket = io(wsUrl, { path: wsPath, auth: { token } });
+    socketRef.current = socket;
+
+    socket.on('connect', () => {
+      // Socket connected
+    });
+
+    // Listen for new requirements
+    socket.on('requirement:new', (data: any) => {
+      // Handle both formats: { requirement } or just requirement
+      const requirement = data.requirement || data;
+      
+      if (!requirement || !requirement.id) return;
+
+      // If buyer info is missing, fetch it from the API as fallback
+      const fetchBuyerIfNeeded = requirement.buyer_id && !requirement.buyer
+        ? apiService.getRequirement(requirement.id).then((res) => {
+            if (res.success && res.data && res.data.buyer) {
+              return res.data.buyer;
+            }
+            return null;
+          }).catch(() => null)
+        : Promise.resolve(requirement.buyer || null);
+
+      // Fetch manufacturer's responses to check if they've already responded
+      Promise.all([
+        fetchBuyerIfNeeded,
+        apiService.getMyRequirementResponses()
+      ]).then(([buyerInfo, myResponsesResult]) => {
+        const myResponses = myResponsesResult.success ? myResponsesResult.data : [];
+        const responseMap = new Map();
+        myResponses.forEach((resp: any) => {
+          responseMap.set(resp.requirement_id, resp);
+        });
+
+        // Check if this requirement already has a response
+        const hasResponse = responseMap.has(requirement.id);
+        const myResponse = responseMap.get(requirement.id);
+
+        // Add the new requirement to the list
+        setRequirements((prevRequirements) => {
+          // Check if requirement already exists (avoid duplicates)
+          const exists = prevRequirements.some(req => req.id === requirement.id);
+          if (exists) {
+            return prevRequirements;
+          }
+
+          // Add new requirement at the beginning with buyer info
+          const newRequirement = {
+            ...requirement,
+            buyer: buyerInfo || requirement.buyer || null,
+            hasResponse,
+            myResponse
+          };
+
+          return [newRequirement, ...prevRequirements];
+        });
+      }).catch(() => {
+        // If fetching fails, just add the requirement without response info
+        setRequirements((prevRequirements) => {
+          const exists = prevRequirements.some(req => req.id === requirement.id);
+          if (exists) {
+            return prevRequirements;
+          }
+
+          return [{ ...requirement, hasResponse: false }, ...prevRequirements];
+        });
+      });
+    });
+
+    return () => {
+      socket.disconnect();
+      socketRef.current = null;
+    };
+  }, [token, wsUrl, wsPath]);
 
   // Fetch requirements on mount
   useEffect(() => {
@@ -168,8 +261,19 @@ export default function RequirementsTab() {
         toast.success('Quote submitted successfully!');
         setShowResponseModal(false);
         setSelectedRequirement(null);
-        // Refresh requirements list
-        fetchRequirements();
+        // Update the requirement in the list to mark it as responded
+        setRequirements((prevRequirements) => {
+          return prevRequirements.map((req) => {
+            if (req.id === selectedRequirement.id) {
+              return {
+                ...req,
+                hasResponse: true,
+                myResponse: response.data
+              };
+            }
+            return req;
+          });
+        });
       } else {
         toast.error(response.message || 'Failed to submit response. Please try again.');
       }

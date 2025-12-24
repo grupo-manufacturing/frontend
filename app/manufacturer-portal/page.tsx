@@ -74,7 +74,6 @@ export default function ManufacturerPortal() {
     }
     return 'chats';
   });
-  const [totalUnreadChats, setTotalUnreadChats] = useState<number>(0);
   
   // Save active tab to localStorage whenever it changes
   useEffect(() => {
@@ -299,11 +298,6 @@ export default function ManufacturerPortal() {
                   />
                 </svg>
                 <span className="relative z-10">Chats</span>
-                {totalUnreadChats > 0 && (
-                  <span className="absolute -top-1 right-1 inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-[#22a2f2] text-white text-[10px] font-semibold px-1">
-                    {totalUnreadChats > 99 ? '99+' : totalUnreadChats}
-                  </span>
-                )}
               </button>
 
               {/* Requirements Tab */}
@@ -399,7 +393,6 @@ export default function ManufacturerPortal() {
           {/* Tab Content */}
           {activeTab === 'chats' && (
             <ChatsTab 
-              onUnreadCountChange={setTotalUnreadChats}
               activeTab={activeTab}
               onActiveTabChange={(tab) => setActiveTab(tab)}
             />

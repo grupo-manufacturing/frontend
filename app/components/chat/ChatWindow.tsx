@@ -13,7 +13,6 @@ interface ChatWindowProps {
   title?: string;
   inline?: boolean;
   selfRole?: 'buyer' | 'manufacturer';
-  onConversationRead?: (conversationId: string) => void;
   requirement?: any | null;
   aiDesign?: any | null;
 }
@@ -39,7 +38,6 @@ interface ChatMessage {
   sender_id: string;
   body: string;
   created_at?: string;
-  is_read?: boolean;
   attachments?: Attachment[];
   requirement_id?: string | null;
   ai_design_id?: string | null;
@@ -98,14 +96,11 @@ export default function ChatWindow({
   title,
   inline,
   selfRole = 'buyer',
-  onConversationRead,
   requirement,
   aiDesign
 }: ChatWindowProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
-  const [peerTyping, setPeerTyping] = useState(false);
-  const typingTimerRef = useRef<any>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const socketRef = useRef<Socket | null>(null);
@@ -135,9 +130,8 @@ export default function ChatWindow({
   const playSentSound = () => {
     if (sentSoundRef.current) {
       sentSoundRef.current.currentTime = 0; // Reset to start
-      sentSoundRef.current.play().catch((err) => {
+      sentSoundRef.current.play().catch(() => {
         // Silently handle autoplay restrictions
-        console.log('Could not play sound:', err);
       });
     }
   };
@@ -194,24 +188,6 @@ export default function ChatWindow({
   const token = useMemo(() => apiService.getToken(), []);
   const wsUrl = useMemo(() => process.env.NEXT_PUBLIC_WS_URL || getApiBaseOrigin(), []);
   const wsPath = useMemo(() => process.env.NEXT_PUBLIC_WS_PATH || '/socket.io', []);
-
-  const markConversationRead = useCallback(
-    async (latestMessageId?: string) => {
-      try {
-        await apiService.markRead(conversationId, latestMessageId ? { upToMessageId: latestMessageId } : {});
-        onConversationRead?.(conversationId);
-      } catch (err) {
-        console.error('[ChatWindow] Failed to mark conversation read:', err);
-      }
-    },
-    [conversationId, onConversationRead]
-  );
-
-  // Stable reference for markConversationRead that won't cause re-renders
-  const markConversationReadRef = useRef(markConversationRead);
-  useEffect(() => {
-    markConversationReadRef.current = markConversationRead;
-  }, [markConversationRead]);
 
   // Load negotiating requirements for this conversation as tabs
   useEffect(() => {
@@ -532,12 +508,6 @@ export default function ChatWindow({
         
         const loadedMessages = res.data.messages || [];
         setMessages(loadedMessages);
-
-        // Mark as read (use ref to avoid dependency issues)
-        const lastMessage = loadedMessages.length ? loadedMessages[loadedMessages.length - 1] : null;
-        if (lastMessage && !cancelled && mounted) {
-          markConversationReadRef.current(lastMessage.id);
-        }
       } catch (err) {
         console.error('[ChatWindow] Failed to load messages for active tab:', err);
         if (!cancelled && mounted) {
@@ -689,36 +659,13 @@ export default function ChatWindow({
       // This ensures all requirements are always visible as tabs
 
       scrollToBottom();
-      if (message.sender_role !== selfRole) {
-        await markConversationRead(message.id);
-      }
-    });
-
-    socket.on('typing', ({ conversationId: cid, isTyping: typing }) => {
-      if (cid !== conversationId) return;
-      // Disable typing indicator UI entirely
-      setPeerTyping(false);
-    });
-
-    socket.on('message:read', ({ conversationId: cid }) => {
-      if (cid !== conversationId) return;
-      // could update local read flags if desired
     });
 
     return () => {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [token, wsUrl, wsPath, conversationId, selfRole, markConversationRead]);
-
-  // Reset typing indicator when switching conversations
-  useEffect(() => {
-    setPeerTyping(false);
-    if (typingTimerRef.current) {
-      clearTimeout(typingTimerRef.current);
-      typingTimerRef.current = null;
-    }
-  }, [conversationId]);
+  }, [token, wsUrl, wsPath, conversationId, activeTabType, activeRequirementId, activeAIDesignId]);
 
   function scrollToBottom() {
     requestAnimationFrame(() => {
@@ -781,7 +728,6 @@ export default function ChatWindow({
         sender_id: 'me',
         body,
         created_at: new Date().toISOString(),
-        is_read: false,
         attachments: uploadedAttachments,
         requirement_id: requirementId || null
       };
@@ -816,10 +762,8 @@ export default function ChatWindow({
       setUploadingFiles(false);
     } finally {
       setSending(false);
-    }
-  };
-
-  // Typing indicator disabled
+      }
+    };
 
   const containerClass = inline
     ? 'h-full bg-white rounded-xl border border-gray-200 flex flex-col overflow-hidden shadow-sm'
@@ -1143,7 +1087,6 @@ export default function ChatWindow({
             </div>
           );
         })}
-        {/* Typing indicator disabled */}
       </div>
 
       <div className={inline ? 'p-3 border-t border-gray-200 bg-white' : 'p-3 border-t border-gray-200'}>

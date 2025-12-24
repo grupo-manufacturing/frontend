@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import apiService from '../../lib/apiService';
+import { io, Socket } from 'socket.io-client';
+import apiService, { getApiBaseOrigin } from '../../lib/apiService';
 import { useToast } from '../../components/Toast';
 
 export default function AIRequirements() {
@@ -18,6 +19,13 @@ export default function AIRequirements() {
   const [isSubmittingResponse, setIsSubmittingResponse] = useState(false);
   const [showPriceBreakdown, setShowPriceBreakdown] = useState(false);
   const [downloadingDesignId, setDownloadingDesignId] = useState<string | null>(null);
+
+  // Socket connection setup
+  const socketRef = useRef<Socket | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const token = useMemo(() => apiService.getToken(), []);
+  const wsUrl = useMemo(() => process.env.NEXT_PUBLIC_WS_URL || getApiBaseOrigin(), []);
+  const wsPath = useMemo(() => process.env.NEXT_PUBLIC_WS_PATH || '/socket.io', []);
 
   // Audio ref for click sound
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -181,6 +189,103 @@ export default function AIRequirements() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [manufacturerId]);
+
+  // Socket connection for real-time AI design updates
+  useEffect(() => {
+    if (!token || !wsUrl || !manufacturerId) return;
+
+    const socket = io(wsUrl, { path: wsPath, auth: { token } });
+    socketRef.current = socket;
+
+    socket.on('connect', () => {
+      setIsConnected(true);
+    });
+
+    socket.on('disconnect', () => {
+      setIsConnected(false);
+    });
+
+    socket.on('connect_error', (err) => {
+      console.error('[AIRequirements] Socket connection error:', err);
+      setIsConnected(false);
+    });
+
+    // Listen for new AI designs
+    socket.on('ai-design:new', (data: any) => {
+      // Handle both formats: { aiDesign } or just aiDesign
+      const aiDesign = data.aiDesign || data;
+      
+      if (!aiDesign || !aiDesign.id) return;
+
+      // If buyer info is missing, fetch it from the API as fallback
+      const fetchBuyerIfNeeded = aiDesign.buyer_id && !aiDesign.buyer
+        ? apiService.getAIDesign(aiDesign.id).then((res) => {
+            if (res.success && res.data && res.data.buyer) {
+              return res.data.buyer;
+            }
+            return null;
+          }).catch(() => null)
+        : Promise.resolve(aiDesign.buyer || null);
+
+      // Fetch responses to check if manufacturer has already responded
+      Promise.all([
+        fetchBuyerIfNeeded,
+        apiService.getAIDesignResponses(aiDesign.id)
+      ]).then(([buyerInfo, responsesResult]) => {
+        const responses = responsesResult.success ? responsesResult.data : [];
+        
+        // Check if current manufacturer has responded
+        const manufacturerResponse = responses.find(
+          (resp: any) => resp.manufacturer_id === manufacturerId
+        );
+
+        // Add the new AI design to the list
+        setAiDesigns((prevDesigns) => {
+          // Check if design already exists (avoid duplicates)
+          const exists = prevDesigns.some(design => design.id === aiDesign.id);
+          if (exists) {
+            return prevDesigns;
+          }
+
+          // Add new design at the beginning with buyer info and response status
+          const newDesign = {
+            ...aiDesign,
+            buyer: buyerInfo || aiDesign.buyer || null,
+            hasResponded: !!manufacturerResponse,
+            responseStatus: manufacturerResponse?.status || null,
+            responses: responses
+          };
+
+          // Sort by created_at (newest first) and add at the beginning
+          return [newDesign, ...prevDesigns].sort((a: any, b: any) => {
+            const dateA = new Date(a.created_at || 0).getTime();
+            const dateB = new Date(b.created_at || 0).getTime();
+            return dateB - dateA;
+          });
+        });
+
+        // Update responded design IDs set
+        if (manufacturerResponse) {
+          setRespondedDesignIds((prev) => new Set([...prev, aiDesign.id]));
+        }
+      }).catch(() => {
+        // If fetching fails, just add the design without response info
+        setAiDesigns((prevDesigns) => {
+          const exists = prevDesigns.some(design => design.id === aiDesign.id);
+          if (exists) {
+            return prevDesigns;
+          }
+
+          return [{ ...aiDesign, hasResponded: false }, ...prevDesigns];
+        });
+      });
+    });
+
+    return () => {
+      socket.disconnect();
+      socketRef.current = null;
+    };
+  }, [token, wsUrl, wsPath, manufacturerId]);
 
   // Handle submit response
   const handleSubmitResponse = async (e: React.FormEvent) => {

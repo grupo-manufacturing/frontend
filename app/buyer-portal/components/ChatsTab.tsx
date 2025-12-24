@@ -6,7 +6,6 @@ import ChatWindow from '../../components/chat/ChatWindow';
 import apiService from '../../lib/apiService';
 
 interface ChatsTabProps {
-  onUnreadCountChange?: (count: number) => void;
   onTabChange?: () => void;
 }
 
@@ -18,7 +17,7 @@ export interface ChatsTabRef {
   openChatFromAIDesignAccept: (aiDesign: any, response: any) => Promise<void>;
 }
 
-const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onUnreadCountChange, onTabChange }, ref) => {
+const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onTabChange }, ref) => {
   // Chat States
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [activeBuyerId, setActiveBuyerId] = useState<string | null>(null);
@@ -26,7 +25,6 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onUnreadCountChange, 
   const [activeTitle, setActiveTitle] = useState<string | undefined>(undefined);
   const [activeRequirement, setActiveRequirement] = useState<any | null>(null);
   const [activeAIDesign, setActiveAIDesign] = useState<any | null>(null);
-  const [chatUnreadClearSignal, setChatUnreadClearSignal] = useState<{ conversationId: string; at: number } | null>(null);
 
   // Helper to get buyerId from localStorage or profile (fallback)
   const getBuyerId = async () => {
@@ -83,7 +81,6 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onUnreadCountChange, 
       setActiveManufacturerId(manufacturerId);
       setActiveTitle(undefined);
       setActiveRequirement(null);
-      setChatUnreadClearSignal({ conversationId, at: Date.now() });
     }
     if (typeof window !== 'undefined') {
       window.addEventListener('open-chat', onOpenChat as any);
@@ -122,7 +119,6 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onUnreadCountChange, 
       setActiveManufacturerId(manufacturerId);
       setActiveTitle(title);
       setActiveRequirement(requirement || null);
-      setChatUnreadClearSignal({ conversationId, at: Date.now() });
     },
     openChatFromQuote: async (quote: any) => {
       try {
@@ -147,7 +143,6 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onUnreadCountChange, 
           setActiveManufacturerId(manufacturerId);
           setActiveTitle(undefined);
           setActiveRequirement(null);
-          setChatUnreadClearSignal({ conversationId, at: Date.now() });
         }
       } catch (e) {
         console.error('Failed to open chat from quote', e);
@@ -197,7 +192,6 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onUnreadCountChange, 
           setActiveManufacturerId(manufacturerId);
           setActiveTitle(manufacturerName || fallbackTitle);
           setActiveRequirement(requirement);
-          setChatUnreadClearSignal({ conversationId, at: Date.now() });
           
           // Manually save to localStorage immediately
           if (typeof window !== 'undefined') {
@@ -263,7 +257,6 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onUnreadCountChange, 
           setActiveTitle(manufacturerName || fallbackTitle);
           setActiveRequirement(requirement);
           setActiveAIDesign(null); // Clear AI design when opening requirement chat
-          setChatUnreadClearSignal({ conversationId, at: Date.now() });
           
           // Manually save to localStorage immediately
           if (typeof window !== 'undefined') {
@@ -324,7 +317,6 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onUnreadCountChange, 
           setActiveTitle(manufacturerName || fallbackTitle);
           setActiveAIDesign(aiDesign);
           setActiveRequirement(null); // Clear requirement when opening AI design chat
-          setChatUnreadClearSignal({ conversationId, at: Date.now() });
           
           // Manually save to localStorage immediately
           if (typeof window !== 'undefined') {
@@ -360,9 +352,7 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onUnreadCountChange, 
         <div className="lg:col-span-4 xl:col-span-3 h-[300px] lg:h-[calc(100vh-280px)] min-h-[400px] bg-white border border-[#22a2f2]/30 rounded-xl shadow-sm">
           <ChatList 
             selectedConversationId={activeConversationId}
-            onUnreadCountChange={onUnreadCountChange}
             selfRole="buyer"
-            clearUnreadSignal={chatUnreadClearSignal}
             onOpenConversation={(cid, bid, mid, title) => {
               setActiveConversationId(cid);
               setActiveBuyerId(bid);
@@ -370,7 +360,6 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onUnreadCountChange, 
               setActiveTitle(title);
               setActiveRequirement(null); // Clear requirement - show all messages with all tabs
               setActiveAIDesign(null); // Clear AI design - show all messages with all tabs
-              setChatUnreadClearSignal({ conversationId: cid, at: Date.now() });
             }} 
           />
         </div>
@@ -385,7 +374,6 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onUnreadCountChange, 
               title={activeTitle}
               inline
               selfRole={'buyer'}
-              onConversationRead={(cid) => setChatUnreadClearSignal({ conversationId: cid, at: Date.now() })}
               requirement={activeRequirement}
               aiDesign={activeAIDesign}
               onClose={() => {

@@ -7,7 +7,6 @@ import ChatWindow from '../../components/chat/ChatWindow';
 type TabType = 'chats' | 'requirements' | 'ai-requirements' | 'analytics' | 'profile';
 
 interface ChatsTabProps {
-  onUnreadCountChange: (count: number) => void;
   activeTab: TabType;
   onActiveTabChange?: (tab: TabType) => void;
 }
@@ -17,13 +16,12 @@ const isValidTab = (tab: string): tab is TabType => {
   return ['chats', 'requirements', 'ai-requirements', 'analytics', 'profile'].includes(tab);
 };
 
-export default function ChatsTab({ onUnreadCountChange, activeTab, onActiveTabChange }: ChatsTabProps) {
+export default function ChatsTab({ activeTab, onActiveTabChange }: ChatsTabProps) {
   // Chat state (chats inbox)
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [activeBuyerId, setActiveBuyerId] = useState<string | null>(null);
   const [activeManufacturerId, setActiveManufacturerId] = useState<string | null>(null);
   const [activeTitle, setActiveTitle] = useState<string | undefined>(undefined);
-  const [chatUnreadClearSignal, setChatUnreadClearSignal] = useState<{ conversationId: string; at: number } | null>(null);
 
   // Restore chat state from localStorage on mount
   useEffect(() => {
@@ -79,7 +77,6 @@ export default function ChatsTab({ onUnreadCountChange, activeTab, onActiveTabCh
     setActiveBuyerId(bid);
     setActiveManufacturerId(mid);
     setActiveTitle(title);
-    setChatUnreadClearSignal({ conversationId: cid, at: Date.now() });
   };
 
   const handleCloseConversation = () => {
@@ -94,7 +91,6 @@ export default function ChatsTab({ onUnreadCountChange, activeTab, onActiveTabCh
   };
 
   const handleConversationRead = (cid: string) => {
-    setChatUnreadClearSignal({ conversationId: cid, at: Date.now() });
   };
 
   return (
@@ -105,9 +101,7 @@ export default function ChatsTab({ onUnreadCountChange, activeTab, onActiveTabCh
         <div className="lg:col-span-4 xl:col-span-3 h-[300px] lg:h-[calc(100vh-280px)] min-h-[400px] bg-white border border-[#22a2f2]/30 rounded-xl shadow-sm">
           <ChatList 
             selectedConversationId={activeConversationId}
-            onUnreadCountChange={onUnreadCountChange}
             selfRole="manufacturer"
-            clearUnreadSignal={chatUnreadClearSignal}
             onOpenConversation={handleOpenConversation} 
           />
         </div>
@@ -122,7 +116,6 @@ export default function ChatsTab({ onUnreadCountChange, activeTab, onActiveTabCh
               title={activeTitle}
               inline
               selfRole={'manufacturer'}
-              onConversationRead={handleConversationRead}
               onClose={handleCloseConversation}
             />
           ) : (

@@ -131,7 +131,6 @@ export default function BuyerPortal() {
   
   
   // Chats States
-  const [totalUnreadChats, setTotalUnreadChats] = useState<number>(0);
   const chatsTabRef = useRef<ChatsTabRef>(null);
   
   // Profile display states
@@ -662,11 +661,6 @@ export default function BuyerPortal() {
                   />
                 </svg>
                 <span className="relative z-10 hidden sm:inline">Chats</span>
-              {totalUnreadChats > 0 && (
-                <span className="absolute -top-1 right-1 inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-[#22a2f2] text-white text-[10px] font-semibold px-1">
-                  {totalUnreadChats > 99 ? '99+' : totalUnreadChats}
-                </span>
-              )}
               </button>
 
               {/* Requirements Tab */}
@@ -725,7 +719,6 @@ export default function BuyerPortal() {
           {activeTab === 'chats' && (
             <ChatsTab
               ref={chatsTabRef}
-              onUnreadCountChange={setTotalUnreadChats}
               onTabChange={() => setActiveTab('chats')}
             />
           )}

@@ -1,30 +1,30 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import apiService from '../../lib/apiService';
-import { useSocket } from '../../hooks/useSocket';
+import { useEffect, useState, useRef, useMemo } from 'react';
+import { io, Socket } from 'socket.io-client';
+import apiService, { getApiBaseOrigin } from '../../lib/apiService';
 
 interface ChatListProps {
   onOpenConversation: (conversationId: string, buyerId: string, manufacturerId: string, title?: string) => void;
   selectedConversationId?: string | null;
-  onUnreadCountChange?: (totalUnread: number) => void;
   selfRole?: 'buyer' | 'manufacturer';
-  clearUnreadSignal?: { conversationId: string; at: number } | null;
 }
 
 export default function ChatList({
   onOpenConversation,
   selectedConversationId,
-  onUnreadCountChange,
-  selfRole = 'buyer',
-  clearUnreadSignal
+  selfRole = 'buyer'
 }: ChatListProps) {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const socketRef = useRef<Socket | null>(null);
   
-  // Real-time socket connection
-  const { isConnected, on, off } = useSocket();
+  // Get token and WS URL (same pattern as ChatWindow)
+  const token = useMemo(() => apiService.getToken(), []);
+  const wsUrl = useMemo(() => process.env.NEXT_PUBLIC_WS_URL || getApiBaseOrigin(), []);
+  const wsPath = useMemo(() => process.env.NEXT_PUBLIC_WS_PATH || '/socket.io', []);
 
   const loadConversations = async () => {
     try {
@@ -45,61 +45,70 @@ export default function ChatList({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Listen for real-time message updates
+  // Use ref to store the latest loadConversations function
+  const loadConversationsRef = useRef(loadConversations);
   useEffect(() => {
-    if (!isConnected) return;
+    loadConversationsRef.current = loadConversations;
+  }, [loadConversations]);
 
-    const handleNewMessage = (data: any) => {
-      const { conversationSummary, message } = data;
-      
-      if (conversationSummary) {
-        setItems((prevItems) => {
-          // Find if conversation exists
-          const existingIndex = prevItems.findIndex((item) => item.id === conversationSummary.id);
-          
-          if (existingIndex !== -1) {
-            // Update existing conversation
-            const updatedItems = [...prevItems];
-            const updatedConversation = {
-              ...updatedItems[existingIndex],
-              last_message_at: conversationSummary.last_message_at,
-              last_message_text: conversationSummary.last_message_text,
-              is_archived: conversationSummary.is_archived,
-            };
+  // Socket connection for real-time updates (same pattern as ChatWindow)
+  useEffect(() => {
+    if (!token || !wsUrl) return;
 
-            if (message) {
-              const isSelfMessage = message.sender_role === selfRole;
-              const isActiveConversation = selectedConversationId === message.conversation_id;
-              const currentUnread = Number(updatedConversation.unread_count || 0);
+    const socket = io(wsUrl, { path: wsPath, auth: { token } });
+    socketRef.current = socket;
 
-              updatedConversation.unread_count = isSelfMessage || isActiveConversation
-                ? 0
-                : currentUnread + 1;
-            }
+    socket.on('connect', () => {
+      setIsConnected(true);
+    });
 
-            updatedItems[existingIndex] = updatedConversation;
-            
-            // Move to top (sort by last_message_at)
-            return updatedItems.sort((a, b) => {
-              const dateA = new Date(a.last_message_at || 0).getTime();
-              const dateB = new Date(b.last_message_at || 0).getTime();
-              return dateB - dateA;
-            });
-          } else {
-            // New conversation - reload to fetch it with peer info
-            setTimeout(() => loadConversations(), 100);
-            return prevItems;
-          }
-        });
+    socket.on('disconnect', () => {
+      setIsConnected(false);
+    });
+
+    // Listen for new messages to update conversation list
+    socket.on('message:new', ({ message }) => {
+      if (!message || !message.conversation_id) {
+        return;
       }
-    };
 
-    on('message:new', handleNewMessage);
+      setItems((prevItems) => {
+        // Find if conversation exists
+        const existingIndex = prevItems.findIndex((item) => item.id === message.conversation_id);
+        
+        if (existingIndex !== -1) {
+          // Update existing conversation
+          const updatedItems = [...prevItems];
+          const messageText = message.body || (message.attachments && message.attachments.length > 0 ? '[Attachment]' : '');
+          const messageTime = message.created_at || new Date().toISOString();
+          
+          const updatedConversation = {
+            ...updatedItems[existingIndex],
+            last_message_at: messageTime,
+            last_message_text: messageText,
+          };
+
+          updatedItems[existingIndex] = updatedConversation;
+          
+          // Move to top (sort by last_message_at)
+          return updatedItems.sort((a, b) => {
+            const dateA = new Date(a.last_message_at || 0).getTime();
+            const dateB = new Date(b.last_message_at || 0).getTime();
+            return dateB - dateA;
+          });
+        } else {
+          // New conversation - reload to fetch it with peer info
+          setTimeout(() => loadConversationsRef.current(), 100);
+          return prevItems;
+        }
+      });
+    });
 
     return () => {
-      off('message:new', handleNewMessage);
+      socket.disconnect();
+      socketRef.current = null;
     };
-  }, [isConnected, on, off, selfRole, selectedConversationId]);
+  }, [token, wsUrl, wsPath]);
 
   // Helper to format relative time
   const formatTime = (timestamp: string | null) => {
@@ -118,37 +127,6 @@ export default function ChatList({
     return date.toLocaleDateString();
   };
 
-  // Whenever items change, inform parent about total unread
-  useEffect(() => {
-    if (!onUnreadCountChange) return;
-    const total = items.reduce((sum, conversation) => sum + (conversation.unread_count || 0), 0);
-    onUnreadCountChange(total);
-  }, [items, onUnreadCountChange]);
-
-  // Clear unread counts when requested externally
-  useEffect(() => {
-    if (!clearUnreadSignal?.conversationId) return;
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === clearUnreadSignal.conversationId
-          ? { ...item, unread_count: 0 }
-          : item
-      )
-    );
-  }, [clearUnreadSignal]);
-
-  // Also clear unread count when the selected conversation changes
-  useEffect(() => {
-    if (!selectedConversationId) return;
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === selectedConversationId
-          ? { ...item, unread_count: 0 }
-          : item
-      )
-    );
-  }, [selectedConversationId]);
-
   return (
     <div className="h-full flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
       {/* Header */}
@@ -162,15 +140,6 @@ export default function ChatList({
             </div>
           )}
         </div>
-        <button 
-          onClick={loadConversations}
-          className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors group"
-          title="Refresh conversations"
-        >
-          <svg className="w-4 h-4 text-gray-500 group-hover:text-black transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-        </button>
       </div>
 
       {/* Conversation List */}
@@ -220,7 +189,6 @@ export default function ChatList({
             : (c.last_message_at ? '[Attachment]' : 'No messages yet');
           const timeAgo = formatTime(c.last_message_at);
           const isActive = selectedConversationId === c.id;
-          const unreadCount = Number(c.unread_count || 0);
           
           return (
             <button 
@@ -252,16 +220,9 @@ export default function ChatList({
                     }`}>
                       {title}
                     </h4>
-                    <div className="flex items-center gap-2 ml-2 flex-shrink-0">
-                      {timeAgo && (
-                        <span className="text-xs text-gray-500">{timeAgo}</span>
-                      )}
-                      {unreadCount > 0 && (
-                        <span className="inline-flex items-center justify-center rounded-full bg-[#22a2f2] text-white text-[10px] font-semibold min-w-[18px] h-[18px] px-1">
-                          {unreadCount > 99 ? '99+' : unreadCount}
-                        </span>
-                      )}
-                    </div>
+                    {timeAgo && (
+                      <span className="text-xs text-gray-500 ml-2 flex-shrink-0">{timeAgo}</span>
+                    )}
                   </div>
                   <p className={`text-xs truncate ${
                     isActive ? 'text-gray-600' : 'text-gray-500'
