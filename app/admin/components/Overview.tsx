@@ -1,13 +1,13 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { Buyer, Manufacturer, Order } from '../types';
-import { formatDate } from '../utils';
+import type { Buyer, Manufacturer, Order, AIDesign } from '../types';
 
 interface OverviewProps {
   buyers: Buyer[];
   manufacturers: Manufacturer[];
   orders: Order[];
+  aiDesigns: AIDesign[];
   isLoadingData: boolean;
   lastUpdated: string | null;
 }
@@ -16,6 +16,7 @@ export default function Overview({
   buyers,
   manufacturers,
   orders,
+  aiDesigns,
   isLoadingData,
   lastUpdated
 }: OverviewProps) {
@@ -25,11 +26,34 @@ export default function Overview({
     [orders]
   );
 
+  // Calculate revenue from accepted AI Design responses
+  const acceptedAIRevenue = useMemo(() => {
+    let total = 0;
+    aiDesigns.forEach((design) => {
+      // Check if design has responses (assuming responses are included in the design object)
+      if (design.responses && Array.isArray(design.responses)) {
+        design.responses.forEach((response: any) => {
+          if (response.status === 'accepted') {
+            // Calculate total price: quoted_price or (price_per_unit * quantity)
+            const price = response.quoted_price || 
+              (response.price_per_unit && response.quantity 
+                ? response.price_per_unit * response.quantity 
+                : 0);
+            total += price;
+          }
+        });
+      }
+    });
+    return total;
+  }, [aiDesigns]);
+
   const totalRevenue = useMemo(() => {
-    return acceptedOrders.reduce((sum, order) => {
+    // Sum of accepted orders revenue + accepted AI Design responses revenue
+    const ordersRevenue = acceptedOrders.reduce((sum, order) => {
       return sum + (order.quoted_price || 0);
     }, 0);
-  }, [acceptedOrders]);
+    return ordersRevenue + acceptedAIRevenue;
+  }, [acceptedOrders, acceptedAIRevenue]);
 
   const averageOrderValue = useMemo(() => {
     if (acceptedOrders.length === 0) return 0;

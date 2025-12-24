@@ -10,6 +10,7 @@ interface MyRequirementsProps {
   fetchRequirements: () => Promise<void>;
   onNegotiateResponse?: (requirement: any, response: any) => Promise<void>;
   onSwitchToCustomQuote?: () => void;
+  onAcceptRequirementResponse?: (requirement: any, response: any) => Promise<void>;
   onAcceptAIDesignResponse?: (aiDesign: any, response: any) => Promise<void>;
 }
 
@@ -19,6 +20,7 @@ export default function MyRequirements({
   fetchRequirements,
   onNegotiateResponse,
   onSwitchToCustomQuote,
+  onAcceptRequirementResponse,
   onAcceptAIDesignResponse
 }: MyRequirementsProps) {
   const toast = useToast();
@@ -67,18 +69,24 @@ export default function MyRequirements({
   };
 
   // Handle Accept/Reject Response
-  const handleUpdateResponseStatus = async (responseId: string, status: 'accepted' | 'rejected', manufacturerName: string) => {
+  const handleUpdateResponseStatus = async (responseId: string, status: 'accepted' | 'rejected', manufacturerName: string, requirement?: any, response?: any) => {
     // Play click sound when accepting or rejecting
     playClickSound();
     try {
-      const response = await apiService.updateRequirementResponseStatus(responseId, status);
+      const apiResponse = await apiService.updateRequirementResponseStatus(responseId, status);
       
-      if (response.success) {
+      if (apiResponse.success) {
         toast.success(`Quote ${status} successfully!`);
+        
+        // If accepting and handler is provided, open chat
+        if (status === 'accepted' && onAcceptRequirementResponse && requirement && response) {
+          await onAcceptRequirementResponse(requirement, response);
+        }
+        
         // Refresh requirements to show updated status
         fetchRequirements();
       } else {
-        toast.error(response.message || `Failed to ${status} quote. Please try again.`);
+        toast.error(apiResponse.message || `Failed to ${status} quote. Please try again.`);
       }
     } catch (error: any) {
       toast.error(error.message || `Failed to ${status} quote. Please try again.`);
@@ -392,7 +400,7 @@ export default function MyRequirements({
                             )}
                             {/* Accept and Reject buttons - show when status is null, 'submitted', or 'negotiating' */}
                             <button
-                              onClick={() => handleUpdateResponseStatus(response.id, 'accepted', response.manufacturer?.unit_name || 'this manufacturer')}
+                              onClick={() => handleUpdateResponseStatus(response.id, 'accepted', response.manufacturer?.unit_name || 'this manufacturer', req, response)}
                               className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-all"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

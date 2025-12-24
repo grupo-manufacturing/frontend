@@ -310,6 +310,19 @@ export default function BuyerPortal() {
     }, 50);
   };
 
+  const handleAcceptRequirementResponse = async (requirement: any, response: any) => {
+    // Switch to chats tab first to ensure ChatsTab is mounted
+    setActiveTab('chats');
+    
+    // Wait a moment for the tab to switch and component to mount
+    setTimeout(async () => {
+      if (chatsTabRef.current) {
+        // openChatFromRequirementAccept will set up the chat state with Requirements tab
+        await chatsTabRef.current.openChatFromRequirementAccept(requirement, response);
+      }
+    }, 50);
+  };
+
   const handleAcceptAIDesignResponse = async (aiDesign: any, response: any) => {
     // Switch to chats tab first to ensure ChatsTab is mounted
     setActiveTab('chats');
@@ -317,7 +330,7 @@ export default function BuyerPortal() {
     // Wait a moment for the tab to switch and component to mount
     setTimeout(async () => {
       if (chatsTabRef.current) {
-        // openChatFromAIDesignAccept will set up the chat state
+        // openChatFromAIDesignAccept will set up the chat state with AI Requirements tab
         await chatsTabRef.current.openChatFromAIDesignAccept(aiDesign, response);
       }
     }, 50);
@@ -723,6 +736,7 @@ export default function BuyerPortal() {
               fetchRequirements={fetchRequirements}
               onNegotiateResponse={handleNegotiateResponse}
               onSwitchToCustomQuote={() => setActiveTab('custom-quote')}
+              onAcceptRequirementResponse={handleAcceptRequirementResponse}
               onAcceptAIDesignResponse={handleAcceptAIDesignResponse}
             />
           )}

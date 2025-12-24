@@ -14,6 +14,7 @@ export interface ChatsTabRef {
   openChat: (conversationId: string, buyerId: string, manufacturerId: string, title?: string, requirement?: any) => void;
   openChatFromQuote: (quote: any) => Promise<void>;
   openChatFromNegotiation: (requirement: any, response: any) => Promise<void>;
+  openChatFromRequirementAccept: (requirement: any, response: any) => Promise<void>;
   openChatFromAIDesignAccept: (aiDesign: any, response: any) => Promise<void>;
 }
 
@@ -219,6 +220,71 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onUnreadCountChange, 
         }
       } catch (error: any) {
         console.error('Failed to open chat from negotiation:', error);
+        if (onTabChange) onTabChange();
+        alert(error.message || 'Failed to open chat. Please try again.');
+      }
+    },
+    openChatFromRequirementAccept: async (requirement: any, response: any) => {
+      const manufacturerIdRaw = response?.manufacturer_id || response?.manufacturer?.id;
+      const manufacturerId = manufacturerIdRaw ? String(manufacturerIdRaw) : null;
+
+      if (!manufacturerId) {
+        alert('Unable to determine the manufacturer for this response. Please try again later.');
+        return;
+      }
+
+      try {
+        // Get buyerId first
+        const buyerId = await getBuyerId();
+
+        if (!buyerId) {
+          if (onTabChange) onTabChange();
+          alert('We could not load your buyer profile. Please refresh the page and try again. If the issue persists, please contact support.');
+          return;
+        }
+
+        // Note: We don't update the response status here since it's already 'accepted'
+        // The status was already updated by handleUpdateResponseStatus before calling this method
+
+        const ensureRes = await apiService.ensureConversation(buyerId, manufacturerId);
+        const conversationId = ensureRes?.data?.conversation?.id;
+
+        if (conversationId) {
+          const manufacturerName = response?.manufacturer?.unit_name;
+          const requirementSummary = requirement?.requirement_text;
+          const fallbackTitle = requirementSummary
+            ? requirementSummary.slice(0, 60) + (requirementSummary.length > 60 ? '...' : '')
+            : undefined;
+
+          // Set state first
+          setActiveConversationId(conversationId);
+          setActiveBuyerId(buyerId);
+          setActiveManufacturerId(manufacturerId);
+          setActiveTitle(manufacturerName || fallbackTitle);
+          setActiveRequirement(requirement);
+          setActiveAIDesign(null); // Clear AI design when opening requirement chat
+          setChatUnreadClearSignal({ conversationId, at: Date.now() });
+          
+          // Manually save to localStorage immediately
+          if (typeof window !== 'undefined') {
+            const chatState = {
+              conversationId,
+              buyerId,
+              manufacturerId,
+              title: manufacturerName || fallbackTitle,
+              requirement: requirement
+            };
+            localStorage.setItem('buyer_chat_state', JSON.stringify(chatState));
+          }
+          
+          // The state is set and saved, so the chat window should open with Requirements tab
+        } else {
+          console.error('Failed to create or get conversation');
+          if (onTabChange) onTabChange();
+          alert('Failed to create conversation. Please try again.');
+        }
+      } catch (error: any) {
+        console.error('Failed to open chat from requirement accept:', error);
         if (onTabChange) onTabChange();
         alert(error.message || 'Failed to open chat. Please try again.');
       }

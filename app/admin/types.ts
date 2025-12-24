@@ -43,6 +43,22 @@ export interface Order {
   updated_at: string;
 }
 
+export interface AIDesignResponse {
+  id: string;
+  ai_design_id: string;
+  manufacturer_id: string;
+  price_per_unit?: number;
+  quantity?: number;
+  quoted_price?: number;
+  status: string;
+  created_at: string;
+  manufacturer?: {
+    id: string;
+    unit_name?: string;
+    phone_number: string;
+  };
+}
+
 export interface AIDesign {
   id: string;
   buyer_id: string;
@@ -61,8 +77,10 @@ export interface AIDesign {
     full_name?: string;
     phone_number: string;
   };
+  responses?: AIDesignResponse[];
 }
 
 export type UserType = 'buyers' | 'manufacturers';
+export type OrderType = 'custom' | 'ai';
 export type OrderStatusFilter = 'all' | 'accepted' | 'rejected' | 'submitted';
 

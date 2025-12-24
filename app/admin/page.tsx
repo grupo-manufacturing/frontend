@@ -73,9 +73,11 @@ export default function AdminPortal() {
     if (step === 'dashboard' && !isCheckingAuth) {
       if (activeView === 'overview') {
         void loadOrders();
+        void loadAIDesigns(); // Load AI designs with responses for revenue calculation
       }
       if (activeView === 'orders') {
         void loadOrders();
+        void loadAIDesigns(); // Load AI designs with responses for AI Orders tab
       }
       if (activeView === 'ai-designs') {
         void loadAIDesigns();
@@ -137,7 +139,7 @@ export default function AdminPortal() {
     setIsLoadingData(true);
     setErrorMessage('');
     try {
-      const filters: any = { sortBy: 'created_at', sortOrder: 'desc' };
+      const filters: any = { sortBy: 'created_at', sortOrder: 'desc', include_responses: true };
       const aiDesignsRes = await apiService.getAIDesigns(filters);
       setAiDesigns(aiDesignsRes.data || []);
       setLastUpdated(new Date().toISOString());
@@ -328,6 +330,7 @@ export default function AdminPortal() {
             buyers={buyers}
             manufacturers={manufacturers}
             orders={orders}
+            aiDesigns={aiDesigns}
             isLoadingData={isLoadingData}
             lastUpdated={lastUpdated}
           />
@@ -336,6 +339,7 @@ export default function AdminPortal() {
         {!isLoadingData && isOrdersView && (
           <Orders
             orders={orders}
+            aiDesigns={aiDesigns}
             isLoadingData={isLoadingData}
             lastUpdated={lastUpdated}
           />

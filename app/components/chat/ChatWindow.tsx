@@ -604,6 +604,26 @@ export default function ChatWindow({
     }
   }, [aiDesign?.id]);
 
+  // Ensure the requirement from prop is selected when tabs load
+  useEffect(() => {
+    if (requirement?.id) {
+      if (requirementTabs.length > 0) {
+        // Verify the requirement exists in the loaded tabs and ensure it's selected
+        const requirementExists = requirementTabs.some(r => r.id === requirement.id);
+        if (requirementExists && activeRequirementId !== requirement.id) {
+          setActiveRequirementId(requirement.id);
+          setActiveTabType('requirement');
+          setContentType('requirements');
+        }
+      } else if (activeRequirementId !== requirement.id) {
+        // Tabs haven't loaded yet, but we have the prop - ensure selection is set
+        setActiveRequirementId(requirement.id);
+        setActiveTabType('requirement');
+        setContentType('requirements');
+      }
+    }
+  }, [requirement?.id, requirementTabs.length, activeRequirementId]);
+
   // Ensure the AI design from prop is selected when tabs load
   useEffect(() => {
     if (aiDesign?.id) {
@@ -870,7 +890,7 @@ export default function ChatWindow({
       <div className={headerClass}>
         <div className={titleClass}>{title || 'Chat'}</div>
         <div className="flex items-center gap-2">
-          {/* Toggle between Requirements and Designs */}
+          {/* Toggle between Requirements and AI Requirements */}
           {conversationId && (
             <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
               <button
@@ -899,9 +919,9 @@ export default function ChatWindow({
                     ? 'bg-white text-[#22a2f2] shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
-                title="AI Designs"
+                title="AI Requirements"
               >
-                Designs
+                AI Requirements
               </button>
             </div>
           )}
