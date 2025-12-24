@@ -13,6 +13,8 @@ interface MyRequirementsProps {
   onSwitchToCustomQuote?: () => void;
   onAcceptRequirementResponse?: (requirement: any, response: any) => Promise<void>;
   onAcceptAIDesignResponse?: (aiDesign: any, response: any) => Promise<void>;
+  unseenRequirementResponsesCount?: number;
+  onActiveSubTabChange?: (subTab: 'custom' | 'ai') => void;
 }
 
 export default function MyRequirements({
@@ -22,7 +24,9 @@ export default function MyRequirements({
   onNegotiateResponse,
   onSwitchToCustomQuote,
   onAcceptRequirementResponse,
-  onAcceptAIDesignResponse
+  onAcceptAIDesignResponse,
+  unseenRequirementResponsesCount = 0,
+  onActiveSubTabChange
 }: MyRequirementsProps) {
   const toast = useToast();
   const [negotiatingResponseId, setNegotiatingResponseId] = useState<string | null>(null);
@@ -145,6 +149,13 @@ export default function MyRequirements({
     }
   }, [activeSubTab]);
 
+  // Notify parent when activeSubTab changes
+  useEffect(() => {
+    if (onActiveSubTabChange) {
+      onActiveSubTabChange(activeSubTab);
+    }
+  }, [activeSubTab, onActiveSubTabChange]);
+
   // Socket connection for real-time response updates
   useEffect(() => {
     if (!token || !wsUrl) return;
@@ -257,6 +268,11 @@ export default function MyRequirements({
             }`}
           >
             Custom Requirements
+            {activeSubTab !== 'custom' && unseenRequirementResponsesCount > 0 && (
+              <span className="absolute -top-1 right-1 inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-[#22a2f2] text-white text-[10px] font-semibold px-1">
+                {unseenRequirementResponsesCount > 99 ? '99+' : unseenRequirementResponsesCount}
+              </span>
+            )}
           </button>
           <button
             onClick={() => setActiveSubTab('ai')}

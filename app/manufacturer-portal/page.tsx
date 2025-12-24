@@ -2,8 +2,9 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
-import apiService from '../lib/apiService';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { io, Socket } from 'socket.io-client';
+import apiService, { getApiBaseOrigin } from '../lib/apiService';
 import RequirementsTab from './components/RequirementsTab';
 import AIRequirements from './components/AIRequirements';
 import AnalyticsTab from './components/AnalyticsTab';
@@ -81,10 +82,80 @@ export default function ManufacturerPortal() {
       localStorage.setItem('manufacturer_active_tab', activeTab);
     }
   }, [activeTab, step]);
-  
 
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
   const [displayName, setDisplayName] = useState('');
+  const [unseenRequirementsCount, setUnseenRequirementsCount] = useState(0);
+  const [unseenAIRequirementsCount, setUnseenAIRequirementsCount] = useState(0);
+  const socketRef = useRef<Socket | null>(null);
+  const activeTabRef = useRef<TabType>(activeTab);
+  
+  // Get WS URL for socket connection
+  const wsUrl = useMemo(() => process.env.NEXT_PUBLIC_WS_URL || getApiBaseOrigin(), []);
+  const wsPath = useMemo(() => process.env.NEXT_PUBLIC_WS_PATH || '/socket.io', []);
+
+  // Keep activeTabRef in sync with activeTab state
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+  }, [activeTab]);
+
+  // Clear unseen requirements count when Requirements tab is viewed
+  useEffect(() => {
+    if (activeTab === 'requirements') {
+      setUnseenRequirementsCount(0);
+    }
+  }, [activeTab]);
+
+  // Clear unseen AI requirements count when AI Requirements tab is viewed
+  useEffect(() => {
+    if (activeTab === 'ai-requirements') {
+      setUnseenAIRequirementsCount(0);
+    }
+  }, [activeTab]);
+
+  // Socket connection for real-time notifications (runs regardless of active tab)
+  useEffect(() => {
+    // Only connect when on dashboard
+    if (step !== 'dashboard' || !wsUrl) return;
+
+    // Get token fresh each time (not memoized to ensure we have the latest)
+    const token = apiService.getToken();
+    if (!token) return;
+
+    const socket = io(wsUrl, { path: wsPath, auth: { token } });
+    socketRef.current = socket;
+
+    socket.on('connect', () => {
+      // Socket connected for notifications
+    });
+
+    // Listen for new requirements - increment counter if not on requirements tab
+    socket.on('requirement:new', (data: any) => {
+      const requirement = data.requirement || data;
+      if (!requirement || !requirement.id) return;
+
+      // Only increment if not currently viewing the Requirements tab
+      if (activeTabRef.current !== 'requirements') {
+        setUnseenRequirementsCount((prev) => prev + 1);
+      }
+    });
+
+    // Listen for new AI designs - increment counter if not on AI requirements tab
+    socket.on('ai-design:new', (data: any) => {
+      const aiDesign = data.aiDesign || data;
+      if (!aiDesign || !aiDesign.id) return;
+
+      // Only increment if not currently viewing the AI Requirements tab
+      if (activeTabRef.current !== 'ai-requirements') {
+        setUnseenAIRequirementsCount((prev) => prev + 1);
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+      socketRef.current = null;
+    };
+  }, [step, wsUrl, wsPath]);
 
   const handleLogout = async () => {
     // Show loading immediately
@@ -326,6 +397,11 @@ export default function ManufacturerPortal() {
                   />
                 </svg>
                 <span className="relative z-10">Requirements</span>
+                {activeTab !== 'requirements' && unseenRequirementsCount > 0 && (
+                  <span className="absolute -top-1 right-1 inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-[#22a2f2] text-white text-[10px] font-semibold px-1">
+                    {unseenRequirementsCount > 99 ? '99+' : unseenRequirementsCount}
+                  </span>
+                )}
               </button>
 
               {/* AI Requirements Tab */}
@@ -354,6 +430,11 @@ export default function ManufacturerPortal() {
                   />
                 </svg>
                 <span className="relative z-10">AI Requirements</span>
+                {activeTab !== 'ai-requirements' && unseenAIRequirementsCount > 0 && (
+                  <span className="absolute -top-1 right-1 inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-[#22a2f2] text-white text-[10px] font-semibold px-1">
+                    {unseenAIRequirementsCount > 99 ? '99+' : unseenAIRequirementsCount}
+                  </span>
+                )}
               </button>
 
               {/* Analytics Tab */}

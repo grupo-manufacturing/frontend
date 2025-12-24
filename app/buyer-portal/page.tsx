@@ -2,8 +2,9 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useEffect, useRef } from 'react';
-import apiService from '../lib/apiService';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { io, Socket } from 'socket.io-client';
+import apiService, { getApiBaseOrigin } from '../lib/apiService';
 import CustomQuote from './components/CustomQuote';
 import MyOrders from './components/MyOrders';
 import ChatsTab, { ChatsTabRef } from './components/ChatsTab';
@@ -124,11 +125,68 @@ export default function BuyerPortal() {
       localStorage.setItem('buyer_active_tab', activeTab);
     }
   }, [activeTab, step]);
-  
+
   // Requirements States
   const [requirements, setRequirements] = useState<any[]>([]);
   const [isLoadingRequirements, setIsLoadingRequirements] = useState(false);
+  const [unseenRequirementResponsesCount, setUnseenRequirementResponsesCount] = useState(0);
   
+  // Socket connection for real-time notifications
+  const socketRef = useRef<Socket | null>(null);
+  const activeTabRef = useRef<TabType>(activeTab);
+  const activeSubTabRef = useRef<'custom' | 'ai' | null>(null);
+  
+  // Get WS URL for socket connection
+  const wsUrl = useMemo(() => process.env.NEXT_PUBLIC_WS_URL || getApiBaseOrigin(), []);
+  const wsPath = useMemo(() => process.env.NEXT_PUBLIC_WS_PATH || '/socket.io', []);
+
+  // Keep activeTabRef in sync with activeTab state
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+  }, [activeTab]);
+
+  // Clear unseen requirement responses count when Requirements tab is viewed
+  useEffect(() => {
+    if (activeTab === 'requirements') {
+      setUnseenRequirementResponsesCount(0);
+    }
+  }, [activeTab]);
+
+  // Socket connection for real-time notifications (runs regardless of active tab)
+  useEffect(() => {
+    // Only connect when on dashboard
+    if (step !== 'dashboard' || !wsUrl) return;
+
+    // Get token fresh each time (not memoized to ensure we have the latest)
+    const token = apiService.getToken();
+    if (!token) return;
+
+    const socket = io(wsUrl, { path: wsPath, auth: { token } });
+    socketRef.current = socket;
+
+    socket.on('connect', () => {
+      // Socket connected for notifications
+    });
+
+    // Listen for new requirement responses - increment counter if not on requirements tab or not on custom subtab
+    socket.on('requirement:response:new', (data: any) => {
+      const response = data.response || data;
+      if (!response || !response.requirement_id) return;
+
+      // Only increment if not currently viewing the Requirements tab, or if viewing Requirements tab but not on Custom Requirements subtab
+      const isOnRequirementsTab = activeTabRef.current === 'requirements';
+      const isOnCustomSubTab = activeSubTabRef.current === 'custom';
+      
+      if (!isOnRequirementsTab || (isOnRequirementsTab && !isOnCustomSubTab)) {
+        setUnseenRequirementResponsesCount((prev) => prev + 1);
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+      socketRef.current = null;
+    };
+  }, [step, wsUrl, wsPath]);
   
   // Chats States
   const chatsTabRef = useRef<ChatsTabRef>(null);
@@ -689,6 +747,11 @@ export default function BuyerPortal() {
                   />
                 </svg>
                 <span className="relative z-10 hidden sm:inline">Requirements</span>
+                {activeTab !== 'requirements' && unseenRequirementResponsesCount > 0 && (
+                  <span className="absolute -top-1 right-1 inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-[#22a2f2] text-white text-[10px] font-semibold px-1">
+                    {unseenRequirementResponsesCount > 99 ? '99+' : unseenRequirementResponsesCount}
+                  </span>
+                )}
               </button>
 
             </div>
@@ -731,6 +794,14 @@ export default function BuyerPortal() {
               onSwitchToCustomQuote={() => setActiveTab('custom-quote')}
               onAcceptRequirementResponse={handleAcceptRequirementResponse}
               onAcceptAIDesignResponse={handleAcceptAIDesignResponse}
+              unseenRequirementResponsesCount={unseenRequirementResponsesCount}
+              onActiveSubTabChange={(subTab) => {
+                activeSubTabRef.current = subTab;
+                // Clear count when Custom Requirements subtab is viewed
+                if (subTab === 'custom') {
+                  setUnseenRequirementResponsesCount(0);
+                }
+              }}
             />
           )}
           {activeTab === 'generate-designs' && (
