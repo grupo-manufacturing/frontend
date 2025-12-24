@@ -281,6 +281,45 @@ export default function AIRequirements() {
       });
     });
 
+    // Listen for AI design response status updates (when buyer accepts/rejects)
+    socket.on('ai-design:response:status:updated', async (data: any) => {
+      const response = data.response || data;
+      const status = data.status;
+      
+      if (!response || !response.ai_design_id || !status) return;
+
+      // Update the AI design's response status in the list
+      setAiDesigns((prevDesigns) => {
+        return prevDesigns.map((design) => {
+          if (design.id === response.ai_design_id) {
+            // Check if this is the manufacturer's response
+            const isMyResponse = response.manufacturer_id === manufacturerId;
+            
+            if (isMyResponse) {
+              // Update the response status for this manufacturer's response
+              return {
+                ...design,
+                hasResponded: true,
+                responseStatus: status
+              };
+            }
+          }
+          return design;
+        });
+      });
+
+      // Update responded design IDs set if status is accepted or rejected
+      if (status === 'accepted' || status === 'rejected') {
+        setRespondedDesignIds((prev) => {
+          const newSet = new Set(prev);
+          if (response.ai_design_id) {
+            newSet.add(response.ai_design_id);
+          }
+          return newSet;
+        });
+      }
+    });
+
     return () => {
       socket.disconnect();
       socketRef.current = null;

@@ -762,8 +762,8 @@ export default function ChatWindow({
       setUploadingFiles(false);
     } finally {
       setSending(false);
-      }
-    };
+    }
+  };
 
   const containerClass = inline
     ? 'h-full bg-white rounded-xl border border-gray-200 flex flex-col overflow-hidden shadow-sm'

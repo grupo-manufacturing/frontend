@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import apiService from '../../lib/apiService';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { io, Socket } from 'socket.io-client';
+import apiService, { getApiBaseOrigin } from '../../lib/apiService';
 import { useToast } from '../../components/Toast';
 
 interface MyRequirementsProps {
@@ -32,6 +33,12 @@ export default function MyRequirements({
   const [isLoadingAiDesigns, setIsLoadingAiDesigns] = useState(false);
   const [updatingAiResponseId, setUpdatingAiResponseId] = useState<string | null>(null);
   const [updatingAiResponseAction, setUpdatingAiResponseAction] = useState<'accept' | 'reject' | null>(null);
+
+  // Socket connection setup
+  const socketRef = useRef<Socket | null>(null);
+  const token = useMemo(() => apiService.getToken(), []);
+  const wsUrl = useMemo(() => process.env.NEXT_PUBLIC_WS_URL || getApiBaseOrigin(), []);
+  const wsPath = useMemo(() => process.env.NEXT_PUBLIC_WS_PATH || '/socket.io', []);
 
   // Audio ref for click sound
   const clickSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -137,6 +144,62 @@ export default function MyRequirements({
       fetchAiDesigns();
     }
   }, [activeSubTab]);
+
+  // Socket connection for real-time response updates
+  useEffect(() => {
+    if (!token || !wsUrl) return;
+
+    const socket = io(wsUrl, { path: wsPath, auth: { token } });
+    socketRef.current = socket;
+
+    socket.on('connect', () => {
+      // Socket connected
+    });
+
+    socket.on('disconnect', () => {
+      // Socket disconnected
+    });
+
+    socket.on('connect_error', (err) => {
+      console.error('[MyRequirements] Socket connection error:', err);
+    });
+
+    // Listen for new requirement responses
+    socket.on('requirement:response:new', async (data: any) => {
+      const response = data.response || data;
+      
+      if (!response || !response.requirement_id || !response.requirement) return;
+
+      // Check if this requirement belongs to the current buyer
+      const buyerId = localStorage.getItem('buyerId');
+      if (buyerId && response.requirement.buyer_id === buyerId) {
+        // Refresh requirements to show the new response
+        fetchRequirements();
+      }
+    });
+
+    // Listen for new AI design responses
+    socket.on('ai-design:response:new', async (data: any) => {
+      const response = data.response || data;
+      
+      if (!response || !response.ai_design_id || !response.ai_design) return;
+
+      // Check if this AI design belongs to the current buyer
+      const buyerId = localStorage.getItem('buyerId');
+      if (buyerId && response.ai_design.buyer_id === buyerId) {
+        // Only refresh if AI subtab is active
+        if (activeSubTab === 'ai') {
+          fetchAiDesigns();
+        }
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+      socketRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, wsUrl, wsPath, activeSubTab]);
 
   // Handle Accept/Reject AI Design Response
   const handleUpdateAiResponseStatus = async (responseId: string, status: 'accepted' | 'rejected', aiDesign: any, response: any) => {

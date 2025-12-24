@@ -170,6 +170,31 @@ export default function RequirementsTab() {
       });
     });
 
+    // Listen for requirement response status updates (when buyer accepts/rejects/negotiates)
+    socket.on('requirement:response:status:updated', async (data: any) => {
+      const response = data.response || data;
+      const status = data.status;
+      
+      if (!response || !response.requirement_id || !status) return;
+
+      // Update the requirement's response status in the list
+      setRequirements((prevRequirements) => {
+        return prevRequirements.map((req) => {
+          if (req.id === response.requirement_id && req.myResponse && req.myResponse.id === response.id) {
+            // Update the response status
+            return {
+              ...req,
+              myResponse: {
+                ...req.myResponse,
+                status: status
+              }
+            };
+          }
+          return req;
+        });
+      });
+    });
+
     return () => {
       socket.disconnect();
       socketRef.current = null;
