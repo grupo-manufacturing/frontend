@@ -8,18 +8,26 @@ interface ChatListProps {
   onOpenConversation: (conversationId: string, buyerId: string, manufacturerId: string, title?: string) => void;
   selectedConversationId?: string | null;
   selfRole?: 'buyer' | 'manufacturer';
+  conversationUnreadCounts?: Record<string, number>;
+  onClearConversationUnread?: (conversationId: string) => void;
 }
 
 export default function ChatList({
   onOpenConversation,
   selectedConversationId,
-  selfRole = 'buyer'
+  selfRole = 'buyer',
+  conversationUnreadCounts = {},
+  onClearConversationUnread
 }: ChatListProps) {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
+  // Track unread message counts per conversation
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  // Use ref to track selected conversation without causing socket reconnection
+  const selectedConversationIdRef = useRef<string | null>(selectedConversationId || null);
   
   // Get token and WS URL (same pattern as ChatWindow)
   const token = useMemo(() => apiService.getToken(), []);
@@ -51,6 +59,11 @@ export default function ChatList({
     loadConversationsRef.current = loadConversations;
   }, [loadConversations]);
 
+  // Keep selectedConversationIdRef in sync
+  useEffect(() => {
+    selectedConversationIdRef.current = selectedConversationId || null;
+  }, [selectedConversationId]);
+
   // Socket connection for real-time updates (same pattern as ChatWindow)
   useEffect(() => {
     if (!token || !wsUrl) return;
@@ -72,9 +85,20 @@ export default function ChatList({
         return;
       }
 
+      const conversationId = message.conversation_id;
+      const currentSelectedId = selectedConversationIdRef.current;
+      
+      // Increment unread count if this conversation is not currently selected
+      if (conversationId !== currentSelectedId) {
+        setUnreadCounts((prev) => ({
+          ...prev,
+          [conversationId]: (prev[conversationId] || 0) + 1
+        }));
+      }
+
       setItems((prevItems) => {
         // Find if conversation exists
-        const existingIndex = prevItems.findIndex((item) => item.id === message.conversation_id);
+        const existingIndex = prevItems.findIndex((item) => item.id === conversationId);
         
         if (existingIndex !== -1) {
           // Update existing conversation
@@ -102,6 +126,18 @@ export default function ChatList({
           return prevItems;
         }
       });
+    });
+
+    // Listen for message:read events to clear unread counts
+    socket.on('message:read', ({ conversationId }) => {
+      const currentSelectedId = selectedConversationIdRef.current;
+      if (conversationId && conversationId === currentSelectedId) {
+        setUnreadCounts((prev) => {
+          const updated = { ...prev };
+          delete updated[conversationId];
+          return updated;
+        });
+      }
     });
 
     return () => {
@@ -189,30 +225,34 @@ export default function ChatList({
             : (c.last_message_at ? '[Attachment]' : 'No messages yet');
           const timeAgo = formatTime(c.last_message_at);
           const isActive = selectedConversationId === c.id;
+          const unreadCount = conversationUnreadCounts[c.id] || unreadCounts[c.id] || 0;
           
           return (
             <button 
               key={c.id} 
-              onClick={() => onOpenConversation(c.id, c.buyer_id, c.manufacturer_id, title)} 
+              onClick={() => {
+                // Clear unread count when conversation is opened
+                if (unreadCount > 0) {
+                  // Clear local tracking
+                  setUnreadCounts((prev) => {
+                    const updated = { ...prev };
+                    delete updated[c.id];
+                    return updated;
+                  });
+                  // Clear parent (portal) tracking
+                  if (onClearConversationUnread) {
+                    onClearConversationUnread(c.id);
+                  }
+                }
+                onOpenConversation(c.id, c.buyer_id, c.manufacturer_id, title);
+              }} 
               className={`w-full text-left px-4 py-3 transition-all border-l-2 ${
                 isActive 
                   ? 'bg-gray-100 border-black' 
                   : 'border-transparent hover:bg-gray-50'
               }`}
             >
-              <div className="flex items-start gap-3">
-                {/* Avatar */}
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  isActive ? 'bg-black text-white' : 'bg-gray-100 text-gray-600'
-                }`}>
-                  <span className={`text-sm font-semibold ${
-                    isActive ? 'text-white' : 'text-gray-600'
-                  }`}>
-                    {title.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-
-                {/* Content */}
+              <div className="flex items-start">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
                     <h4 className={`text-sm font-medium truncate ${
@@ -220,9 +260,16 @@ export default function ChatList({
                     }`}>
                       {title}
                     </h4>
-                    {timeAgo && (
-                      <span className="text-xs text-gray-500 ml-2 flex-shrink-0">{timeAgo}</span>
-                    )}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {timeAgo && (
+                        <span className="text-xs text-gray-500">{timeAgo}</span>
+                      )}
+                      {unreadCount > 0 && !isActive && (
+                        <span className="inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-[#22a2f2] text-white text-[10px] font-semibold px-1">
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <p className={`text-xs truncate ${
                     isActive ? 'text-gray-600' : 'text-gray-500'

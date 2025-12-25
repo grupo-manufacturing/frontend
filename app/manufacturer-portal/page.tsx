@@ -87,6 +87,8 @@ export default function ManufacturerPortal() {
   const [displayName, setDisplayName] = useState('');
   const [unseenRequirementsCount, setUnseenRequirementsCount] = useState(0);
   const [unseenAIRequirementsCount, setUnseenAIRequirementsCount] = useState(0);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  const [conversationUnreadCounts, setConversationUnreadCounts] = useState<Record<string, number>>({});
   const socketRef = useRef<Socket | null>(null);
   const activeTabRef = useRef<TabType>(activeTab);
   
@@ -110,6 +112,9 @@ export default function ManufacturerPortal() {
   useEffect(() => {
     if (activeTab === 'ai-requirements') {
       setUnseenAIRequirementsCount(0);
+    }
+    if (activeTab === 'chats') {
+      setUnreadMessagesCount(0);
     }
   }, [activeTab]);
 
@@ -148,6 +153,46 @@ export default function ManufacturerPortal() {
       // Only increment if not currently viewing the AI Requirements tab
       if (activeTabRef.current !== 'ai-requirements') {
         setUnseenAIRequirementsCount((prev) => prev + 1);
+      }
+    });
+
+    // Listen for new messages - increment counter if not on chats tab
+    socket.on('message:new', (data: any) => {
+      const message = data.message || data;
+      if (!message || !message.conversation_id) return;
+
+      const conversationId = message.conversation_id;
+
+      // Only increment if not currently viewing the Chats tab
+      const isOnChatsTab = activeTabRef.current === 'chats';
+      
+      if (!isOnChatsTab) {
+        setUnreadMessagesCount((prev) => prev + 1);
+      }
+      
+      // Always track unread count per conversation (for ChatList badges)
+      setConversationUnreadCounts((prev) => ({
+        ...prev,
+        [conversationId]: (prev[conversationId] || 0) + 1
+      }));
+    });
+
+    // Listen for message:read events to clear unread counts for a conversation
+    // Only clear if the current user is the one who read the messages
+    socket.on('message:read', (data: any) => {
+      const conversationId = data.conversationId || data.conversation_id;
+      const readerUserId = data.readerUserId;
+      
+      // Get current user's ID from localStorage
+      const currentUserId = typeof window !== 'undefined' ? localStorage.getItem('manufacturerId') : null;
+      
+      // Only clear unread count if the current user is the one who read the messages
+      if (conversationId && readerUserId && currentUserId && readerUserId === currentUserId) {
+        setConversationUnreadCounts((prev) => {
+          const updated = { ...prev };
+          delete updated[conversationId];
+          return updated;
+        });
       }
     });
 
@@ -369,6 +414,11 @@ export default function ManufacturerPortal() {
                   />
                 </svg>
                 <span className="relative z-10">Chats</span>
+                {activeTab !== 'chats' && unreadMessagesCount > 0 && (
+                  <span className="absolute -top-1 right-1 inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-[#22a2f2] text-white text-[10px] font-semibold px-1">
+                    {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
+                  </span>
+                )}
               </button>
 
               {/* Requirements Tab */}
@@ -476,6 +526,14 @@ export default function ManufacturerPortal() {
             <ChatsTab 
               activeTab={activeTab}
               onActiveTabChange={(tab) => setActiveTab(tab)}
+              conversationUnreadCounts={conversationUnreadCounts}
+              onClearConversationUnread={(conversationId) => {
+                setConversationUnreadCounts((prev) => {
+                  const updated = { ...prev };
+                  delete updated[conversationId];
+                  return updated;
+                });
+              }}
             />
           )}
           {activeTab === 'analytics' && <AnalyticsTab />}

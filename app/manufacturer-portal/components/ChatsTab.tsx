@@ -9,6 +9,8 @@ type TabType = 'chats' | 'requirements' | 'ai-requirements' | 'analytics' | 'pro
 interface ChatsTabProps {
   activeTab: TabType;
   onActiveTabChange?: (tab: TabType) => void;
+  conversationUnreadCounts?: Record<string, number>;
+  onClearConversationUnread?: (conversationId: string) => void;
 }
 
 // Type guard to ensure tab is valid
@@ -16,7 +18,7 @@ const isValidTab = (tab: string): tab is TabType => {
   return ['chats', 'requirements', 'ai-requirements', 'analytics', 'profile'].includes(tab);
 };
 
-export default function ChatsTab({ activeTab, onActiveTabChange }: ChatsTabProps) {
+export default function ChatsTab({ activeTab, onActiveTabChange, conversationUnreadCounts = {}, onClearConversationUnread }: ChatsTabProps) {
   // Chat state (chats inbox)
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [activeBuyerId, setActiveBuyerId] = useState<string | null>(null);
@@ -102,6 +104,8 @@ export default function ChatsTab({ activeTab, onActiveTabChange }: ChatsTabProps
           <ChatList 
             selectedConversationId={activeConversationId}
             selfRole="manufacturer"
+            conversationUnreadCounts={conversationUnreadCounts}
+            onClearConversationUnread={onClearConversationUnread}
             onOpenConversation={handleOpenConversation} 
           />
         </div>

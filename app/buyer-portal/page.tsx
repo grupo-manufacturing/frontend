@@ -11,11 +11,12 @@ import ChatsTab, { ChatsTabRef } from './components/ChatsTab';
 import MyRequirements from './components/MyRequirements';
 import GenerateDesigns from './components/GenerateDesigns';
 import AIDesignsTab from './components/AIDesignsTab';
+import AIRequirementsTab from './components/AIRequirementsTab';
 import Login from './components/Login';
 import { useToast } from '../components/Toast';
 import BrandSafetyModal from '../components/BrandSafetyModal';
 
-type TabType = 'custom-quote' | 'my-orders' | 'chats' | 'requirements' | 'generate-designs' | 'ai-designs';
+type TabType = 'custom-quote' | 'my-orders' | 'chats' | 'requirements' | 'ai-requirements' | 'generate-designs' | 'ai-designs';
 
 export default function BuyerPortal() {
   const toast = useToast();
@@ -112,7 +113,7 @@ export default function BuyerPortal() {
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     if (typeof window !== 'undefined') {
       const storedTab = localStorage.getItem('buyer_active_tab');
-      if (storedTab && ['custom-quote', 'my-orders', 'chats', 'requirements', 'generate-designs', 'ai-designs'].includes(storedTab)) {
+      if (storedTab && ['custom-quote', 'my-orders', 'chats', 'requirements', 'ai-requirements', 'generate-designs', 'ai-designs'].includes(storedTab)) {
         return storedTab as TabType;
       }
     }
@@ -130,11 +131,16 @@ export default function BuyerPortal() {
   const [requirements, setRequirements] = useState<any[]>([]);
   const [isLoadingRequirements, setIsLoadingRequirements] = useState(false);
   const [unseenRequirementResponsesCount, setUnseenRequirementResponsesCount] = useState(0);
+  const [unseenAIRequirementResponsesCount, setUnseenAIRequirementResponsesCount] = useState(0);
+  
+  // Chat States
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  const [conversationUnreadCounts, setConversationUnreadCounts] = useState<Record<string, number>>({});
+  const conversationUnreadCountsRef = useRef<Record<string, number>>({});
   
   // Socket connection for real-time notifications
   const socketRef = useRef<Socket | null>(null);
   const activeTabRef = useRef<TabType>(activeTab);
-  const activeSubTabRef = useRef<'custom' | 'ai' | null>(null);
   
   // Get WS URL for socket connection
   const wsUrl = useMemo(() => process.env.NEXT_PUBLIC_WS_URL || getApiBaseOrigin(), []);
@@ -149,6 +155,12 @@ export default function BuyerPortal() {
   useEffect(() => {
     if (activeTab === 'requirements') {
       setUnseenRequirementResponsesCount(0);
+    }
+    if (activeTab === 'ai-requirements') {
+      setUnseenAIRequirementResponsesCount(0);
+    }
+    if (activeTab === 'chats') {
+      setUnreadMessagesCount(0);
     }
   }, [activeTab]);
 
@@ -165,20 +177,61 @@ export default function BuyerPortal() {
     socketRef.current = socket;
 
     socket.on('connect', () => {
-      // Socket connected for notifications
     });
 
-    // Listen for new requirement responses - increment counter if not on requirements tab or not on custom subtab
+    // Listen for new requirement responses - increment counter if not on requirements tab
     socket.on('requirement:response:new', (data: any) => {
       const response = data.response || data;
       if (!response || !response.requirement_id) return;
 
-      // Only increment if not currently viewing the Requirements tab, or if viewing Requirements tab but not on Custom Requirements subtab
+      // Only increment if not currently viewing the Requirements tab
       const isOnRequirementsTab = activeTabRef.current === 'requirements';
-      const isOnCustomSubTab = activeSubTabRef.current === 'custom';
       
-      if (!isOnRequirementsTab || (isOnRequirementsTab && !isOnCustomSubTab)) {
+      if (!isOnRequirementsTab) {
         setUnseenRequirementResponsesCount((prev) => prev + 1);
+      }
+    });
+
+    // Listen for new AI design responses - increment counter if not on ai-requirements tab
+    socket.on('ai-design:response:new', (data: any) => {
+      const response = data.response || data;
+      if (!response || !response.ai_design_id) return;
+
+      // Only increment if not currently viewing the AI Requirements tab
+      const isOnAIRequirementsTab = activeTabRef.current === 'ai-requirements';
+      
+      if (!isOnAIRequirementsTab) {
+        setUnseenAIRequirementResponsesCount((prev) => prev + 1);
+      }
+    });
+
+    socket.on('message:new', (data: any) => {
+      const message = data.message || data;
+      if (!message || !message.conversation_id) return;
+
+      const conversationId = message.conversation_id;
+
+      if (activeTabRef.current !== 'chats') {
+        setUnreadMessagesCount((prev) => prev + 1);
+      }
+      
+      conversationUnreadCountsRef.current = {
+        ...conversationUnreadCountsRef.current,
+        [conversationId]: (conversationUnreadCountsRef.current[conversationId] || 0) + 1
+      };
+      setConversationUnreadCounts({ ...conversationUnreadCountsRef.current });
+    });
+
+    socket.on('message:read', (data: any) => {
+      const conversationId = data.conversationId || data.conversation_id;
+      const readerUserId = data.readerUserId;
+      const currentUserId = typeof window !== 'undefined' ? localStorage.getItem('buyerId') : null;
+      
+      if (conversationId && readerUserId && currentUserId && readerUserId === currentUserId) {
+        const updated = { ...conversationUnreadCountsRef.current };
+        delete updated[conversationId];
+        conversationUnreadCountsRef.current = updated;
+        setConversationUnreadCounts({ ...conversationUnreadCountsRef.current });
       }
     });
 
@@ -719,6 +772,11 @@ export default function BuyerPortal() {
                   />
                 </svg>
                 <span className="relative z-10 hidden sm:inline">Chats</span>
+                {activeTab !== 'chats' && unreadMessagesCount > 0 && (
+                  <span className="absolute -top-1 right-1 inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-[#22a2f2] text-white text-[10px] font-semibold px-1">
+                    {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
+                  </span>
+                )}
               </button>
 
               {/* Requirements Tab */}
@@ -754,6 +812,39 @@ export default function BuyerPortal() {
                 )}
               </button>
 
+              {/* AI Requirements Tab */}
+              <button
+                onClick={() => setActiveTab('ai-requirements')}
+                className={`relative flex items-center gap-2 px-3 lg:px-4 py-3 font-medium text-sm whitespace-nowrap transition-all rounded-t-lg ${
+                  activeTab === 'ai-requirements'
+                    ? 'text-black'
+                    : 'text-gray-500 hover:text-black'
+                }`}
+              >
+                {activeTab === 'ai-requirements' && (
+                  <div className="absolute inset-0 bg-gray-100 rounded-t-lg border-b-2 border-black"></div>
+                )}
+                <svg
+                  className="relative z-10 w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+                <span className="relative z-10 hidden sm:inline">AI Requirements</span>
+                {activeTab !== 'ai-requirements' && unseenAIRequirementResponsesCount > 0 && (
+                  <span className="absolute -top-1 right-1 inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-[#22a2f2] text-white text-[10px] font-semibold px-1">
+                    {unseenAIRequirementResponsesCount > 99 ? '99+' : unseenAIRequirementResponsesCount}
+                  </span>
+                )}
+              </button>
+
             </div>
           </div>
         </nav>
@@ -779,10 +870,17 @@ export default function BuyerPortal() {
               fetchRequirements={fetchRequirements}
             />
           )}
-          {activeTab === 'chats' && (
+{activeTab === 'chats' && (
             <ChatsTab
               ref={chatsTabRef}
               onTabChange={() => setActiveTab('chats')}
+              conversationUnreadCounts={conversationUnreadCounts}
+              onClearConversationUnread={(conversationId) => {
+                const updated = { ...conversationUnreadCountsRef.current };
+                delete updated[conversationId];
+                conversationUnreadCountsRef.current = updated;
+                setConversationUnreadCounts({ ...conversationUnreadCountsRef.current });
+              }}
             />
           )}
           {activeTab === 'requirements' && (
@@ -793,15 +891,12 @@ export default function BuyerPortal() {
               onNegotiateResponse={handleNegotiateResponse}
               onSwitchToCustomQuote={() => setActiveTab('custom-quote')}
               onAcceptRequirementResponse={handleAcceptRequirementResponse}
-              onAcceptAIDesignResponse={handleAcceptAIDesignResponse}
               unseenRequirementResponsesCount={unseenRequirementResponsesCount}
-              onActiveSubTabChange={(subTab) => {
-                activeSubTabRef.current = subTab;
-                // Clear count when Custom Requirements subtab is viewed
-                if (subTab === 'custom') {
-                  setUnseenRequirementResponsesCount(0);
-                }
-              }}
+            />
+          )}
+          {activeTab === 'ai-requirements' && (
+            <AIRequirementsTab
+              onAcceptAIDesignResponse={handleAcceptAIDesignResponse}
             />
           )}
           {activeTab === 'generate-designs' && (

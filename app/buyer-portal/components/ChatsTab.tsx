@@ -7,6 +7,8 @@ import apiService from '../../lib/apiService';
 
 interface ChatsTabProps {
   onTabChange?: () => void;
+  conversationUnreadCounts?: Record<string, number>;
+  onClearConversationUnread?: (conversationId: string) => void;
 }
 
 export interface ChatsTabRef {
@@ -17,7 +19,7 @@ export interface ChatsTabRef {
   openChatFromAIDesignAccept: (aiDesign: any, response: any) => Promise<void>;
 }
 
-const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onTabChange }, ref) => {
+const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onTabChange, conversationUnreadCounts = {}, onClearConversationUnread }, ref) => {
   // Chat States
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [activeBuyerId, setActiveBuyerId] = useState<string | null>(null);
@@ -353,6 +355,8 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onTabChange }, ref) =
           <ChatList 
             selectedConversationId={activeConversationId}
             selfRole="buyer"
+            conversationUnreadCounts={conversationUnreadCounts}
+            onClearConversationUnread={onClearConversationUnread}
             onOpenConversation={(cid, bid, mid, title) => {
               setActiveConversationId(cid);
               setActiveBuyerId(bid);

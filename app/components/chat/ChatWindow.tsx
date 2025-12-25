@@ -614,6 +614,21 @@ export default function ChatWindow({
     }
   }, [aiDesign?.id, aiDesignTabs.length, activeAIDesignId]);
 
+  // Mark messages as read when conversation is opened and messages are loaded
+  useEffect(() => {
+    if (!conversationId || !socketRef.current?.connected || messages.length === 0) return;
+
+    // Get the last message ID to mark all messages up to it as read
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage && lastMessage.id) {
+      // Emit message:read event to mark all messages as read
+      socketRef.current.emit('message:read', {
+        conversationId,
+        upToMessageId: lastMessage.id
+      });
+    }
+  }, [conversationId, messages.length]);
+
   useEffect(() => {
     if (!token || !wsUrl) return;
     const socket = io(wsUrl, { path: wsPath, auth: { token } });
@@ -653,6 +668,14 @@ export default function ChatWindow({
           }
           return [...prev, message];
         });
+        
+        // Mark new message as read immediately when received in open conversation
+        if (message.id && socketRef.current?.connected) {
+          socketRef.current.emit('message:read', {
+            conversationId,
+            upToMessageId: message.id
+          });
+        }
       }
 
       // Note: Requirement tabs are loaded from backend, not from individual messages
