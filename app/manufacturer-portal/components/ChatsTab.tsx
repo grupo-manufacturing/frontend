@@ -36,7 +36,8 @@ export default function ChatsTab({ activeTab, onActiveTabChange, conversationUnr
             setActiveConversationId(chatState.conversationId);
             setActiveBuyerId(chatState.buyerId);
             setActiveManufacturerId(chatState.manufacturerId);
-            setActiveTitle(chatState.title || undefined);
+            // Don't restore title from localStorage - let ChatList provide the correct title from peer.displayName
+            setActiveTitle(undefined);
             if (chatState.activeTab && onActiveTabChange) {
               // Convert old 'all-requirements' tab to 'requirements' for backward compatibility
               let tab = chatState.activeTab === 'all-requirements' ? 'requirements' : chatState.activeTab;

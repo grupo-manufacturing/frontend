@@ -53,6 +53,25 @@ export default function ChatList({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Update title when conversations load and there's a selected conversation
+  // This ensures the title is updated from the backend data (which includes buyer_identifier)
+  // rather than using stale data from localStorage
+  useEffect(() => {
+    if (selectedConversationId && items.length > 0 && !loading) {
+      const selectedConversation = items.find(c => c.id === selectedConversationId);
+      if (selectedConversation) {
+        const title = selectedConversation?.peer?.displayName || 'Conversation';
+        onOpenConversation(
+          selectedConversation.id,
+          selectedConversation.buyer_id,
+          selectedConversation.manufacturer_id,
+          title
+        );
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items, selectedConversationId, loading]);
+
   // Use ref to store the latest loadConversations function
   const loadConversationsRef = useRef(loadConversations);
   useEffect(() => {

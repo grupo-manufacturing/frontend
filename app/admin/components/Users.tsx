@@ -37,7 +37,8 @@ export default function Users({
     return buyers.filter((buyer) =>
       (buyer.full_name || '').toLowerCase().includes(q) ||
       (buyer.business_name || '').toLowerCase().includes(q) ||
-      buyer.phone_number.includes(searchQuery)
+      buyer.phone_number.includes(searchQuery) ||
+      (buyer.buyer_identifier || '').toLowerCase().includes(q)
     );
   }, [buyers, searchQuery]);
 
@@ -168,6 +169,11 @@ export default function Users({
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
             <tr>
+              {isShowingBuyers && (
+                <th scope="col" className="px-4 py-3 text-left font-semibold">
+                  Buyer ID
+                </th>
+              )}
               {isShowingManufacturers && (
                 <th scope="col" className="px-4 py-3 text-left font-semibold">
                   Manufacturer ID
@@ -198,6 +204,11 @@ export default function Users({
             {isShowingBuyers &&
               paginatedBuyers.map((buyer) => (
                 <tr key={buyer.id} className="hover:bg-slate-50/80">
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-slate-900">
+                      {buyer.buyer_identifier || '—'}
+                    </div>
+                  </td>
                   <td className="px-4 py-3">
                     <div className="font-medium text-slate-900">
                       {buyer.full_name || buyer.business_name || 'Not provided'}
@@ -272,7 +283,7 @@ export default function Users({
             {(isShowingBuyers && filteredBuyers.length === 0) ||
             (isShowingManufacturers && filteredManufacturers.length === 0) ? (
               <tr>
-                <td colSpan={isShowingBuyers ? 3 : 6} className="px-4 py-6 text-center text-sm text-slate-500">
+                <td colSpan={isShowingBuyers ? 4 : 6} className="px-4 py-6 text-center text-sm text-slate-500">
                   No records found for your current filters.
                 </td>
               </tr>

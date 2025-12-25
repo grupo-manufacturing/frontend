@@ -13,6 +13,7 @@ export interface Manufacturer {
 
 export interface Buyer {
   id: number;
+  buyer_identifier?: string;
   phone_number: string;
   full_name?: string;
   business_name?: string;
