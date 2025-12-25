@@ -168,6 +168,11 @@ export default function Users({
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
             <tr>
+              {isShowingManufacturers && (
+                <th scope="col" className="px-4 py-3 text-left font-semibold">
+                  Manufacturer ID
+                </th>
+              )}
               <th scope="col" className="px-4 py-3 text-left font-semibold">
                 {isShowingBuyers ? 'Buyer' : 'Manufacturer'}
               </th>
@@ -208,6 +213,11 @@ export default function Users({
             {isShowingManufacturers &&
               paginatedManufacturers.map((manufacturer) => (
                 <tr key={manufacturer.id} className="hover:bg-slate-50/80">
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-slate-900">
+                      {manufacturer.manufacturer_id || '—'}
+                    </div>
+                  </td>
                   <td className="px-4 py-3">
                     <div className="font-medium text-slate-900">
                       {manufacturer.unit_name || manufacturer.business_name || 'Not provided'}
@@ -262,7 +272,7 @@ export default function Users({
             {(isShowingBuyers && filteredBuyers.length === 0) ||
             (isShowingManufacturers && filteredManufacturers.length === 0) ? (
               <tr>
-                <td colSpan={isShowingBuyers ? 3 : 5} className="px-4 py-6 text-center text-sm text-slate-500">
+                <td colSpan={isShowingBuyers ? 3 : 6} className="px-4 py-6 text-center text-sm text-slate-500">
                   No records found for your current filters.
                 </td>
               </tr>

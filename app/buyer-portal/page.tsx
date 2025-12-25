@@ -870,7 +870,7 @@ export default function BuyerPortal() {
               fetchRequirements={fetchRequirements}
             />
           )}
-{activeTab === 'chats' && (
+          {activeTab === 'chats' && (
             <ChatsTab
               ref={chatsTabRef}
               onTabChange={() => setActiveTab('chats')}

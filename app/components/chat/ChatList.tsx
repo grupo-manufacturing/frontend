@@ -261,9 +261,9 @@ export default function ChatList({
                       {title}
                     </h4>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      {timeAgo && (
+                    {timeAgo && (
                         <span className="text-xs text-gray-500">{timeAgo}</span>
-                      )}
+                    )}
                       {unreadCount > 0 && !isActive && (
                         <span className="inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-[#22a2f2] text-white text-[10px] font-semibold px-1">
                           {unreadCount > 99 ? '99+' : unreadCount}

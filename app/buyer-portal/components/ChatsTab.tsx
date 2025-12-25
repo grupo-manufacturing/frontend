@@ -182,7 +182,7 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onTabChange, conversa
         const conversationId = ensureRes?.data?.conversation?.id;
 
         if (conversationId) {
-          const manufacturerName = response?.manufacturer?.unit_name;
+          const manufacturerIdDisplay = response?.manufacturer?.manufacturer_id;
           const requirementSummary = requirement?.requirement_text;
           const fallbackTitle = requirementSummary
             ? requirementSummary.slice(0, 60) + (requirementSummary.length > 60 ? '...' : '')
@@ -192,7 +192,7 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onTabChange, conversa
           setActiveConversationId(conversationId);
           setActiveBuyerId(buyerId);
           setActiveManufacturerId(manufacturerId);
-          setActiveTitle(manufacturerName || fallbackTitle);
+          setActiveTitle(manufacturerIdDisplay || fallbackTitle);
           setActiveRequirement(requirement);
           
           // Manually save to localStorage immediately
@@ -201,7 +201,7 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onTabChange, conversa
               conversationId,
               buyerId,
               manufacturerId,
-              title: manufacturerName || fallbackTitle,
+              title: manufacturerIdDisplay || fallbackTitle,
               requirement: requirement
             };
             localStorage.setItem('buyer_chat_state', JSON.stringify(chatState));
@@ -246,7 +246,7 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onTabChange, conversa
         const conversationId = ensureRes?.data?.conversation?.id;
 
         if (conversationId) {
-          const manufacturerName = response?.manufacturer?.unit_name;
+          const manufacturerIdDisplay = response?.manufacturer?.manufacturer_id;
           const requirementSummary = requirement?.requirement_text;
           const fallbackTitle = requirementSummary
             ? requirementSummary.slice(0, 60) + (requirementSummary.length > 60 ? '...' : '')
@@ -256,7 +256,7 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onTabChange, conversa
           setActiveConversationId(conversationId);
           setActiveBuyerId(buyerId);
           setActiveManufacturerId(manufacturerId);
-          setActiveTitle(manufacturerName || fallbackTitle);
+          setActiveTitle(manufacturerIdDisplay || fallbackTitle);
           setActiveRequirement(requirement);
           setActiveAIDesign(null); // Clear AI design when opening requirement chat
           
@@ -266,7 +266,7 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onTabChange, conversa
               conversationId,
               buyerId,
               manufacturerId,
-              title: manufacturerName || fallbackTitle,
+              title: manufacturerIdDisplay || fallbackTitle,
               requirement: requirement
             };
             localStorage.setItem('buyer_chat_state', JSON.stringify(chatState));
@@ -306,7 +306,7 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onTabChange, conversa
         const conversationId = ensureRes?.data?.conversation?.id;
 
         if (conversationId) {
-          const manufacturerName = response?.manufacturer?.unit_name;
+          const manufacturerIdDisplay = response?.manufacturer?.manufacturer_id;
           const designSummary = aiDesign?.apparel_type || aiDesign?.design_no;
           const fallbackTitle = designSummary
             ? designSummary.slice(0, 60) + (designSummary.length > 60 ? '...' : '')
@@ -316,7 +316,7 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onTabChange, conversa
           setActiveConversationId(conversationId);
           setActiveBuyerId(buyerId);
           setActiveManufacturerId(manufacturerId);
-          setActiveTitle(manufacturerName || fallbackTitle);
+          setActiveTitle(manufacturerIdDisplay || fallbackTitle);
           setActiveAIDesign(aiDesign);
           setActiveRequirement(null); // Clear requirement when opening AI design chat
           
@@ -326,7 +326,7 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onTabChange, conversa
               conversationId,
               buyerId,
               manufacturerId,
-              title: manufacturerName || fallbackTitle,
+              title: manufacturerIdDisplay || fallbackTitle,
               aiDesign
             };
             localStorage.setItem('buyer_chat_state', JSON.stringify(chatState));

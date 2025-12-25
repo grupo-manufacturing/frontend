@@ -1,5 +1,6 @@
 export interface Manufacturer {
   id: number;
+  manufacturer_id?: string;
   phone_number: string;
   unit_name?: string;
   business_name?: string;
