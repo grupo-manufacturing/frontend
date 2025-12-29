@@ -130,6 +130,17 @@ class AIDesignService {
       body: JSON.stringify({ status })
     });
   }
+
+  /**
+   * Delete an AI design
+   * @param {string} designId - AI design ID
+   * @returns {Promise} Response data
+   */
+  async deleteAIDesign(designId) {
+    return apiClient.request(`/ai-designs/${designId}`, {
+      method: 'DELETE'
+    });
+  }
 }
 
 // Create singleton instance

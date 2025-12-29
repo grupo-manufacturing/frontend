@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import apiService, { getApiBaseOrigin } from '../../lib/apiService';
 import MessageAttachment from './MessageAttachment';
+import BrandSafetyModal from '../BrandSafetyModal';
 
 interface ChatWindowProps {
   conversationId: string;
@@ -156,6 +157,9 @@ export default function ChatWindow({
   
   // Toggle between Requirements and Designs
   const [contentType, setContentType] = useState<'requirements' | 'designs'>('requirements');
+  
+  // Brand Safety Modal state
+  const [showBrandSafetyModal, setShowBrandSafetyModal] = useState(false);
 
   // Clear active selections when switching content types and auto-select first item
   useEffect(() => {
@@ -859,36 +863,49 @@ export default function ChatWindow({
         <div className="flex items-center gap-2">
           {/* Toggle between Requirements and AI Requirements */}
           {conversationId && (
-            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+            <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => {
+                    setContentType('requirements');
+                    setActiveAIDesignId(null);
+                    setActiveTabType(null);
+                  }}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                    contentType === 'requirements'
+                      ? 'bg-white text-[#22a2f2] shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  title="Requirements"
+                >
+                  Requirements
+                </button>
+                <button
+                  onClick={() => {
+                    setContentType('designs');
+                    setActiveRequirementId(null);
+                    setActiveTabType(null);
+                  }}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                    contentType === 'designs'
+                      ? 'bg-white text-[#22a2f2] shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  title="AI Requirements"
+                >
+                  AI Requirements
+                </button>
+              </div>
+              {/* Brand Safety Info Button */}
               <button
-                onClick={() => {
-                  setContentType('requirements');
-                  setActiveAIDesignId(null);
-                  setActiveTabType(null);
-                }}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
-                  contentType === 'requirements'
-                    ? 'bg-white text-[#22a2f2] shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-                title="Requirements"
+                onClick={() => setShowBrandSafetyModal(true)}
+                className="p-1.5 text-gray-500 hover:text-[#22a2f2] rounded-md transition-colors hover:bg-gray-100"
+                title="Brand Safety Guidelines"
+                aria-label="View Brand Safety Guidelines"
               >
-                Requirements
-              </button>
-              <button
-                onClick={() => {
-                  setContentType('designs');
-                  setActiveRequirementId(null);
-                  setActiveTabType(null);
-                }}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
-                  contentType === 'designs'
-                    ? 'bg-white text-[#22a2f2] shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-                title="AI Requirements"
-              >
-                AI Requirements
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </button>
             </div>
           )}
@@ -1194,6 +1211,18 @@ export default function ChatWindow({
           </button>
         </div>
       </div>
+
+      {/* Brand Safety Modal */}
+      {showBrandSafetyModal && (
+        <BrandSafetyModal
+          onAgree={() => {
+            setShowBrandSafetyModal(false);
+          }}
+          onClose={() => {
+            setShowBrandSafetyModal(false);
+          }}
+        />
+      )}
     </div>
   );
 }

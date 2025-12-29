@@ -361,6 +361,7 @@ export default function AdminPortal() {
             aiDesigns={aiDesigns}
             isLoadingData={isLoadingData}
             lastUpdated={lastUpdated}
+            onDelete={loadAIDesigns}
           />
         )}
 
