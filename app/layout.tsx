@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Groupo - One-Stop AI Manufacturing Platform",
+  title: "Grupo - One-Stop AI Manufacturing Platform",
   description: "Your complete AI-powered manufacturing solution connecting buyers, manufacturers, and designers",
 };
 
