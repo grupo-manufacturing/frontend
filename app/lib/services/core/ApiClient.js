@@ -4,7 +4,7 @@
 import { getToken, removeToken, clearAllAuthData } from '../utils/tokenManager.js';
 
 // const API_BASE_URL = 'http://localhost:5000/api';
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://grupo-backend.onrender.com/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://backend-47rb.onrender.com/api';
 
 class ApiClient {
   constructor() {
