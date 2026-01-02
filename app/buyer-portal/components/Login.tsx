@@ -227,8 +227,19 @@ export default function Login({ onLoginSuccess, onProfileUpdate, isCheckingAuth 
       
       // Notify parent of successful login
       onLoginSuccess(phoneNumber);
-    } catch (error) {
-      toast.error('Invalid OTP. Please try again.');
+    } catch (error: any) {
+      const errorMessage = error.message || 'Invalid OTP. Please try again.';
+      
+      // Check for max attempts error
+      if (errorMessage.toLowerCase().includes('too many') || errorMessage.toLowerCase().includes('failed attempts')) {
+        toast.error('Too many failed attempts. Please request a new OTP.');
+        setOtp(''); // Clear OTP input
+      } else if (errorMessage.toLowerCase().includes('expired')) {
+        toast.error('OTP has expired. Please request a new one.');
+        setOtp('');
+      } else {
+        toast.error('Invalid OTP. Please try again.');
+      }
     } finally {
       setIsVerifyingOtp(false);
     }

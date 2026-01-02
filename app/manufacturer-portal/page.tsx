@@ -275,7 +275,7 @@ export default function ManufacturerPortal() {
 
   // Onboarding View
   if (step === 'onboarding') {
-    return <Onboarding phoneNumber={phoneNumber} onComplete={handleOnboardingComplete} />;
+    return <Onboarding phoneNumber={phoneNumber} onComplete={handleOnboardingComplete} toast={toast} />;
   }
 
   // Show loading while checking authentication or logging out

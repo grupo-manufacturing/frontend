@@ -4,12 +4,20 @@ import Image from 'next/image';
 import { useState } from 'react';
 import apiService from '../../lib/apiService';
 
+interface ToastInterface {
+  success: (message: string, duration?: number) => void;
+  error: (message: string, duration?: number) => void;
+  warning: (message: string, duration?: number) => void;
+  info: (message: string, duration?: number) => void;
+}
+
 interface OnboardingProps {
   phoneNumber: string;
   onComplete: () => void;
+  toast: ToastInterface;
 }
 
-export default function Onboarding({ phoneNumber, onComplete }: OnboardingProps) {
+export default function Onboarding({ phoneNumber, onComplete, toast }: OnboardingProps) {
   // Onboarding form states
   const [formData, setFormData] = useState({
     unitName: '',
@@ -60,13 +68,13 @@ export default function Onboarding({ phoneNumber, onComplete }: OnboardingProps)
     
     // Validate required fields for all steps
     if (!formData.unitName || !formData.businessType || !formData.gstNumber) {
-      alert('Please complete all required fields in Business Info section.');
+      toast.error('Please complete all required fields in Business Info section.');
       setCurrentStep(1);
       return;
     }
     
     if (!formData.productTypes || formData.productTypes.length === 0) {
-      alert('Please select at least one product type.');
+      toast.error('Please select at least one product type.');
       setCurrentStep(2);
       return;
     }
@@ -92,7 +100,7 @@ export default function Onboarding({ phoneNumber, onComplete }: OnboardingProps)
           }
         } catch (uploadError) {
           console.error('Image upload error:', uploadError);
-          alert('Failed to upload manufacturing unit image. Please try again.');
+          toast.error('Failed to upload manufacturing unit image. Please try again.');
           setIsUploadingImage(false);
           return;
         } finally {
@@ -125,15 +133,17 @@ export default function Onboarding({ phoneNumber, onComplete }: OnboardingProps)
         // Mark onboarding as complete
         localStorage.setItem('manufacturerOnboardingComplete', 'true');
         
+        // Show success toast
+        toast.success('Registration submitted successfully! Welcome to Grupo!');
+        
         // Notify parent component
         onComplete();
-        alert('Registration submitted successfully! Welcome to Grupo!');
       } else {
         throw new Error(response.message || 'Failed to submit onboarding');
       }
     } catch (error) {
       console.error('Failed to submit onboarding:', error);
-      alert('Failed to submit registration. Please try again.');
+      toast.error('Failed to submit registration. Please try again.');
     }
   };
 
