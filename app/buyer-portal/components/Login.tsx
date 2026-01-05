@@ -68,17 +68,6 @@ export default function Login({ onLoginSuccess, onProfileUpdate, isCheckingAuth 
     setOtpErrorMessage('');
     setOtpSuccessMessage('');
     
-    // Demo credentials bypass
-    if (phoneNumber === '1234567890') {
-      setIsLoadingOtp(true);
-      setTimeout(() => {
-        setIsLoadingOtp(false);
-        setStep('otp');
-        setOtpTimer(120); // 2 minutes for demo
-      }, 1000);
-      return;
-    }
-    
     setIsLoadingOtp(true);
     try {
       const response = await apiService.sendOTP(fullPhoneNumber, 'buyer');
@@ -123,64 +112,6 @@ export default function Login({ onLoginSuccess, onProfileUpdate, isCheckingAuth 
     setIsVerifyingOtp(true);
     
     try {
-      // Demo credentials bypass
-      if (phoneNumber === '1234567890' && otp === '123456') {
-        // Create mock response for demo
-        const mockResponse = {
-          data: {
-            token: 'demo_token_' + Date.now(),
-            user: {
-              phoneNumber: phoneNumber,
-              role: 'buyer'
-            }
-          }
-        };
-        
-        // Store token and user data
-        apiService.setToken(mockResponse.data.token, 'buyer');
-        localStorage.setItem('buyerPhoneNumber', phoneNumber);
-        localStorage.setItem('user_role', 'buyer');
-        
-        // Check profile completion before showing dashboard
-        try {
-          const response = await apiService.getBuyerProfile();
-          if (response && response.success && response.data && response.data.profile) {
-            const profile = response.data.profile;
-            // Store buyerId in localStorage for chat functionality
-            if (profile.id && typeof window !== 'undefined') {
-              localStorage.setItem('buyerId', String(profile.id));
-            }
-            const requiredFields = [
-              profile.full_name,
-              profile.email,
-              profile.business_address,
-              profile.about_business
-            ];
-            const allFieldsFilled = requiredFields.every(field => field && field.trim().length > 0);
-            const profileCompletion = allFieldsFilled ? 100 : 0;
-            
-            const resolvedName = (profile.full_name || '').trim();
-            
-            onProfileUpdate({
-              displayName: resolvedName,
-              profileCompletion
-            });
-          }
-        } catch (error) {
-          onProfileUpdate({
-            displayName: '',
-            profileCompletion: 0
-          });
-        }
-        
-        // Show success toast
-        toast.success('Login successful! Welcome back.');
-        
-        // Notify parent of successful login
-        onLoginSuccess(phoneNumber);
-        return;
-      }
-      
       const fullPhoneNumber = countryCode + phoneNumber;
       const response = await apiService.verifyOTP(fullPhoneNumber, otp, 'buyer');
       

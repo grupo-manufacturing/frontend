@@ -36,17 +36,6 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false, isLoggin
     setOtpErrorMessage('');
     setOtpSuccessMessage('');
     
-    // Demo credentials bypass
-    if (phoneNumber === '1234567890') {
-      setIsLoadingOtp(true);
-      setTimeout(() => {
-        setIsLoadingOtp(false);
-        setStep('otp');
-        setOtpTimer(120); // 2 minutes for demo
-      }, 1000);
-      return;
-    }
-    
     setIsLoadingOtp(true);
     try {
       const response = await apiService.sendOTP(fullPhoneNumber, 'manufacturer');
@@ -122,15 +111,6 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false, isLoggin
     setIsVerifyingOtp(true);
     
     try {
-      // Demo credentials bypass
-      if (phoneNumber === '1234567890' && otp === '123456') {
-        // Check if onboarding is complete, if not show onboarding form
-        const onboardingComplete = localStorage.getItem('manufacturerOnboardingComplete');
-        toast.success('Login successful! Welcome back.');
-        onLoginSuccess(onboardingComplete === 'true' ? 'dashboard' : 'onboarding');
-        return;
-      }
-      
       const fullPhoneNumber = countryCode + phoneNumber;
       const response = await apiService.verifyOTP(fullPhoneNumber, otp, 'manufacturer');
       
