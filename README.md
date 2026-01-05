@@ -44,7 +44,7 @@ npm run dev
 Navigate to [http://localhost:3000](http://localhost:3000)
 
 ### Backend
-The frontend is configured to use the production backend at [https://grupo-backend.onrender.com/](https://grupo-backend.onrender.com/).
+The frontend is configured to use the production backend at [https://backend-47rb.onrender.com/](https://backend-47rb.onrender.com/).
 
 For local backend development:
 ```bash

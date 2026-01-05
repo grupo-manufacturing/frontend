@@ -22,7 +22,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Get the backend API URL from environment variable
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://grupo-backend.onrender.com/api';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://backend-47rb.onrender.com/api';
 
     // Call the backend API to push the AI design
     const response = await fetch(`${backendUrl}/ai-designs/${designId}/push`, {
