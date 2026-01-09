@@ -48,9 +48,10 @@ const Hero = () => {
 
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/manufacturer-portal" className="bg-[#22a2f2] hover:bg-transparent text-white hover:text-[#22a2f2] font-semibold px-8 py-3 rounded-lg border-2 border-[#22a2f2] transition-all duration-200 text-center">
+                {/* Manufacturer button hidden during UAT phase */}
+                {/* <Link href="/manufacturer-portal" className="bg-[#22a2f2] hover:bg-transparent text-white hover:text-[#22a2f2] font-semibold px-8 py-3 rounded-lg border-2 border-[#22a2f2] transition-all duration-200 text-center">
                   Join as Manufacturer
-                </Link>
+                </Link> */}
                 
                 <Link href="/buyer-portal" className="bg-[#22a2f2] hover:bg-transparent text-white hover:text-[#22a2f2] font-semibold px-8 py-3 rounded-lg border-2 border-[#22a2f2] transition-all duration-200 text-center">
                   Join as Buyer

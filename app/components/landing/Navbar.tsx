@@ -10,7 +10,8 @@ const Navbar = () => {
   const navLinks = [
     { name: 'How We Work', href: '/howitworks' },
     { name: 'Buyer', href: '/buyer-portal' },
-    { name: 'Manufacturer', href: '/manufacturer-portal' },
+    // Manufacturer link hidden during UAT phase
+    // { name: 'Manufacturer', href: '/manufacturer-portal' },
   ];
 
   return (

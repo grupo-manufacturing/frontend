@@ -500,34 +500,27 @@ export default function HowItWorksPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-[#22a2f2] to-blue-600">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-4 sm:mb-6">
-            Ready to Get Started?
-          </h2>
-          <p className="text-base sm:text-lg lg:text-xl text-blue-100 mb-6 sm:mb-8 px-2">
-            Join thousands of {activeTab === 'buyers' ? 'buyers' : 'manufacturers'} already using our platform
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-            {activeTab === 'buyers' ? (
+      {/* CTA Section - Hidden during UAT phase for manufacturers */}
+      {activeTab === 'buyers' && (
+        <section className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-[#22a2f2] to-blue-600">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-4 sm:mb-6">
+              Ready to Get Started?
+            </h2>
+            <p className="text-base sm:text-lg lg:text-xl text-blue-100 mb-6 sm:mb-8 px-2">
+              Join thousands of buyers already using our platform
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
               <Link
                 href="/buyer-portal"
                 className="bg-white hover:bg-gray-100 text-[#22a2f2] font-semibold px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg transition-all duration-200 text-center shadow-lg hover:shadow-xl text-sm sm:text-base"
               >
                 Start as Buyer
               </Link>
-            ) : (
-              <Link
-                href="/manufacturer-portal"
-                className="bg-white hover:bg-gray-100 text-[#22a2f2] font-semibold px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg transition-all duration-200 text-center shadow-lg hover:shadow-xl text-sm sm:text-base"
-              >
-                Join as Manufacturer
-              </Link>
-            )}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <Footer />
     </div>

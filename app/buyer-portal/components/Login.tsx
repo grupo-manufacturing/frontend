@@ -483,14 +483,15 @@ export default function Login({ onLoginSuccess, onProfileUpdate, isCheckingAuth 
                   </>
                 )}
 
-                <div className="mt-6 text-center">
+                {/* Manufacturer sign-in link hidden during UAT phase */}
+                {/* <div className="mt-6 text-center">
                   <Link
                     href="/manufacturer-portal"
                     className="text-sm font-semibold text-[#22a2f2] hover:text-[#1b8bd0] transition-colors"
                   >
                     Sign in with Manufacturer
                   </Link>
-                </div>
+                </div> */}
 
                 {/* Trust badges */}
                 <div className="mt-8 pt-6 border-t border-gray-300">
