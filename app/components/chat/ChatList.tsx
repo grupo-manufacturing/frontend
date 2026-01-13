@@ -39,10 +39,46 @@ export default function ChatList({
       setLoading(true);
       setError(null);
       const res = await apiService.listConversations({ limit: 50 });
-      setItems(res.data.conversations || []);
+      
+      // Check if response is successful and has data structure
+      if (res && res.success !== false) {
+        // Successfully loaded conversations (even if empty array)
+        const conversations = res.data?.conversations || [];
+        setItems(conversations);
+        // Clear error - empty array is a valid success state
+        setError(null);
+      } else {
+        // API returned an error response (success: false)
+        const errorMessage = res?.message || 'Failed to load conversations';
+        setError(errorMessage);
+        // Clear items on API error
+        setItems([]);
+      }
     } catch (err: any) {
       console.error('[ChatList] Failed to load conversations:', err);
-      setError(err.message || 'Failed to load conversations');
+      
+      // Distinguish between network errors and API errors
+      const errorMessage = err.message || 'Failed to load conversations';
+      let displayError = errorMessage;
+      
+      // Check if it's a network error (no response) vs API error
+      if (errorMessage.includes('Failed to fetch') || 
+          errorMessage.includes('NetworkError') || 
+          errorMessage.toLowerCase().includes('network') ||
+          errorMessage.toLowerCase().includes('fetch')) {
+        // Network error - connection issue
+        displayError = 'Connection error. Please check your internet connection and try again.';
+      } else if (errorMessage.includes('session') || 
+                 errorMessage.includes('expired') || 
+                 errorMessage.includes('401') ||
+                 errorMessage.includes('Unauthorized')) {
+        // Authentication error
+        displayError = 'Your session has expired. Please refresh the page.';
+      }
+      
+      setError(displayError);
+      // On error, clear items to show error state clearly
+      setItems([]);
     } finally {
       setLoading(false);
     }
@@ -210,14 +246,26 @@ export default function ChatList({
         
         {error && (
           <div className="p-4 m-4 bg-red-50 border border-red-200 rounded-lg">
-            <div className="flex items-start gap-3">
-              <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <div>
-                <p className="text-sm font-medium text-red-600">Failed to load</p>
-                <p className="text-xs text-red-500 mt-1">{error}</p>
+            <div className="flex flex-col gap-3">
+              <div className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-red-600">Failed to load conversations</p>
+                  <p className="text-xs text-red-500 mt-1">{error}</p>
+                </div>
               </div>
+              <button
+                onClick={() => loadConversations()}
+                disabled={loading}
+                className="w-full px-3 py-2 text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                {loading ? 'Retrying...' : 'Retry'}
+              </button>
             </div>
           </div>
         )}
@@ -236,7 +284,7 @@ export default function ChatList({
           </div>
         )}
         
-        {!error && items.map((c) => {
+        {!loading && !error && items.length > 0 && items.map((c) => {
           const title = c?.peer?.displayName || 'Conversation';
           const lastMessageTrimmed = typeof c.last_message_text === 'string' ? c.last_message_text.trim() : '';
           const lastMessage = lastMessageTrimmed

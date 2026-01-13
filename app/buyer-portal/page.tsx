@@ -117,7 +117,7 @@ export default function BuyerPortal() {
         return storedTab as TabType;
       }
     }
-    return 'generate-designs';
+    return 'custom-quote';
   });
   
   // Save active tab to localStorage whenever it changes
