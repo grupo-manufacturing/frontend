@@ -45,57 +45,90 @@ export default function AIDesignsTab({ onSwitchToGenerateDesigns, onAcceptAIDesi
     }
   };
 
-  // Download image as PNG
-  const downloadImageAsPNG = async (imageUrl: string, designNo: string, apparelType: string) => {
+  // Extract and download design only (without garment)
+  const extractAndDownloadDesign = async (imageUrl: string, designNo: string, apparelType: string, designId: string) => {
     try {
-      // Convert HTTP to HTTPS to avoid mixed content issues
-      const secureUrl = imageUrl.replace(/^http:\/\//i, 'https://');
+      // Get auth token
+      const token = apiService.getToken();
       
-      // Create an image element to load the image
-      const img = new Image();
-      img.crossOrigin = 'anonymous'; // Enable CORS
-      
-      // Load the image
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-        img.src = secureUrl;
+      // Call the API to extract the design
+      const response = await fetch('/api/extract-design', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          imageUrl: imageUrl,
+          designId: designId
+        }),
       });
-      
-      // Create a canvas and draw the image
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      
-      if (!ctx) {
-        throw new Error('Could not get canvas context');
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to extract design');
       }
-      
-      ctx.drawImage(img, 0, 0);
-      
-      // Convert canvas to blob
-      canvas.toBlob((blob) => {
-        if (!blob) {
-          throw new Error('Failed to create blob');
+
+      if (data.success && data.imageUrl) {
+        // Handle both base64 and Cloudinary URL
+        if (data.isBase64 || data.imageUrl.startsWith('data:image')) {
+          // Base64 image - download directly
+          const link = document.createElement('a');
+          link.href = data.imageUrl;
+          link.download = `${designNo || 'GRUPO-AI'}-${apparelType?.replace(/\s+/g, '-') || 'design'}-design-only.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          toast.success('Design pattern downloaded successfully!');
+        } else {
+          // Cloudinary URL - fetch and download
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = data.imageUrl;
+          });
+          
+          // Create a canvas and draw the extracted design
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          
+          if (!ctx) {
+            throw new Error('Could not get canvas context');
+          }
+          
+          ctx.drawImage(img, 0, 0);
+          
+          // Convert canvas to blob and download
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              throw new Error('Failed to create blob');
+            }
+            
+            const blobUrl = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = `${designNo || 'GRUPO-AI'}-${apparelType?.replace(/\s+/g, '-') || 'design'}-design-only.png`;
+            document.body.appendChild(link);
+            link.click();
+            
+            // Clean up
+            document.body.removeChild(link);
+            URL.revokeObjectURL(blobUrl);
+            toast.success('Design pattern downloaded successfully!');
+          }, 'image/png');
         }
-        
-        // Create a temporary URL for the blob
-        const blobUrl = URL.createObjectURL(blob);
-        
-        // Create a temporary anchor element to trigger download
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.download = `${designNo || 'GRUPO-AI'}-${apparelType?.replace(/\s+/g, '-') || 'design'}.png`;
-        document.body.appendChild(link);
-        link.click();
-        
-        // Clean up
-        document.body.removeChild(link);
-        URL.revokeObjectURL(blobUrl);
-      }, 'image/png');
-    } catch (error) {
-      toast.error('Failed to download image. Please try again.');
+      } else {
+        throw new Error('Invalid response from server');
+      }
+    } catch (error: any) {
+      console.error('Error extracting design:', error);
+      toast.error(error.message || 'Failed to extract design. Please try again.');
     }
   };
 
@@ -176,20 +209,20 @@ export default function AIDesignsTab({ onSwitchToGenerateDesigns, onAcceptAIDesi
                     alt={aiDesign.apparel_type || 'AI Design'}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
-                  {/* Download Button */}
+                  {/* Download Design Only Button */}
                   <button
                     onClick={async (e) => {
                       e.stopPropagation();
                       setDownloadingDesignId(aiDesign.id);
                       try {
-                        await downloadImageAsPNG(aiDesign.image_url, aiDesign.design_no, aiDesign.apparel_type);
+                        await extractAndDownloadDesign(aiDesign.image_url, aiDesign.design_no, aiDesign.apparel_type, aiDesign.id);
                       } finally {
                         setDownloadingDesignId(null);
                       }
                     }}
                     disabled={downloadingDesignId === aiDesign.id}
                     className="absolute top-2 left-2 p-2 bg-white/90 hover:bg-white backdrop-blur-sm rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed group/download"
-                    title="Download as PNG"
+                    title="Download Design Only (Extract pattern from garment)"
                   >
                     {downloadingDesignId === aiDesign.id ? (
                       <svg className="w-4 h-4 text-gray-700 animate-spin" fill="none" viewBox="0 0 24 24">
