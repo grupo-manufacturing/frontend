@@ -88,25 +88,23 @@ export default function Orders({
   const filteredCustomOrders = useMemo(() => {
     let filtered = orders;
     
-    // Apply status filter
-    if (orderStatusFilter !== 'all') {
-      filtered = filtered.filter((order) => order.status === orderStatusFilter);
-    }
+    // Note: Requirements don't have a status field, so status filter doesn't apply to requirements
+    // Status filtering is only for AI Orders (which have response statuses)
     
     // Apply search filter
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       filtered = filtered.filter((order) =>
-        (order.requirement?.buyer?.full_name || '').toLowerCase().includes(q) ||
-        (order.manufacturer?.unit_name || '').toLowerCase().includes(q) ||
-        (order.requirement?.requirement_text || '').toLowerCase().includes(q) ||
-        (order.requirement?.buyer?.phone_number || '').includes(searchQuery) ||
-        (order.manufacturer?.phone_number || '').includes(searchQuery)
+        (order.buyer?.full_name || '').toLowerCase().includes(q) ||
+        (order.requirement_text || '').toLowerCase().includes(q) ||
+        (order.requirement_no || '').toLowerCase().includes(q) ||
+        (order.product_type || '').toLowerCase().includes(q) ||
+        (order.buyer?.phone_number || '').includes(searchQuery)
       );
     }
     
     return filtered;
-  }, [orders, orderStatusFilter, searchQuery]);
+  }, [orders, searchQuery]);
 
   const filteredAIOrders = useMemo(() => {
     let filtered = aiOrders;
@@ -168,7 +166,7 @@ export default function Orders({
         <div>
           <h1 className="text-xl font-semibold text-slate-900">Orders</h1>
           <p className="text-sm text-slate-500">
-            View and filter all orders by status (Accepted, Rejected, Pending).
+            View and manage all requirements and AI orders.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -227,27 +225,29 @@ export default function Orders({
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder={isShowingCustom 
-              ? "Search orders by buyer, manufacturer, or requirement"
+              ? "Search requirements by buyer, requirement text, or product type"
               : "Search orders by buyer, manufacturer, or design"}
             className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-700 shadow-sm focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30"
           />
         </div>
-        <div className="flex items-center gap-3">
-          <label htmlFor="status-filter" className="text-sm font-medium text-slate-700">
-            Filter by status:
-          </label>
-          <select
-            id="status-filter"
-            value={orderStatusFilter}
-            onChange={(e) => setOrderStatusFilter(e.target.value as OrderStatusFilter)}
-            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-400 focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30"
-          >
-            <option value="all">All Orders</option>
-            <option value="accepted">Accepted</option>
-            <option value="rejected">Rejected</option>
-            <option value="submitted">Pending</option>
-          </select>
-        </div>
+        {!isShowingCustom && (
+          <div className="flex items-center gap-3">
+            <label htmlFor="status-filter" className="text-sm font-medium text-slate-700">
+              Filter by status:
+            </label>
+            <select
+              id="status-filter"
+              value={orderStatusFilter}
+              onChange={(e) => setOrderStatusFilter(e.target.value as OrderStatusFilter)}
+              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-400 focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30"
+            >
+              <option value="all">All Orders</option>
+              <option value="accepted">Accepted</option>
+              <option value="rejected">Rejected</option>
+              <option value="submitted">Pending</option>
+            </select>
+          </div>
+        )}
       </div>
 
       <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -263,16 +263,25 @@ export default function Orders({
               <th scope="col" className="px-4 py-3 text-left font-semibold">
                 Buyer
               </th>
-              <th scope="col" className="px-4 py-3 text-left font-semibold">
-                Manufacturer
-              </th>
-              <th scope="col" className="px-4 py-3 text-left font-semibold">
-                Quote
-              </th>
               {isShowingCustom && (
                 <th scope="col" className="px-4 py-3 text-left font-semibold">
-                  Delivery Time
+                  Product Type
                 </th>
+              )}
+              {isShowingCustom && (
+                <th scope="col" className="px-4 py-3 text-left font-semibold">
+                  Quantity
+                </th>
+              )}
+              {!isShowingCustom && (
+                <>
+                  <th scope="col" className="px-4 py-3 text-left font-semibold">
+                    Manufacturer
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-left font-semibold">
+                    Quote
+                  </th>
+                </>
               )}
               <th scope="col" className="px-4 py-3 text-left font-semibold">
                 Status
@@ -285,7 +294,7 @@ export default function Orders({
           <tbody className="divide-y divide-slate-200 text-slate-600">
             {currentFilteredOrders.length === 0 ? (
               <tr>
-                <td colSpan={isShowingCustom ? 8 : 7} className="px-4 py-6 text-center text-sm text-slate-500">
+                <td colSpan={isShowingCustom ? 7 : 7} className="px-4 py-6 text-center text-sm text-slate-500">
                   {(isShowingCustom && orders.length === 0) || (isShowingAI && aiOrders.length === 0)
                     ? `No ${orderStatusFilter !== 'all' ? getStatusLabel(orderStatusFilter).toLowerCase() : ''} orders found.`
                     : 'No orders match your search criteria.'}
@@ -294,13 +303,13 @@ export default function Orders({
             ) : (
               paginatedOrders.map((order) => {
                 if (isShowingCustom) {
-                  const customOrder = order as Order;
+                  const requirement = order as Order;
                   return (
-                    <tr key={customOrder.id} className="hover:bg-slate-50/80">
+                    <tr key={requirement.id} className="hover:bg-slate-50/80">
                       <td className="px-4 py-3">
-                        {customOrder.requirement?.requirement_no ? (
+                        {requirement.requirement_no ? (
                           <span className="inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold bg-[#22a2f2]/10 text-[#22a2f2] border border-[#22a2f2]/20">
-                            {customOrder.requirement.requirement_no}
+                            {requirement.requirement_no}
                           </span>
                         ) : (
                           <span className="text-slate-400">—</span>
@@ -308,43 +317,34 @@ export default function Orders({
                       </td>
                       <td className="px-4 py-3">
                         <div className="text-xs text-slate-500 max-w-xs truncate">
-                          {customOrder.requirement?.requirement_text || '—'}
+                          {requirement.requirement_text || '—'}
                         </div>
                       </td>
                       <td className="px-4 py-3">
                         <div className="font-medium text-slate-900">
-                          {customOrder.requirement?.buyer?.full_name || 'Not provided'}
+                          {requirement.buyer?.full_name || 'Not provided'}
                         </div>
                         <div className="text-xs text-slate-500">
-                          {customOrder.requirement?.buyer?.phone_number || '—'}
+                          {requirement.buyer?.phone_number || '—'}
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="font-medium text-slate-900">
-                          {customOrder.manufacturer?.unit_name || 'Not provided'}
-                        </div>
                         <div className="text-xs text-slate-500">
-                          {customOrder.manufacturer?.location || '—'}
+                          {requirement.product_type || '—'}
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="font-medium text-slate-900">
-                          ₹{customOrder.quoted_price?.toLocaleString('en-IN') || '—'}
-                        </div>
                         <div className="text-xs text-slate-500">
-                          ₹{customOrder.price_per_unit?.toLocaleString('en-IN') || '—'} per unit
+                          {requirement.quantity?.toLocaleString('en-IN') || '—'}
                         </div>
-                      </td>
-                      <td className="px-4 py-3 text-xs text-slate-500">
-                        {customOrder.delivery_time || '—'}
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getStatusBadgeColor(customOrder.status || '')}`}>
-                          {getStatusLabel(customOrder.status || '')}
+                        <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-slate-100 text-slate-700">
+                          Active
                         </span>
                       </td>
                       <td className="px-4 py-3 text-xs text-slate-500">
-                        {formatDate(customOrder.updated_at || customOrder.created_at)}
+                        {formatDate(requirement.updated_at || requirement.created_at)}
                       </td>
                     </tr>
                   );
