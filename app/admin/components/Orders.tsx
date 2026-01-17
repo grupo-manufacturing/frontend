@@ -51,8 +51,8 @@ export default function Orders({
     aiDesigns.forEach((design) => {
       if (design.responses && Array.isArray(design.responses)) {
         design.responses.forEach((response) => {
-          // Only include accepted or rejected responses
-          if (response.status === 'accepted' || response.status === 'rejected') {
+          // Include all responses (accepted, rejected, and submitted/pending)
+          if (response.status === 'accepted' || response.status === 'rejected' || response.status === 'submitted') {
             const quotedPrice = response.quoted_price || 
               (response.price_per_unit && response.quantity 
                 ? response.price_per_unit * response.quantity 
@@ -274,11 +274,9 @@ export default function Orders({
                   Delivery Time
                 </th>
               )}
-              {isShowingCustom && (
-                <th scope="col" className="px-4 py-3 text-left font-semibold">
-                  Status
-                </th>
-              )}
+              <th scope="col" className="px-4 py-3 text-left font-semibold">
+                Status
+              </th>
               <th scope="col" className="px-4 py-3 text-left font-semibold">
                 Date
               </th>
@@ -287,7 +285,7 @@ export default function Orders({
           <tbody className="divide-y divide-slate-200 text-slate-600">
             {currentFilteredOrders.length === 0 ? (
               <tr>
-                <td colSpan={isShowingCustom ? 8 : 6} className="px-4 py-6 text-center text-sm text-slate-500">
+                <td colSpan={isShowingCustom ? 8 : 7} className="px-4 py-6 text-center text-sm text-slate-500">
                   {(isShowingCustom && orders.length === 0) || (isShowingAI && aiOrders.length === 0)
                     ? `No ${orderStatusFilter !== 'all' ? getStatusLabel(orderStatusFilter).toLowerCase() : ''} orders found.`
                     : 'No orders match your search criteria.'}
@@ -393,6 +391,11 @@ export default function Orders({
                         <div className="text-xs text-slate-500">
                           ₹{aiOrder.price_per_unit?.toLocaleString('en-IN') || '—'} per unit
                         </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getStatusBadgeColor(aiOrder.status || '')}`}>
+                          {getStatusLabel(aiOrder.status || '')}
+                        </span>
                       </td>
                       <td className="px-4 py-3 text-xs text-slate-500">
                         {formatDate(aiOrder.updated_at || aiOrder.created_at)}

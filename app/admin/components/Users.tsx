@@ -188,10 +188,16 @@ export default function Users({
               {isShowingManufacturers && (
                 <>
                   <th scope="col" className="px-4 py-3 text-left font-semibold">
-                    Onboarding
+                    GST Number
                   </th>
                   <th scope="col" className="px-4 py-3 text-left font-semibold">
-                    Verification
+                    COI Number
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-left font-semibold">
+                    PAN Number
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-left font-semibold">
+                    MSME Number
                   </th>
                 </>
               )}
@@ -241,38 +247,23 @@ export default function Users({
                     <div className="text-xs font-medium text-slate-700">{manufacturer.phone_number}</div>
                   </td>
                   <td className="px-4 py-3">
-                    {renderBadge(
-                      manufacturer.onboarding_completed ? 'Completed' : 'Pending',
-                      manufacturer.onboarding_completed ? 'info' : 'neutral'
-                    )}
+                    <div className="text-xs font-medium text-slate-700">
+                      {manufacturer.gst_number || '—'}
+                    </div>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <select
-                        value={manufacturer.verification_status || 'pending'}
-                        onChange={(e) => handleUpdateVerificationStatus(String(manufacturer.id), e.target.value)}
-                        disabled={updatingStatusId === String(manufacturer.id)}
-                        className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm transition hover:border-slate-400 focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="Accepted">Accepted</option>
-                        <option value="Rejected">Rejected</option>
-                        <option value="Blocked">Blocked</option>
-                      </select>
-                      {updatingStatusId === String(manufacturer.id) && (
-                        <svg
-                          className="h-4 w-4 animate-spin text-[#22a2f2]"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={2}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M21 12a9 9 0 11-6.219-8.56" />
-                          <path d="M21 3v6h-6" />
-                        </svg>
-                      )}
+                    <div className="text-xs font-medium text-slate-700">
+                      {manufacturer.coi_number || '—'}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="text-xs font-medium text-slate-700">
+                      {manufacturer.pan_number || '—'}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="text-xs font-medium text-slate-700">
+                      {manufacturer.msme_number || '—'}
                     </div>
                   </td>
                   <td className="px-4 py-3 text-xs text-slate-500">
@@ -283,7 +274,7 @@ export default function Users({
             {(isShowingBuyers && filteredBuyers.length === 0) ||
             (isShowingManufacturers && filteredManufacturers.length === 0) ? (
               <tr>
-                <td colSpan={isShowingBuyers ? 4 : 6} className="px-4 py-6 text-center text-sm text-slate-500">
+                <td colSpan={isShowingBuyers ? 4 : 8} className="px-4 py-6 text-center text-sm text-slate-500">
                   No records found for your current filters.
                 </td>
               </tr>

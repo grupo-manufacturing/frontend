@@ -139,7 +139,7 @@ export default function AdminPortal() {
     setIsLoadingData(true);
     setErrorMessage('');
     try {
-      const filters: any = { sortBy: 'created_at', sortOrder: 'desc', include_responses: true };
+      const filters: any = { include_responses: true };
       const aiDesignsRes = await apiService.getAIDesigns(filters);
       setAiDesigns(aiDesignsRes.data || []);
       setLastUpdated(new Date().toISOString());

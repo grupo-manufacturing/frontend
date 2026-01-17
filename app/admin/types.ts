@@ -8,6 +8,10 @@ export interface Manufacturer {
   verified: boolean;
   verification_status?: string;
   onboarding_completed: boolean;
+  gst_number?: string;
+  coi_number?: string;
+  pan_number?: string;
+  msme_number?: string;
   created_at: string;
 }
 
