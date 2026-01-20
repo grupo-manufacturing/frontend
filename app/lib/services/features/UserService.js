@@ -50,15 +50,13 @@ class UserService {
 
   /**
    * Get all manufacturers
-   * @param {Object} filters - Optional filters (verified, verification_status, onboarding_completed, business_type, sortBy, sortOrder, limit, offset)
+   * @param {Object} filters - Optional filters (verified, business_type, sortBy, sortOrder, limit, offset)
    * @returns {Promise} Response data
    */
   async getAllManufacturers(filters = {}) {
     // Build query string from filters
     const queryParams = new URLSearchParams();
     if (filters.verified !== undefined) queryParams.append('verified', filters.verified);
-    if (filters.verification_status) queryParams.append('verification_status', filters.verification_status);
-    if (filters.onboarding_completed !== undefined) queryParams.append('onboarding_completed', filters.onboarding_completed);
     if (filters.business_type) queryParams.append('business_type', filters.business_type);
     if (filters.sortBy) queryParams.append('sortBy', filters.sortBy);
     if (filters.sortOrder) queryParams.append('sortOrder', filters.sortOrder);

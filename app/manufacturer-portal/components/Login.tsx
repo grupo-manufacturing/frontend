@@ -119,29 +119,9 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false, isLoggin
       localStorage.setItem('manufacturerPhoneNumber', phoneNumber);
       localStorage.setItem('user_role', 'manufacturer');
       
-      // Check onboarding status from backend
-      try {
-        const profileResponse = await apiService.getManufacturerProfile();
-        if (profileResponse.success && profileResponse.data.profile) {
-          const profile = profileResponse.data.profile;
-          if (profile.onboarding_completed) {
-            localStorage.setItem('manufacturerOnboardingComplete', 'true');
-            toast.success('Login successful! Welcome back.');
-            onLoginSuccess('dashboard');
-          } else {
-            localStorage.removeItem('manufacturerOnboardingComplete');
-            toast.success('Login successful! Please complete your profile.');
-            onLoginSuccess('onboarding');
-          }
-        } else {
-          // No profile found, show onboarding
-          localStorage.removeItem('manufacturerOnboardingComplete');
-          toast.success('Login successful! Please complete your profile.');
-          onLoginSuccess('onboarding');
-        }
-      } catch (error) {
-        // On error, default to onboarding
-        localStorage.removeItem('manufacturerOnboardingComplete');
+      // Always go to dashboard after successful login
+      toast.success('Login successful! Welcome back.');
+      onLoginSuccess('dashboard');
         toast.success('Login successful! Please complete your profile.');
         onLoginSuccess('onboarding');
       }

@@ -30,21 +30,16 @@ export default function ManufacturerPortal() {
             // Verify token is still valid by attempting to get profile
             const response = await apiService.getManufacturerProfile();
             if (response && response.success) {
-              const onboardingComplete = localStorage.getItem('manufacturerOnboardingComplete');
-              const isDashboard = onboardingComplete === 'true';
-              setStep(isDashboard ? 'dashboard' : 'onboarding');
+              setStep('dashboard');
               
-              // Restore active tab from localStorage if on dashboard
-              // This ensures the tab is restored after authentication is confirmed
-              if (isDashboard) {
-                const storedTab = localStorage.getItem('manufacturer_active_tab');
-                if (storedTab && ['chats', 'requirements', 'ai-requirements', 'analytics', 'profile'].includes(storedTab)) {
-                  // Restore the saved tab (this will override the initializer if needed)
-                  setActiveTab(storedTab as TabType);
-                }
-                // Note: We don't check chat state here anymore to avoid overriding the saved tab
-                // The chat state restoration is handled by the ChatsTab component itself
+              // Restore active tab from localStorage
+              const storedTab = localStorage.getItem('manufacturer_active_tab');
+              if (storedTab && ['chats', 'requirements', 'ai-requirements', 'analytics', 'profile'].includes(storedTab)) {
+                // Restore the saved tab (this will override the initializer if needed)
+                setActiveTab(storedTab as TabType);
               }
+              // Note: We don't check chat state here anymore to avoid overriding the saved tab
+              // The chat state restoration is handled by the ChatsTab component itself
             }
           } catch (error: any) {
             // If token expired or unauthorized, redirect to login
@@ -83,7 +78,6 @@ export default function ManufacturerPortal() {
     }
   }, [activeTab, step]);
 
-  const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [unseenRequirementsCount, setUnseenRequirementsCount] = useState(0);
   const [unseenAIRequirementsCount, setUnseenAIRequirementsCount] = useState(0);
@@ -238,15 +232,15 @@ export default function ManufacturerPortal() {
         setPhoneNumber(storedPhone);
       }
       
-      // Check onboarding status from backend
+      // Load display name when on dashboard
       if (step === 'dashboard') {
-      checkOnboardingStatus();
+      loadDisplayName();
       }
     }
   }, [step]);
 
-  // Check onboarding status from backend
-  const checkOnboardingStatus = async () => {
+  // Load display name from profile
+  const loadDisplayName = async () => {
     try {
       const response = await apiService.getManufacturerProfile();
       if (response.success && response.data.profile) {
@@ -255,21 +249,13 @@ export default function ManufacturerPortal() {
         if (resolvedName) {
           setDisplayName(resolvedName);
         }
-        if (profile.onboarding_completed) {
-          setIsOnboardingComplete(true);
-          localStorage.setItem('manufacturerOnboardingComplete', 'true');
-        } else {
-          setIsOnboardingComplete(false);
-          localStorage.removeItem('manufacturerOnboardingComplete');
-        }
       }
     } catch (error) {
-      console.error('Failed to check onboarding status:', error);
+      console.error('Failed to load display name:', error);
     }
   };
 
   const handleOnboardingComplete = () => {
-        setIsOnboardingComplete(true);
         setStep('dashboard');
   };
 

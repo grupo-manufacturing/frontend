@@ -5,9 +5,7 @@ export interface Manufacturer {
   unit_name?: string;
   business_name?: string;
   business_type?: string;
-  verified: boolean;
-  verification_status?: string;
-  onboarding_completed: boolean;
+  is_verified: boolean;
   gst_number?: string;
   coi_number?: string;
   pan_number?: string;

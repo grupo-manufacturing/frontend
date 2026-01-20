@@ -37,12 +37,6 @@ export default function ManufacturerProfile() {
       return;
     }
     
-    const onboardingComplete = localStorage.getItem('manufacturerOnboardingComplete');
-    if (onboardingComplete !== 'true') {
-      router.push('/manufacturer-portal');
-      return;
-    }
-    
     loadProfileData();
   }, [router]);
 

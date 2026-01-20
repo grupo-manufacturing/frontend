@@ -24,8 +24,8 @@ export default function Users({
 }: UsersProps) {
   const [userType, setUserType] = useState<UserType>('buyers');
   const [searchQuery, setSearchQuery] = useState('');
-  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [updatingVerifiedId, setUpdatingVerifiedId] = useState<string | null>(null);
   const itemsPerPage = 7;
 
   const isShowingBuyers = userType === 'buyers';
@@ -78,19 +78,19 @@ export default function Users({
     setCurrentPage(page);
   };
 
-  const handleUpdateVerificationStatus = async (manufacturerId: string, newStatus: string) => {
-    setUpdatingStatusId(manufacturerId);
+  const handleToggleVerified = async (manufacturerId: string, currentVerified: boolean) => {
+    setUpdatingVerifiedId(manufacturerId);
     onError('');
     
     try {
-      await apiService.updateManufacturerVerificationStatus(manufacturerId, newStatus);
+      await apiService.updateManufacturerVerifiedStatus(manufacturerId, !currentVerified);
       // Reload data to get updated status
       await onReload();
     } catch (error: any) {
       console.error('Failed to update verification status:', error);
       onError(error?.message || 'Failed to update verification status. Please try again.');
     } finally {
-      setUpdatingStatusId(null);
+      setUpdatingVerifiedId(null);
     }
   };
 
@@ -199,6 +199,9 @@ export default function Users({
                   <th scope="col" className="px-4 py-3 text-left font-semibold">
                     MSME Number
                   </th>
+                  <th scope="col" className="px-4 py-3 text-left font-semibold">
+                    Verified
+                  </th>
                 </>
               )}
               <th scope="col" className="px-4 py-3 text-left font-semibold">
@@ -266,6 +269,23 @@ export default function Users({
                       {manufacturer.msme_number || '—'}
                     </div>
                   </td>
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={() => handleToggleVerified(String(manufacturer.id), manufacturer.is_verified)}
+                      disabled={updatingVerifiedId === String(manufacturer.id)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#22a2f2] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                        manufacturer.is_verified ? 'bg-green-500' : 'bg-gray-300'
+                      }`}
+                      role="switch"
+                      aria-checked={manufacturer.is_verified}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${
+                          manufacturer.is_verified ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </td>
                   <td className="px-4 py-3 text-xs text-slate-500">
                     {formatDate(manufacturer.created_at)}
                   </td>
@@ -274,7 +294,7 @@ export default function Users({
             {(isShowingBuyers && filteredBuyers.length === 0) ||
             (isShowingManufacturers && filteredManufacturers.length === 0) ? (
               <tr>
-                <td colSpan={isShowingBuyers ? 4 : 8} className="px-4 py-6 text-center text-sm text-slate-500">
+                <td colSpan={isShowingBuyers ? 4 : 9} className="px-4 py-6 text-center text-sm text-slate-500">
                   No records found for your current filters.
                 </td>
               </tr>

@@ -96,7 +96,6 @@ export function clearAllAuthData() {
     
     // Clear manufacturer-related data
     localStorage.removeItem('manufacturerPhoneNumber');
-    localStorage.removeItem('manufacturerOnboardingComplete');
     
     // Clear role data
     localStorage.removeItem('user_role');

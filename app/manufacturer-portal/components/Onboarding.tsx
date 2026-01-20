@@ -130,9 +130,6 @@ export default function Onboarding({ phoneNumber, onComplete, toast }: Onboardin
       if (response.success) {
         console.log('Onboarding submitted successfully:', response.data);
         
-        // Mark onboarding as complete
-        localStorage.setItem('manufacturerOnboardingComplete', 'true');
-        
         // Show success toast
         toast.success('Registration submitted successfully! Welcome to Grupo!');
         

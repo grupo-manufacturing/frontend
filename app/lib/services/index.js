@@ -88,7 +88,7 @@ class ApiService {
     this.getAllBuyers = userService.getAllBuyers.bind(userService);
     
     // Admin methods
-    this.updateManufacturerVerificationStatus = adminService.updateManufacturerVerificationStatus.bind(adminService);
+    this.updateManufacturerVerifiedStatus = adminService.updateManufacturerVerifiedStatus.bind(adminService);
     this.getOrders = adminService.getOrders.bind(adminService);
     this.getAcceptedOrders = adminService.getAcceptedOrders.bind(adminService);
     this.getRejectedOrders = adminService.getRejectedOrders.bind(adminService);

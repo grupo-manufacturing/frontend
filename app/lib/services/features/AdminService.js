@@ -5,15 +5,15 @@ import apiClient from '../core/ApiClient.js';
 
 class AdminService {
   /**
-   * Update manufacturer verification status (Admin only)
+   * Update manufacturer verified status (Admin only)
    * @param {string} manufacturerId - Manufacturer ID
-   * @param {string} verificationStatus - New verification status ('pending', 'Accepted', 'Rejected', 'Blocked')
+   * @param {boolean} verified - Verification status (true/false)
    * @returns {Promise} Response data
    */
-  async updateManufacturerVerificationStatus(manufacturerId, verificationStatus) {
-    return apiClient.request(`/manufacturers/${manufacturerId}/verification-status`, {
+  async updateManufacturerVerifiedStatus(manufacturerId, verified) {
+    return apiClient.request(`/manufacturers/${manufacturerId}/verified`, {
       method: 'PATCH',
-      body: JSON.stringify({ verification_status: verificationStatus })
+      body: JSON.stringify({ verified })
     });
   }
 
