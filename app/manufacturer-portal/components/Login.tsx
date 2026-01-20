@@ -122,9 +122,6 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false, isLoggin
       // Always go to dashboard after successful login
       toast.success('Login successful! Welcome back.');
       onLoginSuccess('dashboard');
-        toast.success('Login successful! Please complete your profile.');
-        onLoginSuccess('onboarding');
-      }
     } catch (error: any) {
       const errorMessage = error.message || 'Invalid OTP. Please try again.';
       
