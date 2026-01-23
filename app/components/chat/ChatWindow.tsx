@@ -499,13 +499,9 @@ export default function ChatWindow({
         // Use the appropriate endpoint based on tab type
         let res;
         if (activeTabType === 'ai-design') {
-          res = await apiService.getMessagesForAIDesign(conversationId, activeId!, { 
-            limit: 200 
-          });
+          res = await apiService.getMessagesForAIDesign(conversationId, activeId!);
         } else {
-          res = await apiService.getMessagesForRequirement(conversationId, activeId!, { 
-            limit: 200 
-          });
+          res = await apiService.getMessagesForRequirement(conversationId, activeId!);
         }
         
         if (cancelled || !mounted) return;

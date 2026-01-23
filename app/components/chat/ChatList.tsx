@@ -38,7 +38,7 @@ export default function ChatList({
     try {
       setLoading(true);
       setError(null);
-      const res = await apiService.listConversations({ limit: 50 });
+      const res = await apiService.listConversations();
       
       // Check if response is successful and has data structure
       if (res && res.success !== false) {

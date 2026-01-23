@@ -5,7 +5,7 @@ import apiClient from '../core/ApiClient.js';
 import { getToken } from '../utils/tokenManager.js';
 
 class ChatService {
-  async listConversations({ search, limit = 50, cursor, offset } = {}) {
+  async listConversations({ search, limit, cursor, offset } = {}) {
     const params = new URLSearchParams();
     if (search) params.append('search', search);
     if (limit) params.append('limit', String(limit));
@@ -22,7 +22,7 @@ class ChatService {
     });
   }
 
-  async listMessages(conversationId, { before, limit = 50, requirementId } = {}) {
+  async listMessages(conversationId, { before, limit, requirementId } = {}) {
     const params = new URLSearchParams();
     if (before) params.append('before', before);
     if (limit) params.append('limit', String(limit));
@@ -38,7 +38,7 @@ class ChatService {
    * @param {Object} options - Query options (before, limit)
    * @returns {Promise} Response data with messages
    */
-  async getMessagesForRequirement(conversationId, requirementId, { before, limit = 200 } = {}) {
+  async getMessagesForRequirement(conversationId, requirementId, { before, limit } = {}) {
     const params = new URLSearchParams();
     if (before) params.append('before', before);
     if (limit) params.append('limit', String(limit));
@@ -55,7 +55,7 @@ class ChatService {
    * @param {Object} options - Query options (before, limit)
    * @returns {Promise} Response data with messages
    */
-  async getMessagesForAIDesign(conversationId, aiDesignId, { before, limit = 200 } = {}) {
+  async getMessagesForAIDesign(conversationId, aiDesignId, { before, limit } = {}) {
     const params = new URLSearchParams();
     if (before) params.append('before', before);
     if (limit) params.append('limit', String(limit));

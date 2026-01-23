@@ -33,13 +33,13 @@ export default function ManufacturerPortal() {
               setStep('dashboard');
               
               // Restore active tab from localStorage
-              const storedTab = localStorage.getItem('manufacturer_active_tab');
-              if (storedTab && ['chats', 'requirements', 'ai-requirements', 'analytics', 'profile'].includes(storedTab)) {
-                // Restore the saved tab (this will override the initializer if needed)
-                setActiveTab(storedTab as TabType);
-              }
-              // Note: We don't check chat state here anymore to avoid overriding the saved tab
-              // The chat state restoration is handled by the ChatsTab component itself
+                const storedTab = localStorage.getItem('manufacturer_active_tab');
+                if (storedTab && ['chats', 'requirements', 'ai-requirements', 'analytics', 'profile'].includes(storedTab)) {
+                  // Restore the saved tab (this will override the initializer if needed)
+                  setActiveTab(storedTab as TabType);
+                }
+                // Note: We don't check chat state here anymore to avoid overriding the saved tab
+                // The chat state restoration is handled by the ChatsTab component itself
             }
           } catch (error: any) {
             // If token expired or unauthorized, redirect to login
