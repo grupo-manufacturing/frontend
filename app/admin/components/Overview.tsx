@@ -111,10 +111,109 @@ export default function Overview({
     return top;
   }, [orders]);
 
-  // Top manufacturer is not available from requirements (requirements don't have manufacturer info)
+  // Calculate top manufacturer based on accepted AI Design responses
   const topManufacturer = useMemo(() => {
-    return { name: 'N/A', phone: '', total: 0, avgDeliveryTime: 'N/A' };
-  }, []);
+    const manufacturerStats = new Map<string, { 
+      name: string; 
+      phone: string; 
+      totalRevenue: number; 
+      acceptedCount: number;
+      totalOrdersCount: number;
+    }>();
+    
+    // Process all AI designs and their responses (both accepted and all)
+    aiDesigns.forEach((design) => {
+      if (design.responses && Array.isArray(design.responses)) {
+        design.responses.forEach((response: any) => {
+          const manufacturerId = response.manufacturer_id;
+          
+          // Skip if no manufacturer ID
+          if (!manufacturerId) {
+            return;
+          }
+          
+          // Get manufacturer info from response or find in manufacturers array
+          let manufacturerName = 'Unknown Manufacturer';
+          let manufacturerPhone = '';
+          
+          // Prefer manufacturer data from response (most up-to-date)
+          if (response.manufacturer) {
+            manufacturerName = response.manufacturer.unit_name || response.manufacturer.manufacturer_id || 'Unknown Manufacturer';
+            manufacturerPhone = response.manufacturer.phone_number || '';
+          } else if (manufacturerId && manufacturers.length > 0) {
+            // Try to find in manufacturers array
+            const manufacturer = manufacturers.find(m => m.id.toString() === manufacturerId.toString());
+            if (manufacturer) {
+              manufacturerName = manufacturer.unit_name || manufacturer.manufacturer_id || 'Unknown Manufacturer';
+              manufacturerPhone = manufacturer.phone_number || '';
+            }
+          }
+          
+          // Get existing stats or create new
+          const existing = manufacturerStats.get(manufacturerId) || {
+            name: manufacturerName,
+            phone: manufacturerPhone,
+            totalRevenue: 0,
+            acceptedCount: 0,
+            totalOrdersCount: 0
+          };
+          
+          // Preserve better manufacturer info if we have it
+          // Prefer response.manufacturer data, then existing good data, then fallback
+          const finalName = response.manufacturer?.unit_name || response.manufacturer?.manufacturer_id 
+            || (existing.name !== 'Unknown Manufacturer' ? existing.name : manufacturerName);
+          const finalPhone = response.manufacturer?.phone_number 
+            || (existing.phone ? existing.phone : manufacturerPhone);
+          
+          // Increment total orders count (all responses)
+          const newTotalOrdersCount = existing.totalOrdersCount + 1;
+          
+          // If this is an accepted response, update accepted count and revenue
+          if (response.status === 'accepted') {
+            // Calculate price
+            const price = response.quoted_price || 
+              (response.price_per_unit && response.quantity 
+                ? response.price_per_unit * response.quantity 
+                : 0);
+            
+            manufacturerStats.set(manufacturerId, {
+              name: finalName,
+              phone: finalPhone,
+              totalRevenue: existing.totalRevenue + price,
+              acceptedCount: existing.acceptedCount + 1,
+              totalOrdersCount: newTotalOrdersCount
+            });
+          } else {
+            // Just update total orders count for non-accepted responses
+            manufacturerStats.set(manufacturerId, {
+              name: finalName,
+              phone: finalPhone,
+              totalRevenue: existing.totalRevenue,
+              acceptedCount: existing.acceptedCount,
+              totalOrdersCount: newTotalOrdersCount
+            });
+          }
+        });
+      }
+    });
+    
+    // Find manufacturer with highest total revenue
+    let top = { name: 'N/A', phone: '', total: 0, acceptedCount: 0, totalOrdersCount: 0 };
+    
+    manufacturerStats.forEach((stats) => {
+      if (stats.totalRevenue > top.total) {
+        top = {
+          name: stats.name,
+          phone: stats.phone,
+          total: stats.totalRevenue,
+          acceptedCount: stats.acceptedCount,
+          totalOrdersCount: stats.totalOrdersCount
+        };
+      }
+    });
+    
+    return top;
+  }, [aiDesigns, manufacturers]);
 
   if (isLoadingData) {
     return null;
@@ -155,9 +254,6 @@ export default function Overview({
             <p className="text-lg font-semibold text-slate-900">
               {topBuyer.name}
             </p>
-            {topBuyer.phone && (
-              <p className="text-sm text-slate-500">{topBuyer.phone}</p>
-            )}
             <div className="mt-4 pt-4 border-t border-slate-200 space-y-4">
               <div>
                 <p className="text-xs text-slate-500">Total Requirements</p>
@@ -196,9 +292,11 @@ export default function Overview({
                 </p>
               </div>
               <div>
-                <p className="text-xs text-slate-500">Avg. Delivery Time</p>
+                <p className="text-xs text-slate-500">Avg. Accepted Orders</p>
                 <p className="mt-1 text-xl font-semibold text-slate-900">
-                  {topManufacturer.avgDeliveryTime}
+                  {topManufacturer.totalOrdersCount > 0
+                    ? ((topManufacturer.acceptedCount / topManufacturer.totalOrdersCount) * 100).toFixed(1)
+                    : '0'}%
                 </p>
               </div>
             </div>
