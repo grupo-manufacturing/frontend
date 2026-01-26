@@ -191,13 +191,10 @@ export default function Users({
                     GST Number
                   </th>
                   <th scope="col" className="px-4 py-3 text-left font-semibold">
-                    COI Number
-                  </th>
-                  <th scope="col" className="px-4 py-3 text-left font-semibold">
                     PAN Number
                   </th>
                   <th scope="col" className="px-4 py-3 text-left font-semibold">
-                    MSME Number
+                    Unit Image
                   </th>
                   <th scope="col" className="px-4 py-3 text-left font-semibold">
                     Verified
@@ -256,18 +253,25 @@ export default function Users({
                   </td>
                   <td className="px-4 py-3">
                     <div className="text-xs font-medium text-slate-700">
-                      {manufacturer.coi_number || '—'}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="text-xs font-medium text-slate-700">
                       {manufacturer.pan_number || '—'}
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="text-xs font-medium text-slate-700">
-                      {manufacturer.msme_number || '—'}
-                    </div>
+                    {manufacturer.manufacturing_unit_image_url ? (
+                      <a
+                        href={manufacturer.manufacturing_unit_image_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs font-medium text-[#22a2f2] hover:text-[#1b8bd0] hover:underline transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        View Image
+                      </a>
+                    ) : (
+                      <span className="text-xs text-slate-400">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <button
@@ -294,7 +298,7 @@ export default function Users({
             {(isShowingBuyers && filteredBuyers.length === 0) ||
             (isShowingManufacturers && filteredManufacturers.length === 0) ? (
               <tr>
-                <td colSpan={isShowingBuyers ? 4 : 9} className="px-4 py-6 text-center text-sm text-slate-500">
+                <td colSpan={isShowingBuyers ? 4 : 8} className="px-4 py-6 text-center text-sm text-slate-500">
                   No records found for your current filters.
                 </td>
               </tr>

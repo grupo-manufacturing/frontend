@@ -258,9 +258,6 @@ export default function Orders({
                 {isShowingCustom ? 'Requirement ID' : 'Design ID'}
               </th>
               <th scope="col" className="px-4 py-3 text-left font-semibold">
-                {isShowingCustom ? 'Requirement' : 'Design'}
-              </th>
-              <th scope="col" className="px-4 py-3 text-left font-semibold">
                 Buyer
               </th>
               {isShowingCustom && (
@@ -271,6 +268,16 @@ export default function Orders({
               {isShowingCustom && (
                 <th scope="col" className="px-4 py-3 text-left font-semibold">
                   Quantity
+                </th>
+              )}
+              {isShowingCustom && (
+                <th scope="col" className="px-4 py-3 text-left font-semibold">
+                  Additional Notes
+                </th>
+              )}
+              {!isShowingCustom && (
+                <th scope="col" className="px-4 py-3 text-left font-semibold">
+                  Design
                 </th>
               )}
               {!isShowingCustom && (
@@ -316,11 +323,6 @@ export default function Orders({
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <div className="text-xs text-slate-500 max-w-xs truncate">
-                          {requirement.requirement_text || '—'}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
                         <div className="font-medium text-slate-900">
                           {requirement.buyer?.full_name || 'Not provided'}
                         </div>
@@ -336,6 +338,11 @@ export default function Orders({
                       <td className="px-4 py-3">
                         <div className="text-xs text-slate-500">
                           {requirement.quantity?.toLocaleString('en-IN') || '—'}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="text-xs text-slate-500 max-w-xs truncate">
+                          {requirement.requirement_text || '—'}
                         </div>
                       </td>
                       <td className="px-4 py-3">

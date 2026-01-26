@@ -417,11 +417,6 @@ export default function RequirementsTab() {
                   </span>
                 </div>
                 
-                {/* Requirement title - larger and bolder */}
-                <h3 className="text-base font-bold text-gray-900 mb-4 leading-snug line-clamp-2 group-hover:text-[#22a2f2] transition-colors">
-                  {formattedRequirement}
-                </h3>
-                
                 {/* Details - reduced label emphasis, increased value emphasis */}
                 <div className="space-y-2 mb-4 flex-1">
                   <div className="flex items-center justify-between text-sm">
@@ -438,6 +433,12 @@ export default function RequirementsTab() {
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-400 font-normal">Type</span>
                       <span className="text-gray-900 font-semibold text-right truncate ml-2 capitalize">{formattedType}</span>
+                    </div>
+                  )}
+                  {formattedRequirement && (
+                    <div className="mt-3 pt-3 border-t border-gray-100">
+                      <span className="text-xs text-gray-400 font-normal block mb-1">Additional Notes:</span>
+                      <p className="text-sm text-gray-900 leading-relaxed line-clamp-3">{formattedRequirement}</p>
                     </div>
                   )}
                 </div>
@@ -534,11 +535,28 @@ export default function RequirementsTab() {
             </div>
 
             <div className="p-6 overflow-y-auto flex-1 min-h-0">
-              <div className="mb-6 p-4 bg-gray-50 rounded-xl">
-                <p className="text-sm font-semibold text-gray-700 mb-2">Requirement:</p>
-                <p className="text-gray-800">{selectedRequirement.requirement_text}</p>
+              <div className="mb-6 p-4 bg-gray-50 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500 font-normal">Buyer</span>
+                  <span className="text-sm font-semibold text-gray-900">{selectedRequirement.buyer?.full_name || 'N/A'}</span>
+                </div>
                 {selectedRequirement.quantity && (
-                  <p className="text-sm text-gray-600 mt-2">Quantity: {selectedRequirement.quantity.toLocaleString()}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500 font-normal">Quantity</span>
+                    <span className="text-sm font-semibold text-gray-900">{selectedRequirement.quantity.toLocaleString()}</span>
+                  </div>
+                )}
+                {selectedRequirement.product_type && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500 font-normal">Type</span>
+                    <span className="text-sm font-semibold text-gray-900 capitalize">{selectedRequirement.product_type}</span>
+                  </div>
+                )}
+                {selectedRequirement.requirement_text && (
+                  <div className="pt-3 mt-3 border-t border-gray-200">
+                    <p className="text-sm font-semibold text-gray-700 mb-2">Additional Notes:</p>
+                    <p className="text-sm text-gray-800 leading-relaxed">{formatText(selectedRequirement.requirement_text)}</p>
+                  </div>
                 )}
               </div>
 

@@ -10,6 +10,7 @@ export interface Manufacturer {
   coi_number?: string;
   pan_number?: string;
   msme_number?: string;
+  manufacturing_unit_image_url?: string;
   created_at: string;
 }
 
