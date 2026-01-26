@@ -26,11 +26,7 @@ export default function Onboarding({ phoneNumber, onComplete, toast }: Onboardin
     productTypes: [] as string[],
     capacity: '',
     location: '',
-    panNumber: '',
-    coiNumber: '',
-    manufacturingUnitImage: null as File | null,
-    msmeFile: null as File | null,
-    otherCertificates: null as File | null
+    manufacturingUnitImage: null as File | null
   });
   
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -116,12 +112,7 @@ export default function Onboarding({ phoneNumber, onComplete, toast }: Onboardin
         product_types: formData.productTypes,
         capacity: parseInt(formData.capacity) || 0,
         location: formData.location,
-        pan_number: formData.panNumber,
-        coi_number: formData.coiNumber,
-        manufacturing_unit_image_url: manufacturingUnitImageUrl,
-        // For now, skip file uploads until we implement proper file handling
-        // msme_file: formData.msmeFile,
-        // other_certificates: formData.otherCertificates
+        manufacturing_unit_image_url: manufacturingUnitImageUrl
       };
       
       // Submit onboarding data to backend
@@ -336,41 +327,6 @@ export default function Onboarding({ phoneNumber, onComplete, toast }: Onboardin
                         className="relative w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 transition-all outline-none text-black placeholder:text-gray-400"
                         required
                       />
-                    </div>
-                  </div>
-
-                  {/* PAN & COI Row */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        PAN Number
-                      </label>
-                      <div className="relative group">
-                        <div className="absolute inset-0 bg-gradient-to-r from-[#22a2f2] to-[#1b8bd0] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
-                        <input
-                          type="text"
-                          value={formData.panNumber}
-                          onChange={(e) => handleInputChange('panNumber', e.target.value)}
-                          placeholder="Enter PAN number"
-                          className="relative w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 transition-all outline-none text-black placeholder:text-gray-400"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        COI Number
-                      </label>
-                      <div className="relative group">
-                        <div className="absolute inset-0 bg-gradient-to-r from-[#22a2f2] to-[#1b8bd0] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
-                        <input
-                          type="text"
-                          value={formData.coiNumber}
-                          onChange={(e) => handleInputChange('coiNumber', e.target.value)}
-                          placeholder="Enter COI number"
-                          className="relative w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 transition-all outline-none text-black placeholder:text-gray-400"
-                        />
-                      </div>
                     </div>
                   </div>
 

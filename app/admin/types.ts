@@ -7,8 +7,6 @@ export interface Manufacturer {
   business_type?: string;
   is_verified: boolean;
   gst_number?: string;
-  coi_number?: string;
-  pan_number?: string;
   msme_number?: string;
   manufacturing_unit_image_url?: string;
   created_at: string;

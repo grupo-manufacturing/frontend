@@ -191,7 +191,7 @@ export default function Users({
                     GST Number
                   </th>
                   <th scope="col" className="px-4 py-3 text-left font-semibold">
-                    PAN Number
+                    MSME Number
                   </th>
                   <th scope="col" className="px-4 py-3 text-left font-semibold">
                     Unit Image
@@ -253,7 +253,7 @@ export default function Users({
                   </td>
                   <td className="px-4 py-3">
                     <div className="text-xs font-medium text-slate-700">
-                      {manufacturer.pan_number || '—'}
+                      {manufacturer.msme_number || '—'}
                     </div>
                   </td>
                   <td className="px-4 py-3">

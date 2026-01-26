@@ -17,11 +17,7 @@ export default function ManufacturerProfile() {
     productTypes: [] as string[],
     capacity: '',
     location: '',
-    panNumber: '',
-    coiNumber: '',
-    manufacturingUnitImage: null as File | null,
-    msmeFile: null as File | null,
-    otherCertificates: null as File | null
+    manufacturingUnitImage: null as File | null
   });
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
@@ -58,11 +54,7 @@ export default function ManufacturerProfile() {
           productTypes: profile.product_types || [],
           capacity: profile.daily_capacity?.toString() || '',
           location: profile.location || '',
-          panNumber: profile.pan_number || '',
-          coiNumber: profile.coi_number || '',
-          manufacturingUnitImage: null,
-          msmeFile: null,
-          otherCertificates: null
+          manufacturingUnitImage: null
         });
         
         setExistingImageUrl(profile.manufacturing_unit_image_url || null);
@@ -88,7 +80,7 @@ export default function ManufacturerProfile() {
     });
   };
 
-  const handleFileChange = (field: 'manufacturingUnitImage' | 'msmeFile' | 'otherCertificates', file: File | null) => {
+  const handleFileChange = (field: 'manufacturingUnitImage', file: File | null) => {
     setFormData(prev => ({ ...prev, [field]: file }));
     // Clear existing image URL when a new file is selected
     if (field === 'manufacturingUnitImage' && file) {
@@ -133,8 +125,6 @@ export default function ManufacturerProfile() {
         product_types: formData.productTypes,
         daily_capacity: parseInt(formData.capacity) || 0,
         location: formData.location,
-        pan_number: formData.panNumber,
-        coi_number: formData.coiNumber,
         manufacturing_unit_image_url: manufacturingUnitImageUrl
       };
 
@@ -377,34 +367,6 @@ export default function ManufacturerProfile() {
                 />
               </div>
 
-              {/* PAN Number */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  PAN Number
-                </label>
-                <input
-                  type="text"
-                  value={formData.panNumber}
-                  onChange={(e) => handleInputChange('panNumber', e.target.value)}
-                  placeholder="Enter PAN number"
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-400 transition-all"
-                />
-              </div>
-
-              {/* COI Number */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Certificate of Incorporation (COI) Number
-                </label>
-                <input
-                  type="text"
-                  value={formData.coiNumber}
-                  onChange={(e) => handleInputChange('coiNumber', e.target.value)}
-                  placeholder="Enter COI number"
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-400 transition-all"
-                />
-              </div>
-
               {/* Manufacturing Unit Image */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -500,34 +462,6 @@ export default function ManufacturerProfile() {
                     </label>
                   </div>
                 </div>
-              </div>
-
-              {/* MSME Certificate Upload */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  MSME Certificate
-                </label>
-                <input
-                  type="file"
-                  onChange={(e) => handleFileChange('msmeFile', e.target.files?.[0] || null)}
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#22a2f2]/10 file:text-[#22a2f2] hover:file:bg-[#22a2f2]/20 transition-all"
-                />
-                <p className="text-xs text-gray-500 mt-1">Upload PDF, JPG, or PNG (Max 5MB)</p>
-              </div>
-
-              {/* Other Certificates Upload */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Other Certificates
-                </label>
-                <input
-                  type="file"
-                  onChange={(e) => handleFileChange('otherCertificates', e.target.files?.[0] || null)}
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#22a2f2]/10 file:text-[#22a2f2] hover:file:bg-[#22a2f2]/20 transition-all"
-                />
-                <p className="text-xs text-gray-500 mt-1">Upload PDF, JPG, or PNG (Max 5MB)</p>
               </div>
 
               {/* Phone Number Display */}
