@@ -605,30 +605,8 @@ export default function BuyerPortal() {
           </div>
         </header>
 
-        {/* Profile Completion Notice */}
-        {profileCompletion < 100 && (
-          <div className="sticky top-20 z-[45] bg-amber-50 border-b border-amber-200">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <svg className="w-5 h-5 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                  <span className="text-sm font-medium text-amber-800">Please Complete Your Profile</span>
-                </div>
-                <Link
-                  href="/buyer-portal/profile"
-                  className="flex-shrink-0 px-4 py-2 bg-[#22a2f2] hover:bg-[#1b8bd0] text-white text-sm font-medium rounded-lg transition-all shadow-sm hover:shadow"
-                >
-                  Go to Profile
-                </Link>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Tab Navigation */}
-        <nav className={`sticky ${profileCompletion < 100 ? 'top-[116px]' : 'top-20'} z-40 bg-white border-b border-gray-200`}>
+        <nav className="sticky top-20 z-40 bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-1">
               {/* Generate Designs Tab */}
