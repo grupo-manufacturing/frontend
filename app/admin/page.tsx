@@ -90,8 +90,8 @@ export default function AdminPortal() {
     setErrorMessage('');
     try {
       const [buyersRes, manufacturersRes] = await Promise.all([
-        apiService.getAllBuyers({ sortBy: 'created_at', sortOrder: 'desc' }),
-        apiService.getAllManufacturers({ sortBy: 'created_at', sortOrder: 'desc' })
+        apiService.getAllBuyers({ sortBy: 'created_at', sortOrder: 'desc', limit: 100 }),
+        apiService.getAllManufacturers({ sortBy: 'created_at', sortOrder: 'desc', limit: 100 })
       ]);
 
       setBuyers(buyersRes.data?.buyers || []);
