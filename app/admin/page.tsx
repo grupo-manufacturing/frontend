@@ -212,7 +212,7 @@ export default function AdminPortal() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <header className="border-b border-slate-200 bg-white">
+      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#22a2f2]/20 bg-[#22a2f2]/10">
@@ -237,7 +237,7 @@ export default function AdminPortal() {
         </div>
       </header>
 
-      <nav className="border-b border-slate-200 bg-white">
+      <nav className="sticky top-[73px] z-40 border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center gap-2 overflow-x-auto px-4 sm:px-6">
           {VIEW_TABS.map((tab) => {
             const isActive = tab.id === activeView;

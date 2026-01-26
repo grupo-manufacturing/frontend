@@ -610,7 +610,7 @@ export default function BuyerPortal() {
 
         {/* Profile Completion Notice */}
         {profileCompletion < 100 && (
-          <div className="bg-amber-50 border-b border-amber-200">
+          <div className="sticky top-20 z-[45] bg-amber-50 border-b border-amber-200">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
@@ -631,7 +631,7 @@ export default function BuyerPortal() {
         )}
 
         {/* Tab Navigation */}
-        <nav className="relative z-40 bg-white border-b border-gray-200">
+        <nav className={`sticky ${profileCompletion < 100 ? 'top-[116px]' : 'top-20'} z-40 bg-white border-b border-gray-200`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-1">
               {/* Generate Designs Tab */}

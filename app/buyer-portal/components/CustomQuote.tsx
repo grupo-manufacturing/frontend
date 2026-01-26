@@ -50,12 +50,6 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
 
   // Handle Custom Quote Submission
   const handleSubmitRequirement = async () => {
-    // Validate required field
-    if (!requirement || requirement.trim().length === 0) {
-      toast.error('Please enter your requirement details');
-      return;
-    }
-
     setIsSubmittingRequirement(true);
     
     try {
@@ -68,7 +62,7 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
 
       // Create requirement data
       const requirementData = {
-        requirement_text: requirement.trim(),
+        requirement_text: requirement && requirement.trim().length > 0 ? requirement.trim() : null,
         quantity: customQuantity ? parseInt(customQuantity) : null,
         product_type: customProductType || null,
         product_link: productLink.trim() || null,
@@ -100,10 +94,10 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
           onSwitchToRequirements();
         }
       } else {
-        toast.error('Failed to submit requirement. Please try again.');
+        toast.error(response.message || 'Failed to submit requirement. Please try again.');
       }
-    } catch (error) {
-      toast.error('Failed to submit requirement. Please try again.');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to submit requirement. Please try again.');
     } finally {
       setIsSubmittingRequirement(false);
     }
@@ -126,34 +120,6 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
       {/* Custom Quote Form */}
       <div className="w-full max-w-3xl bg-white rounded-2xl border border-[#22a2f2]/30 p-8 shadow-lg">
         <form className="space-y-6">
-          {/* Requirement */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Requirement
-            </label>
-            <textarea
-              value={requirement}
-              onChange={(e) => setRequirement(e.target.value)}
-              placeholder="Please describe your requirements in detail..."
-              rows={5}
-              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 resize-none transition-all"
-            />
-          </div>
-
-          {/* Quantity */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Quantity
-            </label>
-            <input
-              type="number"
-              value={customQuantity}
-              onChange={(e) => setCustomQuantity(e.target.value)}
-              placeholder="Enter quantity"
-              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 transition-all"
-            />
-          </div>
-
           {/* Product Type */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -226,6 +192,20 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
             </div>
           </div>
 
+          {/* Quantity */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Quantity
+            </label>
+            <input
+              type="number"
+              value={customQuantity}
+              onChange={(e) => setCustomQuantity(e.target.value)}
+              placeholder="Enter quantity"
+              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 transition-all"
+            />
+          </div>
+
           {/* Tech Packs Link (Optional) */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -255,6 +235,20 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
                 className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 transition-all"
               />
             </div>
+          </div>
+
+          {/* Additional Notes */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Additional Notes
+            </label>
+            <textarea
+              value={requirement}
+              onChange={(e) => setRequirement(e.target.value)}
+              placeholder="Add any additional notes or details..."
+              rows={5}
+              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 resize-none transition-all"
+            />
           </div>
 
           {/* Upload Image (Optional) */}

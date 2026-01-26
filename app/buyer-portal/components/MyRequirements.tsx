@@ -178,35 +178,32 @@ export default function MyRequirements({
         <div className="space-y-4">
           {requirements.map((req: any) => (
             <div key={req.id} className="bg-white rounded-xl border border-[#22a2f2]/30 p-6 hover:shadow-md transition-shadow">
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-gray-500">
-                        {new Date(req.created_at).toLocaleDateString('en-US', { 
-                          year: 'numeric', 
-                          month: 'short', 
-                          day: 'numeric' 
-                        })}
-                      </span>
-                      {/* Pending Badge - Show when there are no responses */}
-                      {(!req.responses || req.responses.length === 0 || req.manufacturer_count === 0) && (
-                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
-                          Pending
-                        </span>
-                      )}
-                    </div>
-                    {req.requirement_no && (
-                      <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-[#22a2f2]/10 text-[#22a2f2] border border-[#22a2f2]/20">
-                        {req.requirement_no}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-gray-800 mb-3 leading-relaxed">{req.requirement_text}</p>
+              {/* Row 1: Date Status | Requirement No */}
+              <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-gray-500">
+                    {new Date(req.created_at).toLocaleDateString('en-US', { 
+                      year: 'numeric', 
+                      month: 'short', 
+                      day: 'numeric' 
+                    })}
+                  </span>
+                  {/* Status Badge - Show when there are no responses */}
+                  {(!req.responses || req.responses.length === 0 || req.manufacturer_count === 0) && (
+                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
+                      Pending
+                    </span>
+                  )}
                 </div>
+                {req.requirement_no && (
+                  <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-[#22a2f2]/10 text-[#22a2f2] border border-[#22a2f2]/20">
+                    {req.requirement_no}
+                  </span>
+                )}
               </div>
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-gray-100">
+
+              {/* Row 2: Quantity, Product Type, Responses */}
+              <div className="grid grid-cols-3 gap-4 mb-4">
                 {req.quantity && (
                   <div>
                     <p className="text-xs text-gray-500 mb-1">Quantity</p>
@@ -225,8 +222,17 @@ export default function MyRequirements({
                 </div>
               </div>
 
+              {/* Additional Notes */}
+              {req.requirement_text && (
+                <div className="mb-4">
+                  <p className="text-xs text-gray-500 mb-1">Additional Notes</p>
+                  <p className="text-gray-800 leading-relaxed">{req.requirement_text}</p>
+                </div>
+              )}
+
+              {/* Tech Packs Link */}
               {req.product_link && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
+                <div className="mb-4">
                   <a 
                     href={req.product_link} 
                     target="_blank" 
@@ -241,13 +247,14 @@ export default function MyRequirements({
                 </div>
               )}
 
-              <div className="mt-6">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+              {/* Manufacturer Responses Section */}
+              <div className="mt-6 pt-4 border-t border-gray-100">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-4">
                   <p className="text-sm font-semibold text-black">Manufacturer Responses</p>
                   <p className="text-xs text-gray-500">
                     {req.responses && req.responses.length > 0
                       ? `${req.responses.length} response${req.responses.length === 1 ? '' : 's'} received`
-                      : 'Awaiting responses'}
+                      : 'Awaiting Responses'}
                   </p>
                 </div>
 
