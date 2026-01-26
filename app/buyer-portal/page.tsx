@@ -53,8 +53,7 @@ export default function BuyerPortal() {
               const requiredFields = [
                 profile.full_name,
                 profile.email,
-                profile.business_address,
-                profile.about_business
+                profile.business_address
               ];
               const allFieldsFilled = requiredFields.every(field => field && field.trim().length > 0);
               setProfileCompletion(allFieldsFilled ? 100 : 0);
@@ -376,8 +375,7 @@ export default function BuyerPortal() {
             const requiredFields = [
               profile.full_name,
               profile.email,
-              profile.business_address,
-              profile.about_business
+              profile.business_address
             ];
             const allFieldsFilled = requiredFields.every(field => field && field.trim().length > 0);
             setProfileCompletion(allFieldsFilled ? 100 : 0);
@@ -470,13 +468,12 @@ export default function BuyerPortal() {
             setDisplayName(resolvedName);
           }
           
-          // Check if all required fields are filled (phone_number is always present, so we check the other 4)
-          // Required fields: full_name, email, business_address, about_business
+          // Check if all required fields are filled (phone_number is always present, so we check the other 3)
+          // Required fields: full_name, email, business_address
           const requiredFields = [
             profile.full_name,
             profile.email,
-            profile.business_address,
-            profile.about_business
+            profile.business_address
           ];
           const allFieldsFilled = requiredFields.every(field => field && field.trim().length > 0);
           // Set to 100 if all fields filled, 0 otherwise (to show/hide the notice)

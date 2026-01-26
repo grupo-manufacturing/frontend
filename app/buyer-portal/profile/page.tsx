@@ -13,8 +13,7 @@ export default function BuyerProfile() {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
-    businessAddress: '',
-    aboutBusiness: ''
+    businessAddress: ''
   });
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -44,8 +43,7 @@ export default function BuyerProfile() {
         setFormData({
           fullName: profile.full_name || '',
           email: profile.email || '',
-          businessAddress: profile.business_address || '',
-          aboutBusiness: profile.about_business || ''
+          businessAddress: profile.business_address || ''
         });
         
         const resolvedName = (profile.full_name || '').trim();
@@ -70,8 +68,7 @@ export default function BuyerProfile() {
       const response = await apiService.updateBuyerProfile({
         full_name: formData.fullName,
         email: formData.email,
-        business_address: formData.businessAddress,
-        about_business: formData.aboutBusiness
+        business_address: formData.businessAddress
       });
 
       // Check if update was successful
@@ -245,23 +242,6 @@ export default function BuyerProfile() {
                     onChange={(e) => handleInputChange('businessAddress', e.target.value)}
                     placeholder="Enter your business address"
                     className="relative w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-500 transition-all"
-                  />
-                </div>
-              </div>
-
-              {/* About Your Business */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  About Your Business
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-0 bg-[#22a2f2]/15 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
-                  <textarea
-                    value={formData.aboutBusiness}
-                    onChange={(e) => handleInputChange('aboutBusiness', e.target.value)}
-                    placeholder="Tell us about your business"
-                    rows={4}
-                    className="relative w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-500 resize-none transition-all"
                   />
                 </div>
               </div>

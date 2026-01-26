@@ -133,8 +133,7 @@ export default function Login({ onLoginSuccess, onProfileUpdate, isCheckingAuth 
           const requiredFields = [
             profile.full_name,
             profile.email,
-            profile.business_address,
-            profile.about_business
+            profile.business_address
           ];
           const allFieldsFilled = requiredFields.every(field => field && field.trim().length > 0);
           const profileCompletion = allFieldsFilled ? 100 : 0;
