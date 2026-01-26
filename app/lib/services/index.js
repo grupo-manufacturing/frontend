@@ -73,11 +73,15 @@ class ApiService {
     // AI Design methods
     this.getAIDesigns = aiDesignService.getAIDesigns.bind(aiDesignService);
     this.getAIDesign = aiDesignService.getAIDesign.bind(aiDesignService);
+    this.generateDesign = aiDesignService.generateDesign.bind(aiDesignService);
+    this.extractDesign = aiDesignService.extractDesign.bind(aiDesignService);
+    this.publishAIDesign = aiDesignService.publishAIDesign.bind(aiDesignService);
     this.pushAIDesign = aiDesignService.pushAIDesign.bind(aiDesignService);
     this.getAcceptedAIDesignsForConversation = aiDesignService.getAcceptedAIDesignsForConversation.bind(aiDesignService);
     this.createAIDesignResponse = aiDesignService.createAIDesignResponse.bind(aiDesignService);
     this.getAIDesignResponses = aiDesignService.getAIDesignResponses.bind(aiDesignService);
     this.updateAIDesignResponseStatus = aiDesignService.updateAIDesignResponseStatus.bind(aiDesignService);
+    this.deleteAIDesign = aiDesignService.deleteAIDesign.bind(aiDesignService);
     
     // User methods
     this.getManufacturerProfile = userService.getManufacturerProfile.bind(userService);

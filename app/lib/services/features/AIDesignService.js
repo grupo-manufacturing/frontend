@@ -39,39 +39,74 @@ class AIDesignService {
   }
 
   /**
+   * Generate an AI design using Gemini AI
+   * @param {Object} options - Design generation options
+   * @param {string} options.apparel_type - Type of apparel
+   * @param {string} [options.theme_concept] - Theme or concept
+   * @param {string} [options.print_placement] - Print placement location
+   * @param {string} [options.main_elements] - Main elements to include
+   * @param {string} [options.preferred_colors] - Preferred color scheme
+   * @returns {Promise} Response data with base64 image
+   */
+  async generateDesign(options) {
+    return apiClient.request('/ai-designs/generate', {
+      method: 'POST',
+      body: JSON.stringify(options)
+    });
+  }
+
+  /**
+   * Extract design pattern from an apparel image using Gemini AI
+   * @param {Object} options - Extraction options
+   * @param {string} options.image_url - URL of the image to extract from
+   * @param {string} [options.design_id] - Optional design ID to update pattern_url
+   * @returns {Promise} Response data with extracted image URL
+   */
+  async extractDesign(options) {
+    return apiClient.request('/ai-designs/extract', {
+      method: 'POST',
+      body: JSON.stringify({
+        image_url: options.image_url,
+        design_id: options.design_id
+      })
+    });
+  }
+
+  /**
+   * Publish an AI design (create new design record)
+   * @param {Object} designData - Design data
+   * @param {string} designData.image_url - Image URL (can be base64)
+   * @param {string} designData.apparel_type - Type of apparel
+   * @param {string} [designData.design_description] - Design description
+   * @param {number} designData.quantity - Quantity
+   * @param {string} [designData.preferred_colors] - Preferred colors
+   * @param {string} [designData.print_placement] - Print placement
+   * @returns {Promise} Response data
+   */
+  async publishAIDesign(designData) {
+    return apiClient.request('/ai-designs', {
+      method: 'POST',
+      body: JSON.stringify({
+        image_url: designData.image_url,
+        apparel_type: designData.apparel_type,
+        design_description: designData.design_description || null,
+        quantity: parseInt(designData.quantity),
+        preferred_colors: designData.preferred_colors || null,
+        print_placement: designData.print_placement || null,
+        status: 'draft'
+      })
+    });
+  }
+
+  /**
    * Push an AI design to manufacturers (change status to published)
    * @param {string} designId - AI design ID
    * @returns {Promise} Response data
    */
   async pushAIDesign(designId) {
-    const token = getToken();
-    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-    const url = `${baseUrl}/api/push-ai-design?id=${designId}`;
-
-    try {
-      const response = await fetch(url, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: token ? `Bearer ${token}` : ''
-        }
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          apiClient.handleTokenExpiration();
-          throw new Error('Your session has expired. Please log in again.');
-        }
-        throw new Error(data.error || `Failed to push design! status: ${response.status}`);
-      }
-
-      return data;
-    } catch (error) {
-      console.error('Push AI design failed:', error);
-      throw error;
-    }
+    return apiClient.request(`/ai-designs/${designId}/push`, {
+      method: 'PATCH'
+    });
   }
 
   /**

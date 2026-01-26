@@ -240,7 +240,7 @@ export default function ManufacturerProfile() {
               {/* Manufacturing Unit Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Manufacturing Unit Name <span className="text-[#22a2f2]">*</span>
+                  Manufacturing Unit Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -255,7 +255,7 @@ export default function ManufacturerProfile() {
               {/* Business Type */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Business Type <span className="text-[#22a2f2]">*</span>
+                  Business Type <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <select
@@ -283,7 +283,7 @@ export default function ManufacturerProfile() {
               {/* GST Number */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  GST Number <span className="text-[#22a2f2]">*</span>
+                  GST Number <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -298,7 +298,7 @@ export default function ManufacturerProfile() {
               {/* Product Types */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Product Types
+                  Product Types <span className="text-red-500">*</span>
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {[
@@ -342,7 +342,7 @@ export default function ManufacturerProfile() {
               {/* Manufacturing Capacity */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Manufacturing Capacity Per Day
+                  Manufacturing Capacity Per Day <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"

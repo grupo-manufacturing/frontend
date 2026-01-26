@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import apiService from '../../lib/apiService';
 import { useToast } from '../../components/Toast';
 import designGenerationService from '../../lib/services/features/DesignGenerationService.js';
+import aiDesignService from '../../lib/services/features/AIDesignService.js';
 
 const DAILY_LIMIT = 5;
 
@@ -194,35 +195,17 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
       // Transform simplified form data to match API expectations
       const apiPayload = {
         apparel_type: formData.apparel_type,
-        design_description: formData.design_description,
         theme_concept: formData.design_description, // Use description as theme
-        design_style: 'custom', // Default style
-        target_audience: 'general', // Default audience
         print_placement: formData.print_placement || 'Front Center',
         main_elements: formData.design_description, // Extract from description
-        preferred_colors: formData.preferred_colors || '',
-        colors_to_avoid: '',
-        text_style: '',
-        text_content: ''
+        preferred_colors: formData.preferred_colors || ''
       };
 
-      // Call the API endpoint to generate design using Nano Banana Pro
-      const response = await fetch('/api/generate-design', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(apiPayload),
-      });
+      // Call the backend API to generate design using Gemini AI
+      const response = await aiDesignService.generateDesign(apiPayload);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate design');
-      }
-
-      if (data.success && data.image) {
-        setGeneratedDesign(data.image);
+      if (response.success && response.data && response.data.image) {
+        setGeneratedDesign(response.data.image);
         // Increment design count after successful generation
         try {
           const incrementResponse = await designGenerationService.increment();
@@ -290,35 +273,17 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
     setIsPublishing(true);
 
     try {
-      // Get the auth token
-      const token = apiService.getToken();
-      if (!token) {
-        throw new Error('You must be logged in to publish designs');
-      }
-
-      const response = await fetch('/api/publish-ai-design', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          image_url: generatedDesign,
-          apparel_type: formData.apparel_type,
-          design_description: formData.design_description,
-          quantity: quantity,
-          preferred_colors: formData.preferred_colors || null,
-          print_placement: formData.print_placement || null
-        }),
+      // Call the backend API to publish design
+      const response = await aiDesignService.publishAIDesign({
+        image_url: generatedDesign,
+        apparel_type: formData.apparel_type,
+        design_description: formData.design_description,
+        quantity: quantity,
+        preferred_colors: formData.preferred_colors || null,
+        print_placement: formData.print_placement || null
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to publish design');
-      }
-
-      if (data.success) {
+      if (response.success) {
         toast.success('Design published successfully! It will be visible to all manufacturers.');
         setIsPublishModalOpen(false);
         setPublishData({ quantity: '' });

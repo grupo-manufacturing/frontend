@@ -198,7 +198,7 @@ export default function BuyerProfile() {
               {/* Full Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name
+                  Full Name <span className="text-red-500">*</span>
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-0 bg-[#22a2f2]/15 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
@@ -215,7 +215,7 @@ export default function BuyerProfile() {
               {/* Email Address */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
+                  Email Address <span className="text-red-500">*</span>
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-0 bg-[#22a2f2]/15 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
@@ -232,7 +232,7 @@ export default function BuyerProfile() {
               {/* Business Address */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Business Address
+                  Business Address <span className="text-red-500">*</span>
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-0 bg-[#22a2f2]/15 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300"></div>

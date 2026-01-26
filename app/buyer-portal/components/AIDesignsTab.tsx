@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import apiService from '../../lib/apiService';
 import { useToast } from '../../components/Toast';
+import aiDesignService from '../../lib/services/features/AIDesignService.js';
 
 interface AIDesignsTabProps {
   onSwitchToGenerateDesigns?: () => void;
@@ -48,34 +49,19 @@ export default function AIDesignsTab({ onSwitchToGenerateDesigns, onAcceptAIDesi
   // Extract and download design only (without garment)
   const extractAndDownloadDesign = async (imageUrl: string, designNo: string, apparelType: string, designId: string) => {
     try {
-      // Get auth token
-      const token = apiService.getToken();
-      
-      // Call the API to extract the design
-      const response = await fetch('/api/extract-design', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({
-          imageUrl: imageUrl,
-          designId: designId
-        }),
+      // Call the backend API to extract the design
+      const response = await aiDesignService.extractDesign({
+        image_url: imageUrl,
+        design_id: designId
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to extract design');
-      }
-
-      if (data.success && data.imageUrl) {
+      if (response.success && response.data && response.data.image_url) {
+        const extractedImageUrl = response.data.image_url;
         // Handle both base64 and Cloudinary URL
-        if (data.isBase64 || data.imageUrl.startsWith('data:image')) {
+        if (response.data.isBase64 || extractedImageUrl.startsWith('data:image')) {
           // Base64 image - download directly
           const link = document.createElement('a');
-          link.href = data.imageUrl;
+          link.href = extractedImageUrl;
           link.download = `${designNo || 'GRUPO-AI'}-${apparelType?.replace(/\s+/g, '-') || 'design'}-design-only.png`;
           document.body.appendChild(link);
           link.click();
@@ -89,7 +75,7 @@ export default function AIDesignsTab({ onSwitchToGenerateDesigns, onAcceptAIDesi
           await new Promise((resolve, reject) => {
             img.onload = resolve;
             img.onerror = reject;
-            img.src = data.imageUrl;
+            img.src = extractedImageUrl;
           });
           
           // Create a canvas and draw the extracted design
