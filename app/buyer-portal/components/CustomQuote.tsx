@@ -19,6 +19,8 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
   const [productLink, setProductLink] = useState('');
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [isSubmittingRequirement, setIsSubmittingRequirement] = useState(false);
+  // Validation errors
+  const [errors, setErrors] = useState<{ productType?: string; quantity?: string }>({});
 
   // Audio ref for notification sound
   const notifySoundRef = useRef<HTMLAudioElement | null>(null);
@@ -48,8 +50,37 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
     }
   };
 
+  // Validate form before submission
+  const validateForm = (): boolean => {
+    const newErrors: { productType?: string; quantity?: string } = {};
+
+    // Validate Product Type (required)
+    if (!customProductType || customProductType.trim().length === 0) {
+      newErrors.productType = 'Product type is required';
+    }
+
+    // Validate Quantity (required)
+    if (!customQuantity || customQuantity.trim().length === 0) {
+      newErrors.quantity = 'Quantity is required';
+    } else {
+      const quantityNum = parseInt(customQuantity);
+      if (isNaN(quantityNum) || quantityNum <= 0) {
+        newErrors.quantity = 'Quantity must be a positive number';
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   // Handle Custom Quote Submission
   const handleSubmitRequirement = async () => {
+    // Validate form before submission
+    if (!validateForm()) {
+      toast.error('Please fill in all required fields correctly');
+      return;
+    }
+
     setIsSubmittingRequirement(true);
     
     try {
@@ -61,11 +92,12 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
       }
 
       // Create requirement data
+      // At this point, validation has ensured product_type and quantity are present
       const requirementData = {
+        product_type: customProductType.trim(), // Required - validated
+        quantity: parseInt(customQuantity), // Required - validated
         requirement_text: requirement && requirement.trim().length > 0 ? requirement.trim() : null,
-        quantity: customQuantity ? parseInt(customQuantity) : null,
-        product_type: customProductType || null,
-        product_link: productLink.trim() || null,
+        product_link: productLink.trim().length > 0 ? productLink.trim() : null,
         image_url: imageUrl
       };
 
@@ -84,6 +116,7 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
         setCustomProductType('');
         setProductLink('');
         setUploadedImage(null);
+        setErrors({});
         
         // Call parent callbacks if provided
         if (onRequirementSubmitted) {
@@ -94,10 +127,23 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
           onSwitchToRequirements();
         }
       } else {
-        toast.error(response.message || 'Failed to submit requirement. Please try again.');
+        // Handle validation errors from backend
+        if (response.errors && Array.isArray(response.errors)) {
+          const errorMessages = response.errors.map((err: any) => err.msg || err.message).join(', ');
+          toast.error(errorMessages || response.message || 'Validation failed. Please check your input.');
+        } else {
+          toast.error(response.message || 'Failed to submit requirement. Please try again.');
+        }
       }
     } catch (error: any) {
-      toast.error(error.message || 'Failed to submit requirement. Please try again.');
+      // Handle network errors or other exceptions
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to submit requirement. Please try again.';
+      if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+        const errorMessages = error.response.data.errors.map((err: any) => err.msg || err.message).join(', ');
+        toast.error(errorMessages || errorMessage);
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setIsSubmittingRequirement(false);
     }
@@ -123,14 +169,22 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
           {/* Product Type */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Product Type
+              Product Type <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <button
                 type="button"
-                onClick={() => setIsProductTypeDropdownOpen(!isProductTypeDropdownOpen)}
+                onClick={() => {
+                  setIsProductTypeDropdownOpen(!isProductTypeDropdownOpen);
+                  // Clear error when user interacts
+                  if (errors.productType) {
+                    setErrors(prev => ({ ...prev, productType: undefined }));
+                  }
+                }}
                 onBlur={() => setTimeout(() => setIsProductTypeDropdownOpen(false), 200)}
-                className="appearance-none w-full px-4 py-3 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black cursor-pointer transition-all text-left flex items-center justify-between"
+                className={`appearance-none w-full px-4 py-3 pr-10 bg-white border rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black cursor-pointer transition-all text-left flex items-center justify-between ${
+                  errors.productType ? 'border-red-500' : 'border-gray-200'
+                }`}
               >
                 <span className={customProductType ? 'text-black' : 'text-gray-500'}>
                   {customProductType || 'Select product type'}
@@ -190,26 +244,41 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
                 </div>
               )}
             </div>
+            {errors.productType && (
+              <p className="mt-1 text-sm text-red-500">{errors.productType}</p>
+            )}
           </div>
 
           {/* Quantity */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Quantity
+              Quantity <span className="text-red-500">*</span>
             </label>
             <input
               type="number"
               value={customQuantity}
-              onChange={(e) => setCustomQuantity(e.target.value)}
+              onChange={(e) => {
+                setCustomQuantity(e.target.value);
+                // Clear error when user starts typing
+                if (errors.quantity) {
+                  setErrors(prev => ({ ...prev, quantity: undefined }));
+                }
+              }}
               placeholder="Enter quantity"
-              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 transition-all"
+              min="1"
+              className={`w-full px-4 py-3 bg-white border rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 transition-all ${
+                errors.quantity ? 'border-red-500' : 'border-gray-200'
+              }`}
             />
+            {errors.quantity && (
+              <p className="mt-1 text-sm text-red-500">{errors.quantity}</p>
+            )}
           </div>
 
           {/* Tech Packs Link (Optional) */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Tech Packs
+              Tech Packs <span className="text-gray-400 text-xs font-normal">(Optional)</span>
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -240,7 +309,7 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
           {/* Additional Notes */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Additional Notes
+              Additional Notes <span className="text-gray-400 text-xs font-normal">(Optional)</span>
             </label>
             <textarea
               value={requirement}
