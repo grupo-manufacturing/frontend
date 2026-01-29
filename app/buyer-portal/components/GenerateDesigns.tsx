@@ -158,13 +158,30 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
   };
 
   const handleGenerate = async () => {
-    // Check daily limit first (async check)
+    // Set loading state immediately for instant UI feedback
+    setIsGenerating(true);
+
+    // Validate required fields first (before async operations)
+    if (!formData.apparel_type?.trim()) {
+      toast.error('Please select what product you want to design');
+      setIsGenerating(false);
+      return;
+    }
+    
+    if (!formData.design_description?.trim()) {
+      toast.error('Please describe your design idea');
+      setIsGenerating(false);
+      return;
+    }
+
+    // Check daily limit (async check)
     try {
       const response = await designGenerationService.getStatus();
       if (response.success && response.data) {
         if (!response.data.canGenerate) {
           toast.error(`Daily limit reached! You can generate up to ${DAILY_LIMIT} designs per day. Please try again tomorrow.`);
           setRemainingDesigns(response.data.remaining);
+          setIsGenerating(false);
           return;
         }
       }
@@ -173,23 +190,11 @@ export default function GenerateDesigns({ onDesignPublished }: GenerateDesignsPr
       // If it's a limit error, show message
       if (error.message?.includes('limit')) {
         toast.error(error.message || `Daily limit reached! You can generate up to ${DAILY_LIMIT} designs per day.`);
+        setIsGenerating(false);
         return;
       }
       // Otherwise continue (might be network error, allow user to try)
     }
-
-    // Validate required fields - only 2 essential fields now
-    if (!formData.apparel_type?.trim()) {
-      toast.error('Please select what product you want to design');
-      return;
-    }
-    
-    if (!formData.design_description?.trim()) {
-      toast.error('Please describe your design idea');
-      return;
-    }
-
-    setIsGenerating(true);
 
     try {
       // Transform simplified form data to match API expectations
