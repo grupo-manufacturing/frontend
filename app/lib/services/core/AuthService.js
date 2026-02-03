@@ -40,13 +40,20 @@ class AuthService {
   }
 
   /**
-   * Refresh JWT token
+   * Refresh JWT token. On success, stores the new token for the current portal.
    * @returns {Promise} Response data
    */
   async refreshToken() {
-    return apiClient.request('/auth/refresh-token', {
+    const response = await apiClient.request('/auth/refresh-token', {
       method: 'POST'
     });
+    const newToken = response?.data?.token || response?.token;
+    if (newToken && typeof window !== 'undefined') {
+      const path = window.location.pathname;
+      const tokenType = path.startsWith('/admin') ? 'admin' : path.startsWith('/manufacturer-portal') ? 'manufacturer' : 'buyer';
+      setTokenInStorage(newToken, tokenType);
+    }
+    return response;
   }
 
   /**
