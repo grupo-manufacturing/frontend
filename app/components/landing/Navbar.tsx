@@ -12,6 +12,8 @@ const Navbar = () => {
     { name: 'Buyer', href: '/buyer-portal' },
     // Manufacturer link hidden during UAT phase
     // { name: 'Manufacturer', href: '/manufacturer-portal' },
+    // Shop link hidden during testing phase
+    // { name: 'Shop', href: '/shop' },
   ];
 
   return (
