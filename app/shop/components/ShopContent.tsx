@@ -104,7 +104,7 @@ export default function ShopContent() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
       {/* ── Page Header ────────────────────────────────────────────────── */}
       <div className="mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Grupo Store</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Grupo Marketplace</h1>
         <p className="text-sm text-gray-500 mt-1">
           Premium bulk apparel for brands &amp; businesses
         </p>

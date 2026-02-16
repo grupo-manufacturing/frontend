@@ -17,12 +17,12 @@ export default function QuantityInput({
   min = MIN_ORDER,
   step = 10,
 }: QuantityInputProps) {
-  const [displayValue, setDisplayValue] = useState(String(value));
+  const [displayValue, setDisplayValue] = useState(value === 0 ? '' : String(value));
   const [error, setError] = useState('');
 
   /* Keep display in sync when value changes externally */
   useEffect(() => {
-    setDisplayValue(String(value));
+    setDisplayValue(value === 0 ? '' : String(value));
   }, [value]);
 
   const validate = useCallback(
@@ -61,20 +61,36 @@ export default function QuantityInput({
     const raw = e.target.value;
     setDisplayValue(raw);
 
+    if (raw.trim() === '') {
+      onChange(0);
+      setError('');
+      return;
+    }
+
     const result = validate(raw);
     setError(result.message);
     if (result.valid) {
       onChange(result.num);
+    } else {
+      onChange(0);
     }
   }
 
   function handleBlur() {
-    const result = validate(displayValue);
-    if (!result.valid) {
-      const corrected = Math.max(min, result.num || min);
-      setDisplayValue(String(corrected));
-      onChange(corrected);
+    const trimmed = displayValue.trim();
+
+    // Allow empty field — keep it empty, propagate 0 so parent knows it's invalid
+    if (trimmed === '') {
+      setDisplayValue('');
+      onChange(0);
       setError('');
+      return;
+    }
+
+    const result = validate(trimmed);
+    if (!result.valid && result.num > 0) {
+      // User typed a number but it's below min — keep what they typed, show error
+      setError(result.message);
     }
   }
 

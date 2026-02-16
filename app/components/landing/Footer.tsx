@@ -82,7 +82,7 @@ const Footer = () => {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             {/* Copyright */}
             <div className="text-gray-500 text-sm">
-              © 2025 Grupo. All rights reserved.
+              © {new Date().getFullYear()} Grupo. All rights reserved.
             </div>
 
             {/* Legal Links */}

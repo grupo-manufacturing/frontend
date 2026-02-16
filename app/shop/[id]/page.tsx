@@ -11,7 +11,7 @@ import ImageGallery from '../components/ImageGallery';
 import ColorSwatches from '../components/ColorSwatches';
 import QuantityInput from '../components/QuantityInput';
 import SizeGuide from '../components/SizeGuide';
-import ShareButton from '../components/ShareButton';
+
 
 export default function ProductDetailsPage() {
   const params = useParams<{ id: string }>();
@@ -48,17 +48,19 @@ export default function ProductDetailsPage() {
 function ProductDetails({ product }: { product: (typeof SHOP_PRODUCTS)[number] }) {
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
   const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
-  const [quantity, setQuantity] = useState(10);
+  const [quantity, setQuantity] = useState(0);
 
-  // Auto-select tier based on quantity
+  // Auto-select tier based on quantity (null when below minimum)
   const activeTier = useMemo(() => {
-    if (quantity >= 500) return product.bulkPricing[3];
-    if (quantity >= 100) return product.bulkPricing[2];
-    if (quantity >= 50) return product.bulkPricing[1];
-    return product.bulkPricing[0];
+    if (quantity < 10) return null;
+    if (quantity >= 500) return product.bulkPricing[3]; // Diamond (RFQ)
+    if (quantity >= 200) return product.bulkPricing[2]; // Gold
+    if (quantity >= 50) return product.bulkPricing[1];  // Silver
+    return product.bulkPricing[0];                       // Standard
   }, [quantity, product.bulkPricing]);
 
-  const totalPrice = activeTier.unitPrice * quantity;
+  const isDiamond = activeTier?.isRFQ === true;
+  const isQuantityValid = quantity >= 10;
 
   const moreLikeThis = SHOP_PRODUCTS.filter(
     (item) => item.category === product.category && item.id !== product.id
@@ -92,18 +94,12 @@ function ProductDetails({ product }: { product: (typeof SHOP_PRODUCTS)[number] }
 
           {/* ── Product Details ───────────────────────────────────────── */}
           <div className="bg-white rounded-xl shadow-sm p-6 sm:p-8">
-            {/* Category + Share */}
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs font-semibold text-[#22a2f2] uppercase tracking-wide">
-                  {product.category}
-                </p>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">
-                  {product.name}
-                </h1>
-              </div>
-              <ShareButton productName={product.name} productId={product.id} />
-            </div>
+            <p className="text-xs font-semibold text-[#22a2f2] uppercase tracking-wide">
+              {product.category}
+            </p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">
+              {product.name}
+            </h1>
 
             <p className="text-gray-600 mt-3 leading-relaxed">
               {product.description}
@@ -115,23 +111,43 @@ function ProductDetails({ product }: { product: (typeof SHOP_PRODUCTS)[number] }
                 <h2 className="text-sm font-semibold text-gray-700 mb-3">Bulk Pricing</h2>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {product.bulkPricing.map((tier) => {
-                    const isActive = activeTier.label === tier.label;
+                    const isActive = activeTier?.label === tier.label;
+                    const isRFQ = tier.isRFQ === true;
                     return (
                       <div
                         key={tier.label}
                         className={`p-4 rounded-lg border transition-all duration-200 ${
                           isActive
-                            ? 'border-[#22a2f2] bg-blue-50 shadow-sm scale-[1.02]'
+                            ? isRFQ
+                              ? 'border-amber-400 bg-amber-50 shadow-sm scale-[1.02]'
+                              : 'border-[#22a2f2] bg-blue-50 shadow-sm scale-[1.02]'
                             : 'border-gray-200 bg-white'
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className={`font-semibold ${isActive ? 'text-[#22a2f2]' : 'text-gray-900'}`}>
-                            {tier.label}
+                          <span className="flex items-center gap-1.5">
+                            <span className={`font-semibold ${
+                              isActive
+                                ? isRFQ ? 'text-amber-600' : 'text-[#22a2f2]'
+                                : 'text-gray-900'
+                            }`}>
+                              {tier.label}
+                            </span>
+                            {isRFQ && (
+                              <span className="text-[10px] font-semibold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">
+                                RFQ
+                              </span>
+                            )}
                           </span>
-                          <span className="text-sm font-semibold text-gray-900">
-                            &#8377;{tier.unitPrice}/unit
-                          </span>
+                          {isRFQ ? (
+                            <span className="text-xs font-medium text-amber-600">
+                              Custom Quote
+                            </span>
+                          ) : (
+                            <span className="text-sm font-semibold text-gray-900">
+                              &#8377;{tier.unitPrice}/unit
+                            </span>
+                          )}
                         </div>
                         <p className="text-xs text-gray-500 mt-1">{tier.range}</p>
                       </div>
@@ -174,33 +190,55 @@ function ProductDetails({ product }: { product: (typeof SHOP_PRODUCTS)[number] }
               {/* ── Quantity Input (validated) ────────────────────────── */}
               <QuantityInput value={quantity} onChange={setQuantity} />
 
-              {/* ── Price Summary ─────────────────────────────────────── */}
-              <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-                <div className="flex items-center justify-between text-sm text-gray-600">
-                  <span>{quantity} units &times; &#8377;{activeTier.unitPrice}</span>
-                  <span className="font-medium text-gray-900">&#8377;{totalPrice.toLocaleString('en-IN')}</span>
+              {/* ── Diamond Tier Info ─────────────────────────────────── */}
+              {isDiamond && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-2">
+                  <div className="flex items-center gap-2 text-sm font-medium text-amber-700">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
+                    </svg>
+                    Diamond Tier &mdash; Custom Pricing
+                  </div>
+                  <p className="text-xs text-amber-600">
+                    Orders of {quantity} units qualify for our Diamond tier with custom bulk pricing.
+                    Request a quotation to get the best rate for your order.
+                  </p>
                 </div>
-                <div className="flex items-center justify-between text-sm text-gray-600">
-                  <span>Tier</span>
-                  <span className="font-medium text-[#22a2f2]">{activeTier.label}</span>
-                </div>
-              </div>
+              )}
 
-              {/* ── Proceed to Checkout ───────────────────────────────── */}
-              {product.inStock ? (
-                <Link
-                  href={`/shop/${product.id}/checkout?color=${encodeURIComponent(selectedColor)}&size=${encodeURIComponent(selectedSize)}&quantity=${quantity}&tier=${encodeURIComponent(activeTier.label)}`}
-                  className="block w-full text-center px-4 py-3.5 bg-[#22a2f2] text-white rounded-xl hover:bg-[#1b8bd0] transition-colors font-semibold text-base shadow-md hover:shadow-lg"
-                >
-                  Proceed to Checkout &mdash; &#8377;{totalPrice.toLocaleString('en-IN')}
-                </Link>
-              ) : (
+              {/* ── CTA Button ───────────────────────────────────────── */}
+              {!product.inStock ? (
                 <button
                   disabled
                   className="block w-full text-center px-4 py-3.5 bg-gray-200 text-gray-500 rounded-xl font-semibold text-base cursor-not-allowed"
                 >
                   Currently Out of Stock
                 </button>
+              ) : isDiamond ? (
+                <a
+                  href="#"
+                  onClick={(e) => e.preventDefault()}
+                  className="flex items-center justify-center gap-2 w-full text-center px-4 py-3.5 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition-colors font-semibold text-base shadow-md hover:shadow-lg"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
+                  </svg>
+                  Request for Quotation
+                </a>
+              ) : !isQuantityValid ? (
+                <button
+                  disabled
+                  className="block w-full text-center px-4 py-3.5 bg-gray-200 text-gray-500 rounded-xl font-semibold text-base cursor-not-allowed"
+                >
+                  Enter min. 10 units to proceed
+                </button>
+              ) : (
+                <Link
+                  href={`/shop/${product.id}/checkout?color=${encodeURIComponent(selectedColor)}&size=${encodeURIComponent(selectedSize)}&quantity=${quantity}&tier=${encodeURIComponent(activeTier?.label ?? 'Standard')}`}
+                  className="block w-full text-center px-4 py-3.5 bg-[#22a2f2] text-white rounded-xl hover:bg-[#1b8bd0] transition-colors font-semibold text-base shadow-md hover:shadow-lg"
+                >
+                  Proceed to Checkout
+                </Link>
               )}
             </div>
           </div>

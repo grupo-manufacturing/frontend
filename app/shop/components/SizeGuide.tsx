@@ -86,7 +86,7 @@ export default function SizeGuide({ category, sizes }: SizeGuideProps) {
           />
 
           {/* Panel */}
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col animate-fade-in-up">
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between p-5 border-b border-gray-100">
               <div>

@@ -60,7 +60,7 @@ export default function SortDropdown({ value, onChange }: SortDropdownProps) {
 
       {isOpen && (
         <div
-          className="absolute right-0 mt-2 w-52 bg-white border border-gray-200 rounded-xl shadow-lg z-30 py-1 animate-fade-in"
+          className="absolute right-0 mt-2 w-52 bg-white border border-gray-200 rounded-xl shadow-lg z-30 py-1"
           role="listbox"
           aria-label="Sort options"
         >
