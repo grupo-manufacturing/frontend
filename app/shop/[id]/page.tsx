@@ -7,6 +7,11 @@ import Link from 'next/link';
 import Navbar from '../../components/landing/Navbar';
 import Footer from '../../components/landing/Footer';
 import { SHOP_PRODUCTS } from '../data';
+import ImageGallery from '../components/ImageGallery';
+import ColorSwatches from '../components/ColorSwatches';
+import QuantityInput from '../components/QuantityInput';
+import SizeGuide from '../components/SizeGuide';
+import ShareButton from '../components/ShareButton';
 
 export default function ProductDetailsPage() {
   const params = useParams<{ id: string }>();
@@ -40,13 +45,9 @@ export default function ProductDetailsPage() {
   return <ProductDetails product={product} />;
 }
 
-// Separated so hooks are always called (no early return before hooks)
 function ProductDetails({ product }: { product: (typeof SHOP_PRODUCTS)[number] }) {
-  const [activeImage, setActiveImage] = useState(0);
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
-  const [isColorOpen, setIsColorOpen] = useState(false);
   const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
-  const [isSizeOpen, setIsSizeOpen] = useState(false);
   const [quantity, setQuantity] = useState(10);
 
   // Auto-select tier based on quantity
@@ -57,70 +58,59 @@ function ProductDetails({ product }: { product: (typeof SHOP_PRODUCTS)[number] }
     return product.bulkPricing[0];
   }, [quantity, product.bulkPricing]);
 
+  const totalPrice = activeTier.unitPrice * quantity;
+
   const moreLikeThis = SHOP_PRODUCTS.filter(
     (item) => item.category === product.category && item.id !== product.id
   ).slice(0, 3);
-
-  const images = product.images;
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+        {/* ── Breadcrumb ──────────────────────────────────────────────── */}
+        <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6" aria-label="Breadcrumb">
+          <Link href="/" className="hover:text-[#22a2f2] transition-colors">Home</Link>
+          <svg className="w-3.5 h-3.5 text-gray-300" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
+          <Link href="/shop" className="hover:text-[#22a2f2] transition-colors">Shop</Link>
+          <svg className="w-3.5 h-3.5 text-gray-300" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
+          <span className="text-gray-900 font-medium truncate max-w-[200px]">{product.name}</span>
+        </nav>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-          {/* Product Images */}
-          <div>
-            {/* Main Image */}
-            <div className="relative aspect-square bg-white rounded-xl shadow-sm overflow-hidden">
-              <Image
-                src={images[activeImage]}
-                alt={product.name}
-                fill
-                className="object-cover"
-                priority
-              />
-              {!product.inStock && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <span className="bg-white text-gray-900 px-4 py-2 rounded-lg font-semibold text-sm">
-                    Out of Stock
-                  </span>
-                </div>
-              )}
-            </div>
+          {/* ── Image Gallery with Zoom + Fullscreen ──────────────────── */}
+          <ImageGallery
+            images={product.images}
+            productName={product.name}
+            inStock={product.inStock}
+          />
 
-            {/* Thumbnail Gallery */}
-            <div className="grid grid-cols-4 gap-3 mt-4">
-              {images.map((img, index) => (
-                <button
-                  key={index}
-                  onClick={() => setActiveImage(index)}
-                  className={`relative aspect-square rounded-lg overflow-hidden transition-all ${
-                    activeImage === index
-                      ? 'ring-2 ring-[#22a2f2] shadow-md'
-                      : 'ring-1 ring-gray-200 hover:ring-gray-300'
-                  }`}
-                >
-                  <Image src={img} alt={`${product.name} view ${index + 1}`} fill className="object-cover" />
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Product Details */}
+          {/* ── Product Details ───────────────────────────────────────── */}
           <div className="bg-white rounded-xl shadow-sm p-6 sm:p-8">
-            <p className="text-xs font-semibold text-[#22a2f2] uppercase tracking-wide">
-              {product.category}
-            </p>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">
-              {product.name}
-            </h1>
+            {/* Category + Share */}
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold text-[#22a2f2] uppercase tracking-wide">
+                  {product.category}
+                </p>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">
+                  {product.name}
+                </h1>
+              </div>
+              <ShareButton productName={product.name} productId={product.id} />
+            </div>
+
             <p className="text-gray-600 mt-3 leading-relaxed">
               {product.description}
             </p>
 
             <div className="mt-8 space-y-6">
-              {/* Bulk Pricing Tiers */}
+              {/* ── Bulk Pricing Tiers ────────────────────────────────── */}
               <div>
                 <h2 className="text-sm font-semibold text-gray-700 mb-3">Bulk Pricing</h2>
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -129,9 +119,9 @@ function ProductDetails({ product }: { product: (typeof SHOP_PRODUCTS)[number] }
                     return (
                       <div
                         key={tier.label}
-                        className={`p-4 rounded-lg border transition-colors ${
+                        className={`p-4 rounded-lg border transition-all duration-200 ${
                           isActive
-                            ? 'border-[#22a2f2] bg-blue-50'
+                            ? 'border-[#22a2f2] bg-blue-50 shadow-sm scale-[1.02]'
                             : 'border-gray-200 bg-white'
                         }`}
                       >
@@ -140,7 +130,7 @@ function ProductDetails({ product }: { product: (typeof SHOP_PRODUCTS)[number] }
                             {tier.label}
                           </span>
                           <span className="text-sm font-semibold text-gray-900">
-                            ₹{tier.unitPrice}/unit
+                            &#8377;{tier.unitPrice}/unit
                           </span>
                         </div>
                         <p className="text-xs text-gray-500 mt-1">{tier.range}</p>
@@ -150,117 +140,73 @@ function ProductDetails({ product }: { product: (typeof SHOP_PRODUCTS)[number] }
                 </div>
               </div>
 
-              {/* Color Dropdown */}
+              {/* ── Color Swatches ────────────────────────────────────── */}
+              <ColorSwatches
+                colors={product.colors}
+                selected={selectedColor}
+                onChange={setSelectedColor}
+              />
+
+              {/* ── Size Selector + Size Guide ───────────────────────── */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Color</label>
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => { setIsColorOpen(!isColorOpen); setIsSizeOpen(false); }}
-                    onBlur={() => setTimeout(() => setIsColorOpen(false), 200)}
-                    className="appearance-none w-full px-4 py-3 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black cursor-pointer transition-all text-left flex items-center justify-between"
-                  >
-                    <span className="text-black">{selectedColor}</span>
-                    <svg
-                      className={`w-5 h-5 text-gray-400 transition-transform ${isColorOpen ? 'rotate-180' : ''}`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                <div className="flex items-center justify-between mb-3">
+                  <label className="block text-sm font-semibold text-gray-700">Size</label>
+                  <SizeGuide category={product.category} sizes={product.sizes} />
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {product.sizes.map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`px-5 py-2.5 rounded-lg text-sm font-medium border transition-all ${
+                        selectedSize === size
+                          ? 'border-[#22a2f2] bg-[#22a2f2]/10 text-[#22a2f2] ring-1 ring-[#22a2f2]'
+                          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                      }`}
+                      aria-pressed={selectedSize === size}
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  {isColorOpen && (
-                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
-                      <div className="max-h-[180px] overflow-y-auto">
-                        {product.colors.map((color) => (
-                          <button
-                            key={color}
-                            type="button"
-                            onClick={() => { setSelectedColor(color); setIsColorOpen(false); }}
-                            className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${
-                              selectedColor === color ? 'bg-[#22a2f2]/10 text-[#22a2f2] font-medium' : 'text-gray-900'
-                            }`}
-                          >
-                            {color}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                      {size}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Size Dropdown */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Size</label>
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => { setIsSizeOpen(!isSizeOpen); setIsColorOpen(false); }}
-                    onBlur={() => setTimeout(() => setIsSizeOpen(false), 200)}
-                    className="appearance-none w-full px-4 py-3 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black cursor-pointer transition-all text-left flex items-center justify-between"
-                  >
-                    <span className="text-black">{selectedSize}</span>
-                    <svg
-                      className={`w-5 h-5 text-gray-400 transition-transform ${isSizeOpen ? 'rotate-180' : ''}`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  {isSizeOpen && (
-                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
-                      <div className="max-h-[180px] overflow-y-auto">
-                        {product.sizes.map((size) => (
-                          <button
-                            key={size}
-                            type="button"
-                            onClick={() => { setSelectedSize(size); setIsSizeOpen(false); }}
-                            className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${
-                              selectedSize === size ? 'bg-[#22a2f2]/10 text-[#22a2f2] font-medium' : 'text-gray-900'
-                            }`}
-                          >
-                            {size}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+              {/* ── Quantity Input (validated) ────────────────────────── */}
+              <QuantityInput value={quantity} onChange={setQuantity} />
+
+              {/* ── Price Summary ─────────────────────────────────────── */}
+              <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+                <div className="flex items-center justify-between text-sm text-gray-600">
+                  <span>{quantity} units &times; &#8377;{activeTier.unitPrice}</span>
+                  <span className="font-medium text-gray-900">&#8377;{totalPrice.toLocaleString('en-IN')}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm text-gray-600">
+                  <span>Tier</span>
+                  <span className="font-medium text-[#22a2f2]">{activeTier.label}</span>
                 </div>
               </div>
 
-              {/* Number of Units */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Number of Units
-                </label>
-                <input
-                  type="number"
-                  min="10"
-                  value={quantity}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value) || 0;
-                    setQuantity(val < 1 ? 1 : val);
-                  }}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-black focus:outline-none focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] transition-all"
-                />
-              </div>
-
-              {/* Proceed to Checkout */}
-              <Link
-                href={`/shop/${product.id}/checkout?color=${encodeURIComponent(selectedColor)}&size=${encodeURIComponent(selectedSize)}&quantity=${quantity}&tier=${encodeURIComponent(activeTier.label)}`}
-                className="block w-full text-center px-4 py-3.5 bg-[#22a2f2] text-white rounded-xl hover:bg-[#1b8bd0] transition-colors font-semibold text-base shadow-md hover:shadow-lg"
-              >
-                Proceed to Checkout
-              </Link>
+              {/* ── Proceed to Checkout ───────────────────────────────── */}
+              {product.inStock ? (
+                <Link
+                  href={`/shop/${product.id}/checkout?color=${encodeURIComponent(selectedColor)}&size=${encodeURIComponent(selectedSize)}&quantity=${quantity}&tier=${encodeURIComponent(activeTier.label)}`}
+                  className="block w-full text-center px-4 py-3.5 bg-[#22a2f2] text-white rounded-xl hover:bg-[#1b8bd0] transition-colors font-semibold text-base shadow-md hover:shadow-lg"
+                >
+                  Proceed to Checkout &mdash; &#8377;{totalPrice.toLocaleString('en-IN')}
+                </Link>
+              ) : (
+                <button
+                  disabled
+                  className="block w-full text-center px-4 py-3.5 bg-gray-200 text-gray-500 rounded-xl font-semibold text-base cursor-not-allowed"
+                >
+                  Currently Out of Stock
+                </button>
+              )}
             </div>
           </div>
         </div>
 
-        {/* More Like This */}
+        {/* ── More Like This ─────────────────────────────────────────── */}
         {moreLikeThis.length > 0 && (
           <div className="mt-16">
             <div className="flex items-center justify-between mb-6">
@@ -271,30 +217,39 @@ function ProductDetails({ product }: { product: (typeof SHOP_PRODUCTS)[number] }
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {moreLikeThis.map((item) => (
-                <div
+                <Link
                   key={item.id}
-                  className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                  href={`/shop/${item.id}`}
+                  className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition-shadow duration-300 group"
                 >
-                  <Link href={`/shop/${item.id}`} className="block">
-                    <div className="relative aspect-square bg-gray-100">
-                      <Image src={item.image} alt={item.name} fill className="object-cover" />
-                    </div>
-                    <div className="p-4">
-                      <p className="text-xs font-medium text-[#22a2f2] uppercase tracking-wide">
-                        {item.category}
-                      </p>
-                      <h3 className="text-base font-semibold text-gray-900 mt-1">
-                        {item.name}
-                      </h3>
-                    </div>
-                  </Link>
-                </div>
+                  <div className="relative aspect-square bg-gray-100">
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    />
+                  </div>
+                  <div className="p-4">
+                    <p className="text-xs font-medium text-[#22a2f2] uppercase tracking-wide">
+                      {item.category}
+                    </p>
+                    <h3 className="text-base font-semibold text-gray-900 mt-1 group-hover:text-[#22a2f2] transition-colors">
+                      {item.name}
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      From &#8377;{item.bulkPricing[0]?.unitPrice}/unit
+                    </p>
+                  </div>
+                </Link>
               ))}
             </div>
           </div>
         )}
       </div>
 
+      <Footer />
     </div>
   );
 }
