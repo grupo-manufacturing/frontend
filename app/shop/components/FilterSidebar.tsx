@@ -1,12 +1,5 @@
 'use client';
 
-import { SHOP_PRODUCTS } from '../data';
-
-/* ── Derive unique categories from product data ─────────────────────── */
-const ALL_CATEGORIES = Array.from(
-  new Set(SHOP_PRODUCTS.map((p) => p.category))
-).sort();
-
 /* ── Price range buckets (based on Standard tier unit price) ────────── */
 export interface PriceRange {
   id: string;
@@ -27,6 +20,7 @@ export type StockFilter = 'all' | 'in-stock' | 'out-of-stock';
 
 /* ── Props ──────────────────────────────────────────────────────────── */
 interface FilterSidebarProps {
+  categories: string[];
   selectedCategories: string[];
   onCategoryChange: (categories: string[]) => void;
   selectedPriceRanges: string[];
@@ -39,6 +33,7 @@ interface FilterSidebarProps {
 }
 
 export default function FilterSidebar({
+  categories,
   selectedCategories,
   onCategoryChange,
   selectedPriceRanges,
@@ -68,11 +63,6 @@ export default function FilterSidebar({
     }
   }
 
-  /* Count products per category for badge */
-  function categoryCount(category: string) {
-    return SHOP_PRODUCTS.filter((p) => p.category === category).length;
-  }
-
   /* ── Shared filter panel content ────────────────────────────────── */
   const filterContent = (
     <div className="flex flex-col gap-6">
@@ -82,7 +72,7 @@ export default function FilterSidebar({
           Category
         </h3>
         <div className="flex flex-col gap-1.5">
-          {ALL_CATEGORIES.map((category) => (
+          {categories.map((category) => (
             <label
               key={category}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors text-sm ${
@@ -112,9 +102,6 @@ export default function FilterSidebar({
                 )}
               </span>
               <span className="flex-1">{category}</span>
-              <span className="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
-                {categoryCount(category)}
-              </span>
             </label>
           ))}
         </div>
@@ -242,7 +229,7 @@ export default function FilterSidebar({
           />
 
           {/* Drawer */}
-          <div className="absolute bottom-0 left-0 right-0 max-h-[85vh] bg-white rounded-t-2xl shadow-xl flex flex-col animate-fade-in-up overflow-hidden">
+          <div className="absolute bottom-0 left-0 right-0 max-h-[85vh] bg-white rounded-t-2xl shadow-xl flex flex-col overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-100">
               <h2 className="text-lg font-semibold text-gray-900">Filters</h2>

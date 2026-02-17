@@ -1,12 +1,13 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import Navbar from '../../components/landing/Navbar';
 import Footer from '../../components/landing/Footer';
-import { SHOP_PRODUCTS } from '../data';
+import { ShopProduct } from '../lib/types';
+import { getProductById, getProducts } from '../lib/api';
 import ImageGallery from '../components/ImageGallery';
 import ColorSwatches from '../components/ColorSwatches';
 import QuantityInput from '../components/QuantityInput';
@@ -15,13 +16,51 @@ import SizeGuide from '../components/SizeGuide';
 
 export default function ProductDetailsPage() {
   const params = useParams<{ id: string }>();
-  const productId = Number(params?.id);
-  const product = useMemo(
-    () => SHOP_PRODUCTS.find((item) => item.id === productId),
-    [productId]
-  );
+  const productId = params?.id ?? '';
 
-  if (!product) {
+  const [product, setProduct] = useState<ShopProduct | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!productId) return;
+    setLoading(true);
+    setError('');
+    getProductById(productId)
+      .then(setProduct)
+      .catch(() => {
+        setProduct(null);
+        setError('Product not found');
+      })
+      .finally(() => setLoading(false));
+  }, [productId]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <div className="aspect-square bg-gray-200 rounded-xl animate-pulse" />
+            <div className="bg-white rounded-xl shadow-sm p-6 sm:p-8 space-y-4">
+              <div className="h-4 bg-gray-200 rounded w-1/4 animate-pulse" />
+              <div className="h-8 bg-gray-200 rounded w-3/4 animate-pulse" />
+              <div className="h-4 bg-gray-200 rounded w-full animate-pulse" />
+              <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse" />
+              <div className="grid grid-cols-2 gap-3 pt-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-20 bg-gray-200 rounded-lg animate-pulse" />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!product || error) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
@@ -45,10 +84,21 @@ export default function ProductDetailsPage() {
   return <ProductDetails product={product} />;
 }
 
-function ProductDetails({ product }: { product: (typeof SHOP_PRODUCTS)[number] }) {
+function ProductDetails({ product }: { product: ShopProduct }) {
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
   const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
   const [quantity, setQuantity] = useState(0);
+  const [relatedProducts, setRelatedProducts] = useState<ShopProduct[]>([]);
+
+  useEffect(() => {
+    getProducts({ category: product.category, limit: 4 })
+      .then((res) => {
+        setRelatedProducts(
+          res.products.filter((p) => p.id !== product.id).slice(0, 3)
+        );
+      })
+      .catch(() => setRelatedProducts([]));
+  }, [product.category, product.id]);
 
   // Auto-select tier based on quantity (null when below minimum)
   const activeTier = useMemo(() => {
@@ -61,10 +111,6 @@ function ProductDetails({ product }: { product: (typeof SHOP_PRODUCTS)[number] }
 
   const isDiamond = activeTier?.isRFQ === true;
   const isQuantityValid = quantity >= 10;
-
-  const moreLikeThis = SHOP_PRODUCTS.filter(
-    (item) => item.category === product.category && item.id !== product.id
-  ).slice(0, 3);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -245,7 +291,7 @@ function ProductDetails({ product }: { product: (typeof SHOP_PRODUCTS)[number] }
         </div>
 
         {/* ── More Like This ─────────────────────────────────────────── */}
-        {moreLikeThis.length > 0 && (
+        {relatedProducts.length > 0 && (
           <div className="mt-16">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-gray-900">More Like This</h2>
@@ -254,7 +300,7 @@ function ProductDetails({ product }: { product: (typeof SHOP_PRODUCTS)[number] }
               </Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {moreLikeThis.map((item) => (
+              {relatedProducts.map((item) => (
                 <Link
                   key={item.id}
                   href={`/shop/${item.id}`}

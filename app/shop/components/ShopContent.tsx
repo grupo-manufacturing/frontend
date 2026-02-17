@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { SHOP_PRODUCTS, ShopProduct } from '../data';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { ShopProduct } from '../lib/types';
+import { getProducts, getCategories, type GetProductsParams } from '../lib/api';
 import { PRICE_RANGES, StockFilter } from './FilterSidebar';
 import { SortOption } from './SortDropdown';
 import SearchBar from './SearchBar';
@@ -20,64 +21,103 @@ export default function ShopContent() {
   const [sortOption, setSortOption] = useState<SortOption>('default');
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-  /* ── Derived filtered + sorted products ────────────────────────────── */
-  const filteredProducts = useMemo(() => {
-    let products: ShopProduct[] = [...SHOP_PRODUCTS];
+  const [products, setProducts] = useState<ShopProduct[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-    // Search
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      products = products.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q)
-      );
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /* ── Fetch categories once ─────────────────────────────────────────── */
+  useEffect(() => {
+    getCategories()
+      .then(setCategories)
+      .catch(() => setCategories([]));
+  }, []);
+
+  /* ── Build API params from state & fetch ──────────────────────────── */
+  const fetchProducts = useCallback(async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const params: GetProductsParams = { limit: 100 };
+
+      if (searchQuery.trim()) params.search = searchQuery.trim();
+
+      if (selectedCategories.length === 1) {
+        params.category = selectedCategories[0];
+      }
+
+      if (stockFilter === 'in-stock') params.inStock = 'true';
+      else if (stockFilter === 'out-of-stock') params.inStock = 'false';
+
+      switch (sortOption) {
+        case 'price-low':
+          params.sort = 'name';
+          params.order = 'asc';
+          break;
+        case 'price-high':
+          params.sort = 'name';
+          params.order = 'desc';
+          break;
+        case 'newest':
+          params.sort = 'created_at';
+          params.order = 'desc';
+          break;
+        case 'name-az':
+          params.sort = 'name';
+          params.order = 'asc';
+          break;
+        default:
+          params.sort = 'created_at';
+          params.order = 'desc';
+      }
+
+      const data = await getProducts(params);
+      let fetched = data.products;
+
+      // Client-side: multi-category filter (API only supports single category)
+      if (selectedCategories.length > 1) {
+        fetched = fetched.filter((p) => selectedCategories.includes(p.category));
+      }
+
+      // Client-side: price-range filter
+      if (selectedPriceRanges.length > 0) {
+        const ranges = selectedPriceRanges
+          .map((id) => PRICE_RANGES.find((r) => r.id === id))
+          .filter(Boolean);
+        fetched = fetched.filter((p) => {
+          const price = p.bulkPricing[0]?.unitPrice ?? 0;
+          return ranges.some((r) => r && price >= r.min && price <= r.max);
+        });
+      }
+
+      // Client-side: price sorting (backend can't sort by JSONB field)
+      if (sortOption === 'price-low') {
+        fetched.sort((a, b) => (a.bulkPricing[0]?.unitPrice ?? 0) - (b.bulkPricing[0]?.unitPrice ?? 0));
+      } else if (sortOption === 'price-high') {
+        fetched.sort((a, b) => (b.bulkPricing[0]?.unitPrice ?? 0) - (a.bulkPricing[0]?.unitPrice ?? 0));
+      }
+
+      setProducts(fetched);
+    } catch (err) {
+      console.error('Failed to load products:', err);
+      setError('Unable to load products. Please try again.');
+      setProducts([]);
+    } finally {
+      setLoading(false);
     }
-
-    // Category filter
-    if (selectedCategories.length > 0) {
-      products = products.filter((p) => selectedCategories.includes(p.category));
-    }
-
-    // Price range filter (Standard tier unit price)
-    if (selectedPriceRanges.length > 0) {
-      const ranges = selectedPriceRanges
-        .map((id) => PRICE_RANGES.find((r) => r.id === id))
-        .filter(Boolean);
-      products = products.filter((p) => {
-        const price = p.bulkPricing[0]?.unitPrice ?? 0;
-        return ranges.some((r) => r && price >= r.min && price <= r.max);
-      });
-    }
-
-    // Stock filter
-    if (stockFilter === 'in-stock') {
-      products = products.filter((p) => p.inStock);
-    } else if (stockFilter === 'out-of-stock') {
-      products = products.filter((p) => !p.inStock);
-    }
-
-    // Sorting
-    switch (sortOption) {
-      case 'price-low':
-        products.sort((a, b) => (a.bulkPricing[0]?.unitPrice ?? 0) - (b.bulkPricing[0]?.unitPrice ?? 0));
-        break;
-      case 'price-high':
-        products.sort((a, b) => (b.bulkPricing[0]?.unitPrice ?? 0) - (a.bulkPricing[0]?.unitPrice ?? 0));
-        break;
-      case 'newest':
-        products.sort((a, b) => b.id - a.id);
-        break;
-      case 'name-az':
-        products.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      default:
-        break;
-    }
-
-    return products;
   }, [searchQuery, selectedCategories, selectedPriceRanges, stockFilter, sortOption]);
+
+  /* ── Debounced fetch on state changes ─────────────────────────────── */
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(fetchProducts, 300);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [fetchProducts]);
 
   /* ── Helpers ───────────────────────────────────────────────────────── */
   const activeFilterCount =
@@ -137,8 +177,7 @@ export default function ShopContent() {
 
           {/* Product count */}
           <span className="text-sm text-gray-500 hidden sm:inline">
-            {filteredProducts.length}{' '}
-            {filteredProducts.length === 1 ? 'product' : 'products'}
+            {loading ? '...' : `${products.length} ${products.length === 1 ? 'product' : 'products'}`}
           </span>
         </div>
 
@@ -166,6 +205,7 @@ export default function ShopContent() {
       <div className="flex gap-8">
         {/* Filter Sidebar */}
         <FilterSidebar
+          categories={categories}
           selectedCategories={selectedCategories}
           onCategoryChange={setSelectedCategories}
           selectedPriceRanges={selectedPriceRanges}
@@ -177,17 +217,40 @@ export default function ShopContent() {
           onClose={() => setMobileFiltersOpen(false)}
         />
 
-        {/* Product Grid / Empty State */}
+        {/* Product Grid / Loading / Error / Empty State */}
         <div className="flex-1 min-w-0">
           {/* Mobile product count */}
           <p className="text-sm text-gray-500 mb-4 sm:hidden">
-            {filteredProducts.length}{' '}
-            {filteredProducts.length === 1 ? 'product' : 'products'}
+            {loading ? '...' : `${products.length} ${products.length === 1 ? 'product' : 'products'}`}
           </p>
 
-          {filteredProducts.length > 0 ? (
+          {loading ? (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-              {filteredProducts.map((product) => (
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="bg-white rounded-xl shadow-sm overflow-hidden animate-pulse">
+                  <div className="aspect-square bg-gray-200" />
+                  <div className="p-4 space-y-3">
+                    <div className="h-3 bg-gray-200 rounded w-1/3" />
+                    <div className="h-4 bg-gray-200 rounded w-2/3" />
+                    <div className="h-3 bg-gray-200 rounded w-1/2" />
+                    <div className="h-9 bg-gray-200 rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : error ? (
+            <div className="text-center py-16">
+              <p className="text-red-500 mb-4">{error}</p>
+              <button
+                onClick={fetchProducts}
+                className="px-5 py-2.5 bg-[#22a2f2] text-white rounded-lg hover:bg-[#1b8bd0] transition-colors text-sm font-medium"
+              >
+                Retry
+              </button>
+            </div>
+          ) : products.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+              {products.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>

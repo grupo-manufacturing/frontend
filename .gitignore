@@ -11,6 +11,10 @@ backend/
 !.yarn/releases
 !.yarn/versions
 
+/grupo-md
+
+/shop-backend
+
 # testing
 /coverage
 

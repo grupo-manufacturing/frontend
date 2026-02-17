@@ -1,11 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import Navbar from '../../../components/landing/Navbar';
-import { SHOP_PRODUCTS } from '../../data';
+import { ShopProduct } from '../../lib/types';
+import { getProductById, placeOrder } from '../../lib/api';
 
 const Field = ({ label, optional, children }: { label: string; optional?: boolean; children: React.ReactNode }) => (
   <div className="group">
@@ -21,10 +22,37 @@ const inputCls = "w-full px-3.5 py-2.5 bg-blue-50/40 border border-blue-100 roun
 export default function CheckoutPage() {
   const params = useParams<{ id: string }>();
   const searchParams = useSearchParams();
-  const productId = Number(params?.id);
-  const product = useMemo(() => SHOP_PRODUCTS.find((item) => item.id === productId), [productId]);
+  const productId = params?.id ?? '';
 
-  if (!product) {
+  const [product, setProduct] = useState<ShopProduct | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!productId) return;
+    setLoading(true);
+    getProductById(productId)
+      .then(setProduct)
+      .catch(() => setError('Product not found'))
+      .finally(() => setLoading(false));
+  }, [productId]);
+
+  if (loading) {
+    return (
+      <div className="h-screen overflow-hidden bg-white flex flex-col">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="animate-pulse space-y-4 w-full max-w-md px-4">
+            <div className="h-8 bg-gray-200 rounded w-1/3" />
+            <div className="h-4 bg-gray-200 rounded w-2/3" />
+            <div className="h-40 bg-gray-200 rounded" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!product || error) {
     return (
       <div className="min-h-screen bg-white">
         <Navbar />
@@ -47,7 +75,7 @@ export default function CheckoutPage() {
   return <CheckoutForm product={product} searchParams={searchParams} />;
 }
 
-function CheckoutForm({ product, searchParams }: { product: (typeof SHOP_PRODUCTS)[number]; searchParams: ReturnType<typeof useSearchParams> }) {
+function CheckoutForm({ product, searchParams }: { product: ShopProduct; searchParams: ReturnType<typeof useSearchParams> }) {
   const color = searchParams.get('color') || product.colors[0];
   const size = searchParams.get('size') || product.sizes[0];
   const quantity = Number(searchParams.get('quantity')) || 10;
@@ -64,9 +92,42 @@ function CheckoutForm({ product, searchParams }: { product: (typeof SHOP_PRODUCT
   const [city, setCity] = useState('');
   const [pincode, setPincode] = useState('');
   const [state, setState] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [orderNumber, setOrderNumber] = useState('');
+  const [submitError, setSubmitError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); setSubmitted(true); };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setSubmitError('');
+
+    try {
+      const result = await placeOrder({
+        productId: product.id,
+        color,
+        size,
+        quantity,
+        tier: tierLabel,
+        customer: {
+          fullName: fullName.trim(),
+          email: email.trim(),
+          phone: phone.trim(),
+          company: company.trim() || undefined,
+          address: address.trim(),
+          city: city.trim(),
+          state: state.trim(),
+          pincode: pincode.trim(),
+        },
+      });
+      setOrderNumber(result.order.orderNumber);
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Failed to place order. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   if (submitted) {
     return (
@@ -82,11 +143,16 @@ function CheckoutForm({ product, searchParams }: { product: (typeof SHOP_PRODUCT
                 </svg>
               </div>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-3 tracking-tight">You're all set!</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-3 tracking-tight">You&apos;re all set!</h1>
             <p className="text-gray-500 leading-relaxed mb-2">
               Thanks, <span className="font-semibold text-gray-700">{fullName}</span>. Your order for{' '}
               <span className="font-semibold text-[#22a2f2]">{product.name}</span> is confirmed.
             </p>
+            {orderNumber && (
+              <p className="text-sm font-semibold text-[#22a2f2] mb-2">
+                Order #{orderNumber}
+              </p>
+            )}
             <p className="text-sm text-gray-400 mb-10">Our team will be in touch shortly to process your order.</p>
             <Link href="/shop" className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#22a2f2] text-white rounded-2xl hover:bg-[#1b8bd0] transition-all font-semibold shadow-md shadow-blue-200 hover:shadow-lg hover:shadow-blue-300 hover:-translate-y-0.5 duration-200">
               Continue Shopping →
@@ -168,11 +234,33 @@ function CheckoutForm({ product, searchParams }: { product: (typeof SHOP_PRODUCT
                   ))}
                 </div>
 
-                <button type="submit" className="w-full py-3 bg-[#22a2f2] text-white rounded-xl font-bold text-sm tracking-wide hover:bg-[#1b8bd0] transition-colors flex items-center justify-center gap-2">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Place Order
+                {submitError && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-600">
+                    {submitError}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full py-3 bg-[#22a2f2] text-white rounded-xl font-bold text-sm tracking-wide hover:bg-[#1b8bd0] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {submitting ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      Placing Order...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Place Order
+                    </>
+                  )}
                 </button>
               </form>
             </div>
