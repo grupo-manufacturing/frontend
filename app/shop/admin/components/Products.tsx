@@ -226,6 +226,7 @@ function ProductFormModal({
   const [description, setDescription] = useState(product?.description ?? '');
   const [selectedColors, setSelectedColors] = useState<string[]>(product?.colors ?? []);
   const [selectedSizes, setSelectedSizes] = useState<string[]>(product?.sizes ?? []);
+  const [manufacturingTime, setManufacturingTime] = useState(product?.manufacturingTime ?? 7);
   const [inStock, setInStock] = useState(product?.inStock ?? true);
   const [tiers, setTiers] = useState<BulkPricingTier[]>(
     product?.bulkPricing?.length ? product.bulkPricing : DEFAULT_TIERS
@@ -310,6 +311,7 @@ function ProductFormModal({
       colors,
       sizes,
       bulk_pricing: tiers,
+      manufacturing_time: manufacturingTime,
       in_stock: inStock,
     };
 
@@ -533,6 +535,18 @@ function ProductFormModal({
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Manufacturing Time */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Manufacturing Time (days)</label>
+            <input
+              type="number"
+              min={1}
+              value={manufacturingTime}
+              onChange={(e) => setManufacturingTime(Math.max(1, parseInt(e.target.value, 10) || 1))}
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-[#22a2f2] focus:ring-2 focus:ring-[#22a2f2]/10"
+            />
           </div>
 
           {/* In Stock Toggle */}

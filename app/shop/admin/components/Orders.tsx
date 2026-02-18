@@ -188,7 +188,16 @@ export default function Orders({ orders, onReload }: OrdersProps) {
                               </div>
                               <div className="space-y-2">
                                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Order Details</p>
-                                <p className="text-slate-700">Color: {order.selectedColor} &middot; Size: {order.selectedSize}</p>
+                                {order.variations?.length > 0 && (
+                                  <div className="space-y-1">
+                                    {order.variations.map((v) => (
+                                      <p key={v.color} className="text-slate-700">
+                                        <span className="font-medium">{v.color}:</span>{' '}
+                                        {v.sizes.map((s) => `${s.size} ×${s.qty}`).join(', ')}
+                                      </p>
+                                    ))}
+                                  </div>
+                                )}
                                 <p className="text-slate-700">Tier: {order.tier}</p>
                                 <p className="text-slate-700">Unit Price: ₹{order.unitPrice.toLocaleString('en-IN')}</p>
                               </div>

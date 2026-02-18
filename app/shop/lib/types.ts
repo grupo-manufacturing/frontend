@@ -15,6 +15,7 @@ export type ShopProduct = {
   colors: string[];
   sizes: string[];
   bulkPricing: BulkPricingTier[];
+  manufacturingTime: number;
   inStock: boolean;
   createdAt: string;
   updatedAt: string;
@@ -31,10 +32,12 @@ export type OrderCustomer = {
   pincode: string;
 };
 
+export type SizeQty = { size: string; qty: number };
+export type ColorVariation = { color: string; sizes: SizeQty[] };
+
 export type CreateOrderPayload = {
   productId: string;
-  color: string;
-  size: string;
+  variations: ColorVariation[];
   quantity: number;
   tier: string;
   customer: OrderCustomer;
@@ -57,8 +60,7 @@ export type ShopOrder = {
   productId: string;
   productName: string;
   productImage: string;
-  selectedColor: string;
-  selectedSize: string;
+  variations: ColorVariation[];
   quantity: number;
   tier: string;
   unitPrice: number;
@@ -85,5 +87,6 @@ export type CreateProductPayload = {
   colors: string[];
   sizes: string[];
   bulk_pricing: BulkPricingTier[];
+  manufacturing_time: number;
   in_stock: boolean;
 };

@@ -1,6 +1,8 @@
-import type { ShopProduct, ShopOrder, BulkPricingTier, CreateProductPayload, CreateOrderPayload, OrderResponse } from './types';
+import type { ShopProduct, ShopOrder, BulkPricingTier, CreateProductPayload, CreateOrderPayload, OrderResponse, ColorVariation } from './types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SHOP_API_URL || 'https://shop-backend-31w8.onrender.com';
+
+// const BASE_URL = process.env.NEXT_PUBLIC_SHOP_API_URL || 'http://localhost:5001';
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {
@@ -35,6 +37,7 @@ function normaliseProduct(raw: Record<string, unknown>): ShopProduct {
     colors: (raw.colors ?? []) as string[],
     sizes: (raw.sizes ?? []) as string[],
     bulkPricing: pricing.map(normaliseTier),
+    manufacturingTime: (raw.manufacturing_time ?? raw.manufacturingTime ?? 7) as number,
     inStock: (raw.in_stock ?? raw.inStock ?? true) as boolean,
     createdAt: (raw.created_at ?? "") as string,
     updatedAt: (raw.updated_at ?? "") as string,
@@ -49,8 +52,7 @@ function normaliseOrder(raw: Record<string, unknown>): ShopOrder {
     productId: s('product_id', 'productId', '') as string,
     productName: s('product_name', 'productName', '') as string,
     productImage: s('product_image', 'productImage', '') as string,
-    selectedColor: s('selected_color', 'selectedColor', '') as string,
-    selectedSize: s('selected_size', 'selectedSize', '') as string,
+    variations: (raw.variations ?? []) as ColorVariation[],
     quantity: (raw.quantity ?? 0) as number,
     tier: (raw.tier ?? "") as string,
     unitPrice: s('unit_price', 'unitPrice', 0) as number,

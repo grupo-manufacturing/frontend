@@ -5,7 +5,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import Navbar from '../../../components/landing/Navbar';
-import { ShopProduct } from '../../lib/types';
+import { ShopProduct, ColorVariation } from '../../lib/types';
 import { getProductById, placeOrder } from '../../lib/api';
 
 const Field = ({ label, optional, children }: { label: string; optional?: boolean; children: React.ReactNode }) => (
@@ -76,13 +76,23 @@ export default function CheckoutPage() {
 }
 
 function CheckoutForm({ product, searchParams }: { product: ShopProduct; searchParams: ReturnType<typeof useSearchParams> }) {
-  const color = searchParams.get('color') || product.colors[0];
-  const size = searchParams.get('size') || product.sizes[0];
   const quantity = Number(searchParams.get('quantity')) || 10;
   const tierLabel = searchParams.get('tier') || 'Standard';
   const tier = product.bulkPricing.find((t) => t.label === tierLabel) || product.bulkPricing[0];
   const isRFQ = tier.isRFQ === true;
   const totalCost = isRFQ ? 0 : tier.unitPrice * quantity;
+
+  const [variations, setVariations] = useState<ColorVariation[]>([]);
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(`checkout_${product.id}`);
+      if (raw) {
+        const data = JSON.parse(raw);
+        if (Array.isArray(data.variations)) setVariations(data.variations);
+      }
+    } catch { /* ignore parse errors */ }
+  }, [product.id]);
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -105,8 +115,7 @@ function CheckoutForm({ product, searchParams }: { product: ShopProduct; searchP
     try {
       const result = await placeOrder({
         productId: product.id,
-        color,
-        size,
+        variations,
         quantity,
         tier: tierLabel,
         customer: {
@@ -120,6 +129,7 @@ function CheckoutForm({ product, searchParams }: { product: ShopProduct; searchP
           pincode: pincode.trim(),
         },
       });
+      sessionStorage.removeItem(`checkout_${product.id}`);
       setOrderNumber(result.order.orderNumber);
       setSubmitted(true);
     } catch (err) {
@@ -279,10 +289,25 @@ function CheckoutForm({ product, searchParams }: { product: ShopProduct; searchP
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-gray-900 text-sm leading-tight">{product.name}</h3>
-                  <p className="text-xs text-gray-400 mt-0.5">{color} · Size {size}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{quantity} units</p>
                   <span className="inline-block mt-1.5 px-2 py-0.5 bg-[#22a2f2]/10 text-[#22a2f2] text-[11px] font-bold rounded-md">{tier.label}</span>
                 </div>
               </div>
+
+              {/* Variation breakdown */}
+              {variations.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-gray-400">Variations</p>
+                  {variations.map((v) => (
+                    <div key={v.color} className="text-xs">
+                      <span className="font-semibold text-gray-700">{v.color}</span>
+                      <span className="text-gray-400 ml-1">
+                        — {v.sizes.map((s) => `${s.size} ×${s.qty}`).join(', ')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Line items */}
               <div className="mt-4 space-y-2 text-sm">
