@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { ToastProvider } from "./components/Toast";
 
@@ -31,7 +32,7 @@ export default function RootLayout({
         <ToastProvider>
           {children}
         </ToastProvider>
-        {/* Chat dock removed per request */}
+        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       </body>
     </html>
   );

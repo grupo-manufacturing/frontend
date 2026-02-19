@@ -78,6 +78,22 @@ export type ShopOrder = {
   updatedAt: string;
 };
 
+export type RazorpayOrderResponse = {
+  orderId: string;
+  orderNumber: string;
+  razorpayOrderId: string;
+  amount: number;
+  currency: string;
+  keyId: string;
+};
+
+export type VerifyPaymentPayload = {
+  orderId: string;
+  razorpayOrderId: string;
+  razorpayPaymentId: string;
+  razorpaySignature: string;
+};
+
 export type CreateProductPayload = {
   name: string;
   category: string;

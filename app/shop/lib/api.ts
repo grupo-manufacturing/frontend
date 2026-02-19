@@ -1,4 +1,4 @@
-import type { ShopProduct, ShopOrder, BulkPricingTier, CreateProductPayload, CreateOrderPayload, OrderResponse, ColorVariation } from './types';
+import type { ShopProduct, ShopOrder, BulkPricingTier, CreateProductPayload, CreateOrderPayload, OrderResponse, ColorVariation, RazorpayOrderResponse, VerifyPaymentPayload } from './types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SHOP_API_URL || 'https://shop-backend-31w8.onrender.com';
 
@@ -124,4 +124,25 @@ export async function getOrders(params: { status?: string; page?: number; limit?
 }
 export async function updateOrderStatus(id: string, status: string): Promise<ShopOrder> {
   return normaliseOrder((await request<{ order: Record<string, unknown> }>(`/api/orders/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) })).order);
+}
+
+export async function createRazorpayOrder(payload: CreateOrderPayload): Promise<RazorpayOrderResponse> {
+  return request<RazorpayOrderResponse>('/api/orders/create-order', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function verifyPayment(data: VerifyPaymentPayload): Promise<{ message: string; order: OrderResponse }> {
+  return request<{ message: string; order: OrderResponse }>('/api/orders/verify-payment', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function reportPaymentFailed(orderId: string): Promise<{ message: string }> {
+  return request<{ message: string }>('/api/orders/payment-failed', {
+    method: 'POST',
+    body: JSON.stringify({ orderId }),
+  });
 }
