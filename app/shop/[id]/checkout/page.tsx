@@ -109,6 +109,7 @@ function CheckoutForm({ product, searchParams }: { product: ShopProduct; searchP
   const [orderNumber, setOrderNumber] = useState('');
   const [submitError, setSubmitError] = useState('');
   const [paymentFailed, setPaymentFailed] = useState(false);
+  const [verificationFailed, setVerificationFailed] = useState('');
   const [currentOrderId, setCurrentOrderId] = useState('');
 
   const buildPayload = () => ({
@@ -156,15 +157,22 @@ function CheckoutForm({ product, searchParams }: { product: ShopProduct; searchP
           setOrderNumber(result.order.orderNumber);
           setSubmitted(true);
         } catch (err) {
-          setSubmitError(err instanceof Error ? err.message : 'Payment verification failed. Contact support if money was deducted.');
+          const msg = err instanceof Error ? err.message : '';
+          if (msg.includes('expired')) {
+            setSubmitError('Your order expired. Please click "Pay" again to create a new order.');
+          } else {
+            setVerificationFailed(msg || 'Payment verification failed. If money was deducted, it will be refunded automatically within 5-7 business days. Please contact support for assistance.');
+          }
         } finally {
           setSubmitting(false);
         }
       },
       modal: {
         ondismiss: () => {
-          reportPaymentFailed(orderId).catch(() => {});
-          setPaymentFailed(true);
+          if (!submitted) {
+            reportPaymentFailed(orderId).catch(() => {});
+            setPaymentFailed(true);
+          }
           setSubmitting(false);
         },
       },
@@ -178,19 +186,26 @@ function CheckoutForm({ product, searchParams }: { product: ShopProduct; searchP
     setSubmitting(true);
     setSubmitError('');
     setPaymentFailed(false);
+    setVerificationFailed('');
 
     try {
       const result = await createRazorpayOrder(buildPayload());
       setCurrentOrderId(result.orderId);
       openRazorpayCheckout(result.razorpayOrderId, result.amount, result.keyId, result.orderId);
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Failed to initiate payment. Please try again.');
+      const msg = err instanceof Error ? err.message : '';
+      if (msg.includes('Too many')) {
+        setSubmitError('You\'re submitting too fast. Please wait a minute and try again.');
+      } else {
+        setSubmitError(msg || 'Failed to initiate payment. Please try again.');
+      }
       setSubmitting(false);
     }
   };
 
   const handleRetry = () => {
     setPaymentFailed(false);
+    setVerificationFailed('');
     setSubmitError('');
     setCurrentOrderId('');
   };
@@ -224,6 +239,44 @@ function CheckoutForm({ product, searchParams }: { product: ShopProduct; searchP
             <Link href="/shop" className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#22a2f2] text-white rounded-2xl hover:bg-[#1b8bd0] transition-all font-semibold shadow-md shadow-blue-200 hover:shadow-lg hover:shadow-blue-300 hover:-translate-y-0.5 duration-200">
               Continue Shopping →
             </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (verificationFailed) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center px-4 pt-16">
+          <div className="bg-white rounded-3xl shadow-xl shadow-amber-50 p-10 sm:p-14 text-center max-w-md w-full border border-amber-200">
+            <div className="relative w-20 h-20 mx-auto mb-8">
+              <div className="relative w-20 h-20 bg-gradient-to-br from-amber-400 to-amber-500 rounded-full flex items-center justify-center shadow-lg shadow-amber-200">
+                <svg className="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-3 tracking-tight">Verification Failed</h1>
+            <p className="text-gray-500 leading-relaxed mb-2">{verificationFailed}</p>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-left">
+              <p className="text-sm text-amber-800 font-semibold mb-1">What happens next?</p>
+              <p className="text-xs text-amber-700 leading-relaxed">
+                If money was deducted from your account, it will be refunded automatically within 5–7 business days. If you need immediate assistance, please contact our support team.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                onClick={handleRetry}
+                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-[#22a2f2] text-white rounded-2xl hover:bg-[#1b8bd0] transition-all font-semibold shadow-md shadow-blue-200 hover:shadow-lg hover:shadow-blue-300 hover:-translate-y-0.5 duration-200"
+              >
+                Try Again
+              </button>
+              <Link href="/shop" className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-gray-100 text-gray-600 rounded-2xl hover:bg-gray-200 transition-all font-semibold">
+                Back to Shop
+              </Link>
+            </div>
           </div>
         </div>
       </div>
