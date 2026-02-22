@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { Suspense, useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -136,6 +136,26 @@ function StatusStepper({ status }: { status: string }) {
 }
 
 export default function TrackOrderPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <Navbar />
+        <div className="flex-1 pt-24 pb-16 px-4 flex items-center justify-center">
+          <div className="animate-pulse space-y-4 w-full max-w-lg">
+            <div className="h-16 bg-gray-200 rounded-2xl mx-auto w-16" />
+            <div className="h-8 bg-gray-200 rounded w-1/2 mx-auto" />
+            <div className="h-4 bg-gray-200 rounded w-1/3 mx-auto" />
+            <div className="h-12 bg-gray-200 rounded-xl mt-8" />
+          </div>
+        </div>
+      </div>
+    }>
+      <TrackOrderContent />
+    </Suspense>
+  );
+}
+
+function TrackOrderContent() {
   const searchParams = useSearchParams();
   const initialOrder = searchParams.get('order') || '';
 
