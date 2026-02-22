@@ -1,4 +1,4 @@
-import type { ShopProduct, ShopOrder, BulkPricingTier, CreateProductPayload, CreateOrderPayload, OrderResponse, ColorVariation, RazorpayOrderResponse, VerifyPaymentPayload } from './types';
+import type { ShopProduct, ShopOrder, BulkPricingTier, CreateProductPayload, CreateOrderPayload, OrderResponse, ColorVariation, RazorpayOrderResponse, VerifyPaymentPayload, TrackedOrder } from './types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SHOP_API_URL || 'https://shop-backend-31w8.onrender.com';
 
@@ -124,6 +124,26 @@ export async function getOrders(params: { status?: string; page?: number; limit?
 }
 export async function updateOrderStatus(id: string, status: string): Promise<ShopOrder> {
   return normaliseOrder((await request<{ order: Record<string, unknown> }>(`/api/orders/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) })).order);
+}
+
+export async function trackOrder(orderNumber: string): Promise<TrackedOrder> {
+  const raw = await request<{ order: Record<string, unknown> }>(`/api/orders/track/${encodeURIComponent(orderNumber)}`);
+  const o = raw.order;
+  return {
+    orderNumber: (o.orderNumber ?? '') as string,
+    productName: (o.productName ?? '') as string,
+    productImage: (o.productImage ?? '') as string,
+    variations: (o.variations ?? []) as ColorVariation[],
+    quantity: (o.quantity ?? 0) as number,
+    tier: (o.tier ?? '') as string,
+    unitPrice: (o.unitPrice ?? 0) as number,
+    totalAmount: (o.totalAmount ?? 0) as number,
+    status: (o.status ?? '') as string,
+    city: (o.city ?? '') as string,
+    state: (o.state ?? '') as string,
+    createdAt: (o.createdAt ?? '') as string,
+    updatedAt: (o.updatedAt ?? '') as string,
+  };
 }
 
 export async function createRazorpayOrder(payload: CreateOrderPayload): Promise<RazorpayOrderResponse> {

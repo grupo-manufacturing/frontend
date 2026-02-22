@@ -78,6 +78,22 @@ export type ShopOrder = {
   updatedAt: string;
 };
 
+export type TrackedOrder = {
+  orderNumber: string;
+  productName: string;
+  productImage: string;
+  variations: ColorVariation[];
+  quantity: number;
+  tier: string;
+  unitPrice: number;
+  totalAmount: number;
+  status: string;
+  city: string;
+  state: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type RazorpayOrderResponse = {
   orderId: string;
   orderNumber: string;
