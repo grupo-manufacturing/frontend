@@ -54,7 +54,8 @@ const Navbar = () => {
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#22a2f2] group-hover:w-full transition-all duration-300 ease-in-out"></span>
               </Link>
             ))}
-            <Link
+            {/* Track Order link hidden during shop development phase */}
+            {/* <Link
               href="/shop/track"
               className="flex items-center gap-1.5 px-4 py-2 bg-[#22a2f2]/10 text-[#22a2f2] rounded-lg text-sm font-semibold hover:bg-[#22a2f2]/20 transition-colors"
             >
@@ -62,20 +63,11 @@ const Navbar = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               Track Order
-            </Link>
+            </Link> */}
           </div>
 
-          {/* Mobile: Track Order + Menu Button */}
-          <div className="md:hidden flex items-center gap-2">
-            <Link
-              href="/shop/track"
-              className="flex items-center gap-1.5 px-3 py-2 bg-[#22a2f2]/10 text-[#22a2f2] rounded-lg text-sm font-semibold hover:bg-[#22a2f2]/20 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <span className="hidden sm:inline">Track Order</span>
-            </Link>
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-[#22a2f2] hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#22a2f2] transition-colors duration-200"
