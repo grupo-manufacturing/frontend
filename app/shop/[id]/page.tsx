@@ -234,7 +234,7 @@ function ProductDetails({ product }: { product: ShopProduct }) {
               <QuantityInput value={quantity} onChange={setQuantity} />
 
               {/* ── Variation Accordion (Color → Sizes) ── */}
-              {isQuantityValid && product.colors.length > 0 && (
+              {isQuantityValid && !isDiamond && product.colors.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
@@ -363,8 +363,9 @@ function ProductDetails({ product }: { product: ShopProduct }) {
                 </button>
               ) : isDiamond ? (
                 <a
-                  href="#"
-                  onClick={(e) => e.preventDefault()}
+                  href={`https://wa.me/917671062042?text=${encodeURIComponent(`Hello, I am interested in buying the ${product.name}'s 500+ units!`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 w-full text-center px-4 py-3.5 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition-colors font-semibold text-base shadow-md hover:shadow-lg"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
