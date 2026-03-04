@@ -11,6 +11,20 @@ interface CustomQuoteProps {
 
 export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirements }: CustomQuoteProps) {
   const toast = useToast();
+  const MAX_UPLOAD_SIZE = 10 * 1024 * 1024; // 10MB
+  const ALLOWED_UPLOAD_TYPES = [
+    'application/pdf',
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'image/heic',
+    'image/heif',
+    'image/svg+xml',
+    'image/bmp',
+    'image/tiff'
+  ];
   // Custom Quote Form States
   const [requirement, setRequirement] = useState('');
   const [customQuantity, setCustomQuantity] = useState('');
@@ -84,11 +98,14 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
     setIsSubmittingRequirement(true);
     
     try {
-      // TODO: Handle image upload if uploadedImage exists
       let imageUrl = null;
       if (uploadedImage) {
-        // For now, we'll skip image upload - can be implemented later with cloudinary
-        // Image upload not yet implemented
+        const uploadResponse = await apiService.uploadRequirementFile(uploadedImage);
+        if (uploadResponse?.success && uploadResponse?.data?.url) {
+          imageUrl = uploadResponse.data.url;
+        } else {
+          throw new Error('Failed to upload attachment');
+        }
       }
 
       // Create requirement data
@@ -343,7 +360,7 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
                   </svg>
                 </div>
                 <span className="text-sm text-gray-700 font-medium mb-1">Click to upload image</span>
-                <span className="text-xs text-gray-500">PNG, JPG or GIF (Max 5MB)</span>
+                <span className="text-xs text-gray-500">PDF, PNG, JPG, WEBP, GIF and more (Max 10MB)</span>
                 {uploadedImage && (
                   <div className="mt-3 px-4 py-2 bg-[#22a2f2]/15 border border-[#22a2f2]/40 rounded-lg">
                     <span className="text-xs text-[#22a2f2] font-medium">
@@ -353,10 +370,21 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
                 )}
                 <input
                   type="file"
-                  accept="image/*"
+                  accept=".pdf,image/jpeg,image/jpg,image/png,image/gif,image/webp,image/heic,image/heif,image/svg+xml,image/bmp,image/tiff"
                   onChange={(e) => {
                     if (e.target.files && e.target.files[0]) {
-                      setUploadedImage(e.target.files[0]);
+                      const file = e.target.files[0];
+                      if (!ALLOWED_UPLOAD_TYPES.includes(file.type)) {
+                        toast.error('Only PDF and image files are allowed');
+                        e.target.value = '';
+                        return;
+                      }
+                      if (file.size > MAX_UPLOAD_SIZE) {
+                        toast.error('File size must be 10MB or less');
+                        e.target.value = '';
+                        return;
+                      }
+                      setUploadedImage(file);
                     }
                   }}
                   className="hidden"

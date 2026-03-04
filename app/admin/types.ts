@@ -27,6 +27,7 @@ export interface Order {
   requirement_text: string;
   quantity?: number;
   product_type?: string;
+  image_url?: string | null;
   buyer_id: string;
   buyer?: {
     id: string;

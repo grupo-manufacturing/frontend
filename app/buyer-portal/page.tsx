@@ -609,16 +609,16 @@ export default function BuyerPortal() {
         <nav className="sticky top-20 z-40 bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-1">
-              {/* Generate Designs Tab */}
+              {/* Design Tab (Generate + My AI Designs) */}
               <button
                 onClick={() => setActiveTab('generate-designs')}
                 className={`relative flex items-center gap-2 px-3 lg:px-4 py-3 font-medium text-sm whitespace-nowrap transition-all rounded-t-lg ${
-                  activeTab === 'generate-designs'
+                  activeTab === 'generate-designs' || activeTab === 'ai-designs'
                     ? 'text-black'
                     : 'text-gray-500 hover:text-black'
                 }`}
               >
-                {activeTab === 'generate-designs' && (
+                {(activeTab === 'generate-designs' || activeTab === 'ai-designs') && (
                   <div className="absolute inset-0 bg-gray-100 rounded-t-lg border-b-2 border-black"></div>
                 )}
                 <svg
@@ -634,35 +634,7 @@ export default function BuyerPortal() {
                     d="M13 10V3L4 14h7v7l9-11h-7z"
                   />
                 </svg>
-                <span className="relative z-10 hidden sm:inline">Generate Designs</span>
-              </button>
-
-              {/* AI Designs Tab */}
-              <button
-                onClick={() => setActiveTab('ai-designs')}
-                className={`relative flex items-center gap-2 px-3 lg:px-4 py-3 font-medium text-sm whitespace-nowrap transition-all rounded-t-lg ${
-                  activeTab === 'ai-designs'
-                    ? 'text-black'
-                    : 'text-gray-500 hover:text-black'
-                }`}
-              >
-                {activeTab === 'ai-designs' && (
-                  <div className="absolute inset-0 bg-gray-100 rounded-t-lg border-b-2 border-black"></div>
-                )}
-                <svg
-                  className="relative z-10 w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
-                <span className="relative z-10 hidden sm:inline">AI Designs</span>
+                <span className="relative z-10 hidden sm:inline">Design</span>
               </button>
 
               {/* Find Manufacturers Tab */}
@@ -690,7 +662,7 @@ export default function BuyerPortal() {
                     d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                   />
                 </svg>
-                <span className="relative z-10 hidden sm:inline">Find Manufacturers</span>
+                <span className="relative z-10 hidden sm:inline">Request For Quotation</span>
               </button>
 
               {/* My Orders Tab */}
@@ -874,19 +846,45 @@ export default function BuyerPortal() {
               onAcceptAIDesignResponse={handleAcceptAIDesignResponse}
             />
           )}
-          {activeTab === 'generate-designs' && (
-            <GenerateDesigns
-              onDesignPublished={() => {
-                // Switch to AI Designs tab when design is published
-                setActiveTab('ai-designs');
-              }}
-            />
-          )}
-          {activeTab === 'ai-designs' && (
-            <AIDesignsTab
-              onSwitchToGenerateDesigns={() => setActiveTab('generate-designs')}
-              onAcceptAIDesignResponse={handleAcceptAIDesignResponse}
-            />
+          {(activeTab === 'generate-designs' || activeTab === 'ai-designs') && (
+            <div className="space-y-6">
+              <div className="inline-flex items-center bg-gray-100 rounded-xl p-1 border border-gray-200">
+                <button
+                  onClick={() => setActiveTab('generate-designs')}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    activeTab === 'generate-designs'
+                      ? 'bg-white text-black shadow-sm'
+                      : 'text-gray-600 hover:text-black'
+                  }`}
+                >
+                  Generate
+                </button>
+                <button
+                  onClick={() => setActiveTab('ai-designs')}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    activeTab === 'ai-designs'
+                      ? 'bg-white text-black shadow-sm'
+                      : 'text-gray-600 hover:text-black'
+                  }`}
+                >
+                  My AI Designs
+                </button>
+              </div>
+
+              {activeTab === 'generate-designs' ? (
+                <GenerateDesigns
+                  onDesignPublished={() => {
+                    // Switch to My AI Designs subtab when design is published
+                    setActiveTab('ai-designs');
+                  }}
+                />
+              ) : (
+                <AIDesignsTab
+                  onSwitchToGenerateDesigns={() => setActiveTab('generate-designs')}
+                  onAcceptAIDesignResponse={handleAcceptAIDesignResponse}
+                />
+              )}
+            </div>
           )}
         </main>
       </div>

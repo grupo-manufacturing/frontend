@@ -57,6 +57,7 @@ class ApiService {
     this.markRead = chatService.markRead.bind(chatService);
     
     // Requirement methods
+    this.uploadRequirementFile = requirementService.uploadRequirementFile.bind(requirementService);
     this.createRequirement = requirementService.createRequirement.bind(requirementService);
     this.getRequirements = requirementService.getRequirements.bind(requirementService);
     this.getNegotiatingRequirementsForConversation = requirementService.getNegotiatingRequirementsForConversation.bind(requirementService);

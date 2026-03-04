@@ -2,8 +2,42 @@
  * Requirement Service - Requirements & responses
  */
 import apiClient from '../core/ApiClient.js';
+import { getToken } from '../utils/tokenManager.js';
 
 class RequirementService {
+  /**
+   * Upload requirement attachment (PDF or image)
+   * @param {File} file - File to upload
+   * @returns {Promise} Response data with uploaded file URL
+   */
+  async uploadRequirementFile(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const token = getToken();
+    const url = `${apiClient.getBaseURL()}/upload/requirement-file`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: token ? `Bearer ${token}` : ''
+      },
+      body: formData
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        apiClient.handleTokenExpiration();
+        throw new Error('Your session has expired. Please log in again.');
+      }
+      throw new Error(data.message || `Upload failed! status: ${response.status}`);
+    }
+
+    return data;
+  }
+
   /**
    * Create a new requirement
    * @param {Object} requirementData - Requirement data

@@ -290,9 +290,15 @@ export default function Orders({
                   </th>
                 </>
               )}
-              <th scope="col" className="px-4 py-3 text-left font-semibold">
-                Status
-              </th>
+              {isShowingCustom ? (
+                <th scope="col" className="px-4 py-3 text-left font-semibold">
+                  Product Image
+                </th>
+              ) : (
+                <th scope="col" className="px-4 py-3 text-left font-semibold">
+                  Status
+                </th>
+              )}
               <th scope="col" className="px-4 py-3 text-left font-semibold">
                 Date
               </th>
@@ -346,9 +352,22 @@ export default function Orders({
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-slate-100 text-slate-700">
-                          Active
-                        </span>
+                        {requirement.image_url ? (
+                          <a
+                            href={requirement.image_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 text-xs font-medium text-[#22a2f2] hover:underline"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 3h7m0 0v7m0-7L10 14" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5v14h14v-5" />
+                            </svg>
+                            Open File
+                          </a>
+                        ) : (
+                          <span className="text-xs text-slate-400">—</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-xs text-slate-500">
                         {formatDate(requirement.updated_at || requirement.created_at)}
