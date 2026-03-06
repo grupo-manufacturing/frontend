@@ -12,8 +12,8 @@ const Navbar = () => {
     { name: 'Buyer', href: '/buyer-portal' },
     // Manufacturer link hidden during UAT phase
     // { name: 'Manufacturer', href: '/manufacturer-portal' },
-    // Shop link hidden during testing phase
-    // { name: 'Shop', href: '/shop' },
+    { name: 'Shop', href: '/shop' },
+    { name: 'Track Order', href: '/shop/track' },
   ];
 
   return (
@@ -54,16 +54,6 @@ const Navbar = () => {
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#22a2f2] group-hover:w-full transition-all duration-300 ease-in-out"></span>
               </Link>
             ))}
-            {/* Track Order link hidden during shop development phase */}
-            {/* <Link
-              href="/shop/track"
-              className="flex items-center gap-1.5 px-4 py-2 bg-[#22a2f2]/10 text-[#22a2f2] rounded-lg text-sm font-semibold hover:bg-[#22a2f2]/20 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              Track Order
-            </Link> */}
           </div>
 
           {/* Mobile Menu Button */}
