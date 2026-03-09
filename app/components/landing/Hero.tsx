@@ -12,7 +12,7 @@ const Hero = () => {
         <div className="grid lg:grid-cols-2 gap-12 lg:items-stretch">
           {/* Left Content */}
           <div className="flex flex-col justify-center">
-            {/* Trust Badge */}
+            {/* Badge */}
             <div className="inline-flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-sm border border-gray-200 mb-8">
               <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
                 <svg 
@@ -30,7 +30,7 @@ const Hero = () => {
                 </svg>
               </div>
               <span className="text-sm text-gray-700 font-medium">
-                Trusted by 1000+ Brands Worldwide
+                Built for fast-moving apparel teams
               </span>
             </div>
 
@@ -38,25 +38,28 @@ const Hero = () => {
             <div className="space-y-8">
               {/* Main Heading */}
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
-                One-Stop <span className="text-[#22a2f2]">Manufacturing Partner For Your Clothing Brand</span>
+                From <span className="text-[#22a2f2]">Product Idea to Production</span>, in One Platform
               </h1>
 
               {/* Description */}
               <p className="text-lg sm:text-xl text-gray-600 leading-relaxed max-w-xl">
-                AI-powered manufacturing OS that matches your designs to the right factory and delivers production with speed and reliability.
+                Grupo helps buyers and manufacturers work together with AI-assisted workflows, real-time chat, and structured order collaboration.
               </p>
 
               {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4">
-                {/* Manufacturer button hidden during UAT phase */}
-                {/* <Link href="/manufacturer-portal" className="bg-[#22a2f2] hover:bg-transparent text-white hover:text-[#22a2f2] font-semibold px-8 py-3 rounded-lg border-2 border-[#22a2f2] transition-all duration-200 text-center">
+              <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
+                <Link href="/buyer-portal" className="bg-[#22a2f2] hover:bg-[#1c8fd7] text-white font-semibold px-8 py-3 rounded-lg border-2 border-[#22a2f2] transition-colors duration-200 text-center">
+                  Start as Buyer
+                </Link>
+                <Link href="/manufacturer-portal" className="bg-white hover:bg-gray-50 text-[#22a2f2] font-semibold px-8 py-3 rounded-lg border-2 border-[#22a2f2] transition-colors duration-200 text-center">
                   Join as Manufacturer
-                </Link> */}
-                
-                <Link href="/buyer-portal" className="bg-[#22a2f2] hover:bg-transparent text-white hover:text-[#22a2f2] font-semibold px-8 py-3 rounded-lg border-2 border-[#22a2f2] transition-all duration-200 text-center">
-                  Join as Buyer
                 </Link>
               </div>
+
+              {/* Trust line */}
+              <p className="text-sm text-gray-500">
+                Trusted by growing fashion and apparel teams across multiple regions.
+              </p>
             </div>
           </div>
 

@@ -8,9 +8,8 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navLinks = [
-    { name: 'Request For Custom', href: '/buyer-portal' },
-    // Manufacturer link hidden during UAT phase
-    // { name: 'Manufacturer', href: '/manufacturer-portal' },
+    { name: 'For Buyers', href: '/buyer-portal' },
+    { name: 'For Manufacturers', href: '/manufacturer-portal' },
     { name: 'Buy Wholesale', href: '/shop' },
   ];
 
@@ -34,7 +33,7 @@ const Navbar = () => {
                   Grupo
                 </span>
                 <span className="text-xs text-gray-600 font-medium hidden sm:block">
-                  One Stop AI Manufacturing Platform
+                  AI-Powered Manufacturing Platform
                 </span>
               </div>
             </Link>
