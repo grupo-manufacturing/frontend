@@ -14,7 +14,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300 group cursor-pointer flex flex-col">
       {/* Product Image */}
-      <div className="relative aspect-square overflow-hidden bg-gray-100">
+      <Link href={`/shop/${product.id}`} className="relative aspect-square overflow-hidden bg-gray-100 block">
         <Image
           src={product.image}
           alt={product.name}
@@ -29,16 +29,18 @@ export default function ProductCard({ product }: ProductCardProps) {
             </span>
           </div>
         )}
-      </div>
+      </Link>
 
       {/* Product Info */}
       <div className="p-3 sm:p-4 flex flex-col flex-1">
         <span className="text-[10px] sm:text-xs font-medium text-[#22a2f2] uppercase tracking-wide">
           {product.category}
         </span>
-        <h3 className="text-sm sm:text-base font-semibold text-gray-900 mt-1 group-hover:text-[#22a2f2] transition-colors leading-snug">
-          {product.name}
-        </h3>
+        <Link href={`/shop/${product.id}`} className="mt-1">
+          <h3 className="text-sm sm:text-base font-semibold text-gray-900 group-hover:text-[#22a2f2] transition-colors leading-snug">
+            {product.name}
+          </h3>
+        </Link>
 
         {/* Price */}
         <p className="text-xs sm:text-sm text-gray-500 mt-1.5 mb-3">

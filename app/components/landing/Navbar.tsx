@@ -8,12 +8,10 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navLinks = [
-    { name: 'How We Work', href: '/howitworks' },
-    { name: 'Buyer', href: '/buyer-portal' },
+    { name: 'Request For Custom', href: '/buyer-portal' },
     // Manufacturer link hidden during UAT phase
     // { name: 'Manufacturer', href: '/manufacturer-portal' },
-    { name: 'Shop', href: '/shop' },
-    { name: 'Track Order', href: '/shop/track' },
+    { name: 'Buy Wholesale', href: '/shop' },
   ];
 
   return (
