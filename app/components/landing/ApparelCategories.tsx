@@ -1,26 +1,86 @@
+'use client';
+
+import { useState } from 'react';
+
 const ApparelCategories = () => {
   const categories = [
-    'T-shirt',
-    'Acid Wash T-shirts',
-    'Polos',
-    'Jerseys',
-    'Hoodies',
-    'Acid Wash Hoodies',
-    "Jogger's",
-    'Jeans',
-    'Bowling Shirts',
-    'Plain Shirts',
-    'Shorts',
-    'Denim Jackets',
-    'Leather Jackets',
+    {
+      title: 'T-shirt',
+      description: 'Everyday essentials in solids, graphics, and oversized fits.',
+      imagePath: '/Categories/t-shirt.jpg',
+    },
+    {
+      title: 'Acid Wash T-shirts',
+      description: 'Vintage-inspired acid wash styles for modern streetwear drops.',
+      imagePath: '/Categories/acid-wash-t-shirt.jpg',
+    },
+    {
+      title: 'Polos',
+      description: 'Smart-casual polos for uniforms, retail, and premium collections.',
+      imagePath: '/Categories/polos.webp',
+    },
+    {
+      title: 'Jerseys',
+      description: 'Athletic and lifestyle jersey products with team-ready looks.',
+      imagePath: '/Categories/jerseys.webp',
+    },
+    {
+      title: 'Hoodies',
+      description: 'Core hoodie silhouettes from lightweight to heavyweight fleece.',
+      imagePath: '/Categories/hoodies.jpg',
+    },
+    {
+      title: 'Acid Wash Hoodies',
+      description: 'Statement hoodies with washed textures and oversized profiles.',
+      imagePath: '/Categories/acid-wash-hoodie.webp',
+    },
+    {
+      title: "Jogger's",
+      description: 'Comfort-led joggers for activewear, loungewear, and streetwear.',
+      imagePath: '/Categories/joggers.webp',
+    },
+    {
+      title: 'Jeans',
+      description: 'Denim fits across classic, tapered, and relaxed styles.',
+      imagePath: '/Categories/jeans.jpg',
+    },
+    {
+      title: 'Bowling Shirts',
+      description: 'Retro bowling silhouettes with resort and casual styling.',
+      imagePath: '/Categories/bowling-shirts.webp',
+    },
+    {
+      title: 'Plain Shirts',
+      description: 'Minimal plain shirts suitable for formal and smart-casual wear.',
+      imagePath: '/Categories/plain-shirts.jpg',
+    },
+    {
+      title: 'Shorts',
+      description: 'Seasonal and all-weather shorts across utility and athletic cuts.',
+      imagePath: '/Categories/shorts.jpg',
+    },
+    {
+      title: 'Denim Jackets',
+      description: 'Layering staples in classic and fashion-forward denim treatments.',
+      imagePath: '/Categories/denim-jackets.webp',
+    },
+    {
+      title: 'Leather Jackets',
+      description: 'Premium leather outerwear with timeless and edgy styling.',
+      imagePath: '/Categories/leather-jackets.webp',
+    },
   ];
 
-  const accentClasses = [
-    'border-blue-200/80',
-    'border-violet-200/80',
-    'border-emerald-200/80',
-    'border-orange-200/80',
-  ];
+  const [activeIndex, setActiveIndex] = useState(0);
+  const totalSlides = categories.length;
+
+  const goToPrev = () => {
+    setActiveIndex((prev) => (prev === 0 ? totalSlides - 1 : prev - 1));
+  };
+
+  const goToNext = () => {
+    setActiveIndex((prev) => (prev === totalSlides - 1 ? 0 : prev + 1));
+  };
 
   return (
     <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-white">
@@ -54,25 +114,83 @@ const ApparelCategories = () => {
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-6xl mx-auto">
-            {categories.map((category, index) => (
+          <div className="relative max-w-4xl mx-auto">
+            <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
               <div
-                key={category}
-                className={`group rounded-2xl border p-4 bg-white ${accentClasses[index % accentClasses.length]} hover:-translate-y-0.5 hover:shadow-md transition-all duration-200`}
+                className="flex transition-transform duration-500 ease-out"
+                style={{ transform: `translateX(-${activeIndex * 100}%)` }}
               >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-white text-gray-700 shadow-sm">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 6h8M8 10h8M8 14h5m-7 6h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </span>
-                  <svg className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-                <p className="text-gray-900 font-semibold leading-snug">{category}</p>
+                {categories.map((category, index) => (
+                  <div key={category.title} className="w-full shrink-0 p-4 sm:p-6">
+                    <div className="grid md:grid-cols-2 gap-6 md:gap-10 items-center">
+                      <div className="w-full h-64 sm:h-72 rounded-2xl bg-gray-100 border border-dashed border-gray-300 flex flex-col items-center justify-center px-4 text-center">
+                        {category.imagePath ? (
+                          <img
+                            src={category.imagePath}
+                            alt={category.title}
+                            className="w-full h-full object-cover rounded-2xl"
+                          />
+                        ) : (
+                          <>
+                            <span className="text-sm font-semibold text-gray-600">Image Placeholder</span>
+                            <span className="text-xs text-gray-500 mt-2">
+                              Set `imagePath` in this category object
+                            </span>
+                          </>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-blue-600 mb-2">
+                          Category {index + 1} of {totalSlides}
+                        </p>
+                        <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
+                          {category.title}
+                        </h3>
+                        <p className="text-base text-gray-600 leading-relaxed">{category.description}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+
+            <div className="flex items-center justify-between mt-6">
+              <button
+                type="button"
+                onClick={goToPrev}
+                className="inline-flex items-center justify-center w-11 h-11 rounded-full border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
+                aria-label="Previous category"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+
+              <div className="flex items-center gap-2">
+                {categories.map((_, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    aria-label={`Go to category ${index + 1}`}
+                    onClick={() => setActiveIndex(index)}
+                    className={`h-2.5 rounded-full transition-all ${
+                      activeIndex === index ? 'w-8 bg-blue-600' : 'w-2.5 bg-gray-300 hover:bg-gray-400'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={goToNext}
+                className="inline-flex items-center justify-center w-11 h-11 rounded-full border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
+                aria-label="Next category"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>
