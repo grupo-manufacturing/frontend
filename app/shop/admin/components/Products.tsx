@@ -234,6 +234,8 @@ function ProductFormModal({
 
   // Image state: URL strings (either pre-existing or freshly uploaded)
   const [mainImage, setMainImage] = useState(product?.image ?? '');
+  const [sizeChartUrl, setSizeChartUrl] = useState(product?.sizeChartUrl ?? '');
+  const [uploadingSizeChart, setUploadingSizeChart] = useState(false);
   const [additionalImages, setAdditionalImages] = useState<string[]>(
     product?.images?.filter((u) => u !== product?.image) ?? []
   );
@@ -290,6 +292,22 @@ function ProductFormModal({
     setAdditionalImages((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleSizeChartUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingSizeChart(true);
+    setError('');
+    try {
+      const url = await uploadImage(file);
+      setSizeChartUrl(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to upload size chart');
+    } finally {
+      setUploadingSizeChart(false);
+      e.target.value = '';
+    }
+  };
+
   /* ── Submit ──────────────────────────────────────────────────────── */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -308,6 +326,7 @@ function ProductFormModal({
       description: description.trim(),
       image: mainImage,
       images: allImages,
+      size_chart_url: sizeChartUrl || null,
       colors,
       sizes,
       bulk_pricing: tiers,
@@ -370,6 +389,58 @@ function ProductFormModal({
           <FormField label="Description">
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Product description…" rows={2} className={`${inputCls} resize-none`} />
           </FormField>
+
+          {/* Size Chart Upload */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-slate-700">
+              Size Chart
+              <span className="text-xs font-normal text-slate-400 ml-1.5">(optional)</span>
+            </label>
+            {sizeChartUrl ? (
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                <div className="flex items-center justify-between gap-3">
+                  <a
+                    href={sizeChartUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="truncate text-sm font-medium text-[#22a2f2] hover:text-[#1b8bd0] hover:underline"
+                  >
+                    View uploaded size chart
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => setSizeChartUrl('')}
+                    className="text-xs font-medium text-rose-600 hover:text-rose-700"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <label className={`flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-xl cursor-pointer transition ${
+                uploadingSizeChart ? 'border-[#22a2f2] bg-[#22a2f2]/5' : 'border-slate-300 hover:border-[#22a2f2] hover:bg-slate-50'
+              }`}>
+                <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={handleSizeChartUpload} disabled={uploadingSizeChart} />
+                {uploadingSizeChart ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <svg className="w-5 h-5 animate-spin text-[#22a2f2]" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    <span className="text-xs text-[#22a2f2] font-medium">Uploading…</span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-1.5">
+                    <svg className="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 21V5.25A2.25 2.25 0 0017.25 3H6.75A2.25 2.25 0 004.5 5.25V21m15 0h-15m15 0h.008v.008H19.5V21zm-15 0h.008v.008H4.5V21zm8.25-13.5h3m-3 3h3m-3 3h3M8.25 7.5h.008v.008H8.25V7.5zm0 3h.008v.008H8.25V10.5zm0 3h.008v.008H8.25V13.5z" />
+                    </svg>
+                    <span className="text-xs text-slate-500">Upload size chart image</span>
+                    <span className="text-[10px] text-slate-400">JPEG, PNG, or WebP (max 10MB)</span>
+                  </div>
+                )}
+              </label>
+            )}
+          </div>
 
           {/* ── Main Image Upload ──────────────────────────────────────── */}
           <div className="space-y-1.5">
@@ -577,7 +648,7 @@ function ProductFormModal({
           </button>
           <button
             onClick={(e) => { e.preventDefault(); document.querySelector<HTMLFormElement>('form')?.requestSubmit(); }}
-            disabled={saving || uploadingMain || uploadingExtra}
+            disabled={saving || uploadingMain || uploadingExtra || uploadingSizeChart}
             className="inline-flex items-center gap-2 rounded-lg bg-[#22a2f2] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1b8bd0] disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {saving ? (

@@ -34,6 +34,7 @@ function normaliseProduct(raw: Record<string, unknown>): ShopProduct {
     description: (raw.description ?? "") as string,
     image: raw.image as string,
     images: (raw.images ?? []) as string[],
+    sizeChartUrl: (raw.size_chart_url ?? raw.sizeChartUrl ?? null) as string | null,
     colors: (raw.colors ?? []) as string[],
     sizes: (raw.sizes ?? []) as string[],
     bulkPricing: pricing.map(normaliseTier),

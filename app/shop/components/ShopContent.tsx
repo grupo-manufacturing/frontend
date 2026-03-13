@@ -12,6 +12,8 @@ import ActiveFilters from './ActiveFilters';
 import ProductCard from './ProductCard';
 import EmptyState from './EmptyState';
 
+const PET_CLOTHING_CATEGORY = 'Pet Clothing';
+
 export default function ShopContent() {
   /* ── State ─────────────────────────────────────────────────────────── */
   const [searchQuery, setSearchQuery] = useState('');
@@ -31,7 +33,10 @@ export default function ShopContent() {
   /* ── Fetch categories once ─────────────────────────────────────────── */
   useEffect(() => {
     getCategories()
-      .then(setCategories)
+      .then((fetchedCategories) => {
+        const allCategories = [...new Set([...fetchedCategories, PET_CLOTHING_CATEGORY])];
+        setCategories(allCategories);
+      })
       .catch(() => setCategories([]));
   }, []);
 

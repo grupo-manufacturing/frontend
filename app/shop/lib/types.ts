@@ -12,6 +12,7 @@ export type ShopProduct = {
   description: string;
   image: string;
   images: string[];
+  sizeChartUrl?: string | null;
   colors: string[];
   sizes: string[];
   bulkPricing: BulkPricingTier[];
@@ -116,6 +117,7 @@ export type CreateProductPayload = {
   description: string;
   image: string;
   images: string[];
+  size_chart_url?: string | null;
   colors: string[];
   sizes: string[];
   bulk_pricing: BulkPricingTier[];

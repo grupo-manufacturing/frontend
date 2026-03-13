@@ -11,6 +11,7 @@ interface CustomQuoteProps {
 
 export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirements }: CustomQuoteProps) {
   const toast = useToast();
+  const MIN_REQUIREMENT_QUANTITY = 30;
   const MAX_UPLOAD_SIZE = 10 * 1024 * 1024; // 10MB
   const ALLOWED_UPLOAD_TYPES = [
     'application/pdf',
@@ -77,9 +78,11 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
     if (!customQuantity || customQuantity.trim().length === 0) {
       newErrors.quantity = 'Quantity is required';
     } else {
-      const quantityNum = parseInt(customQuantity);
+      const quantityNum = parseInt(customQuantity, 10);
       if (isNaN(quantityNum) || quantityNum <= 0) {
         newErrors.quantity = 'Quantity must be a positive number';
+      } else if (quantityNum < MIN_REQUIREMENT_QUANTITY) {
+        newErrors.quantity = `Minimum quantity is ${MIN_REQUIREMENT_QUANTITY}`;
       }
     }
 
@@ -112,7 +115,7 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
       // At this point, validation has ensured product_type and quantity are present
       const requirementData = {
         product_type: customProductType.trim(), // Required - validated
-        quantity: parseInt(customQuantity), // Required - validated
+        quantity: parseInt(customQuantity, 10), // Required - validated
         requirement_text: requirement && requirement.trim().length > 0 ? requirement.trim() : null,
         product_link: productLink.trim().length > 0 ? productLink.trim() : null,
         image_url: imageUrl
@@ -281,8 +284,8 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
                   setErrors(prev => ({ ...prev, quantity: undefined }));
                 }
               }}
-              placeholder="Enter quantity"
-              min="1"
+              placeholder={`Enter quantity (minimum ${MIN_REQUIREMENT_QUANTITY})`}
+              min={MIN_REQUIREMENT_QUANTITY}
               className={`w-full px-4 py-3 bg-white border rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 transition-all ${
                 errors.quantity ? 'border-red-500' : 'border-gray-200'
               }`}

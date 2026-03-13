@@ -558,6 +558,19 @@ export default function RequirementsTab() {
                     <p className="text-sm text-gray-800 leading-relaxed">{formatText(selectedRequirement.requirement_text)}</p>
                   </div>
                 )}
+                {selectedRequirement.image_url && (
+                  <div className="pt-3 mt-3 border-t border-gray-200">
+                    <p className="text-sm font-semibold text-gray-700 mb-2">Reference Attachment:</p>
+                    <a
+                      href={selectedRequirement.image_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-[#22a2f2] hover:underline"
+                    >
+                      View Uploaded Attachment
+                    </a>
+                  </div>
+                )}
               </div>
 
               <form onSubmit={handleSubmitResponse} className="space-y-4">
