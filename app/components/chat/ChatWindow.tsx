@@ -193,6 +193,7 @@ export default function ChatWindow({
       setLoadingRequirementDetails(false);
       return;
     }
+    const requirementId = activeRequirementId;
 
     let mounted = true;
     let cancelled = false;
@@ -200,13 +201,13 @@ export default function ChatWindow({
     async function loadRequirementDetails() {
       try {
         setLoadingRequirementDetails(true);
-        const res = await apiService.getRequirement(activeRequirementId);
+        const res = await apiService.getRequirement(requirementId);
 
         if (cancelled || !mounted) return;
 
         if (res.success && res.data) {
           try {
-            const responsesRes = await apiService.getRequirementResponses(activeRequirementId);
+            const responsesRes = await apiService.getRequirementResponses(requirementId);
             let status: 'accepted' | 'negotiating' | null = null;
 
             if (responsesRes.success && Array.isArray(responsesRes.data)) {
@@ -264,6 +265,7 @@ export default function ChatWindow({
       setLoading(false);
       return;
     }
+    const requirementId = activeRequirementId;
 
     let mounted = true;
     let cancelled = false;
@@ -272,7 +274,7 @@ export default function ChatWindow({
       try {
         setLoading(true);
         setMessages([]);
-        const res = await apiService.getMessagesForRequirement(conversationId, activeRequirementId);
+        const res = await apiService.getMessagesForRequirement(conversationId, requirementId);
 
         if (cancelled || !mounted) return;
         setMessages(res.data.messages || []);
@@ -413,7 +415,8 @@ export default function ChatWindow({
         body,
         clientTempId,
         attachments: uploadedAttachments,
-        requirementId: activeRequirementId
+        requirementId: activeRequirementId,
+        aiDesignId: null
       };
 
       if (socketRef.current?.connected) {
