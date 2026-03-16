@@ -1,96 +1,27 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import type { Order, OrderStatusFilter, OrderType, AIDesign } from '../types';
-import { formatDate, getStatusLabel, getStatusBadgeColor } from '../utils';
+import type { Order } from '../types';
+import { formatDate } from '../utils';
 
 interface OrdersProps {
   orders: Order[];
-  aiDesigns: AIDesign[];
   isLoadingData: boolean;
   lastUpdated: string | null;
 }
 
 export default function Orders({
   orders,
-  aiDesigns,
   isLoadingData,
   lastUpdated
 }: OrdersProps) {
-  const [orderType, setOrderType] = useState<OrderType>('custom');
-  const [orderStatusFilter, setOrderStatusFilter] = useState<OrderStatusFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
 
-  const isShowingCustom = orderType === 'custom';
-  const isShowingAI = orderType === 'ai';
-
-  // Transform AI Design responses into order-like format
-  const aiOrders = useMemo(() => {
-    const aiOrdersList: Array<{
-      id: string;
-      design_no?: string;
-      apparel_type: string;
-      design_description?: string;
-      buyer: {
-        full_name?: string;
-        phone_number: string;
-      };
-      manufacturer: {
-        unit_name?: string;
-      };
-      quoted_price: number;
-      price_per_unit: number;
-      quantity: number;
-      status: string;
-      created_at: string;
-      updated_at: string;
-    }> = [];
-
-    aiDesigns.forEach((design) => {
-      if (design.responses && Array.isArray(design.responses)) {
-        design.responses.forEach((response) => {
-          // Include all responses (accepted, rejected, and submitted/pending)
-          if (response.status === 'accepted' || response.status === 'rejected' || response.status === 'submitted') {
-            const quotedPrice = response.quoted_price || 
-              (response.price_per_unit && response.quantity 
-                ? response.price_per_unit * response.quantity 
-                : 0);
-            
-            aiOrdersList.push({
-              id: response.id,
-              design_no: design.design_no,
-              apparel_type: design.apparel_type,
-              design_description: design.design_description,
-              buyer: {
-                full_name: design.buyer?.full_name,
-                phone_number: design.buyer?.phone_number || ''
-              },
-              manufacturer: {
-                unit_name: response.manufacturer?.unit_name,
-              },
-              quoted_price: quotedPrice,
-              price_per_unit: response.price_per_unit || 0,
-              quantity: response.quantity || design.quantity,
-              status: response.status,
-              created_at: response.created_at,
-              updated_at: response.created_at
-            });
-          }
-        });
-      }
-    });
-
-    return aiOrdersList;
-  }, [aiDesigns]);
-
   const filteredCustomOrders = useMemo(() => {
     let filtered = orders;
-    
-    // Note: Requirements don't have a status field, so status filter doesn't apply to requirements
-    // Status filtering is only for AI Orders (which have response statuses)
-    
+
     // Apply search filter
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -106,37 +37,12 @@ export default function Orders({
     return filtered;
   }, [orders, searchQuery]);
 
-  const filteredAIOrders = useMemo(() => {
-    let filtered = aiOrders;
-    
-    // Apply status filter
-    if (orderStatusFilter !== 'all') {
-      filtered = filtered.filter((order) => order.status === orderStatusFilter);
-    }
-    
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      filtered = filtered.filter((order) =>
-        (order.buyer?.full_name || '').toLowerCase().includes(q) ||
-        (order.manufacturer?.unit_name || '').toLowerCase().includes(q) ||
-        (order.apparel_type || '').toLowerCase().includes(q) ||
-        (order.design_description || '').toLowerCase().includes(q) ||
-        (order.buyer?.phone_number || '').includes(searchQuery) ||
-        (order.design_no || '').toLowerCase().includes(q)
-      );
-    }
-    
-    return filtered;
-  }, [aiOrders, orderStatusFilter, searchQuery]);
-
-  // Get current filtered data based on active tab
-  const currentFilteredOrders = isShowingCustom ? filteredCustomOrders : filteredAIOrders;
+  const currentFilteredOrders = filteredCustomOrders;
 
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [orderType, orderStatusFilter, searchQuery]);
+  }, [searchQuery]);
 
   // Calculate pagination
   const totalPages = Math.ceil(currentFilteredOrders.length / itemsPerPage);
@@ -166,42 +72,15 @@ export default function Orders({
         <div>
           <h1 className="text-xl font-semibold text-slate-900">Orders</h1>
           <p className="text-sm text-slate-500">
-            View and manage all requirements and AI orders.
+            View and manage all custom requirement orders.
           </p>
         </div>
         <div className="flex items-center gap-3">
           <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500">
             Total orders:{' '}
             <span className="font-semibold text-slate-800">
-              {isShowingCustom ? orders.length : aiOrders.length}
+              {orders.length}
             </span>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <div className="inline-flex rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
-            <button
-              onClick={() => setOrderType('custom')}
-              className={`rounded-md px-4 py-2 text-sm font-medium transition ${
-                isShowingCustom
-                  ? 'bg-[#22a2f2] text-white shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-50'
-              }`}
-            >
-              Custom Orders
-            </button>
-            <button
-              onClick={() => setOrderType('ai')}
-              className={`rounded-md px-4 py-2 text-sm font-medium transition ${
-                isShowingAI
-                  ? 'bg-[#22a2f2] text-white shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-50'
-              }`}
-            >
-              AI Orders
-            </button>
           </div>
         </div>
       </div>
@@ -224,30 +103,10 @@ export default function Orders({
             type="search"
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder={isShowingCustom 
-              ? "Search requirements by buyer, requirement text, or product type"
-              : "Search orders by buyer, manufacturer, or design"}
+            placeholder="Search requirements by buyer, requirement text, or product type"
             className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-700 shadow-sm focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30"
           />
         </div>
-        {!isShowingCustom && (
-          <div className="flex items-center gap-3">
-            <label htmlFor="status-filter" className="text-sm font-medium text-slate-700">
-              Filter by status:
-            </label>
-            <select
-              id="status-filter"
-              value={orderStatusFilter}
-              onChange={(e) => setOrderStatusFilter(e.target.value as OrderStatusFilter)}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-400 focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30"
-            >
-              <option value="all">All Orders</option>
-              <option value="accepted">Accepted</option>
-              <option value="rejected">Rejected</option>
-              <option value="submitted">Pending</option>
-            </select>
-          </div>
-        )}
       </div>
 
       <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -255,50 +114,23 @@ export default function Orders({
           <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
             <tr>
               <th scope="col" className="px-4 py-3 text-left font-semibold">
-                {isShowingCustom ? 'Requirement ID' : 'Design ID'}
+                Requirement ID
               </th>
               <th scope="col" className="px-4 py-3 text-left font-semibold">
                 Buyer
               </th>
-              {isShowingCustom && (
-                <th scope="col" className="px-4 py-3 text-left font-semibold">
-                  Product Type
-                </th>
-              )}
-              {isShowingCustom && (
-                <th scope="col" className="px-4 py-3 text-left font-semibold">
-                  Quantity
-                </th>
-              )}
-              {isShowingCustom && (
-                <th scope="col" className="px-4 py-3 text-left font-semibold">
-                  Additional Notes
-                </th>
-              )}
-              {!isShowingCustom && (
-                <th scope="col" className="px-4 py-3 text-left font-semibold">
-                  Design
-                </th>
-              )}
-              {!isShowingCustom && (
-                <>
-                  <th scope="col" className="px-4 py-3 text-left font-semibold">
-                    Manufacturer
-                  </th>
-                  <th scope="col" className="px-4 py-3 text-left font-semibold">
-                    Quote
-                  </th>
-                </>
-              )}
-              {isShowingCustom ? (
-                <th scope="col" className="px-4 py-3 text-left font-semibold">
-                  Product Image
-                </th>
-              ) : (
-                <th scope="col" className="px-4 py-3 text-left font-semibold">
-                  Status
-                </th>
-              )}
+              <th scope="col" className="px-4 py-3 text-left font-semibold">
+                Product Type
+              </th>
+              <th scope="col" className="px-4 py-3 text-left font-semibold">
+                Quantity
+              </th>
+              <th scope="col" className="px-4 py-3 text-left font-semibold">
+                Additional Notes
+              </th>
+              <th scope="col" className="px-4 py-3 text-left font-semibold">
+                Product Image
+              </th>
               <th scope="col" className="px-4 py-3 text-left font-semibold">
                 Date
               </th>
@@ -307,129 +139,68 @@ export default function Orders({
           <tbody className="divide-y divide-slate-200 text-slate-600">
             {currentFilteredOrders.length === 0 ? (
               <tr>
-                <td colSpan={isShowingCustom ? 7 : 7} className="px-4 py-6 text-center text-sm text-slate-500">
-                  {(isShowingCustom && orders.length === 0) || (isShowingAI && aiOrders.length === 0)
-                    ? `No ${orderStatusFilter !== 'all' ? getStatusLabel(orderStatusFilter).toLowerCase() : ''} orders found.`
-                    : 'No orders match your search criteria.'}
+                <td colSpan={7} className="px-4 py-6 text-center text-sm text-slate-500">
+                  {orders.length === 0 ? 'No orders found.' : 'No orders match your search criteria.'}
                 </td>
               </tr>
             ) : (
-              paginatedOrders.map((order) => {
-                if (isShowingCustom) {
-                  const requirement = order as Order;
-                  return (
-                    <tr key={requirement.id} className="hover:bg-slate-50/80">
-                      <td className="px-4 py-3">
-                        {requirement.requirement_no ? (
-                          <span className="inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold bg-[#22a2f2]/10 text-[#22a2f2] border border-[#22a2f2]/20">
-                            {requirement.requirement_no}
-                          </span>
-                        ) : (
-                          <span className="text-slate-400">—</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="font-medium text-slate-900">
-                          {requirement.buyer?.full_name || 'Not provided'}
-                        </div>
-                        <div className="text-xs text-slate-500">
-                          {requirement.buyer?.phone_number || '—'}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="text-xs text-slate-500">
-                          {requirement.product_type || '—'}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="text-xs text-slate-500">
-                          {requirement.quantity?.toLocaleString('en-IN') || '—'}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="text-xs text-slate-500 max-w-xs truncate">
-                          {requirement.requirement_text || '—'}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        {requirement.image_url ? (
-                          <a
-                            href={requirement.image_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 text-xs font-medium text-[#22a2f2] hover:underline"
-                          >
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 3h7m0 0v7m0-7L10 14" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5v14h14v-5" />
-                            </svg>
-                            Open File
-                          </a>
-                        ) : (
-                          <span className="text-xs text-slate-400">—</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-xs text-slate-500">
-                        {formatDate(requirement.updated_at || requirement.created_at)}
-                      </td>
-                    </tr>
-                  );
-                } else {
-                  const aiOrder = order as typeof aiOrders[0];
-                  return (
-                    <tr key={aiOrder.id} className="hover:bg-slate-50/80">
-                      <td className="px-4 py-3">
-                        {aiOrder.design_no ? (
-                          <span className="inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold bg-[#22a2f2]/10 text-[#22a2f2] border border-[#22a2f2]/20">
-                            {aiOrder.design_no}
-                          </span>
-                        ) : (
-                          <span className="text-slate-400">—</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="font-medium text-slate-900">
-                          {aiOrder.apparel_type || '—'}
-                        </div>
-                        {aiOrder.design_description && (
-                          <div className="text-xs text-slate-500 max-w-xs truncate">
-                            {aiOrder.design_description}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="font-medium text-slate-900">
-                          {aiOrder.buyer?.full_name || 'Not provided'}
-                        </div>
-                        <div className="text-xs text-slate-500">
-                          {aiOrder.buyer?.phone_number || '—'}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="font-medium text-slate-900">
-                          {aiOrder.manufacturer?.unit_name || 'Not provided'}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="font-medium text-slate-900">
-                          ₹{aiOrder.quoted_price?.toLocaleString('en-IN') || '—'}
-                        </div>
-                        <div className="text-xs text-slate-500">
-                          ₹{aiOrder.price_per_unit?.toLocaleString('en-IN') || '—'} per unit
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getStatusBadgeColor(aiOrder.status || '')}`}>
-                          {getStatusLabel(aiOrder.status || '')}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-xs text-slate-500">
-                        {formatDate(aiOrder.updated_at || aiOrder.created_at)}
-                      </td>
-                    </tr>
-                  );
-                }
-              })
+              paginatedOrders.map((requirement) => (
+                <tr key={requirement.id} className="hover:bg-slate-50/80">
+                  <td className="px-4 py-3">
+                    {requirement.requirement_no ? (
+                      <span className="inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold bg-[#22a2f2]/10 text-[#22a2f2] border border-[#22a2f2]/20">
+                        {requirement.requirement_no}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-slate-900">
+                      {requirement.buyer?.full_name || 'Not provided'}
+                    </div>
+                    <div className="text-xs text-slate-500">
+                      {requirement.buyer?.phone_number || '—'}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="text-xs text-slate-500">
+                      {requirement.product_type || '—'}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="text-xs text-slate-500">
+                      {requirement.quantity?.toLocaleString('en-IN') || '—'}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="text-xs text-slate-500 max-w-xs truncate">
+                      {requirement.requirement_text || '—'}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    {requirement.image_url ? (
+                      <a
+                        href={requirement.image_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs font-medium text-[#22a2f2] hover:underline"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 3h7m0 0v7m0-7L10 14" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5v14h14v-5" />
+                        </svg>
+                        Open File
+                      </a>
+                    ) : (
+                      <span className="text-xs text-slate-400">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-xs text-slate-500">
+                    {formatDate(requirement.updated_at || requirement.created_at)}
+                  </td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>

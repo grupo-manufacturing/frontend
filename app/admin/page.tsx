@@ -8,18 +8,16 @@ import { formatDate } from './utils';
 import Overview from './components/Overview';
 import Users from './components/Users';
 import Orders from './components/Orders';
-import AIDesigns from './components/AIDesigns';
 import Login from './components/Login';
 import { useToast } from '../components/Toast';
 
 type AdminStep = 'login' | 'dashboard';
-type AdminView = 'overview' | 'users' | 'orders' | 'ai-designs';
+type AdminView = 'overview' | 'users' | 'orders';
 
 const VIEW_TABS: Array<{ id: AdminView; label: string; description: string }> = [
   { id: 'overview', label: 'Overview', description: 'Key metrics across buyers and manufacturers' },
   { id: 'users', label: 'Users', description: 'Manage buyers and manufacturers' },
-  { id: 'orders', label: 'Orders', description: 'View and filter all orders by status' },
-  { id: 'ai-designs', label: 'AI Designs', description: 'View all AI-generated designs created by buyers' }
+  { id: 'orders', label: 'Orders', description: 'View and filter all orders by status' }
 ];
 
 export default function AdminPortal() {
@@ -77,10 +75,6 @@ export default function AdminPortal() {
       }
       if (activeView === 'orders') {
         void loadOrders();
-        void loadAIDesigns(); // Load AI designs with responses for AI Orders tab
-      }
-      if (activeView === 'ai-designs') {
-        void loadAIDesigns();
       }
     }
   }, [activeView, step, isCheckingAuth]);
@@ -182,7 +176,6 @@ export default function AdminPortal() {
   const isOverview = activeView === 'overview';
   const isUsersView = activeView === 'users';
   const isOrdersView = activeView === 'orders';
-  const isAIDesignsView = activeView === 'ai-designs';
 
   if (isCheckingAuth) {
     return (
@@ -262,8 +255,6 @@ export default function AdminPortal() {
             onClick={() => {
               if (activeView === 'orders') {
                 void loadOrders();
-              } else if (activeView === 'ai-designs') {
-                void loadAIDesigns();
               } else {
                 void loadData();
               }
@@ -339,7 +330,6 @@ export default function AdminPortal() {
         {!isLoadingData && isOrdersView && (
           <Orders
             orders={orders}
-            aiDesigns={aiDesigns}
             isLoadingData={isLoadingData}
             lastUpdated={lastUpdated}
           />
@@ -353,15 +343,6 @@ export default function AdminPortal() {
             lastUpdated={lastUpdated}
             onError={setErrorMessage}
             onReload={loadData}
-          />
-        )}
-
-        {!isLoadingData && isAIDesignsView && (
-          <AIDesigns
-            aiDesigns={aiDesigns}
-            isLoadingData={isLoadingData}
-            lastUpdated={lastUpdated}
-            onDelete={loadAIDesigns}
           />
         )}
 

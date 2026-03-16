@@ -16,7 +16,6 @@ export interface ChatsTabRef {
   openChatFromQuote: (quote: any) => Promise<void>;
   openChatFromNegotiation: (requirement: any, response: any) => Promise<void>;
   openChatFromRequirementAccept: (requirement: any, response: any) => Promise<void>;
-  openChatFromAIDesignAccept: (aiDesign: any, response: any) => Promise<void>;
 }
 
 const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onTabChange, conversationUnreadCounts = {}, onClearConversationUnread }, ref) => {
@@ -26,7 +25,6 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onTabChange, conversa
   const [activeManufacturerId, setActiveManufacturerId] = useState<string | null>(null);
   const [activeTitle, setActiveTitle] = useState<string | undefined>(undefined);
   const [activeRequirement, setActiveRequirement] = useState<any | null>(null);
-  const [activeAIDesign, setActiveAIDesign] = useState<any | null>(null);
 
   // Helper to get buyerId from localStorage or profile (fallback)
   const getBuyerId = async () => {
@@ -62,15 +60,14 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onTabChange, conversa
             buyerId: activeBuyerId,
             manufacturerId: activeManufacturerId,
             title: activeTitle,
-            requirement: activeRequirement,
-            aiDesign: activeAIDesign
+            requirement: activeRequirement
           };
           localStorage.setItem('buyer_chat_state', JSON.stringify(chatState));
         } else {
           localStorage.removeItem('buyer_chat_state');
         }
       }
-    }, [activeConversationId, activeBuyerId, activeManufacturerId, activeTitle, activeRequirement, activeAIDesign]);
+    }, [activeConversationId, activeBuyerId, activeManufacturerId, activeTitle, activeRequirement]);
 
   // Listen for chat open events from components like ManufacturerCard
   useEffect(() => {
@@ -103,7 +100,6 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onTabChange, conversa
             setActiveManufacturerId(chatState.manufacturerId);
             setActiveTitle(chatState.title);
             setActiveRequirement(chatState.requirement || null);
-            setActiveAIDesign(chatState.aiDesign || null);
           }
         } catch (error) {
           console.error('Failed to restore chat state:', error);
@@ -258,7 +254,6 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onTabChange, conversa
           setActiveManufacturerId(manufacturerId);
           setActiveTitle(manufacturerIdDisplay || fallbackTitle);
           setActiveRequirement(requirement);
-          setActiveAIDesign(null); // Clear AI design when opening requirement chat
           
           // Manually save to localStorage immediately
           if (typeof window !== 'undefined') {
@@ -283,66 +278,6 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onTabChange, conversa
         if (onTabChange) onTabChange();
         alert(error.message || 'Failed to open chat. Please try again.');
       }
-    },
-    openChatFromAIDesignAccept: async (aiDesign: any, response: any) => {
-      const manufacturerIdRaw = response?.manufacturer_id || response?.manufacturer?.id;
-      const manufacturerId = manufacturerIdRaw ? String(manufacturerIdRaw) : null;
-
-      if (!manufacturerId) {
-        alert('Unable to determine the manufacturer for this response. Please try again later.');
-        return;
-      }
-
-      try {
-        const buyerId = await getBuyerId();
-
-        if (!buyerId) {
-          if (onTabChange) onTabChange();
-          alert('We could not load your buyer profile. Please refresh the page and try again. If the issue persists, please contact support.');
-          return;
-        }
-
-        const ensureRes = await apiService.ensureConversation(buyerId, manufacturerId);
-        const conversationId = ensureRes?.data?.conversation?.id;
-
-        if (conversationId) {
-          const manufacturerIdDisplay = response?.manufacturer?.manufacturer_id;
-          const designSummary = aiDesign?.apparel_type || aiDesign?.design_no;
-          const fallbackTitle = designSummary
-            ? designSummary.slice(0, 60) + (designSummary.length > 60 ? '...' : '')
-            : undefined;
-
-          // Set state first
-          setActiveConversationId(conversationId);
-          setActiveBuyerId(buyerId);
-          setActiveManufacturerId(manufacturerId);
-          setActiveTitle(manufacturerIdDisplay || fallbackTitle);
-          setActiveAIDesign(aiDesign);
-          setActiveRequirement(null); // Clear requirement when opening AI design chat
-          
-          // Manually save to localStorage immediately
-          if (typeof window !== 'undefined') {
-            const chatState = {
-              conversationId,
-              buyerId,
-              manufacturerId,
-              title: manufacturerIdDisplay || fallbackTitle,
-              aiDesign
-            };
-            localStorage.setItem('buyer_chat_state', JSON.stringify(chatState));
-          }
-
-          // The state is set and saved, so the chat window should open
-        } else {
-          console.error('Failed to create or get conversation');
-          if (onTabChange) onTabChange();
-          alert('Failed to create conversation. Please try again.');
-        }
-      } catch (error: any) {
-        console.error('Failed to open chat from AI design accept:', error);
-        if (onTabChange) onTabChange();
-        alert(error.message || 'Failed to open chat. Please try again.');
-      }
     }
   }));
 
@@ -363,7 +298,6 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onTabChange, conversa
               setActiveManufacturerId(mid);
               setActiveTitle(title);
               setActiveRequirement(null); // Clear requirement - show all messages with all tabs
-              setActiveAIDesign(null); // Clear AI design - show all messages with all tabs
             }} 
           />
         </div>
@@ -379,14 +313,12 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onTabChange, conversa
               inline
               selfRole={'buyer'}
               requirement={activeRequirement}
-              aiDesign={activeAIDesign}
               onClose={() => {
                 setActiveConversationId(null);
                 setActiveBuyerId(null);
                 setActiveManufacturerId(null);
                 setActiveTitle(undefined);
                 setActiveRequirement(null);
-                setActiveAIDesign(null);
                 // Clear localStorage when closing chat
                 if (typeof window !== 'undefined') {
                   localStorage.removeItem('buyer_chat_state');

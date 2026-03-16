@@ -1,6 +1,3 @@
-/**
- * API Client - Base HTTP client with auth handling
- */
 import { getToken, setToken, removeToken, clearAllAuthData } from '../utils/tokenManager.js';
 
 // const API_BASE_URL = 'http://localhost:5000/api';

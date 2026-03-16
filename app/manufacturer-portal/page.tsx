@@ -6,14 +6,13 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { io, Socket } from 'socket.io-client';
 import apiService, { getApiBaseOrigin } from '../lib/apiService';
 import RequirementsTab from './components/RequirementsTab';
-import AIRequirements from './components/AIRequirements';
 import AnalyticsTab from './components/AnalyticsTab';
 import ChatsTab from './components/ChatsTab';
 import Login from './components/Login';
 import Onboarding from './components/Onboarding';
 import { useToast } from '../components/Toast';
 
-type TabType = 'chats' | 'requirements' | 'ai-requirements' | 'analytics' | 'profile';
+type TabType = 'chats' | 'requirements' | 'analytics' | 'profile';
 
 export default function ManufacturerPortal() {
   const toast = useToast();
@@ -34,7 +33,7 @@ export default function ManufacturerPortal() {
               
               // Restore active tab from localStorage
                 const storedTab = localStorage.getItem('manufacturer_active_tab');
-                if (storedTab && ['chats', 'requirements', 'ai-requirements', 'analytics', 'profile'].includes(storedTab)) {
+                if (storedTab && ['chats', 'requirements', 'analytics', 'profile'].includes(storedTab)) {
                   // Restore the saved tab (this will override the initializer if needed)
                   setActiveTab(storedTab as TabType);
                 }
@@ -64,7 +63,7 @@ export default function ManufacturerPortal() {
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     if (typeof window !== 'undefined') {
       const storedTab = localStorage.getItem('manufacturer_active_tab');
-      if (storedTab && ['chats', 'requirements', 'ai-requirements', 'analytics', 'profile'].includes(storedTab)) {
+      if (storedTab && ['chats', 'requirements', 'analytics', 'profile'].includes(storedTab)) {
         return storedTab as TabType;
       }
     }
@@ -80,7 +79,6 @@ export default function ManufacturerPortal() {
 
   const [displayName, setDisplayName] = useState('');
   const [unseenRequirementsCount, setUnseenRequirementsCount] = useState(0);
-  const [unseenAIRequirementsCount, setUnseenAIRequirementsCount] = useState(0);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [conversationUnreadCounts, setConversationUnreadCounts] = useState<Record<string, number>>({});
   const socketRef = useRef<Socket | null>(null);
@@ -102,11 +100,8 @@ export default function ManufacturerPortal() {
     }
   }, [activeTab]);
 
-  // Clear unseen AI requirements count when AI Requirements tab is viewed
+  // Clear unseen chats count when Chats tab is viewed
   useEffect(() => {
-    if (activeTab === 'ai-requirements') {
-      setUnseenAIRequirementsCount(0);
-    }
     if (activeTab === 'chats') {
       setUnreadMessagesCount(0);
     }
@@ -136,17 +131,6 @@ export default function ManufacturerPortal() {
       // Only increment if not currently viewing the Requirements tab
       if (activeTabRef.current !== 'requirements') {
         setUnseenRequirementsCount((prev) => prev + 1);
-      }
-    });
-
-    // Listen for new AI designs - increment counter if not on AI requirements tab
-    socket.on('ai-design:new', (data: any) => {
-      const aiDesign = data.aiDesign || data;
-      if (!aiDesign || !aiDesign.id) return;
-
-      // Only increment if not currently viewing the AI Requirements tab
-      if (activeTabRef.current !== 'ai-requirements') {
-        setUnseenAIRequirementsCount((prev) => prev + 1);
       }
     });
 
@@ -440,39 +424,6 @@ export default function ManufacturerPortal() {
                 )}
               </button>
 
-              {/* AI Requirements Tab */}
-              <button
-                onClick={() => setActiveTab('ai-requirements')}
-                className={`relative flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all ${
-                  activeTab === 'ai-requirements'
-                    ? 'text-[#22a2f2]'
-                    : 'text-gray-500 hover:text-[#22a2f2]'
-                }`}
-              >
-                {activeTab === 'ai-requirements' && (
-                  <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-t-lg border-b-2 border-[#22a2f2]"></div>
-                )}
-                <svg
-                  className="relative z-10 w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
-                <span className="relative z-10">AI Requirements</span>
-                {activeTab !== 'ai-requirements' && unseenAIRequirementsCount > 0 && (
-                  <span className="absolute -top-1 right-1 inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-[#22a2f2] text-white text-[10px] font-semibold px-1">
-                    {unseenAIRequirementsCount > 99 ? '99+' : unseenAIRequirementsCount}
-                  </span>
-                )}
-              </button>
-
               {/* Analytics Tab */}
               <button
                 onClick={() => setActiveTab('analytics')}
@@ -524,7 +475,6 @@ export default function ManufacturerPortal() {
           )}
           {activeTab === 'analytics' && <AnalyticsTab />}
           {activeTab === 'requirements' && <RequirementsTab />}
-          {activeTab === 'ai-requirements' && <AIRequirements />}
         </main>
       </div>
     );

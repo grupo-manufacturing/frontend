@@ -9,14 +9,11 @@ import CustomQuote from './components/CustomQuote';
 import MyOrders from './components/MyOrders';
 import ChatsTab, { ChatsTabRef } from './components/ChatsTab';
 import MyRequirements from './components/MyRequirements';
-import GenerateDesigns from './components/GenerateDesigns';
-import AIDesignsTab from './components/AIDesignsTab';
-import AIRequirementsTab from './components/AIRequirementsTab';
 import Login from './components/Login';
 import { useToast } from '../components/Toast';
 import BrandSafetyModal from '../components/BrandSafetyModal';
 
-type TabType = 'custom-quote' | 'my-orders' | 'chats' | 'requirements' | 'ai-requirements' | 'generate-designs' | 'ai-designs';
+type TabType = 'custom-quote' | 'my-orders' | 'chats' | 'requirements';
 
 export default function BuyerPortal() {
   const toast = useToast();
@@ -112,7 +109,7 @@ export default function BuyerPortal() {
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     if (typeof window !== 'undefined') {
       const storedTab = localStorage.getItem('buyer_active_tab');
-      if (storedTab && ['custom-quote', 'my-orders', 'chats', 'requirements', 'ai-requirements', 'generate-designs', 'ai-designs'].includes(storedTab)) {
+      if (storedTab && ['custom-quote', 'my-orders', 'chats', 'requirements'].includes(storedTab)) {
         return storedTab as TabType;
       }
     }
@@ -130,7 +127,6 @@ export default function BuyerPortal() {
   const [requirements, setRequirements] = useState<any[]>([]);
   const [isLoadingRequirements, setIsLoadingRequirements] = useState(false);
   const [unseenRequirementResponsesCount, setUnseenRequirementResponsesCount] = useState(0);
-  const [unseenAIRequirementResponsesCount, setUnseenAIRequirementResponsesCount] = useState(0);
   
   // Chat States
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
@@ -154,9 +150,6 @@ export default function BuyerPortal() {
   useEffect(() => {
     if (activeTab === 'requirements') {
       setUnseenRequirementResponsesCount(0);
-    }
-    if (activeTab === 'ai-requirements') {
-      setUnseenAIRequirementResponsesCount(0);
     }
     if (activeTab === 'chats') {
       setUnreadMessagesCount(0);
@@ -188,19 +181,6 @@ export default function BuyerPortal() {
       
       if (!isOnRequirementsTab) {
         setUnseenRequirementResponsesCount((prev) => prev + 1);
-      }
-    });
-
-    // Listen for new AI design responses - increment counter if not on ai-requirements tab
-    socket.on('ai-design:response:new', (data: any) => {
-      const response = data.response || data;
-      if (!response || !response.ai_design_id) return;
-
-      // Only increment if not currently viewing the AI Requirements tab
-      const isOnAIRequirementsTab = activeTabRef.current === 'ai-requirements';
-      
-      if (!isOnAIRequirementsTab) {
-        setUnseenAIRequirementResponsesCount((prev) => prev + 1);
       }
     });
 
@@ -431,19 +411,6 @@ export default function BuyerPortal() {
     }, 50);
   };
 
-  const handleAcceptAIDesignResponse = async (aiDesign: any, response: any) => {
-    // Switch to chats tab first to ensure ChatsTab is mounted
-    setActiveTab('chats');
-    
-    // Wait a moment for the tab to switch and component to mount
-    setTimeout(async () => {
-      if (chatsTabRef.current) {
-        // openChatFromAIDesignAccept will set up the chat state with AI Requirements tab
-        await chatsTabRef.current.openChatFromAIDesignAccept(aiDesign, response);
-      }
-    }, 50);
-  };
-
   // Form handlers
 
   // Load phone number from localStorage on component mount
@@ -609,34 +576,6 @@ export default function BuyerPortal() {
         <nav className="sticky top-20 z-40 bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-1">
-              {/* Design Tab (Generate + My AI Designs) */}
-              <button
-                onClick={() => setActiveTab('generate-designs')}
-                className={`relative flex items-center gap-2 px-3 lg:px-4 py-3 font-medium text-sm whitespace-nowrap transition-all rounded-t-lg ${
-                  activeTab === 'generate-designs' || activeTab === 'ai-designs'
-                    ? 'text-black'
-                    : 'text-gray-500 hover:text-black'
-                }`}
-              >
-                {(activeTab === 'generate-designs' || activeTab === 'ai-designs') && (
-                  <div className="absolute inset-0 bg-gray-100 rounded-t-lg border-b-2 border-black"></div>
-                )}
-                <svg
-                  className="relative z-10 w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
-                <span className="relative z-10 hidden sm:inline">Design</span>
-              </button>
-
               {/* Find Manufacturers Tab */}
               <button
                 onClick={() => setActiveTab('custom-quote')}
@@ -759,39 +698,6 @@ export default function BuyerPortal() {
                 )}
               </button>
 
-              {/* AI Requirements Tab */}
-              <button
-                onClick={() => setActiveTab('ai-requirements')}
-                className={`relative flex items-center gap-2 px-3 lg:px-4 py-3 font-medium text-sm whitespace-nowrap transition-all rounded-t-lg ${
-                  activeTab === 'ai-requirements'
-                    ? 'text-black'
-                    : 'text-gray-500 hover:text-black'
-                }`}
-              >
-                {activeTab === 'ai-requirements' && (
-                  <div className="absolute inset-0 bg-gray-100 rounded-t-lg border-b-2 border-black"></div>
-                )}
-                <svg
-                  className="relative z-10 w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
-                <span className="relative z-10 hidden sm:inline">AI Requirements</span>
-                {activeTab !== 'ai-requirements' && unseenAIRequirementResponsesCount > 0 && (
-                  <span className="absolute -top-1 right-1 inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-[#22a2f2] text-white text-[10px] font-semibold px-1">
-                    {unseenAIRequirementResponsesCount > 99 ? '99+' : unseenAIRequirementResponsesCount}
-                  </span>
-                )}
-              </button>
-
             </div>
           </div>
         </nav>
@@ -840,51 +746,6 @@ export default function BuyerPortal() {
               onAcceptRequirementResponse={handleAcceptRequirementResponse}
               unseenRequirementResponsesCount={unseenRequirementResponsesCount}
             />
-          )}
-          {activeTab === 'ai-requirements' && (
-            <AIRequirementsTab
-              onAcceptAIDesignResponse={handleAcceptAIDesignResponse}
-            />
-          )}
-          {(activeTab === 'generate-designs' || activeTab === 'ai-designs') && (
-            <div className="space-y-6">
-              <div className="inline-flex items-center bg-gray-100 rounded-xl p-1 border border-gray-200">
-                <button
-                  onClick={() => setActiveTab('generate-designs')}
-                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                    activeTab === 'generate-designs'
-                      ? 'bg-white text-black shadow-sm'
-                      : 'text-gray-600 hover:text-black'
-                  }`}
-                >
-                  Generate
-                </button>
-                <button
-                  onClick={() => setActiveTab('ai-designs')}
-                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                    activeTab === 'ai-designs'
-                      ? 'bg-white text-black shadow-sm'
-                      : 'text-gray-600 hover:text-black'
-                  }`}
-                >
-                  My AI Designs
-                </button>
-              </div>
-
-              {activeTab === 'generate-designs' ? (
-                <GenerateDesigns
-                  onDesignPublished={() => {
-                    // Switch to My AI Designs subtab when design is published
-                    setActiveTab('ai-designs');
-                  }}
-                />
-              ) : (
-                <AIDesignsTab
-                  onSwitchToGenerateDesigns={() => setActiveTab('generate-designs')}
-                  onAcceptAIDesignResponse={handleAcceptAIDesignResponse}
-                />
-              )}
-            </div>
           )}
         </main>
       </div>

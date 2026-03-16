@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import ChatList from '../../components/chat/ChatList';
 import ChatWindow from '../../components/chat/ChatWindow';
 
-type TabType = 'chats' | 'requirements' | 'ai-requirements' | 'analytics' | 'profile';
+type TabType = 'chats' | 'requirements' | 'analytics' | 'profile';
 
 interface ChatsTabProps {
   activeTab: TabType;
@@ -15,7 +15,7 @@ interface ChatsTabProps {
 
 // Type guard to ensure tab is valid
 const isValidTab = (tab: string): tab is TabType => {
-  return ['chats', 'requirements', 'ai-requirements', 'analytics', 'profile'].includes(tab);
+  return ['chats', 'requirements', 'analytics', 'profile'].includes(tab);
 };
 
 export default function ChatsTab({ activeTab, onActiveTabChange, conversationUnreadCounts = {}, onClearConversationUnread }: ChatsTabProps) {
