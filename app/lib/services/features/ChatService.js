@@ -48,27 +48,10 @@ class ChatService {
     });
   }
 
-  /**
-   * Get messages for a specific AI design in a conversation
-   * @param {string} conversationId - Conversation ID
-   * @param {string} aiDesignId - AI Design ID
-   * @param {Object} options - Query options (before, limit)
-   * @returns {Promise} Response data with messages
-   */
-  async getMessagesForAIDesign(conversationId, aiDesignId, { before, limit } = {}) {
-    const params = new URLSearchParams();
-    if (before) params.append('before', before);
-    if (limit) params.append('limit', String(limit));
-    const qs = params.toString();
-    return apiClient.request(`/chat/conversations/${conversationId}/messages/ai-design/${aiDesignId}${qs ? `?${qs}` : ''}`, { 
-      method: 'GET' 
-    });
-  }
-
-  async sendMessage(conversationId, { body, clientTempId, attachments, requirementId, aiDesignId }) {
+  async sendMessage(conversationId, { body, clientTempId, attachments, requirementId }) {
     return apiClient.request(`/chat/conversations/${conversationId}/messages`, {
       method: 'POST',
-      body: JSON.stringify({ body, clientTempId, attachments, requirementId, aiDesignId })
+      body: JSON.stringify({ body, clientTempId, attachments, requirementId })
     });
   }
 

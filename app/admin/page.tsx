@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import apiService from '../lib/apiService';
-import type { Buyer, Manufacturer, Order, AIDesign } from './types';
+import type { Buyer, Manufacturer, Order } from './types';
 import { formatDate } from './utils';
 import Overview from './components/Overview';
 import Users from './components/Users';
@@ -28,10 +28,49 @@ export default function AdminPortal() {
   const [buyers, setBuyers] = useState<Buyer[]>([]);
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [aiDesigns, setAiDesigns] = useState<AIDesign[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+
+  const normalizeAdminOrder = (row: any): Order => {
+    const requirement = row?.requirement || {};
+    const buyer = requirement?.buyer || {};
+    const manufacturer = row?.manufacturer || {};
+
+    return {
+      id: row?.id || requirement?.id || crypto.randomUUID(),
+      manufacturer_id: row?.manufacturer_id || manufacturer?.id,
+      requirement_no: requirement?.requirement_no,
+      requirement_text: requirement?.requirement_text || '',
+      quantity: requirement?.quantity,
+      product_type: requirement?.product_type,
+      image_url: requirement?.image_url || null,
+      status: row?.status,
+      quoted_price:
+        typeof row?.quoted_price === 'number'
+          ? row.quoted_price
+          : Number.parseFloat(row?.quoted_price || '0') || 0,
+      buyer_id: requirement?.buyer_id || buyer?.id || '',
+      buyer: buyer?.id
+        ? {
+            id: buyer.id,
+            full_name: buyer.full_name,
+            phone_number: buyer.phone_number,
+            business_address: buyer.business_address
+          }
+        : undefined,
+      manufacturer: manufacturer?.id
+        ? {
+            id: manufacturer.id,
+            manufacturer_id: manufacturer.manufacturer_id,
+            unit_name: manufacturer.unit_name,
+            phone_number: manufacturer.phone_number
+          }
+        : undefined,
+      created_at: row?.created_at || requirement?.created_at || new Date().toISOString(),
+      updated_at: row?.updated_at || requirement?.updated_at || row?.created_at || new Date().toISOString()
+    };
+  };
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -71,7 +110,6 @@ export default function AdminPortal() {
     if (step === 'dashboard' && !isCheckingAuth) {
       if (activeView === 'overview') {
         void loadOrders();
-        void loadAIDesigns(); // Load AI designs with responses for revenue calculation
       }
       if (activeView === 'orders') {
         void loadOrders();
@@ -112,7 +150,10 @@ export default function AdminPortal() {
     try {
       const filters: any = { sortBy: 'created_at', sortOrder: 'desc' };
       const ordersRes = await apiService.getOrders(filters);
-      setOrders(ordersRes.data || []);
+      const normalized = Array.isArray(ordersRes.data)
+        ? ordersRes.data.map((row: any) => normalizeAdminOrder(row))
+        : [];
+      setOrders(normalized);
       setLastUpdated(new Date().toISOString());
     } catch (error: any) {
       console.error('Failed to load orders:', error);
@@ -128,30 +169,6 @@ export default function AdminPortal() {
       setIsLoadingData(false);
     }
   };
-
-  const loadAIDesigns = async () => {
-    setIsLoadingData(true);
-    setErrorMessage('');
-    try {
-      const filters: any = { include_responses: true };
-      const aiDesignsRes = await apiService.getAIDesigns(filters);
-      setAiDesigns(aiDesignsRes.data || []);
-      setLastUpdated(new Date().toISOString());
-    } catch (error: any) {
-      console.error('Failed to load AI designs:', error);
-      // If token is invalid, redirect to login
-      if (error?.message?.includes('Invalid admin token') || error?.message?.includes('Access denied') || error?.message?.includes('expired') || error?.message?.includes('session')) {
-        apiService.removeToken('admin');
-        setStep('login');
-        setErrorMessage('');
-      } else {
-        setErrorMessage('Unable to fetch AI designs. Please try again.');
-      }
-    } finally {
-      setIsLoadingData(false);
-    }
-  };
-
 
   const handleLoginSuccess = async () => {
     setStep('dashboard');
@@ -321,7 +338,6 @@ export default function AdminPortal() {
             buyers={buyers}
             manufacturers={manufacturers}
             orders={orders}
-            aiDesigns={aiDesigns}
             isLoadingData={isLoadingData}
             lastUpdated={lastUpdated}
           />

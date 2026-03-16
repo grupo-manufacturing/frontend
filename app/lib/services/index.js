@@ -12,10 +12,8 @@ import authService from './core/AuthService.js';
 // Feature services
 import chatService from './features/ChatService.js';
 import requirementService from './features/RequirementService.js';
-import aiDesignService from './features/AIDesignService.js';
 import userService from './features/UserService.js';
 import adminService from './features/AdminService.js';
-import designGenerationService from './features/DesignGenerationService.js';
 
 // Utils
 import * as tokenManager from './utils/tokenManager.js';
@@ -50,7 +48,6 @@ class ApiService {
     this.ensureConversation = chatService.ensureConversation.bind(chatService);
     this.listMessages = chatService.listMessages.bind(chatService);
     this.getMessagesForRequirement = chatService.getMessagesForRequirement.bind(chatService);
-    this.getMessagesForAIDesign = chatService.getMessagesForAIDesign.bind(chatService);
     this.sendMessage = chatService.sendMessage.bind(chatService);
     this.uploadChatFile = chatService.uploadChatFile.bind(chatService);
     this.uploadMultipleChatFiles = chatService.uploadMultipleChatFiles.bind(chatService);
@@ -70,19 +67,6 @@ class ApiService {
     this.getMyRequirementResponses = requirementService.getMyRequirementResponses.bind(requirementService);
     this.updateRequirementResponseStatus = requirementService.updateRequirementResponseStatus.bind(requirementService);
     this.getBuyerRequirementStatistics = requirementService.getBuyerRequirementStatistics.bind(requirementService);
-    
-    // AI Design methods
-    this.getAIDesigns = aiDesignService.getAIDesigns.bind(aiDesignService);
-    this.getAIDesign = aiDesignService.getAIDesign.bind(aiDesignService);
-    this.generateDesign = aiDesignService.generateDesign.bind(aiDesignService);
-    this.extractDesign = aiDesignService.extractDesign.bind(aiDesignService);
-    this.publishAIDesign = aiDesignService.publishAIDesign.bind(aiDesignService);
-    this.pushAIDesign = aiDesignService.pushAIDesign.bind(aiDesignService);
-    this.getAcceptedAIDesignsForConversation = aiDesignService.getAcceptedAIDesignsForConversation.bind(aiDesignService);
-    this.createAIDesignResponse = aiDesignService.createAIDesignResponse.bind(aiDesignService);
-    this.getAIDesignResponses = aiDesignService.getAIDesignResponses.bind(aiDesignService);
-    this.updateAIDesignResponseStatus = aiDesignService.updateAIDesignResponseStatus.bind(aiDesignService);
-    this.deleteAIDesign = aiDesignService.deleteAIDesign.bind(aiDesignService);
     
     // User methods
     this.getManufacturerProfile = userService.getManufacturerProfile.bind(userService);
@@ -121,10 +105,8 @@ export {
   authService,
   chatService,
   requirementService,
-  aiDesignService,
   userService,
   adminService,
-  designGenerationService,
   tokenManager,
   API_BASE_URL
 };

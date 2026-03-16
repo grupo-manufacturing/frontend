@@ -415,8 +415,7 @@ export default function ChatWindow({
         body,
         clientTempId,
         attachments: uploadedAttachments,
-        requirementId: activeRequirementId,
-        aiDesignId: null
+        requirementId: activeRequirementId
       };
 
       if (socketRef.current?.connected) {

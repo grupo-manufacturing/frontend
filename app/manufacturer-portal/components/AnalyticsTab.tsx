@@ -39,25 +39,10 @@ export default function AnalyticsTab() {
       const myResponsesResult = await apiService.getMyRequirementResponses();
       const myResponses = myResponsesResult.success ? myResponsesResult.data : [];
 
-      // Fetch all AI designs with responses
-      const aiDesignsResponse = await apiService.getAIDesigns({ include_responses: true });
-      const allAIDesigns = aiDesignsResponse.success && aiDesignsResponse.data ? aiDesignsResponse.data : [];
-
       // Create a map of requirement_id to response
       const requirementResponseMap = new Map();
       myResponses.forEach((resp: any) => {
         requirementResponseMap.set(resp.requirement_id, resp);
-      });
-
-      // Create a map of ai_design_id to manufacturer's response
-      const aiDesignResponseMap = new Map();
-      allAIDesigns.forEach((design: any) => {
-        if (design.responses && Array.isArray(design.responses)) {
-          const myResponse = design.responses.find((resp: any) => resp.manufacturer_id === manufacturerId);
-          if (myResponse) {
-            aiDesignResponseMap.set(design.id, myResponse);
-          }
-        }
       });
 
       // Calculate metrics for requirements
@@ -68,7 +53,6 @@ export default function AnalyticsTab() {
       let negotiatingCount = 0;
       let rejectedCount = 0;
       let totalRequirementsCount = allRequirements.length;
-      let totalAIDesignsCount = allAIDesigns.length;
 
       // Process each requirement
       allRequirements.forEach((req: any) => {
@@ -98,43 +82,12 @@ export default function AnalyticsTab() {
         }
       });
 
-      // Process each AI design
-      allAIDesigns.forEach((design: any) => {
-        const response = aiDesignResponseMap.get(design.id);
-        if (response) {
-          // AI design has a response from manufacturer
-          const status = (response.status || '').toLowerCase().trim();
-          const quotedPrice = parseFloat(response.quoted_price) || 0;
-
-          if (status === 'accepted') {
-            totalRevenue += quotedPrice;
-            acceptedCount++;
-          } else if (status === 'negotiating') {
-            potentialRevenue += quotedPrice;
-            negotiatingCount++;
-          } else if (status === 'rejected') {
-            rejectedCount++;
-          } else if (status === 'submitted') {
-            // Submitted responses are considered as potential revenue (pending buyer decision)
-            potentialRevenue += quotedPrice;
-            // Count as pending since it's waiting for buyer's decision
-            pendingCount++;
-          }
-        } else {
-          // No response yet - this is a "New" AI design (Pending)
-          pendingCount++;
-        }
-      });
-
-      // Calculate total opportunities (requirements + AI designs)
-      const totalOpportunitiesCount = totalRequirementsCount + totalAIDesignsCount;
-
       // Calculate average order value
       const avgOrderValue = acceptedCount > 0 ? totalRevenue / acceptedCount : 0;
 
       // Calculate conversion rate (accepted orders / total opportunities)
-      const conversionRate = totalOpportunitiesCount > 0 
-        ? (acceptedCount / totalOpportunitiesCount) * 100 
+      const conversionRate = totalRequirementsCount > 0
+        ? (acceptedCount / totalRequirementsCount) * 100
         : 0;
 
       setAnalyticsData({
@@ -146,7 +99,7 @@ export default function AnalyticsTab() {
         pendingCount,
         negotiatingCount,
         rejectedCount,
-        totalRequirementsCount: totalOpportunitiesCount
+        totalRequirementsCount
       });
     } catch (error) {
       console.error('Failed to fetch analytics:', error);

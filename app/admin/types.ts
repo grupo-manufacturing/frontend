@@ -23,17 +23,26 @@ export interface Buyer {
 
 export interface Order {
   id: string;
+  manufacturer_id?: string;
   requirement_no?: string;
   requirement_text: string;
   quantity?: number;
   product_type?: string;
   image_url?: string | null;
+  status?: 'submitted' | 'accepted' | 'rejected' | 'negotiating';
+  quoted_price?: number;
   buyer_id: string;
   buyer?: {
     id: string;
     full_name?: string;
     phone_number: string;
     business_address?: string;
+  };
+  manufacturer?: {
+    id: string;
+    manufacturer_id?: string;
+    unit_name?: string;
+    phone_number: string;
   };
   created_at: string;
   updated_at: string;
