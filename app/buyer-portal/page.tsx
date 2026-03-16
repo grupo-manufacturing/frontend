@@ -9,11 +9,11 @@ import CustomQuote from './components/CustomQuote';
 import MyOrders from './components/MyOrders';
 import ChatsTab, { ChatsTabRef } from './components/ChatsTab';
 import MyRequirements from './components/MyRequirements';
+import HomeTab from './components/HomeTab';
 import Login from './components/Login';
 import { useToast } from '../components/Toast';
-import BrandSafetyModal from '../components/BrandSafetyModal';
 
-type TabType = 'custom-quote' | 'my-orders' | 'chats' | 'requirements';
+type TabType = 'home' | 'custom-quote' | 'my-orders' | 'chats' | 'requirements';
 
 export default function BuyerPortal() {
   const toast = useToast();
@@ -84,36 +84,15 @@ export default function BuyerPortal() {
     checkAuthAndProfile();
   }, []);
 
-  // Check if user has agreed to Brand Safety Guidelines
-  useEffect(() => {
-    if (step === 'dashboard' && typeof window !== 'undefined') {
-      const hasAgreed = localStorage.getItem('buyer_brand_safety_agreed');
-      if (!hasAgreed) {
-        setShowBrandSafetyModal(true);
-      }
-    }
-  }, [step]);
-
-  const handleBrandSafetyAgree = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('buyer_brand_safety_agreed', 'true');
-    }
-    setShowBrandSafetyModal(false);
-  };
-
-  const handleBrandSafetyClose = () => {
-    // Just close the modal without saving agreement, so it shows again on refresh
-    setShowBrandSafetyModal(false);
-  };
   // Restore active tab from localStorage on mount
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     if (typeof window !== 'undefined') {
       const storedTab = localStorage.getItem('buyer_active_tab');
-      if (storedTab && ['custom-quote', 'my-orders', 'chats', 'requirements'].includes(storedTab)) {
+      if (storedTab && ['home', 'custom-quote', 'my-orders', 'chats', 'requirements'].includes(storedTab)) {
         return storedTab as TabType;
       }
     }
-    return 'custom-quote';
+    return 'home';
   });
   
   // Save active tab to localStorage whenever it changes
@@ -229,7 +208,6 @@ export default function BuyerPortal() {
   const [profileCompletion, setProfileCompletion] = useState(0);
   const [isCheckingProfile, setIsCheckingProfile] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [showBrandSafetyModal, setShowBrandSafetyModal] = useState(false);
 
   const handleLogout = async () => {
     // Show loading immediately
@@ -411,6 +389,48 @@ export default function BuyerPortal() {
     }, 50);
   };
 
+  const handleContactManufacturerFromHome = async (manufacturer: any) => {
+    const manufacturerId = manufacturer?.id ? String(manufacturer.id) : null;
+    if (!manufacturerId) {
+      throw new Error('Unable to determine manufacturer details.');
+    }
+
+    let buyerId = typeof window !== 'undefined' ? localStorage.getItem('buyerId') : null;
+
+    if (!buyerId) {
+      const profileResponse = await apiService.getBuyerProfile();
+      buyerId = profileResponse?.data?.profile?.id ? String(profileResponse.data.profile.id) : null;
+      if (buyerId && typeof window !== 'undefined') {
+        localStorage.setItem('buyerId', buyerId);
+      }
+    }
+
+    if (!buyerId) {
+      throw new Error('We could not load your profile. Please refresh and try again.');
+    }
+
+    const conversationResponse = await apiService.ensureConversation(buyerId, manufacturerId);
+    const conversationId = conversationResponse?.data?.conversation?.id;
+
+    if (!conversationId) {
+      throw new Error('Could not open chat right now. Please try again.');
+    }
+
+    setActiveTab('chats');
+    setTimeout(() => {
+      if (chatsTabRef.current) {
+        chatsTabRef.current.openChat(
+          conversationId,
+          buyerId as string,
+          manufacturerId,
+          manufacturer?.manufacturer_id || manufacturer?.unit_name,
+          null,
+          true
+        );
+      }
+    }, 50);
+  };
+
   // Form handlers
 
   // Load phone number from localStorage on component mount
@@ -482,9 +502,6 @@ export default function BuyerPortal() {
   if (step === 'dashboard') {
     return (
       <div className="min-h-screen bg-white">
-        {showBrandSafetyModal && (
-          <BrandSafetyModal onAgree={handleBrandSafetyAgree} onClose={handleBrandSafetyClose} />
-        )}
         {/* Header */}
         <header className="relative z-50 bg-white/90 backdrop-blur-sm border-b border-gray-200 sticky top-0">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -576,6 +593,34 @@ export default function BuyerPortal() {
         <nav className="sticky top-20 z-40 bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-1">
+              {/* Home Tab */}
+              <button
+                onClick={() => setActiveTab('home')}
+                className={`relative flex items-center gap-2 px-3 lg:px-4 py-3 font-medium text-sm whitespace-nowrap transition-all rounded-t-lg ${
+                  activeTab === 'home'
+                    ? 'text-black'
+                    : 'text-gray-500 hover:text-black'
+                }`}
+              >
+                {activeTab === 'home' && (
+                  <div className="absolute inset-0 bg-gray-100 rounded-t-lg border-b-2 border-black"></div>
+                )}
+                <svg
+                  className="relative z-10 w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 20h5V4H2v16h5m10 0v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6m10 0H7"
+                  />
+                </svg>
+                <span className="relative z-10 hidden sm:inline">Home</span>
+              </button>
+
               {/* Find Manufacturers Tab */}
               <button
                 onClick={() => setActiveTab('custom-quote')}
@@ -705,6 +750,9 @@ export default function BuyerPortal() {
         {/* Main Content */}
         <main className="relative z-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Tab Content */}
+          {activeTab === 'home' && (
+            <HomeTab onContactManufacturer={handleContactManufacturerFromHome} />
+          )}
           {activeTab === 'custom-quote' && (
             <CustomQuote
               onRequirementSubmitted={() => {

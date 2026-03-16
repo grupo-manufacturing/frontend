@@ -48,6 +48,7 @@ class ApiService {
     this.ensureConversation = chatService.ensureConversation.bind(chatService);
     this.listMessages = chatService.listMessages.bind(chatService);
     this.getMessagesForRequirement = chatService.getMessagesForRequirement.bind(chatService);
+    this.getNormalMessages = chatService.getNormalMessages.bind(chatService);
     this.sendMessage = chatService.sendMessage.bind(chatService);
     this.uploadChatFile = chatService.uploadChatFile.bind(chatService);
     this.uploadMultipleChatFiles = chatService.uploadMultipleChatFiles.bind(chatService);

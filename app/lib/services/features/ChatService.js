@@ -48,6 +48,22 @@ class ChatService {
     });
   }
 
+  /**
+   * Get normal (non-requirement) messages in a conversation
+   * @param {string} conversationId - Conversation ID
+   * @param {Object} options - Query options (before, limit)
+   * @returns {Promise} Response data with messages
+   */
+  async getNormalMessages(conversationId, { before, limit } = {}) {
+    const params = new URLSearchParams();
+    if (before) params.append('before', before);
+    if (limit) params.append('limit', String(limit));
+    const qs = params.toString();
+    return apiClient.request(`/chat/conversations/${conversationId}/messages/normal${qs ? `?${qs}` : ''}`, { 
+      method: 'GET' 
+    });
+  }
+
   async sendMessage(conversationId, { body, clientTempId, attachments, requirementId }) {
     return apiClient.request(`/chat/conversations/${conversationId}/messages`, {
       method: 'POST',

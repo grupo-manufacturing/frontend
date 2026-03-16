@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import apiService, { getApiBaseOrigin } from '../../lib/apiService';
 import MessageAttachment from './MessageAttachment';
-import BrandSafetyModal from '../BrandSafetyModal';
 
 interface ChatWindowProps {
   conversationId: string;
@@ -15,6 +14,7 @@ interface ChatWindowProps {
   inline?: boolean;
   selfRole?: 'buyer' | 'manufacturer';
   requirement?: any | null;
+  defaultToNormal?: boolean;
 }
 
 interface Attachment {
@@ -64,6 +64,8 @@ interface RequirementDetails {
   status?: 'accepted' | 'negotiating' | null;
 }
 
+type ChatTabType = 'normal' | string;
+
 export default function ChatWindow({
   conversationId,
   buyerId,
@@ -72,7 +74,8 @@ export default function ChatWindow({
   title,
   inline,
   selfRole = 'buyer',
-  requirement
+  requirement,
+  defaultToNormal = false
 }: ChatWindowProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -83,13 +86,15 @@ export default function ChatWindow({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [uploadingFiles, setUploadingFiles] = useState<boolean>(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [showBrandSafetyModal, setShowBrandSafetyModal] = useState(false);
 
-  const [activeRequirementId, setActiveRequirementId] = useState<string | null>(requirement?.id || null);
+  const [activeTab, setActiveTab] = useState<ChatTabType>(defaultToNormal ? 'normal' : (requirement?.id || 'normal'));
   const [requirementTabs, setRequirementTabs] = useState<RequirementTab[]>([]);
   const [loadingRequirements, setLoadingRequirements] = useState(false);
   const [activeRequirementDetails, setActiveRequirementDetails] = useState<RequirementDetails | null>(null);
   const [loadingRequirementDetails, setLoadingRequirementDetails] = useState(false);
+  
+  const activeRequirementId = activeTab !== 'normal' ? activeTab : null;
+  const isNormalChat = activeTab === 'normal';
 
   const sentSoundRef = useRef<HTMLAudioElement | null>(null);
 
@@ -169,14 +174,19 @@ export default function ChatWindow({
   }, [conversationId, manufacturerId]);
 
   useEffect(() => {
+    if (defaultToNormal) {
+      setActiveTab('normal');
+      return;
+    }
+    
     if (requirement?.id) {
-      setActiveRequirementId(requirement.id);
+      setActiveTab(requirement.id);
       return;
     }
 
     if (requirementTabs.length > 0) {
-      setActiveRequirementId((current) => {
-        if (current && requirementTabs.some((tab) => tab.id === current)) {
+      setActiveTab((current) => {
+        if (current !== 'normal' && requirementTabs.some((tab) => tab.id === current)) {
           return current;
         }
         return requirementTabs[0].id;
@@ -184,8 +194,8 @@ export default function ChatWindow({
       return;
     }
 
-    setActiveRequirementId(null);
-  }, [requirement?.id, requirementTabs]);
+    setActiveTab('normal');
+  }, [requirement?.id, requirementTabs, defaultToNormal]);
 
   useEffect(() => {
     if (!activeRequirementId) {
@@ -260,12 +270,11 @@ export default function ChatWindow({
   }, [conversationId]);
 
   useEffect(() => {
-    if (!conversationId || !activeRequirementId) {
+    if (!conversationId) {
       setMessages([]);
       setLoading(false);
       return;
     }
-    const requirementId = activeRequirementId;
 
     let mounted = true;
     let cancelled = false;
@@ -274,12 +283,22 @@ export default function ChatWindow({
       try {
         setLoading(true);
         setMessages([]);
-        const res = await apiService.getMessagesForRequirement(conversationId, requirementId);
+        
+        let res;
+        if (isNormalChat) {
+          res = await apiService.getNormalMessages(conversationId);
+        } else if (activeRequirementId) {
+          res = await apiService.getMessagesForRequirement(conversationId, activeRequirementId);
+        } else {
+          if (!cancelled && mounted) setMessages([]);
+          if (!cancelled && mounted) setLoading(false);
+          return;
+        }
 
         if (cancelled || !mounted) return;
         setMessages(res.data.messages || []);
       } catch (err) {
-        console.error('[ChatWindow] Failed to load messages for requirement:', err);
+        console.error('[ChatWindow] Failed to load messages:', err);
         if (!cancelled && mounted) setMessages([]);
       } finally {
         if (!cancelled && mounted) setLoading(false);
@@ -292,7 +311,7 @@ export default function ChatWindow({
       cancelled = true;
       mounted = false;
     };
-  }, [conversationId, activeRequirementId]);
+  }, [conversationId, activeTab, isNormalChat, activeRequirementId]);
 
   useEffect(() => {
     if (!conversationId || !socketRef.current?.connected || messages.length === 0) return;
@@ -322,7 +341,11 @@ export default function ChatWindow({
       const messageReqId = message.requirement_id ? String(message.requirement_id) : null;
       const activeReqId = activeRequirementId ? String(activeRequirementId) : null;
 
-      if (messageReqId !== activeReqId) return;
+      const isMessageForCurrentTab = isNormalChat 
+        ? messageReqId === null 
+        : messageReqId === activeReqId;
+
+      if (!isMessageForCurrentTab) return;
 
       setMessages((prev) => {
         if (message.client_temp_id) {
@@ -350,7 +373,7 @@ export default function ChatWindow({
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [token, wsUrl, wsPath, conversationId, activeRequirementId]);
+  }, [token, wsUrl, wsPath, conversationId, activeRequirementId, isNormalChat]);
 
   function scrollToBottom() {
     requestAnimationFrame(() => {
@@ -378,7 +401,7 @@ export default function ChatWindow({
     const hasText = input.trim().length > 0;
     const hasFiles = selectedFiles.length > 0;
 
-    if ((!hasText && !hasFiles) || sending || !activeRequirementId) return;
+    if ((!hasText && !hasFiles) || sending) return;
 
     const body = input.trim();
     const clientTempId = crypto.randomUUID();
@@ -405,18 +428,21 @@ export default function ChatWindow({
         body,
         created_at: new Date().toISOString(),
         attachments: uploadedAttachments,
-        requirement_id: activeRequirementId
+        requirement_id: isNormalChat ? null : activeRequirementId
       };
       setMessages((prev) => [...prev, optimistic]);
       scrollToBottom();
       playSentSound();
 
-      const payload = {
+      const payload: any = {
         body,
         clientTempId,
-        attachments: uploadedAttachments,
-        requirementId: activeRequirementId
+        attachments: uploadedAttachments
       };
+      
+      if (!isNormalChat && activeRequirementId) {
+        payload.requirementId = activeRequirementId;
+      }
 
       if (socketRef.current?.connected) {
         socketRef.current.emit('message:send', { conversationId, ...payload });
@@ -502,34 +528,39 @@ export default function ChatWindow({
             <div className="flex items-center gap-1">
               <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
                 <button
+                  onClick={() => setActiveTab('normal')}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                    isNormalChat
+                      ? 'bg-white text-[#22a2f2] shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  title="Normal Chat"
+                >
+                  Normal
+                </button>
+                <button
                   onClick={() => {
                     if (requirementTabs.length > 0) {
-                      setActiveRequirementId(requirementTabs[0].id);
+                      setActiveTab(requirementTabs[0].id);
                     }
                   }}
-                  className="px-3 py-1.5 text-xs font-medium rounded-md transition-all bg-white text-[#22a2f2] shadow-sm"
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                    !isNormalChat
+                      ? 'bg-white text-[#22a2f2] shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
                   title="Requirements"
                 >
                   Requirements
                 </button>
               </div>
-              <button
-                onClick={() => setShowBrandSafetyModal(true)}
-                className="p-1.5 text-gray-500 hover:text-[#22a2f2] rounded-md transition-colors hover:bg-gray-100"
-                title="Brand Safety Guidelines"
-                aria-label="View Brand Safety Guidelines"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </button>
             </div>
           )}
           <button onClick={onClose} className={closeClass}>✕</button>
         </div>
       </div>
 
-      {conversationId && (
+      {conversationId && !isNormalChat && (
         <div className="border-b border-gray-200 bg-white overflow-x-auto">
           <div className="flex items-center gap-3 px-4 py-2">
             <div className="flex gap-2 flex-1 min-w-0">
@@ -539,7 +570,7 @@ export default function ChatWindow({
                 requirementTabs.map((reqTab) => (
                   <button
                     key={`req-${reqTab.id}`}
-                    onClick={() => setActiveRequirementId(reqTab.id)}
+                    onClick={() => setActiveTab(reqTab.id)}
                     className={`px-4 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap ${
                       activeRequirementId === reqTab.id
                         ? 'bg-[#22a2f2] text-white'
@@ -558,7 +589,7 @@ export default function ChatWindow({
         </div>
       )}
 
-      {activeRequirementId && (
+      {activeRequirementId && !isNormalChat && (
         <div className="border-b border-gray-200 bg-white px-4 py-2">
           {loadingRequirementDetails ? (
             <div className="text-xs text-gray-400 animate-pulse">Loading...</div>
@@ -716,7 +747,7 @@ export default function ChatWindow({
               }
             }}
             placeholder={uploadingFiles ? 'Uploading...' : 'Type a message'}
-            disabled={uploadingFiles || !activeRequirementId}
+            disabled={uploadingFiles}
             className={inline
               ? 'flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black disabled:opacity-50'
               : 'flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50'}
@@ -735,7 +766,7 @@ export default function ChatWindow({
           </a>
           <button
             onClick={handleSend}
-            disabled={sending || uploadingFiles || !activeRequirementId || (!input.trim() && selectedFiles.length === 0)}
+            disabled={sending || uploadingFiles || (!input.trim() && selectedFiles.length === 0)}
             className="px-3 py-2 bg-[#22a2f2] hover:bg-[#1b8bd0] disabled:opacity-50 text-white rounded-lg text-sm shadow-sm transition-colors"
           >
             {uploadingFiles ? 'Uploading...' : 'Send'}
@@ -743,16 +774,6 @@ export default function ChatWindow({
         </div>
       </div>
 
-      {showBrandSafetyModal && (
-        <BrandSafetyModal
-          onAgree={() => {
-            setShowBrandSafetyModal(false);
-          }}
-          onClose={() => {
-            setShowBrandSafetyModal(false);
-          }}
-        />
-      )}
     </div>
   );
 }
