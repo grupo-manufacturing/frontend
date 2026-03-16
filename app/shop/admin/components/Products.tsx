@@ -3,11 +3,22 @@
 import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import type { ShopProduct, BulkPricingTier, CreateProductPayload } from '../../lib/types';
-import { createProduct, updateProduct, deleteProduct, uploadImage, getProductOptions, type ProductOptions } from '../../lib/api';
+import {
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  uploadImage,
+  getProductOptions,
+  createManufacturerProduct,
+  updateManufacturerProduct,
+  deleteManufacturerProduct,
+  type ProductOptions
+} from '../../lib/api';
 
 interface ProductsProps {
   products: ShopProduct[];
   onReload: () => void;
+  manufacturerId?: string;
 }
 
 const PER_PAGE = 8;
@@ -19,7 +30,7 @@ const DEFAULT_TIERS: BulkPricingTier[] = [
   { label: 'Diamond', range: '500+ units', unitPrice: 0, isRFQ: true },
 ];
 
-export default function Products({ products, onReload }: ProductsProps) {
+export default function Products({ products, onReload, manufacturerId }: ProductsProps) {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [showForm, setShowForm] = useState(false);
@@ -54,7 +65,11 @@ export default function Products({ products, onReload }: ProductsProps) {
     }
     try {
       setActionError('');
-      await deleteProduct(id);
+      if (manufacturerId) {
+        await deleteManufacturerProduct(manufacturerId, id);
+      } else {
+        await deleteProduct(id);
+      }
       setDeletingId(null);
       onReload();
     } catch (err) {
@@ -198,6 +213,7 @@ export default function Products({ products, onReload }: ProductsProps) {
         <ProductFormModal
           product={editingProduct}
           options={options}
+          manufacturerId={manufacturerId}
           onClose={closeForm}
           onSaved={() => { closeForm(); onReload(); }}
         />
@@ -211,11 +227,13 @@ export default function Products({ products, onReload }: ProductsProps) {
 function ProductFormModal({
   product,
   options,
+  manufacturerId,
   onClose,
   onSaved,
 }: {
   product: ShopProduct | null;
   options: ProductOptions;
+  manufacturerId?: string;
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -336,9 +354,17 @@ function ProductFormModal({
 
     try {
       if (isEditing && product) {
-        await updateProduct(product.id, payload);
+        if (manufacturerId) {
+          await updateManufacturerProduct(manufacturerId, product.id, payload);
+        } else {
+          await updateProduct(product.id, payload);
+        }
       } else {
-        await createProduct(payload);
+        if (manufacturerId) {
+          await createManufacturerProduct(manufacturerId, payload);
+        } else {
+          await createProduct(payload);
+        }
       }
       onSaved();
     } catch (err) {

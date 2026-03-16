@@ -1,4 +1,4 @@
-import type { ShopProduct, ShopOrder, BulkPricingTier, CreateProductPayload, CreateOrderPayload, OrderResponse, ColorVariation, RazorpayOrderResponse, VerifyPaymentPayload, TrackedOrder } from './types';
+import type { ShopProduct, ShopOrder, BulkPricingTier, CreateProductPayload, CreateOrderPayload, OrderResponse, ColorVariation, RazorpayOrderResponse, VerifyPaymentPayload, TrackedOrder, ShopManufacturer } from './types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SHOP_API_URL || 'https://shop-backend-31w8.onrender.com';
 
@@ -31,6 +31,7 @@ function normaliseProduct(raw: Record<string, unknown>): ShopProduct {
     id: raw.id as string,
     name: raw.name as string,
     category: raw.category as string,
+    manufacturerId: (raw.manufacturer_id ?? raw.manufacturerId ?? undefined) as string | undefined,
     description: (raw.description ?? "") as string,
     image: raw.image as string,
     images: (raw.images ?? []) as string[],
@@ -166,4 +167,101 @@ export async function reportPaymentFailed(orderId: string): Promise<{ message: s
     method: 'POST',
     body: JSON.stringify({ orderId }),
   });
+}
+
+export async function getManufacturers(): Promise<ShopManufacturer[]> {
+  const raw = await request<{ manufacturers: ShopManufacturer[] }>('/api/admin/manufacturers');
+  return raw.manufacturers || [];
+}
+
+export async function createManufacturer(payload: { name: string; phone: string; password: string }): Promise<ShopManufacturer> {
+  const raw = await request<{ manufacturer: ShopManufacturer }>('/api/admin/manufacturers', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+  return raw.manufacturer;
+}
+
+export async function updateManufacturer(
+  id: string,
+  payload: { name: string; phone: string; password?: string }
+): Promise<ShopManufacturer> {
+  const raw = await request<{ manufacturer: ShopManufacturer }>(`/api/admin/manufacturers/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+  return raw.manufacturer;
+}
+
+export async function deleteManufacturer(id: string): Promise<void> {
+  await request<{ message: string }>(`/api/admin/manufacturers/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function manufacturerLogin(payload: { phone: string; password: string }): Promise<ShopManufacturer> {
+  const raw = await request<{ manufacturer: ShopManufacturer }>('/api/manufacturer/login', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+  return raw.manufacturer;
+}
+
+export async function getManufacturerProducts(
+  manufacturerId: string,
+  params: GetProductsParams = {}
+): Promise<ProductsResponse> {
+  const raw = await request<{ products: Record<string, unknown>[]; total: number; page: number; totalPages: number }>(
+    `/api/manufacturer/${manufacturerId}/products${buildQS(params)}`
+  );
+  return { ...raw, products: raw.products.map(normaliseProduct) };
+}
+
+export async function createManufacturerProduct(
+  manufacturerId: string,
+  payload: CreateProductPayload
+): Promise<ShopProduct> {
+  const raw = await request<{ product: Record<string, unknown> }>(`/api/manufacturer/${manufacturerId}/products`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+  return normaliseProduct(raw.product);
+}
+
+export async function updateManufacturerProduct(
+  manufacturerId: string,
+  id: string,
+  payload: Partial<CreateProductPayload>
+): Promise<ShopProduct> {
+  const raw = await request<{ product: Record<string, unknown> }>(`/api/manufacturer/${manufacturerId}/products/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+  return normaliseProduct(raw.product);
+}
+
+export async function deleteManufacturerProduct(manufacturerId: string, id: string): Promise<void> {
+  await request<{ message: string }>(`/api/manufacturer/${manufacturerId}/products/${id}`, { method: 'DELETE' });
+}
+
+export async function getManufacturerOrders(
+  manufacturerId: string,
+  params: { status?: string; page?: number; limit?: number } = {}
+): Promise<OrdersResponse> {
+  const raw = await request<{ orders: Record<string, unknown>[]; total: number; page: number; totalPages: number }>(
+    `/api/manufacturer/${manufacturerId}/orders${buildQS(params)}`
+  );
+  return { ...raw, orders: raw.orders.map(normaliseOrder) };
+}
+
+export async function updateManufacturerOrderStatus(
+  manufacturerId: string,
+  id: string,
+  status: string
+): Promise<ShopOrder> {
+  const raw = await request<{ order: Record<string, unknown> }>(`/api/manufacturer/${manufacturerId}/orders/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  });
+  return normaliseOrder(raw.order);
 }

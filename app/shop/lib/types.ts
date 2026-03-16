@@ -9,6 +9,7 @@ export type ShopProduct = {
   id: string;
   name: string;
   category: string;
+  manufacturerId?: string;
   description: string;
   image: string;
   images: string[];
@@ -109,6 +110,12 @@ export type VerifyPaymentPayload = {
   razorpayOrderId: string;
   razorpayPaymentId: string;
   razorpaySignature: string;
+};
+
+export type ShopManufacturer = {
+  id: string;
+  name: string;
+  phone: string;
 };
 
 export type CreateProductPayload = {

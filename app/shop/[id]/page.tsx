@@ -7,7 +7,7 @@ import Link from 'next/link';
 import Navbar from '../../components/landing/Navbar';
 import Footer from '../../components/landing/Footer';
 import { ShopProduct, ColorVariation } from '../lib/types';
-import { getProductById, getProducts } from '../lib/api';
+import { getManufacturers, getProductById, getProducts } from '../lib/api';
 import ImageGallery from '../components/ImageGallery';
 import QuantityInput from '../components/QuantityInput';
 import SizeGuide from '../components/SizeGuide';
@@ -95,6 +95,7 @@ function ProductDetails({ product }: { product: ShopProduct }) {
   const [quantity, setQuantity] = useState(0);
   const [relatedProducts, setRelatedProducts] = useState<ShopProduct[]>([]);
   const [expandedColor, setExpandedColor] = useState<string | null>(null);
+  const [manufacturerName, setManufacturerName] = useState<string>('');
 
   // Per-color-per-size quantities: { "White": { "S": 10, "M": 20 }, ... }
   const [variations, setVariations] = useState<Record<string, Record<string, number>>>(() =>
@@ -128,6 +129,32 @@ function ProductDetails({ product }: { product: ShopProduct }) {
       .then((res) => setRelatedProducts(res.products.filter((p) => p.id !== product.id).slice(0, 3)))
       .catch(() => setRelatedProducts([]));
   }, [product.category, product.id]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadManufacturerName() {
+      if (!product.manufacturerId) {
+        setManufacturerName('');
+        return;
+      }
+
+      try {
+        const manufacturers = await getManufacturers();
+        if (cancelled) return;
+        const manufacturer = manufacturers.find((m) => m.id === product.manufacturerId);
+        setManufacturerName(manufacturer?.name || '');
+      } catch {
+        if (!cancelled) setManufacturerName('');
+      }
+    }
+
+    loadManufacturerName();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [product.manufacturerId]);
 
   const activeTier = useMemo(() => {
     if (quantity < 10) return null;
@@ -207,6 +234,15 @@ function ProductDetails({ product }: { product: ShopProduct }) {
                     </a>
                   </>
                 )}
+              </div>
+            )}
+
+            {manufacturerName && (
+              <div className="mt-2">
+                <span className="text-sm text-gray-600">
+                  Manufacturer:{' '}
+                  <span className="font-semibold text-gray-900">{manufacturerName}</span>
+                </span>
               </div>
             )}
 

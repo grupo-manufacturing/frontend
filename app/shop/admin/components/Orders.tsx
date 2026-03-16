@@ -3,12 +3,13 @@
 import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import type { ShopOrder } from '../../lib/types';
-import { updateOrderStatus } from '../../lib/api';
+import { updateOrderStatus, updateManufacturerOrderStatus } from '../../lib/api';
 import { StatusBadge } from './Overview';
 
 interface OrdersProps {
   orders: ShopOrder[];
   onReload: () => void;
+  manufacturerId?: string;
 }
 
 const PER_PAGE = 8;
@@ -22,7 +23,7 @@ const STATUS_FLOW: Record<string, string[]> = {
   cancelled: [],
 };
 
-export default function Orders({ orders, onReload }: OrdersProps) {
+export default function Orders({ orders, onReload, manufacturerId }: OrdersProps) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [page, setPage] = useState(1);
@@ -58,7 +59,11 @@ export default function Orders({ orders, onReload }: OrdersProps) {
     setUpdatingId(orderId);
     setActionError('');
     try {
-      await updateOrderStatus(orderId, newStatus);
+      if (manufacturerId) {
+        await updateManufacturerOrderStatus(manufacturerId, orderId, newStatus);
+      } else {
+        await updateOrderStatus(orderId, newStatus);
+      }
       onReload();
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Failed to update status');

@@ -8,14 +8,16 @@ import Login from './components/Login';
 import Overview from './components/Overview';
 import Products from './components/Products';
 import Orders from './components/Orders';
+import Manufacturers from './components/Manufacturers';
 
 type Step = 'login' | 'dashboard';
-type View = 'overview' | 'products' | 'orders';
+type View = 'overview' | 'products' | 'orders' | 'manufacturers';
 
 const VIEW_TABS: Array<{ id: View; label: string; description: string }> = [
   { id: 'overview', label: 'Overview', description: 'Key metrics & recent activity' },
   { id: 'products', label: 'Products', description: 'Manage product catalogue' },
   { id: 'orders', label: 'Orders', description: 'View and manage orders' },
+  { id: 'manufacturers', label: 'Manufacturers', description: 'Create and list manufacturers' },
 ];
 
 export default function ShopAdminPage() {
@@ -206,6 +208,10 @@ export default function ShopAdminPage() {
 
         {!isLoadingData && activeView === 'orders' && (
           <Orders orders={orders} onReload={loadAllData} />
+        )}
+
+        {!isLoadingData && activeView === 'manufacturers' && (
+          <Manufacturers onReload={loadAllData} />
         )}
       </main>
     </div>
