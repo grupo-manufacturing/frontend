@@ -12,7 +12,7 @@ export default function AnalyticsTab() {
     conversionRate: 0,
     acceptedCount: 0,
     pendingCount: 0,
-    negotiatingCount: 0,
+    quotesSubmittedCount: 0,
     rejectedCount: 0,
     totalRequirementsCount: 0
   });
@@ -50,7 +50,7 @@ export default function AnalyticsTab() {
       let potentialRevenue = 0;
       let acceptedCount = 0;
       let pendingCount = 0;
-      let negotiatingCount = 0;
+      let quotesSubmittedCount = 0;
       let rejectedCount = 0;
       let totalRequirementsCount = allRequirements.length;
 
@@ -65,16 +65,11 @@ export default function AnalyticsTab() {
           if (status === 'accepted') {
             totalRevenue += quotedPrice;
             acceptedCount++;
-          } else if (status === 'negotiating') {
-            potentialRevenue += quotedPrice;
-            negotiatingCount++;
           } else if (status === 'rejected') {
             rejectedCount++;
           } else if (status === 'submitted') {
-            // Submitted responses are considered as potential revenue (pending buyer decision)
             potentialRevenue += quotedPrice;
-            // Count as pending since it's waiting for buyer's decision
-            pendingCount++;
+            quotesSubmittedCount++;
           }
         } else {
           // No response yet - this is a "New" requirement (Pending)
@@ -97,7 +92,7 @@ export default function AnalyticsTab() {
         conversionRate,
         acceptedCount,
         pendingCount,
-        negotiatingCount,
+        quotesSubmittedCount,
         rejectedCount,
         totalRequirementsCount
       });
@@ -110,7 +105,7 @@ export default function AnalyticsTab() {
         conversionRate: 0,
         acceptedCount: 0,
         pendingCount: 0,
-        negotiatingCount: 0,
+        quotesSubmittedCount: 0,
         rejectedCount: 0,
         totalRequirementsCount: 0
       });
@@ -182,7 +177,7 @@ export default function AnalyticsTab() {
                 </svg>
               </div>
               <div className="px-2 py-1 bg-[#22a2f2]/10 border border-[#22a2f2]/30 rounded-lg text-xs font-medium text-[#22a2f2]">
-                {isLoadingAnalytics ? '...' : analyticsData.pendingCount + analyticsData.negotiatingCount > 0 ? 'Pending' : '—'}
+                {isLoadingAnalytics ? '...' : analyticsData.pendingCount + analyticsData.quotesSubmittedCount > 0 ? 'Pending' : '—'}
               </div>
             </div>
             <div>
@@ -259,10 +254,10 @@ export default function AnalyticsTab() {
 
           <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8">
             {(() => {
-              const totalCount = analyticsData.acceptedCount + analyticsData.pendingCount + analyticsData.negotiatingCount + analyticsData.rejectedCount;
+              const totalCount = analyticsData.acceptedCount + analyticsData.pendingCount + analyticsData.quotesSubmittedCount + analyticsData.rejectedCount;
               const acceptedPercentage = totalCount > 0 ? (analyticsData.acceptedCount / totalCount) * 100 : 0;
               const pendingPercentage = totalCount > 0 ? (analyticsData.pendingCount / totalCount) * 100 : 0;
-              const negotiatingPercentage = totalCount > 0 ? (analyticsData.negotiatingCount / totalCount) * 100 : 0;
+              const quotesSubmittedPercentage = totalCount > 0 ? (analyticsData.quotesSubmittedCount / totalCount) * 100 : 0;
               const rejectedPercentage = totalCount > 0 ? (analyticsData.rejectedCount / totalCount) * 100 : 0;
 
               // Calculate angles for pie chart (starting from top, going clockwise)
@@ -301,7 +296,7 @@ export default function AnalyticsTab() {
               const arcs = [
                 createArc(acceptedPercentage, '#22a2f2'),
                 createArc(pendingPercentage, '#fbbf24'),
-                createArc(negotiatingPercentage, '#3b82f6'),
+                createArc(quotesSubmittedPercentage, '#3b82f6'),
                 createArc(rejectedPercentage, '#ef4444')
               ].filter(Boolean);
 
@@ -397,14 +392,14 @@ export default function AnalyticsTab() {
                       </div>
                     </div>
 
-                    {/* Negotiating Orders */}
+                    {/* Quote sent (awaiting buyer) */}
                     <div className="flex items-center gap-3 p-4 rounded-xl bg-blue-50 border border-blue-200 hover:bg-blue-100 transition-all">
                       <div className="w-4 h-4 rounded-full bg-blue-600 flex-shrink-0"></div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="font-medium text-black text-sm">Negotiating</span>
+                          <span className="font-medium text-black text-sm">Quote sent</span>
                           <span className="text-sm font-semibold text-blue-700 whitespace-nowrap">
-                            {isLoadingAnalytics ? '...' : `${analyticsData.negotiatingCount} (${negotiatingPercentage.toFixed(1)}%)`}
+                            {isLoadingAnalytics ? '...' : `${analyticsData.quotesSubmittedCount} (${quotesSubmittedPercentage.toFixed(1)}%)`}
                           </span>
                         </div>
                       </div>

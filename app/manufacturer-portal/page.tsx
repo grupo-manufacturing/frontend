@@ -7,7 +7,7 @@ import { io, Socket } from 'socket.io-client';
 import apiService, { getApiBaseOrigin } from '../lib/apiService';
 import RequirementsTab from './components/RequirementsTab';
 import AnalyticsTab from './components/AnalyticsTab';
-import ChatsTab from './components/ChatsTab';
+import ChatsTab, { ManufacturerChatsTabRef } from './components/ChatsTab';
 import Login from './components/Login';
 import Onboarding from './components/Onboarding';
 import { useToast } from '../components/Toast';
@@ -76,6 +76,24 @@ export default function ManufacturerPortal() {
       localStorage.setItem('manufacturer_active_tab', activeTab);
     }
   }, [activeTab, step]);
+
+  const chatsTabRef = useRef<ManufacturerChatsTabRef>(null);
+  /** After a quote is submitted on Requirements tab, switch to Chats and open that requirement thread */
+  const [pendingOpenChatRequirement, setPendingOpenChatRequirement] = useState<any>(null);
+
+  useEffect(() => {
+    if (activeTab !== 'chats' || !pendingOpenChatRequirement) return;
+    const t = setTimeout(() => {
+      chatsTabRef.current?.openChatAfterQuote(pendingOpenChatRequirement);
+      setPendingOpenChatRequirement(null);
+    }, 50);
+    return () => clearTimeout(t);
+  }, [activeTab, pendingOpenChatRequirement]);
+
+  const handleQuoteSubmitted = (requirement: any) => {
+    setPendingOpenChatRequirement(requirement);
+    setActiveTab('chats');
+  };
 
   const [displayName, setDisplayName] = useState('');
   const [unseenRequirementsCount, setUnseenRequirementsCount] = useState(0);
@@ -460,7 +478,8 @@ export default function ManufacturerPortal() {
         <main className="relative z-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Tab Content */}
           {activeTab === 'chats' && (
-            <ChatsTab 
+            <ChatsTab
+              ref={chatsTabRef}
               activeTab={activeTab}
               onActiveTabChange={(tab) => setActiveTab(tab)}
               conversationUnreadCounts={conversationUnreadCounts}
@@ -474,7 +493,7 @@ export default function ManufacturerPortal() {
             />
           )}
           {activeTab === 'analytics' && <AnalyticsTab />}
-          {activeTab === 'requirements' && <RequirementsTab />}
+          {activeTab === 'requirements' && <RequirementsTab onQuoteSubmitted={handleQuoteSubmitted} />}
         </main>
       </div>
     );

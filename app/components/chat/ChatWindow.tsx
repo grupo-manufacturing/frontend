@@ -61,7 +61,7 @@ interface RequirementDetails {
   notes?: string | null;
   created_at?: string;
   updated_at?: string;
-  status?: 'accepted' | 'negotiating' | null;
+  status?: 'accepted' | 'submitted' | null;
 }
 
 type ChatTabType = 'normal' | string;
@@ -134,9 +134,9 @@ export default function ChatWindow({
     let mounted = true;
     setLoadingRequirements(true);
 
-    async function loadNegotiatingRequirements() {
+    async function loadActiveRequirements() {
       try {
-        const res = await apiService.getNegotiatingRequirementsForConversation(conversationId);
+        const res = await apiService.getActiveRequirementsForConversation(conversationId);
 
         if (!mounted) return;
 
@@ -159,14 +159,14 @@ export default function ChatWindow({
           setRequirementTabs([]);
         }
       } catch (err) {
-        console.error('[ChatWindow] Failed to load negotiating requirements:', err);
+        console.error('[ChatWindow] Failed to load active requirements:', err);
         if (mounted) setRequirementTabs([]);
       } finally {
         if (mounted) setLoadingRequirements(false);
       }
     }
 
-    loadNegotiatingRequirements();
+    loadActiveRequirements();
 
     return () => {
       mounted = false;
@@ -218,17 +218,17 @@ export default function ChatWindow({
         if (res.success && res.data) {
           try {
             const responsesRes = await apiService.getRequirementResponses(requirementId);
-            let status: 'accepted' | 'negotiating' | null = null;
+            let status: 'accepted' | 'submitted' | null = null;
 
             if (responsesRes.success && Array.isArray(responsesRes.data)) {
               const manufacturerResponse = responsesRes.data.find(
                 (resp: any) =>
                   resp.manufacturer_id === manufacturerId &&
-                  (resp.status === 'accepted' || resp.status === 'negotiating')
+                  (resp.status === 'accepted' || resp.status === 'submitted')
               );
 
               if (manufacturerResponse) {
-                status = manufacturerResponse.status === 'accepted' ? 'accepted' : 'negotiating';
+                status = manufacturerResponse.status === 'accepted' ? 'accepted' : 'submitted';
               }
             }
 
@@ -604,7 +604,11 @@ export default function ChatWindow({
                         ? 'bg-green-100 text-green-700'
                         : 'bg-yellow-100 text-yellow-700'
                     }`}>
-                      {activeRequirementDetails.status === 'accepted' ? 'Accepted' : 'Negotiating'}
+                      {activeRequirementDetails.status === 'accepted'
+                        ? 'Accepted'
+                        : activeRequirementDetails.status === 'submitted'
+                          ? 'Quote sent'
+                          : '—'}
                     </span>
                   </div>
                 )}

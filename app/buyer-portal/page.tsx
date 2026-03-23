@@ -243,31 +243,6 @@ export default function BuyerPortal() {
   };
 
 
-
-  // Helper function to determine requirement status based on responses
-  const getRequirementStatus = (requirement: any): 'accepted' | 'pending' | 'negotiation' => {
-    const responses = requirement.responses || [];
-    
-    if (responses.length === 0) {
-      return 'pending';
-    }
-    
-    // Check if any response is accepted
-    const hasAccepted = responses.some((r: any) => r.status === 'accepted');
-    if (hasAccepted) {
-      return 'accepted';
-    }
-    
-    // Check if any response is negotiating
-    const hasNegotiating = responses.some((r: any) => r.status === 'negotiating');
-    if (hasNegotiating) {
-      return 'negotiation';
-    }
-    
-    // Has responses but none are accepted or negotiating = pending review
-    return 'pending';
-  };
-
   // Fetch Requirements
   const fetchRequirements = async () => {
     setIsLoadingRequirements(true);
@@ -354,27 +329,6 @@ export default function BuyerPortal() {
       return () => window.removeEventListener('focus', refreshProfile);
     }
   }, [step]);
-
-  const handleNegotiateResponse = async (requirement: any, response: any) => {
-    // Refresh requirements to show updated status (the component will handle status update)
-    try {
-      await apiService.updateRequirementResponseStatus(response.id, 'negotiating');
-      fetchRequirements();
-    } catch (statusError: any) {
-      console.error('Failed to update response status:', statusError);
-    }
-
-    // Switch to chats tab first to ensure ChatsTab is mounted
-    setActiveTab('chats');
-    
-    // Wait a moment for the tab to switch and component to mount
-    setTimeout(async () => {
-      if (chatsTabRef.current) {
-        // openChatFromNegotiation will set up the chat state
-        await chatsTabRef.current.openChatFromNegotiation(requirement, response);
-      }
-    }, 50);
-  };
 
   const handleAcceptRequirementResponse = async (requirement: any, response: any) => {
     // Switch to chats tab first to ensure ChatsTab is mounted
@@ -789,7 +743,6 @@ export default function BuyerPortal() {
               requirements={requirements}
               isLoadingRequirements={isLoadingRequirements}
               fetchRequirements={fetchRequirements}
-              onNegotiateResponse={handleNegotiateResponse}
               onSwitchToCustomQuote={() => setActiveTab('custom-quote')}
               onAcceptRequirementResponse={handleAcceptRequirementResponse}
               unseenRequirementResponsesCount={unseenRequirementResponsesCount}

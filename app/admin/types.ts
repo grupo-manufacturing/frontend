@@ -29,7 +29,7 @@ export interface Order {
   quantity?: number;
   product_type?: string;
   image_url?: string | null;
-  status?: 'submitted' | 'accepted' | 'rejected' | 'negotiating';
+  status?: 'submitted' | 'accepted' | 'rejected';
   quoted_price?: number;
   buyer_id: string;
   buyer?: {

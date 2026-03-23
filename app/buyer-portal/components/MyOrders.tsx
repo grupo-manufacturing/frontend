@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import apiService from '../../lib/apiService';
+import { getBuyerRequirementDisplayStatus } from '../lib/requirementStatus';
 
 interface MyOrdersProps {
   requirements: any[];
@@ -20,8 +21,8 @@ export default function MyOrders({
   const [requirementStats, setRequirementStats] = useState({
     total: 0,
     accepted: 0,
-    pending_review: 0,
-    in_negotiation: 0
+    pending: 0,
+    rejected: 0
   });
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   
@@ -29,30 +30,6 @@ export default function MyOrders({
   const [orderSearchQuery, setOrderSearchQuery] = useState('');
   const [orderFilter, setOrderFilter] = useState('all');
   const [isOrderFilterDropdownOpen, setIsOrderFilterDropdownOpen] = useState(false);
-
-  // Helper function to determine requirement status based on responses
-  const getRequirementStatus = (requirement: any): 'accepted' | 'pending' | 'negotiation' => {
-    const responses = requirement.responses || [];
-    
-    if (responses.length === 0) {
-      return 'pending';
-    }
-    
-    // Check if any response is accepted
-    const hasAccepted = responses.some((r: any) => r.status === 'accepted');
-    if (hasAccepted) {
-      return 'accepted';
-    }
-    
-    // Check if any response is negotiating
-    const hasNegotiating = responses.some((r: any) => r.status === 'negotiating');
-    if (hasNegotiating) {
-      return 'negotiation';
-    }
-    
-    // Has responses but none are accepted or negotiating = pending review
-    return 'pending';
-  };
 
   // Fetch requirement statistics
   const fetchRequirementStatistics = async () => {
@@ -158,7 +135,7 @@ export default function MyOrders({
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[#1b8bd0] font-semibold mb-1">Pending</p>
-                    <p className="text-3xl font-bold text-[#22a2f2]">{isLoadingStats ? '...' : requirementStats.pending_review}</p>
+                    <p className="text-3xl font-bold text-[#22a2f2]">{isLoadingStats ? '...' : requirementStats.pending}</p>
                   </div>
                   <div className="p-3 bg-[#22a2f2]/15 rounded-xl shadow-lg shadow-[#22a2f2]/20 text-[#22a2f2]">
                     <svg
@@ -179,14 +156,14 @@ export default function MyOrders({
               </div>
             </div>
 
-            {/* Negotiating Card */}
+            {/* Rejected */}
             <div className="group relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-[#22a2f2]/15 to-[#1b8bd0]/10 rounded-2xl blur opacity-40 group-hover:opacity-70 transition duration-300"></div>
               <div className="relative bg-white rounded-2xl border border-[#22a2f2]/30 p-6 hover:border-[#22a2f2]/60 transition-all">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[#1b8bd0] font-semibold mb-1">Negotiating</p>
-                    <p className="text-3xl font-bold text-[#22a2f2]">{isLoadingStats ? '...' : requirementStats.in_negotiation}</p>
+                    <p className="text-sm text-[#1b8bd0] font-semibold mb-1">Rejected</p>
+                    <p className="text-3xl font-bold text-[#22a2f2]">{isLoadingStats ? '...' : requirementStats.rejected}</p>
                   </div>
                   <div className="p-3 bg-[#22a2f2]/15 rounded-xl shadow-lg shadow-[#22a2f2]/20 text-[#22a2f2]">
                     <svg
@@ -199,7 +176,7 @@ export default function MyOrders({
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
                   </div>
@@ -252,8 +229,8 @@ export default function MyOrders({
                       ? 'Accepted' 
                       : orderFilter === 'pending'
                       ? 'Pending'
-                      : orderFilter === 'negotiation'
-                      ? 'Negotiating'
+                      : orderFilter === 'rejected'
+                      ? 'Rejected'
                       : 'All Orders'}
                   </span>
                   <svg 
@@ -278,7 +255,7 @@ export default function MyOrders({
                         { value: 'all', label: 'All Orders' },
                         { value: 'accepted', label: 'Accepted' },
                         { value: 'pending', label: 'Pending' },
-                        { value: 'negotiation', label: 'Negotiating' }
+                        { value: 'rejected', label: 'Rejected' }
                       ].map((option) => (
                         <button
                           key={option.value}
@@ -324,7 +301,7 @@ export default function MyOrders({
               // Status filter
               if (orderFilter === 'all') return true;
               
-              const status = getRequirementStatus(req);
+              const status = getBuyerRequirementDisplayStatus(req);
               return status === orderFilter;
             });
             
@@ -344,22 +321,22 @@ export default function MyOrders({
                 {/* Table Body */}
                 <div className="divide-y divide-gray-200">
                   {filteredRequirements.map((req: any) => {
-                    const status = getRequirementStatus(req);
+                    const status = getBuyerRequirementDisplayStatus(req);
                     const statusColors = {
                       accepted: 'bg-green-100 text-green-700',
                       pending: 'bg-yellow-100 text-yellow-700',
-                      negotiation: 'bg-orange-100 text-orange-700'
+                      rejected: 'bg-red-100 text-red-700'
                     };
                     const statusLabels = {
                       accepted: 'Accepted',
                       pending: 'Pending',
-                      negotiation: 'Negotiating'
+                      rejected: 'Rejected'
                     };
                     
                     // Get best quote
                     const acceptedResponse = req.responses?.find((r: any) => r.status === 'accepted');
-                    const negotiatingResponse = req.responses?.find((r: any) => r.status === 'negotiating');
-                    const bestResponse = acceptedResponse || negotiatingResponse || req.responses?.[0];
+                    const submittedResponse = req.responses?.find((r: any) => r.status === 'submitted');
+                    const bestResponse = acceptedResponse || submittedResponse || req.responses?.[0];
                     
                     return (
                       <div key={req.id} className="px-6 py-4 hover:bg-gray-50 transition-colors">

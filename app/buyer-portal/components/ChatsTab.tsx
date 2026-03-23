@@ -14,7 +14,6 @@ interface ChatsTabProps {
 export interface ChatsTabRef {
   openChat: (conversationId: string, buyerId: string, manufacturerId: string, title?: string, requirement?: any, defaultToNormal?: boolean) => void;
   openChatFromQuote: (quote: any) => Promise<void>;
-  openChatFromNegotiation: (requirement: any, response: any) => Promise<void>;
   openChatFromRequirementAccept: (requirement: any, response: any) => Promise<void>;
 }
 
@@ -147,75 +146,6 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onTabChange, conversa
       } catch (e) {
         console.error('Failed to open chat from quote', e);
         if (onTabChange) onTabChange();
-      }
-    },
-    openChatFromNegotiation: async (requirement: any, response: any) => {
-      const manufacturerIdRaw = response?.manufacturer_id || response?.manufacturer?.id;
-      const manufacturerId = manufacturerIdRaw ? String(manufacturerIdRaw) : null;
-
-      if (!manufacturerId) {
-        alert('Unable to determine the manufacturer for this response. Please try again later.');
-        return;
-      }
-
-      try {
-        // Get buyerId first before updating status
-        const buyerId = await getBuyerId();
-
-        if (!buyerId) {
-          if (onTabChange) onTabChange();
-          alert('We could not load your buyer profile. Please refresh the page and try again. If the issue persists, please contact support.');
-          return;
-        }
-
-        // Update response status to 'negotiating' first
-        try {
-          await apiService.updateRequirementResponseStatus(response.id, 'negotiating');
-        } catch (statusError: any) {
-          console.error('Failed to update response status:', statusError);
-          // Continue with chat opening even if status update fails
-        }
-
-        const ensureRes = await apiService.ensureConversation(buyerId, manufacturerId);
-        const conversationId = ensureRes?.data?.conversation?.id;
-
-        if (conversationId) {
-          const manufacturerIdDisplay = response?.manufacturer?.manufacturer_id;
-          const requirementSummary = requirement?.requirement_text;
-          const fallbackTitle = requirementSummary
-            ? requirementSummary.slice(0, 60) + (requirementSummary.length > 60 ? '...' : '')
-            : undefined;
-
-          // Set state first
-          setActiveConversationId(conversationId);
-          setActiveBuyerId(buyerId);
-          setActiveManufacturerId(manufacturerId);
-          setActiveTitle(manufacturerIdDisplay || fallbackTitle);
-          setActiveRequirement(requirement);
-          
-          // Manually save to localStorage immediately
-          if (typeof window !== 'undefined') {
-            const chatState = {
-              conversationId,
-              buyerId,
-              manufacturerId,
-              title: manufacturerIdDisplay || fallbackTitle,
-              requirement: requirement
-            };
-            localStorage.setItem('buyer_chat_state', JSON.stringify(chatState));
-          }
-          
-          // Note: Tab switching is handled by the parent component
-          // The state is set and saved, so the chat window should open
-        } else {
-          console.error('Failed to create or get conversation');
-          if (onTabChange) onTabChange();
-          alert('Failed to create conversation. Please try again.');
-        }
-      } catch (error: any) {
-        console.error('Failed to open chat from negotiation:', error);
-        if (onTabChange) onTabChange();
-        alert(error.message || 'Failed to open chat. Please try again.');
       }
     },
     openChatFromRequirementAccept: async (requirement: any, response: any) => {

@@ -6,7 +6,12 @@ import { io, Socket } from 'socket.io-client';
 import apiService, { getApiBaseOrigin } from '../../lib/apiService';
 import { useToast } from '../../components/Toast';
 
-export default function RequirementsTab() {
+interface RequirementsTabProps {
+  /** Called after a quote is submitted so the portal can open chat with the buyer for this requirement */
+  onQuoteSubmitted?: (requirement: any) => void;
+}
+
+export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabProps) {
   const toast = useToast();
   const [requirements, setRequirements] = useState<any[]>([]);
   const [isLoadingRequirements, setIsLoadingRequirements] = useState(false);
@@ -170,7 +175,7 @@ export default function RequirementsTab() {
       });
     });
 
-    // Listen for requirement response status updates (when buyer accepts/rejects/negotiates)
+    // Listen for requirement response status updates (when buyer accepts/rejects)
     socket.on('requirement:response:status:updated', async (data: any) => {
       const response = data.response || data;
       const status = data.status;
@@ -283,7 +288,8 @@ export default function RequirementsTab() {
       const response = await apiService.createRequirementResponse(selectedRequirement.id, responseData);
 
       if (response.success) {
-        toast.success('Quote submitted successfully!');
+        toast.success('Quote submitted successfully! Opening chat…');
+        const requirementForChat = { ...selectedRequirement };
         setShowResponseModal(false);
         setSelectedRequirement(null);
         // Update the requirement in the list to mark it as responded
@@ -299,6 +305,7 @@ export default function RequirementsTab() {
             return req;
           });
         });
+        onQuoteSubmitted?.(requirementForChat);
       } else {
         toast.error(response.message || 'Failed to submit response. Please try again.');
       }
@@ -327,25 +334,24 @@ export default function RequirementsTab() {
       .join(' ');
   };
 
-  // Determine status tag - check rejected first, then accepted, then negotiating
+  // Determine status tag - RFQ-level rejected (no quote from this manufacturer), then own response
   const getStatusTag = (req: any) => {
+    const rfqStatus = (req.status || '').toLowerCase().trim();
+    if (!req.hasResponse && rfqStatus === 'rejected') {
+      return { label: 'Rejected', color: 'bg-red-100 text-red-700' };
+    }
     if (req.hasResponse && req.myResponse) {
-      // Get status from myResponse, handling different possible field names
       const status = (req.myResponse.status || req.myResponse.response_status || '').toLowerCase().trim();
       
-      // Check rejected first (highest priority) - this should override negotiating
       if (status === 'rejected') {
         return { label: 'Rejected', color: 'bg-red-100 text-red-700' };
       }
-      // Then check accepted
       if (status === 'accepted') {
         return { label: 'Accepted', color: 'bg-green-100 text-green-700' };
       }
-      // Finally negotiating (only if not rejected or accepted)
-      if (status === 'negotiating') {
-        return { label: 'Negotiating', color: 'bg-blue-100 text-blue-700' };
+      if (status === 'submitted') {
+        return { label: 'Quote sent', color: 'bg-blue-100 text-blue-700' };
       }
-      // If status exists but doesn't match known values, show it anyway
       if (status) {
         return { label: status.charAt(0).toUpperCase() + status.slice(1), color: 'bg-gray-100 text-gray-700' };
       }

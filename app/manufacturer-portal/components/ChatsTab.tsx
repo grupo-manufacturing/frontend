@@ -1,10 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import ChatList from '../../components/chat/ChatList';
 import ChatWindow from '../../components/chat/ChatWindow';
+import apiService from '../../lib/apiService';
 
 type TabType = 'chats' | 'requirements' | 'analytics' | 'profile';
+
+export interface ManufacturerChatsTabRef {
+  /** After submitting a quote: switch to Chats and open this requirement thread with the buyer */
+  openChatAfterQuote: (requirement: any) => Promise<void>;
+}
 
 interface ChatsTabProps {
   activeTab: TabType;
@@ -18,12 +24,77 @@ const isValidTab = (tab: string): tab is TabType => {
   return ['chats', 'requirements', 'analytics', 'profile'].includes(tab);
 };
 
-export default function ChatsTab({ activeTab, onActiveTabChange, conversationUnreadCounts = {}, onClearConversationUnread }: ChatsTabProps) {
-  // Chat state (chats inbox)
+const ChatsTab = forwardRef<ManufacturerChatsTabRef, ChatsTabProps>(function ChatsTab(
+  { activeTab, onActiveTabChange, conversationUnreadCounts = {}, onClearConversationUnread },
+  ref
+) {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [activeBuyerId, setActiveBuyerId] = useState<string | null>(null);
   const [activeManufacturerId, setActiveManufacturerId] = useState<string | null>(null);
   const [activeTitle, setActiveTitle] = useState<string | undefined>(undefined);
+  const [activeRequirement, setActiveRequirement] = useState<any | null>(null);
+
+  const getManufacturerId = async (): Promise<string | null> => {
+    try {
+      const res = await apiService.getManufacturerProfile();
+      const id = res?.data?.profile?.id;
+      if (id) {
+        const s = String(id);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('manufacturerId', s);
+        }
+        return s;
+      }
+    } catch (e) {
+      console.error('Failed to load manufacturer profile:', e);
+    }
+    return typeof window !== 'undefined' ? localStorage.getItem('manufacturerId') : null;
+  };
+
+  useImperativeHandle(ref, () => ({
+    openChatAfterQuote: async (requirement: any) => {
+      const buyerId = requirement?.buyer_id || requirement?.buyer?.id;
+      const manufacturerId = await getManufacturerId();
+      if (!buyerId || !manufacturerId) {
+        console.error('openChatAfterQuote: missing buyer or manufacturer id');
+        return;
+      }
+      try {
+        const ensureRes = await apiService.ensureConversation(String(buyerId), manufacturerId);
+        const conversationId = ensureRes?.data?.conversation?.id;
+        if (!conversationId) {
+          console.error('openChatAfterQuote: no conversation id');
+          return;
+        }
+        const manufacturerIdDisplay =
+          requirement?.manufacturer?.manufacturer_id ?? requirement?.manufacturer_id;
+        const requirementSummary = requirement?.requirement_text;
+        const fallbackTitle = requirementSummary
+          ? requirementSummary.slice(0, 60) + (requirementSummary.length > 60 ? '...' : '')
+          : undefined;
+
+        onActiveTabChange?.('chats');
+        setActiveConversationId(conversationId);
+        setActiveBuyerId(String(buyerId));
+        setActiveManufacturerId(manufacturerId);
+        setActiveTitle(manufacturerIdDisplay || fallbackTitle);
+        setActiveRequirement(requirement);
+
+        if (typeof window !== 'undefined') {
+          const chatState = {
+            conversationId,
+            buyerId: String(buyerId),
+            manufacturerId,
+            title: manufacturerIdDisplay || fallbackTitle,
+            activeTab: 'chats' as TabType,
+          };
+          localStorage.setItem('manufacturer_chat_state', JSON.stringify(chatState));
+        }
+      } catch (e) {
+        console.error('openChatAfterQuote failed:', e);
+      }
+    },
+  }));
 
   // Restore chat state from localStorage on mount
   useEffect(() => {
@@ -36,14 +107,11 @@ export default function ChatsTab({ activeTab, onActiveTabChange, conversationUnr
             setActiveConversationId(chatState.conversationId);
             setActiveBuyerId(chatState.buyerId);
             setActiveManufacturerId(chatState.manufacturerId);
-            // Don't restore title from localStorage - let ChatList provide the correct title from peer.displayName
             setActiveTitle(undefined);
             if (chatState.activeTab && onActiveTabChange) {
-              // Convert old 'all-requirements' tab to 'requirements' for backward compatibility
               let tab = chatState.activeTab === 'all-requirements' ? 'requirements' : chatState.activeTab;
-              // Filter out invalid tabs (like 'my-designs' which was removed)
               if (!isValidTab(tab)) {
-                tab = 'chats'; // Default to chats if invalid tab
+                tab = 'chats';
               }
               onActiveTabChange(tab);
             } else if (chatState.conversationId && onActiveTabChange) {
@@ -66,7 +134,7 @@ export default function ChatsTab({ activeTab, onActiveTabChange, conversationUnr
           buyerId: activeBuyerId,
           manufacturerId: activeManufacturerId,
           title: activeTitle,
-          activeTab: activeTab
+          activeTab: activeTab,
         };
         localStorage.setItem('manufacturer_chat_state', JSON.stringify(chatState));
       } else {
@@ -80,6 +148,7 @@ export default function ChatsTab({ activeTab, onActiveTabChange, conversationUnr
     setActiveBuyerId(bid);
     setActiveManufacturerId(mid);
     setActiveTitle(title);
+    setActiveRequirement(null);
   };
 
   const handleCloseConversation = () => {
@@ -87,31 +156,25 @@ export default function ChatsTab({ activeTab, onActiveTabChange, conversationUnr
     setActiveBuyerId(null);
     setActiveManufacturerId(null);
     setActiveTitle(undefined);
-    // Clear localStorage when closing chat
+    setActiveRequirement(null);
     if (typeof window !== 'undefined') {
       localStorage.removeItem('manufacturer_chat_state');
     }
   };
 
-  const handleConversationRead = (cid: string) => {
-  };
-
   return (
     <div className="animate-fade-in-up h-full flex flex-col">
-      {/* Chat Layout */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 min-h-0">
-        {/* Conversations Sidebar */}
         <div className="lg:col-span-4 xl:col-span-3 h-[300px] lg:h-[calc(100vh-280px)] min-h-[400px] bg-white border border-[#22a2f2]/30 rounded-xl shadow-sm">
-          <ChatList 
+          <ChatList
             selectedConversationId={activeConversationId}
             selfRole="manufacturer"
             conversationUnreadCounts={conversationUnreadCounts}
             onClearConversationUnread={onClearConversationUnread}
-            onOpenConversation={handleOpenConversation} 
+            onOpenConversation={handleOpenConversation}
           />
         </div>
 
-        {/* Chat Window */}
         <div className="lg:col-span-8 xl:col-span-9 h-[500px] lg:h-[calc(100vh-280px)] min-h-[400px]">
           {activeConversationId && activeBuyerId && activeManufacturerId ? (
             <ChatWindow
@@ -120,7 +183,8 @@ export default function ChatsTab({ activeTab, onActiveTabChange, conversationUnr
               manufacturerId={activeManufacturerId}
               title={activeTitle}
               inline
-              selfRole={'manufacturer'}
+              selfRole="manufacturer"
+              requirement={activeRequirement}
               onClose={handleCloseConversation}
             />
           ) : (
@@ -134,7 +198,7 @@ export default function ChatsTab({ activeTab, onActiveTabChange, conversationUnr
                     </svg>
                   </div>
                 </div>
-                <h3 className="text-lg font-semibold text-black mb-2">Select a requirement</h3>
+                <h3 className="text-lg font-semibold text-black mb-2">Select a conversation</h3>
                 <p className="text-sm text-gray-500">Choose a conversation from the list to view and respond</p>
               </div>
             </div>
@@ -143,5 +207,8 @@ export default function ChatsTab({ activeTab, onActiveTabChange, conversationUnr
       </div>
     </div>
   );
-}
+});
 
+ChatsTab.displayName = 'ManufacturerChatsTab';
+
+export default ChatsTab;

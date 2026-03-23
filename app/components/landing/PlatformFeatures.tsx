@@ -15,7 +15,7 @@ const PlatformFeatures = () => {
       steps: [
         'Complete onboarding',
         'Receive relevant opportunities',
-        'Respond, negotiate, and manage active work',
+        'Respond, chat, and manage active work',
       ],
     },
     {

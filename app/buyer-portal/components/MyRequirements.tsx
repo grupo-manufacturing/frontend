@@ -4,12 +4,12 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { io, Socket } from 'socket.io-client';
 import apiService, { getApiBaseOrigin } from '../../lib/apiService';
 import { useToast } from '../../components/Toast';
+import { getBuyerRequirementDisplayStatus } from '../lib/requirementStatus';
 
 interface MyRequirementsProps {
   requirements: any[];
   isLoadingRequirements: boolean;
   fetchRequirements: () => Promise<void>;
-  onNegotiateResponse?: (requirement: any, response: any) => Promise<void>;
   onSwitchToCustomQuote?: () => void;
   onAcceptRequirementResponse?: (requirement: any, response: any) => Promise<void>;
   unseenRequirementResponsesCount?: number;
@@ -19,13 +19,11 @@ export default function MyRequirements({
   requirements,
   isLoadingRequirements,
   fetchRequirements,
-  onNegotiateResponse,
   onSwitchToCustomQuote,
   onAcceptRequirementResponse,
   unseenRequirementResponsesCount = 0
 }: MyRequirementsProps) {
   const toast = useToast();
-  const [negotiatingResponseId, setNegotiatingResponseId] = useState<string | null>(null);
 
   // Socket connection setup
   const socketRef = useRef<Socket | null>(null);
@@ -92,17 +90,6 @@ export default function MyRequirements({
       toast.error(error.message || `Failed to ${status} quote. Please try again.`);
     }
   };
-
-  const handleNegotiate = async (requirement: any, response: any) => {
-    // Play click sound when negotiating
-    playClickSound();
-    setNegotiatingResponseId(response.id);
-    if (onNegotiateResponse) {
-      await onNegotiateResponse(requirement, response);
-    }
-    setNegotiatingResponseId(null);
-  };
-
 
   // Socket connection for real-time response updates
   useEffect(() => {
@@ -188,12 +175,23 @@ export default function MyRequirements({
                       day: 'numeric' 
                     })}
                   </span>
-                  {/* Status Badge - Show when there are no responses */}
-                  {(!req.responses || req.responses.length === 0 || req.manufacturer_count === 0) && (
-                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
-                      Pending
-                    </span>
-                  )}
+                  {/* Aggregate requirement status */}
+                  {(() => {
+                    const st = getBuyerRequirementDisplayStatus(req);
+                    const badgeClass =
+                      st === 'accepted'
+                        ? 'bg-green-100 text-green-700'
+                        : st === 'rejected'
+                          ? 'bg-red-100 text-red-700'
+                          : 'bg-yellow-100 text-yellow-700';
+                    const label =
+                      st === 'accepted' ? 'Accepted' : st === 'rejected' ? 'Rejected' : 'Pending';
+                    return (
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${badgeClass}`}>
+                        {label}
+                      </span>
+                    );
+                  })()}
                 </div>
                 {req.requirement_no && (
                   <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-[#22a2f2]/10 text-[#22a2f2] border border-[#22a2f2]/20">
@@ -271,14 +269,17 @@ export default function MyRequirements({
                               <p className="text-sm font-semibold text-black">
                                 {response.manufacturer?.unit_name || 'Manufacturer'}
                               </p>
+                              {response.status === 'submitted' && (
+                                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                                  Quote received — chat open
+                                </span>
+                              )}
                               {response.status && response.status !== 'submitted' && (
                                 <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
                                   response.status === 'accepted' 
                                     ? 'bg-green-100 text-green-700' 
                                     : response.status === 'rejected'
                                     ? 'bg-red-100 text-red-700'
-                                    : response.status === 'negotiating'
-                                    ? 'bg-orange-100 text-orange-700'
                                     : 'bg-gray-100 text-gray-700'
                                 }`}>
                                   {response.status.charAt(0).toUpperCase() + response.status.slice(1)}
@@ -335,26 +336,8 @@ export default function MyRequirements({
                           </div>
                         )}
 
-                        {(!response.status || response.status === 'submitted' || response.status === 'negotiating') && (
+                        {(!response.status || response.status === 'submitted') && (
                           <div className="mt-4 flex flex-col sm:flex-row gap-2">
-                            {/* Negotiate Button - only show when status is null, 'submitted', or empty */}
-                            {(!response.status || response.status === 'submitted') && (
-                              <button
-                                onClick={() => handleNegotiate(req, response)}
-                                disabled={negotiatingResponseId === response.id}
-                                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 font-semibold rounded-lg transition-all ${
-                                  negotiatingResponseId === response.id
-                                    ? 'bg-[#22a2f2]/60 text-white cursor-not-allowed'
-                                    : 'bg-[#22a2f2] hover:bg-[#1b8bd0] text-white'
-                                }`}
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v7a2 2 0 01-2 2h-6l-4 4v-4H7a2 2 0 01-2-2v-5a2 2 0 012-2h2" />
-                                </svg>
-                                {negotiatingResponseId === response.id ? 'Opening Chat...' : 'Negotiate'}
-                              </button>
-                            )}
-                            {/* Accept and Reject buttons - show when status is null, 'submitted', or 'negotiating' */}
                             <button
                               onClick={() => handleUpdateResponseStatus(response.id, 'accepted', response.manufacturer?.unit_name || 'this manufacturer', req, response)}
                               className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-all"

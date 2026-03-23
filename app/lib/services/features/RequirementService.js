@@ -71,13 +71,12 @@ class RequirementService {
   }
 
   /**
-   * Get negotiating and accepted requirements for a conversation
-   * Returns requirements where status is 'negotiating' or 'accepted' and matches the conversation's buyer_id and manufacturer_id
+   * Get requirements with submitted or accepted quotes for a conversation (chat requirement tabs)
    * @param {string} conversationId - Conversation ID
    * @returns {Promise} Response data
    */
-  async getNegotiatingRequirementsForConversation(conversationId) {
-    return apiClient.request(`/requirements/conversation/${conversationId}/negotiating`, {
+  async getActiveRequirementsForConversation(conversationId) {
+    return apiClient.request(`/requirements/conversation/${conversationId}/active-requirements`, {
       method: 'GET'
     });
   }
@@ -176,7 +175,7 @@ class RequirementService {
   /**
    * Update requirement response status (accept/reject)
    * @param {string} responseId - Response ID
-   * @param {string} status - New status ('accepted' or 'rejected')
+   * @param {string} status - New status ('accepted' or 'rejected' only)
    * @returns {Promise} Response data
    */
   async updateRequirementResponseStatus(responseId, status) {
@@ -188,7 +187,7 @@ class RequirementService {
 
   /**
    * Get buyer requirement statistics
-   * @returns {Promise} Response data with statistics (total, accepted, pending_review, in_negotiation)
+   * @returns {Promise} Response data with statistics (total, accepted, pending, rejected)
    */
   async getBuyerRequirementStatistics() {
     return apiClient.request('/requirements/buyer/statistics', {

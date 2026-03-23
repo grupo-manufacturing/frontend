@@ -58,7 +58,7 @@ class ApiService {
     this.uploadRequirementFile = requirementService.uploadRequirementFile.bind(requirementService);
     this.createRequirement = requirementService.createRequirement.bind(requirementService);
     this.getRequirements = requirementService.getRequirements.bind(requirementService);
-    this.getNegotiatingRequirementsForConversation = requirementService.getNegotiatingRequirementsForConversation.bind(requirementService);
+    this.getActiveRequirementsForConversation = requirementService.getActiveRequirementsForConversation.bind(requirementService);
     this.getRequirement = requirementService.getRequirement.bind(requirementService);
     this.updateRequirement = requirementService.updateRequirement.bind(requirementService);
     this.deleteRequirement = requirementService.deleteRequirement.bind(requirementService);
