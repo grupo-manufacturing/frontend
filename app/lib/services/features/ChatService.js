@@ -5,11 +5,9 @@ import apiClient from '../core/ApiClient.js';
 import { getToken } from '../utils/tokenManager.js';
 
 class ChatService {
-  async listConversations({ search, limit, cursor, offset } = {}) {
+  async listConversations({ limit, offset } = {}) {
     const params = new URLSearchParams();
-    if (search) params.append('search', search);
     if (limit) params.append('limit', String(limit));
-    if (cursor) params.append('cursor', cursor);
     if (offset !== undefined) params.append('offset', String(offset));
     const qs = params.toString();
     return apiClient.request(`/chat/conversations${qs ? `?${qs}` : ''}`, { method: 'GET' });
@@ -44,22 +42,6 @@ class ChatService {
     if (limit) params.append('limit', String(limit));
     const qs = params.toString();
     return apiClient.request(`/chat/conversations/${conversationId}/messages/requirement/${requirementId}${qs ? `?${qs}` : ''}`, { 
-      method: 'GET' 
-    });
-  }
-
-  /**
-   * Get normal (non-requirement) messages in a conversation
-   * @param {string} conversationId - Conversation ID
-   * @param {Object} options - Query options (before, limit)
-   * @returns {Promise} Response data with messages
-   */
-  async getNormalMessages(conversationId, { before, limit } = {}) {
-    const params = new URLSearchParams();
-    if (before) params.append('before', before);
-    if (limit) params.append('limit', String(limit));
-    const qs = params.toString();
-    return apiClient.request(`/chat/conversations/${conversationId}/messages/normal${qs ? `?${qs}` : ''}`, { 
       method: 'GET' 
     });
   }

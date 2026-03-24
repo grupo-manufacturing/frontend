@@ -14,9 +14,10 @@ export default function ManufacturerProfile() {
     unitName: '',
     businessType: '',
     gstNumber: '',
+    panNumber: '',
+    msmeNumber: '',
     productTypes: [] as string[],
     capacity: '',
-    location: '',
     manufacturingUnitImage: null as File | null
   });
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
@@ -51,9 +52,10 @@ export default function ManufacturerProfile() {
           unitName: profile.unit_name || '',
           businessType: profile.business_type || '',
           gstNumber: profile.gst_number || '',
+          panNumber: profile.pan_number || '',
+          msmeNumber: profile.msme_number || '',
           productTypes: profile.product_types || [],
           capacity: profile.daily_capacity?.toString() || '',
-          location: profile.location || '',
           manufacturingUnitImage: null
         });
         
@@ -122,10 +124,11 @@ export default function ManufacturerProfile() {
         unit_name: formData.unitName,
         business_type: formData.businessType,
         gst_number: formData.gstNumber,
+        pan_number: formData.panNumber,
+        msme_number: formData.msmeNumber?.trim() || undefined,
         product_types: formData.productTypes,
         daily_capacity: parseInt(formData.capacity) || 0,
-        location: formData.location,
-        manufacturing_unit_image_url: manufacturingUnitImageUrl
+        manufacturing_unit_image_url: manufacturingUnitImageUrl || undefined
       };
 
       await apiService.updateManufacturerProfile(profileData);
@@ -295,6 +298,21 @@ export default function ManufacturerProfile() {
                 />
               </div>
 
+              {/* PAN */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  PAN <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.panNumber}
+                  onChange={(e) => handleInputChange('panNumber', e.target.value.toUpperCase())}
+                  placeholder="Enter PAN number"
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-400 transition-all"
+                  required
+                />
+              </div>
+
               {/* Product Types */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -353,16 +371,16 @@ export default function ManufacturerProfile() {
                 />
               </div>
 
-              {/* Location */}
+              {/* MSME Number */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Location of Unit
+                  MSME Number
                 </label>
                 <input
                   type="text"
-                  value={formData.location}
-                  onChange={(e) => handleInputChange('location', e.target.value)}
-                  placeholder="Enter complete address of manufacturing unit"
+                  value={formData.msmeNumber}
+                  onChange={(e) => handleInputChange('msmeNumber', e.target.value)}
+                  placeholder="Enter MSME number"
                   className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-400 transition-all"
                 />
               </div>

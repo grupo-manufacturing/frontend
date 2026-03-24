@@ -14,6 +14,9 @@ import chatService from './features/ChatService.js';
 import requirementService from './features/RequirementService.js';
 import userService from './features/UserService.js';
 import adminService from './features/AdminService.js';
+import paymentService from './features/PaymentService.js';
+import milestoneService from './features/MilestoneService.js';
+import orderService from './features/OrderService.js';
 
 // Utils
 import * as tokenManager from './utils/tokenManager.js';
@@ -48,7 +51,6 @@ class ApiService {
     this.ensureConversation = chatService.ensureConversation.bind(chatService);
     this.listMessages = chatService.listMessages.bind(chatService);
     this.getMessagesForRequirement = chatService.getMessagesForRequirement.bind(chatService);
-    this.getNormalMessages = chatService.getNormalMessages.bind(chatService);
     this.sendMessage = chatService.sendMessage.bind(chatService);
     this.uploadChatFile = chatService.uploadChatFile.bind(chatService);
     this.uploadMultipleChatFiles = chatService.uploadMultipleChatFiles.bind(chatService);
@@ -84,6 +86,30 @@ class ApiService {
     this.getRejectedOrders = adminService.getRejectedOrders.bind(adminService);
     this.getPendingOrders = adminService.getPendingOrders.bind(adminService);
     
+    // Payment verification methods (Admin)
+    this.getPendingPayments = adminService.getPendingPayments.bind(adminService);
+    this.verifyPayment = adminService.verifyPayment.bind(adminService);
+    this.refundPayment = adminService.refundPayment.bind(adminService);
+    
+    // Payment methods (Buyer)
+    this.createPaymentQR = paymentService.createPaymentQR.bind(paymentService);
+    this.submitUTR = paymentService.submitUTR.bind(paymentService);
+    this.getPaymentStatus = paymentService.getPaymentStatus.bind(paymentService);
+    this.getMyPayments = paymentService.getMyPayments.bind(paymentService);
+    
+    // Milestone methods
+    this.markMilestoneComplete = milestoneService.markMilestoneComplete.bind(milestoneService);
+    this.approveMilestone = milestoneService.approveMilestone.bind(milestoneService);
+    this.markMilestonePaid = milestoneService.markMilestonePaid.bind(milestoneService);
+    this.markFinalPaid = milestoneService.markFinalPaid.bind(milestoneService);
+    this.getPendingPayouts = milestoneService.getPendingPayouts.bind(milestoneService);
+    this.getMilestoneStatus = milestoneService.getMilestoneStatus.bind(milestoneService);
+    
+    // Order methods
+    this.markAsShipped = orderService.markAsShipped.bind(orderService);
+    this.getReadyToShipOrders = orderService.getReadyToShipOrders.bind(orderService);
+    this.confirmDelivery = orderService.confirmDelivery.bind(orderService);
+    
     // Internal method for token expiration handling (used by ApiClient)
     this.handleTokenExpiration = apiClient.handleTokenExpiration.bind(apiClient);
   }
@@ -108,6 +134,9 @@ export {
   requirementService,
   userService,
   adminService,
+  paymentService,
+  milestoneService,
+  orderService,
   tokenManager,
   API_BASE_URL
 };

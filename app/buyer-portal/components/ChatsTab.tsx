@@ -12,7 +12,7 @@ interface ChatsTabProps {
 }
 
 export interface ChatsTabRef {
-  openChat: (conversationId: string, buyerId: string, manufacturerId: string, title?: string, requirement?: any, defaultToNormal?: boolean) => void;
+  openChat: (conversationId: string, buyerId: string, manufacturerId: string, title?: string, requirement?: any) => void;
   openChatFromQuote: (quote: any) => Promise<void>;
   openChatFromRequirementAccept: (requirement: any, response: any) => Promise<void>;
 }
@@ -24,7 +24,6 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onTabChange, conversa
   const [activeManufacturerId, setActiveManufacturerId] = useState<string | null>(null);
   const [activeTitle, setActiveTitle] = useState<string | undefined>(undefined);
   const [activeRequirement, setActiveRequirement] = useState<any | null>(null);
-  const [defaultToNormalChat, setDefaultToNormalChat] = useState<boolean>(false);
 
   // Helper to get buyerId from localStorage or profile (fallback)
   const getBuyerId = async () => {
@@ -110,14 +109,13 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onTabChange, conversa
 
   // Expose methods to parent via ref
   useImperativeHandle(ref, () => ({
-    openChat: (conversationId: string, buyerId: string, manufacturerId: string, title?: string, requirement?: any, defaultToNormal?: boolean) => {
+    openChat: (conversationId: string, buyerId: string, manufacturerId: string, title?: string, requirement?: any) => {
       if (onTabChange) onTabChange();
       setActiveConversationId(conversationId);
       setActiveBuyerId(buyerId);
       setActiveManufacturerId(manufacturerId);
       setActiveTitle(title);
       setActiveRequirement(requirement || null);
-      setDefaultToNormalChat(defaultToNormal || false);
     },
     openChatFromQuote: async (quote: any) => {
       try {
@@ -245,14 +243,12 @@ const ChatsTab = forwardRef<ChatsTabRef, ChatsTabProps>(({ onTabChange, conversa
               inline
               selfRole={'buyer'}
               requirement={activeRequirement}
-              defaultToNormal={defaultToNormalChat}
               onClose={() => {
                 setActiveConversationId(null);
                 setActiveBuyerId(null);
                 setActiveManufacturerId(null);
                 setActiveTitle(undefined);
                 setActiveRequirement(null);
-                setDefaultToNormalChat(false);
                 // Clear localStorage when closing chat
                 if (typeof window !== 'undefined') {
                   localStorage.removeItem('buyer_chat_state');

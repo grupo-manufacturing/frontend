@@ -343,48 +343,6 @@ export default function BuyerPortal() {
     }, 50);
   };
 
-  const handleContactManufacturerFromHome = async (manufacturer: any) => {
-    const manufacturerId = manufacturer?.id ? String(manufacturer.id) : null;
-    if (!manufacturerId) {
-      throw new Error('Unable to determine manufacturer details.');
-    }
-
-    let buyerId = typeof window !== 'undefined' ? localStorage.getItem('buyerId') : null;
-
-    if (!buyerId) {
-      const profileResponse = await apiService.getBuyerProfile();
-      buyerId = profileResponse?.data?.profile?.id ? String(profileResponse.data.profile.id) : null;
-      if (buyerId && typeof window !== 'undefined') {
-        localStorage.setItem('buyerId', buyerId);
-      }
-    }
-
-    if (!buyerId) {
-      throw new Error('We could not load your profile. Please refresh and try again.');
-    }
-
-    const conversationResponse = await apiService.ensureConversation(buyerId, manufacturerId);
-    const conversationId = conversationResponse?.data?.conversation?.id;
-
-    if (!conversationId) {
-      throw new Error('Could not open chat right now. Please try again.');
-    }
-
-    setActiveTab('chats');
-    setTimeout(() => {
-      if (chatsTabRef.current) {
-        chatsTabRef.current.openChat(
-          conversationId,
-          buyerId as string,
-          manufacturerId,
-          manufacturer?.manufacturer_id || manufacturer?.unit_name,
-          null,
-          true
-        );
-      }
-    }, 50);
-  };
-
   // Form handlers
 
   // Load phone number from localStorage on component mount
@@ -704,9 +662,7 @@ export default function BuyerPortal() {
         {/* Main Content */}
         <main className="relative z-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Tab Content */}
-          {activeTab === 'home' && (
-            <HomeTab onContactManufacturer={handleContactManufacturerFromHome} />
-          )}
+          {activeTab === 'home' && <HomeTab />}
           {activeTab === 'custom-quote' && (
             <CustomQuote
               onRequirementSubmitted={() => {

@@ -14,7 +14,6 @@ interface ChatWindowProps {
   inline?: boolean;
   selfRole?: 'buyer' | 'manufacturer';
   requirement?: any | null;
-  defaultToNormal?: boolean;
 }
 
 interface Attachment {
@@ -61,10 +60,10 @@ interface RequirementDetails {
   notes?: string | null;
   created_at?: string;
   updated_at?: string;
-  status?: 'accepted' | 'submitted' | null;
+  status?: 'accepted' | 'pending' | 'rejected' | null;
 }
 
-type ChatTabType = 'normal' | string;
+type ChatTabType = string;
 
 export default function ChatWindow({
   conversationId,
@@ -74,8 +73,7 @@ export default function ChatWindow({
   title,
   inline,
   selfRole = 'buyer',
-  requirement,
-  defaultToNormal = false
+  requirement
 }: ChatWindowProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -87,14 +85,13 @@ export default function ChatWindow({
   const [uploadingFiles, setUploadingFiles] = useState<boolean>(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
-  const [activeTab, setActiveTab] = useState<ChatTabType>(defaultToNormal ? 'normal' : (requirement?.id || 'normal'));
+  const [activeTab, setActiveTab] = useState<ChatTabType>(requirement?.id || '');
   const [requirementTabs, setRequirementTabs] = useState<RequirementTab[]>([]);
   const [loadingRequirements, setLoadingRequirements] = useState(false);
   const [activeRequirementDetails, setActiveRequirementDetails] = useState<RequirementDetails | null>(null);
   const [loadingRequirementDetails, setLoadingRequirementDetails] = useState(false);
   
-  const activeRequirementId = activeTab !== 'normal' ? activeTab : null;
-  const isNormalChat = activeTab === 'normal';
+  const activeRequirementId = activeTab || null;
 
   const sentSoundRef = useRef<HTMLAudioElement | null>(null);
 
@@ -174,11 +171,6 @@ export default function ChatWindow({
   }, [conversationId, manufacturerId]);
 
   useEffect(() => {
-    if (defaultToNormal) {
-      setActiveTab('normal');
-      return;
-    }
-    
     if (requirement?.id) {
       setActiveTab(requirement.id);
       return;
@@ -186,7 +178,7 @@ export default function ChatWindow({
 
     if (requirementTabs.length > 0) {
       setActiveTab((current) => {
-        if (current !== 'normal' && requirementTabs.some((tab) => tab.id === current)) {
+        if (requirementTabs.some((tab) => tab.id === current)) {
           return current;
         }
         return requirementTabs[0].id;
@@ -194,8 +186,8 @@ export default function ChatWindow({
       return;
     }
 
-    setActiveTab('normal');
-  }, [requirement?.id, requirementTabs, defaultToNormal]);
+    setActiveTab('');
+  }, [requirement?.id, requirementTabs]);
 
   useEffect(() => {
     if (!activeRequirementId) {
@@ -216,30 +208,10 @@ export default function ChatWindow({
         if (cancelled || !mounted) return;
 
         if (res.success && res.data) {
-          try {
-            const responsesRes = await apiService.getRequirementResponses(requirementId);
-            let status: 'accepted' | 'submitted' | null = null;
-
-            if (responsesRes.success && Array.isArray(responsesRes.data)) {
-              const manufacturerResponse = responsesRes.data.find(
-                (resp: any) =>
-                  resp.manufacturer_id === manufacturerId &&
-                  (resp.status === 'accepted' || resp.status === 'submitted')
-              );
-
-              if (manufacturerResponse) {
-                status = manufacturerResponse.status === 'accepted' ? 'accepted' : 'submitted';
-              }
-            }
-
-            setActiveRequirementDetails({
-              ...res.data,
-              status
-            });
-          } catch (responsesErr) {
-            console.error('[ChatWindow] Failed to load requirement responses:', responsesErr);
-            setActiveRequirementDetails(res.data);
-          }
+          setActiveRequirementDetails({
+            ...res.data,
+            status: res.data.status || null
+          });
         } else {
           setActiveRequirementDetails(null);
         }
@@ -261,7 +233,7 @@ export default function ChatWindow({
       cancelled = true;
       mounted = false;
     };
-  }, [activeRequirementId, manufacturerId]);
+  }, [activeRequirementId]);
 
   useEffect(() => {
     setMessages([]);
@@ -285,9 +257,7 @@ export default function ChatWindow({
         setMessages([]);
         
         let res;
-        if (isNormalChat) {
-          res = await apiService.getNormalMessages(conversationId);
-        } else if (activeRequirementId) {
+        if (activeRequirementId) {
           res = await apiService.getMessagesForRequirement(conversationId, activeRequirementId);
         } else {
           if (!cancelled && mounted) setMessages([]);
@@ -311,7 +281,7 @@ export default function ChatWindow({
       cancelled = true;
       mounted = false;
     };
-  }, [conversationId, activeTab, isNormalChat, activeRequirementId]);
+  }, [conversationId, activeTab, activeRequirementId]);
 
   useEffect(() => {
     if (!conversationId || !socketRef.current?.connected || messages.length === 0) return;
@@ -341,9 +311,7 @@ export default function ChatWindow({
       const messageReqId = message.requirement_id ? String(message.requirement_id) : null;
       const activeReqId = activeRequirementId ? String(activeRequirementId) : null;
 
-      const isMessageForCurrentTab = isNormalChat 
-        ? messageReqId === null 
-        : messageReqId === activeReqId;
+      const isMessageForCurrentTab = messageReqId === activeReqId;
 
       if (!isMessageForCurrentTab) return;
 
@@ -373,7 +341,7 @@ export default function ChatWindow({
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [token, wsUrl, wsPath, conversationId, activeRequirementId, isNormalChat]);
+  }, [token, wsUrl, wsPath, conversationId, activeRequirementId]);
 
   function scrollToBottom() {
     requestAnimationFrame(() => {
@@ -402,6 +370,7 @@ export default function ChatWindow({
     const hasFiles = selectedFiles.length > 0;
 
     if ((!hasText && !hasFiles) || sending) return;
+    if (!activeRequirementId) return;
 
     const body = input.trim();
     const clientTempId = crypto.randomUUID();
@@ -428,7 +397,7 @@ export default function ChatWindow({
         body,
         created_at: new Date().toISOString(),
         attachments: uploadedAttachments,
-        requirement_id: isNormalChat ? null : activeRequirementId
+        requirement_id: activeRequirementId
       };
       setMessages((prev) => [...prev, optimistic]);
       scrollToBottom();
@@ -440,7 +409,7 @@ export default function ChatWindow({
         attachments: uploadedAttachments
       };
       
-      if (!isNormalChat && activeRequirementId) {
+      if (activeRequirementId) {
         payload.requirementId = activeRequirementId;
       }
 
@@ -524,43 +493,11 @@ export default function ChatWindow({
       <div className={headerClass}>
         <div className={titleClass}>{title || 'Chat'}</div>
         <div className="flex items-center gap-2">
-          {conversationId && (
-            <div className="flex items-center gap-1">
-              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-                <button
-                  onClick={() => setActiveTab('normal')}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
-                    isNormalChat
-                      ? 'bg-white text-[#22a2f2] shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                  title="Normal Chat"
-                >
-                  Normal
-                </button>
-                <button
-                  onClick={() => {
-                    if (requirementTabs.length > 0) {
-                      setActiveTab(requirementTabs[0].id);
-                    }
-                  }}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
-                    !isNormalChat
-                      ? 'bg-white text-[#22a2f2] shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                  title="Requirements"
-                >
-                  Requirements
-                </button>
-              </div>
-            </div>
-          )}
           <button onClick={onClose} className={closeClass}>✕</button>
         </div>
       </div>
 
-      {conversationId && !isNormalChat && (
+      {conversationId && (
         <div className="border-b border-gray-200 bg-white overflow-x-auto">
           <div className="flex items-center gap-3 px-4 py-2">
             <div className="flex gap-2 flex-1 min-w-0">
@@ -589,7 +526,7 @@ export default function ChatWindow({
         </div>
       )}
 
-      {activeRequirementId && !isNormalChat && (
+      {activeRequirementId && (
         <div className="border-b border-gray-200 bg-white px-4 py-2">
           {loadingRequirementDetails ? (
             <div className="text-xs text-gray-400 animate-pulse">Loading...</div>
@@ -602,12 +539,16 @@ export default function ChatWindow({
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                       activeRequirementDetails.status === 'accepted'
                         ? 'bg-green-100 text-green-700'
-                        : 'bg-yellow-100 text-yellow-700'
+                        : activeRequirementDetails.status === 'rejected'
+                          ? 'bg-red-100 text-red-700'
+                          : 'bg-yellow-100 text-yellow-700'
                     }`}>
                       {activeRequirementDetails.status === 'accepted'
                         ? 'Accepted'
-                        : activeRequirementDetails.status === 'submitted'
-                          ? 'Quote sent'
+                        : activeRequirementDetails.status === 'rejected'
+                          ? 'Rejected'
+                          : activeRequirementDetails.status === 'pending'
+                            ? 'Pending'
                           : '—'}
                     </span>
                   </div>
@@ -732,7 +673,7 @@ export default function ChatWindow({
           />
           <button
             onClick={() => fileInputRef.current?.click()}
-            disabled={sending || uploadingFiles}
+            disabled={sending || uploadingFiles || !activeRequirementId}
             className="p-2 text-gray-500 hover:text-gray-700 disabled:opacity-50 rounded-lg hover:bg-gray-100"
             title="Attach file"
           >
@@ -750,7 +691,13 @@ export default function ChatWindow({
                 handleSend();
               }
             }}
-            placeholder={uploadingFiles ? 'Uploading...' : 'Type a message'}
+            placeholder={
+              uploadingFiles
+                ? 'Uploading...'
+                : activeRequirementId
+                ? 'Type a message'
+                : 'Select a requirement to send messages'
+            }
             disabled={uploadingFiles}
             className={inline
               ? 'flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black disabled:opacity-50'
@@ -770,7 +717,7 @@ export default function ChatWindow({
           </a>
           <button
             onClick={handleSend}
-            disabled={sending || uploadingFiles || (!input.trim() && selectedFiles.length === 0)}
+            disabled={sending || uploadingFiles || !activeRequirementId || (!input.trim() && selectedFiles.length === 0)}
             className="px-3 py-2 bg-[#22a2f2] hover:bg-[#1b8bd0] disabled:opacity-50 text-white rounded-lg text-sm shadow-sm transition-colors"
           >
             {uploadingFiles ? 'Uploading...' : 'Send'}

@@ -18,20 +18,37 @@ export default function Overview({
   isLoadingData,
   lastUpdated
 }: OverviewProps) {
-  // Revenue is derived from accepted requirement responses.
-  const acceptedOrders = useMemo(
-    () => orders.filter((order) => order.status === 'accepted'),
-    [orders]
+  const revenueStatuses = useMemo(
+    () =>
+      new Set([
+        'accepted',
+        'in_production',
+        'milestone_1_pending',
+        'milestone_1_done',
+        'milestone_2_pending',
+        'milestone_2_done',
+        'cleared_to_ship',
+        'shipped',
+        'delivered',
+        'completed'
+      ]),
+    []
+  );
+
+  // Revenue is derived from all post-acceptance lifecycle responses.
+  const revenueOrders = useMemo(
+    () => orders.filter((order) => revenueStatuses.has(String(order.status || ''))),
+    [orders, revenueStatuses]
   );
 
   const totalRevenue = useMemo(() => {
-    return acceptedOrders.reduce((total, order) => total + (order.quoted_price || 0), 0);
-  }, [acceptedOrders]);
+    return revenueOrders.reduce((total, order) => total + (order.quoted_price || 0), 0);
+  }, [revenueOrders]);
 
   const averageOrderValue = useMemo(() => {
-    if (acceptedOrders.length === 0) return 0;
-    return totalRevenue / acceptedOrders.length;
-  }, [totalRevenue, acceptedOrders]);
+    if (revenueOrders.length === 0) return 0;
+    return totalRevenue / revenueOrders.length;
+  }, [totalRevenue, revenueOrders]);
 
   // Calculate top buyer based on number of requirements (not revenue since requirements don't have quoted_price)
   const topBuyer = useMemo(() => {
@@ -121,17 +138,22 @@ export default function Overview({
         name: existing.name !== 'Unknown Manufacturer' ? existing.name : manufacturerName,
         phone: existing.phone || manufacturerPhone,
         totalRevenue:
-          existing.totalRevenue + (order.status === 'accepted' ? order.quoted_price || 0 : 0),
-        acceptedCount: existing.acceptedCount + (order.status === 'accepted' ? 1 : 0),
+          existing.totalRevenue + (revenueStatuses.has(String(order.status || '')) ? order.quoted_price || 0 : 0),
+        acceptedCount: existing.acceptedCount + (revenueStatuses.has(String(order.status || '')) ? 1 : 0),
         totalOrdersCount: existing.totalOrdersCount + 1
       });
     });
 
-    // Find manufacturer with highest total revenue
+    // Find manufacturer with highest total revenue.
+    // Fallback to highest totalOrdersCount so we don't show N/A when revenue is 0.
     let top = { name: 'N/A', phone: '', total: 0, acceptedCount: 0, totalOrdersCount: 0 };
 
     manufacturerStats.forEach((stats) => {
-      if (stats.totalRevenue > top.total) {
+      const shouldReplace =
+        stats.totalRevenue > top.total ||
+        (stats.totalRevenue === top.total && stats.totalOrdersCount > top.totalOrdersCount);
+
+      if (shouldReplace) {
         top = {
           name: stats.name,
           phone: stats.phone,
@@ -143,7 +165,7 @@ export default function Overview({
     });
 
     return top;
-  }, [orders, manufacturers]);
+  }, [orders, manufacturers, revenueStatuses]);
 
   if (isLoadingData) {
     return null;

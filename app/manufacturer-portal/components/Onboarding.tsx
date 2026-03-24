@@ -23,9 +23,10 @@ export default function Onboarding({ phoneNumber, onComplete, toast }: Onboardin
     unitName: '',
     businessType: '',
     gstNumber: '',
+    panNumber: '',
+    msmeNumber: '',
     productTypes: [] as string[],
     capacity: '',
-    location: '',
     manufacturingUnitImage: null as File | null
   });
   
@@ -52,34 +53,26 @@ export default function Onboarding({ phoneNumber, onComplete, toast }: Onboardin
     setFormData(prev => ({ ...prev, [field]: file }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const getMissingRequiredFields = () => {
+    const missing: string[] = [];
+
+    if (!formData.unitName?.trim()) missing.push('Manufacturing Unit Name');
+    if (!formData.businessType?.trim()) missing.push('Business Type');
+    if (!formData.gstNumber?.trim()) missing.push('GST Number');
+    if (!formData.panNumber?.trim()) missing.push('PAN');
+    if (!Array.isArray(formData.productTypes) || formData.productTypes.length === 0) {
+      missing.push('Product Types');
+    }
+    if (!formData.capacity || Number(formData.capacity) <= 0) {
+      missing.push('Daily Manufacturing Capacity');
+    }
+
+    return missing;
+  };
+
+  const handleSubmit = async () => {
     // Only allow submission on the final step
-    if (currentStep !== totalSteps) {
-      // If not on final step, go to next step instead
-      nextStep();
-      return;
-    }
-    
-    // Validate required fields for all steps
-    if (!formData.unitName || !formData.businessType || !formData.gstNumber) {
-      toast.error('Please complete all required fields in Business Info section.');
-      setCurrentStep(1);
-      return;
-    }
-    
-    if (!formData.productTypes || formData.productTypes.length === 0) {
-      toast.error('Please select at least one product type.');
-      setCurrentStep(2);
-      return;
-    }
-    
-    if (!formData.capacity || parseInt(formData.capacity) <= 0) {
-      // Validation failed - stay on step 3, user needs to enter capacity
-      // Don't show alert as it interrupts the flow
-      return;
-    }
+    if (currentStep !== totalSteps) return;
     
     try {
       // Upload manufacturing unit image if provided
@@ -109,10 +102,11 @@ export default function Onboarding({ phoneNumber, onComplete, toast }: Onboardin
         unit_name: formData.unitName,
         business_type: formData.businessType,
         gst_number: formData.gstNumber,
+        pan_number: formData.panNumber,
+        msme_number: formData.msmeNumber?.trim() || undefined,
         product_types: formData.productTypes,
         capacity: parseInt(formData.capacity) || 0,
-        location: formData.location,
-        manufacturing_unit_image_url: manufacturingUnitImageUrl
+        manufacturing_unit_image_url: manufacturingUnitImageUrl || undefined
       };
       
       // Submit onboarding data to backend
@@ -129,15 +123,27 @@ export default function Onboarding({ phoneNumber, onComplete, toast }: Onboardin
       } else {
         throw new Error(response.message || 'Failed to submit onboarding');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to submit onboarding:', error);
-      toast.error('Failed to submit registration. Please try again.');
+
+      // Keep backend as source of truth, but provide a minimal user-friendly hint.
+      if (error?.message === 'Validation failed') {
+        const missingFields = getMissingRequiredFields();
+        if (missingFields.length > 0) {
+          toast.error(`Please fill mandatory field(s): ${missingFields.join(', ')}`);
+          return;
+        }
+      }
+
+      toast.error(error?.message || 'Failed to submit registration. Please try again.');
     }
   };
 
   // Step navigation functions
   const nextStep = () => {
-    if (currentStep < totalSteps) setCurrentStep(currentStep + 1);
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
+    }
   };
 
   const prevStep = () => {
@@ -261,7 +267,13 @@ export default function Onboarding({ phoneNumber, onComplete, toast }: Onboardin
             </div>
 
             {/* Form Content */}
-            <form onSubmit={handleSubmit} className="p-6 sm:p-8">
+            <form
+              onSubmit={(e) => {
+                // Prevent implicit form submit via Enter key while navigating steps.
+                e.preventDefault();
+              }}
+              className="p-6 sm:p-8"
+            >
               {/* Step 1: Business Info */}
               {currentStep === 1 && (
                 <div className="space-y-6 animate-fade-in-up">
@@ -330,18 +342,35 @@ export default function Onboarding({ phoneNumber, onComplete, toast }: Onboardin
                     </div>
                   </div>
 
-                  {/* Location */}
+                  {/* PAN */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Manufacturing Unit Location
+                      PAN <span className="text-[#22a2f2]">*</span>
                     </label>
                     <div className="relative group">
                       <div className="absolute inset-0 bg-gradient-to-r from-[#22a2f2] to-[#1b8bd0] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
                       <input
                         type="text"
-                        value={formData.location}
-                        onChange={(e) => handleInputChange('location', e.target.value)}
-                        placeholder="Enter complete address"
+                        value={formData.panNumber}
+                        onChange={(e) => handleInputChange('panNumber', e.target.value.toUpperCase())}
+                        placeholder="Enter PAN number"
+                        className="relative w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 transition-all outline-none text-black placeholder:text-gray-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* MSME Number */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      MSME Number
+                    </label>
+                    <div className="relative group">
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#22a2f2] to-[#1b8bd0] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                      <input
+                        type="text"
+                        value={formData.msmeNumber}
+                        onChange={(e) => handleInputChange('msmeNumber', e.target.value)}
+                        placeholder="Enter MSME number"
                         className="relative w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 transition-all outline-none text-black placeholder:text-gray-400"
                       />
                     </div>
@@ -493,44 +522,6 @@ export default function Onboarding({ phoneNumber, onComplete, toast }: Onboardin
                     </div>
                   </div>
 
-                  {/* Capacity Info Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                    <div className="p-4 rounded-xl bg-gradient-to-br from-[#22a2f2]/10 to-[#1b8bd0]/10 border border-[#22a2f2]/20">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-[#22a2f2] to-[#1b8bd0] flex items-center justify-center text-white">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                          </svg>
-                        </div>
-                        <span className="text-sm font-medium text-gray-700">Small Scale</span>
-                      </div>
-                      <p className="text-xs text-gray-600">100-500 units/day</p>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                          </svg>
-                        </div>
-                        <span className="text-sm font-medium text-gray-700">Medium Scale</span>
-                      </div>
-                      <p className="text-xs text-gray-600">500-2000 units/day</p>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center text-white">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                          </svg>
-                        </div>
-                        <span className="text-sm font-medium text-gray-700">Large Scale</span>
-                      </div>
-                      <p className="text-xs text-gray-600">2000+ units/day</p>
-                    </div>
-                  </div>
                 </div>
               )}
 
@@ -565,7 +556,8 @@ export default function Onboarding({ phoneNumber, onComplete, toast }: Onboardin
                   </button>
                 ) : (
                   <button
-                    type="submit"
+                    type="button"
+                    onClick={handleSubmit}
                     disabled={isUploadingImage}
                     className="ml-auto px-8 py-3 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition-colors flex items-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
                   >

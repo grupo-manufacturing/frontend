@@ -2,30 +2,23 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import apiService from '../../lib/apiService';
-import { useToast } from '../../components/Toast';
 
 interface Manufacturer {
   id: string;
   manufacturer_id?: string;
   unit_name?: string;
   business_type?: string;
-  location?: string;
-  daily_capacity?: number;
   product_types?: string[];
-}
-
-interface HomeTabProps {
-  onContactManufacturer: (manufacturer: Manufacturer) => Promise<void>;
+  gst_number?: string;
+  pan_number?: string;
 }
 
 const ITEMS_PER_PAGE = 6;
 
-export default function HomeTab({ onContactManufacturer }: HomeTabProps) {
-  const toast = useToast();
+export default function HomeTab() {
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
   const [isLoadingManufacturers, setIsLoadingManufacturers] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [contactingManufacturerId, setContactingManufacturerId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
   const totalPages = useMemo(() => Math.ceil(manufacturers.length / ITEMS_PER_PAGE), [manufacturers.length]);
@@ -68,18 +61,6 @@ export default function HomeTab({ onContactManufacturer }: HomeTabProps) {
   useEffect(() => {
     fetchManufacturers();
   }, []);
-
-  const handleContactManufacturer = async (manufacturer: Manufacturer) => {
-    setContactingManufacturerId(manufacturer.id);
-    try {
-      await onContactManufacturer(manufacturer);
-      toast.success('Opening chat with manufacturer...');
-    } catch (error: any) {
-      toast.error(error?.message || 'Unable to start chat. Please try again.');
-    } finally {
-      setContactingManufacturerId(null);
-    }
-  };
 
   return (
     <div>
@@ -132,14 +113,12 @@ export default function HomeTab({ onContactManufacturer }: HomeTabProps) {
                     <span className="font-medium">{manufacturer.business_type || 'Not specified'}</span>
                   </p>
                   <p className="text-gray-700">
-                    <span className="text-gray-500">Location:</span>{' '}
-                    <span className="font-medium">{manufacturer.location || 'Not specified'}</span>
+                    <span className="text-gray-500">GST No:</span>{' '}
+                    <span className="font-medium">{manufacturer.gst_number || 'Not specified'}</span>
                   </p>
                   <p className="text-gray-700">
-                    <span className="text-gray-500">Daily Capacity:</span>{' '}
-                    <span className="font-medium">
-                      {manufacturer.daily_capacity ? manufacturer.daily_capacity.toLocaleString() : 'Not specified'}
-                    </span>
+                    <span className="text-gray-500">PAN No:</span>{' '}
+                    <span className="font-medium">{manufacturer.pan_number || 'Not specified'}</span>
                   </p>
                 </div>
 
@@ -147,7 +126,7 @@ export default function HomeTab({ onContactManufacturer }: HomeTabProps) {
                   <div className="mt-4">
                     <p className="text-xs text-gray-500 mb-2">Product Types</p>
                     <div className="flex flex-wrap gap-1.5">
-                      {manufacturer.product_types.slice(0, 4).map((productType) => (
+                      {manufacturer.product_types.slice(0, 3).map((productType) => (
                         <span
                           key={`${manufacturer.id}-${productType}`}
                           className="px-2 py-0.5 rounded-full text-xs bg-[#22a2f2]/10 text-[#22a2f2] border border-[#22a2f2]/20"
@@ -155,26 +134,10 @@ export default function HomeTab({ onContactManufacturer }: HomeTabProps) {
                           {productType}
                         </span>
                       ))}
-                      {manufacturer.product_types.length > 4 && (
-                        <span className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">
-                          +{manufacturer.product_types.length - 4} more
-                        </span>
-                      )}
                     </div>
                   </div>
                 )}
 
-                <button
-                  onClick={() => handleContactManufacturer(manufacturer)}
-                  disabled={contactingManufacturerId === manufacturer.id}
-                  className={`mt-5 w-full px-4 py-2.5 rounded-lg font-semibold text-sm transition-all ${
-                    contactingManufacturerId === manufacturer.id
-                      ? 'bg-[#22a2f2]/60 text-white cursor-not-allowed'
-                      : 'bg-[#22a2f2] hover:bg-[#1b8bd0] text-white'
-                  }`}
-                >
-                  {contactingManufacturerId === manufacturer.id ? 'Opening Chat...' : 'Contact Manufacturer'}
-                </button>
               </div>
             ))}
           </div>

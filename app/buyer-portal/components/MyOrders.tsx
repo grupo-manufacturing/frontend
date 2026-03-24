@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import apiService from '../../lib/apiService';
+import { useState, useEffect, useMemo } from 'react';
 import { getBuyerRequirementDisplayStatus } from '../lib/requirementStatus';
 
 interface MyOrdersProps {
@@ -17,40 +16,29 @@ export default function MyOrders({
   fetchRequirements,
   onOpenChat 
 }: MyOrdersProps) {
-  // Requirements Stats
-  const [requirementStats, setRequirementStats] = useState({
-    total: 0,
-    accepted: 0,
-    pending: 0,
-    rejected: 0
-  });
-  const [isLoadingStats, setIsLoadingStats] = useState(false);
+  const requirementStats = useMemo(() => {
+    const stats = {
+      total: requirements.length,
+      accepted: 0,
+      pending: 0,
+      rejected: 0
+    };
+
+    requirements.forEach((req: any) => {
+      const status = getBuyerRequirementDisplayStatus(req);
+      stats[status] += 1;
+    });
+
+    return stats;
+  }, [requirements]);
   
   // Search and Filter
   const [orderSearchQuery, setOrderSearchQuery] = useState('');
   const [orderFilter, setOrderFilter] = useState('all');
   const [isOrderFilterDropdownOpen, setIsOrderFilterDropdownOpen] = useState(false);
 
-  // Fetch requirement statistics
-  const fetchRequirementStatistics = async () => {
-    setIsLoadingStats(true);
-    try {
-      const response = await apiService.getBuyerRequirementStatistics();
-      if (response && response.success && response.data) {
-        setRequirementStats(response.data);
-      } else {
-        console.error('Failed to fetch requirement statistics');
-      }
-    } catch (error) {
-      console.error('Failed to fetch requirement statistics:', error);
-    } finally {
-      setIsLoadingStats(false);
-    }
-  };
-
-  // Fetch data when component mounts or filter changes
+  // Fetch latest requirements when filter changes
   useEffect(() => {
-    fetchRequirementStatistics();
     fetchRequirements();
   }, [orderFilter]);
 
@@ -79,7 +67,7 @@ export default function MyOrders({
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[#22a2f2] font-semibold mb-1">Total Requirements</p>
-                    <p className="text-3xl font-bold text-black">{isLoadingStats ? '...' : requirementStats.total}</p>
+                    <p className="text-3xl font-bold text-black">{isLoadingRequirements ? '...' : requirementStats.total}</p>
                   </div>
                   <div className="p-3 bg-[#22a2f2]/15 rounded-xl shadow-lg shadow-[#22a2f2]/20 text-[#22a2f2]">
                     <svg
@@ -107,7 +95,7 @@ export default function MyOrders({
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[#1b8bd0] font-semibold mb-1">Accepted</p>
-                    <p className="text-3xl font-bold text-[#22a2f2]">{isLoadingStats ? '...' : requirementStats.accepted}</p>
+                    <p className="text-3xl font-bold text-[#22a2f2]">{isLoadingRequirements ? '...' : requirementStats.accepted}</p>
                   </div>
                   <div className="p-3 bg-[#22a2f2]/15 rounded-xl shadow-lg shadow-[#22a2f2]/20 text-[#22a2f2]">
                     <svg
@@ -135,7 +123,7 @@ export default function MyOrders({
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[#1b8bd0] font-semibold mb-1">Pending</p>
-                    <p className="text-3xl font-bold text-[#22a2f2]">{isLoadingStats ? '...' : requirementStats.pending}</p>
+                    <p className="text-3xl font-bold text-[#22a2f2]">{isLoadingRequirements ? '...' : requirementStats.pending}</p>
                   </div>
                   <div className="p-3 bg-[#22a2f2]/15 rounded-xl shadow-lg shadow-[#22a2f2]/20 text-[#22a2f2]">
                     <svg
@@ -163,7 +151,7 @@ export default function MyOrders({
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[#1b8bd0] font-semibold mb-1">Rejected</p>
-                    <p className="text-3xl font-bold text-[#22a2f2]">{isLoadingStats ? '...' : requirementStats.rejected}</p>
+                    <p className="text-3xl font-bold text-[#22a2f2]">{isLoadingRequirements ? '...' : requirementStats.rejected}</p>
                   </div>
                   <div className="p-3 bg-[#22a2f2]/15 rounded-xl shadow-lg shadow-[#22a2f2]/20 text-[#22a2f2]">
                     <svg

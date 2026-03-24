@@ -11,6 +11,22 @@ interface RequirementsTabProps {
   onQuoteSubmitted?: (requirement: any) => void;
 }
 
+// Status configurations for display
+const STATUS_CONFIGS: Record<string, { label: string; color: string; showMarkSampleReady?: boolean; showM2Action?: boolean }> = {
+  submitted: { label: 'Quote sent', color: 'bg-blue-100 text-blue-700' },
+  accepted: { label: 'Accepted', color: 'bg-green-100 text-green-700' },
+  rejected: { label: 'Rejected', color: 'bg-red-100 text-red-700' },
+  in_production: { label: 'In Production', color: 'bg-purple-100 text-purple-700', showMarkSampleReady: true },
+  milestone_1_pending: { label: 'M1 Pending Approval', color: 'bg-amber-100 text-amber-700' },
+  milestone_1_done: { label: 'M1 Approved', color: 'bg-emerald-100 text-emerald-700' },
+  milestone_2_pending: { label: 'M2 Pending Approval', color: 'bg-amber-100 text-amber-700' },
+  milestone_2_done: { label: 'M2 Approved', color: 'bg-emerald-100 text-emerald-700' },
+  cleared_to_ship: { label: 'Ready to Ship', color: 'bg-cyan-100 text-cyan-700' },
+  shipped: { label: 'Shipped', color: 'bg-indigo-100 text-indigo-700' },
+  delivered: { label: 'Delivered', color: 'bg-green-100 text-green-700' },
+  completed: { label: 'Completed', color: 'bg-green-100 text-green-700' }
+};
+
 export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabProps) {
   const toast = useToast();
   const [requirements, setRequirements] = useState<any[]>([]);
@@ -24,6 +40,8 @@ export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabPro
     notes: ''
   });
   const [isSubmittingResponse, setIsSubmittingResponse] = useState(false);
+  const [markingMilestoneForId, setMarkingMilestoneForId] = useState<string | null>(null);
+  const [shippingOrderId, setShippingOrderId] = useState<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
   
   // Get token and WS URL for socket connection
@@ -200,6 +218,121 @@ export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabPro
       });
     });
 
+    // Listen for payment verified (status becomes in_production)
+    socket.on('payment:verified', (data: any) => {
+      if (!data.response_id) return;
+      
+      setRequirements((prevRequirements) => {
+        return prevRequirements.map((req) => {
+          if (req.myResponse && req.myResponse.id === data.response_id) {
+            return {
+              ...req,
+              myResponse: {
+                ...req.myResponse,
+                status: data.response_status || 'in_production'
+              }
+            };
+          }
+          return req;
+        });
+      });
+    });
+
+    // Listen for milestone approval (buyer approved, awaiting payout)
+    socket.on('milestone:approved', (data: any) => {
+      if (!data.responseId) return;
+      
+      setRequirements((prevRequirements) => {
+        return prevRequirements.map((req) => {
+          if (req.myResponse && req.myResponse.id === data.responseId) {
+            return {
+              ...req,
+              myResponse: {
+                ...req.myResponse,
+                status: data.status
+              }
+            };
+          }
+          return req;
+        });
+      });
+      
+      toast.success(`${data.milestone?.toUpperCase() || 'Milestone'} approved by buyer! Payout will be processed soon.`);
+    });
+
+    // Listen for milestone payout completed
+    socket.on('milestone:payout_completed', (data: any) => {
+      if (!data.responseId) return;
+      
+      setRequirements((prevRequirements) => {
+        return prevRequirements.map((req) => {
+          if (req.myResponse && req.myResponse.id === data.responseId) {
+            return {
+              ...req,
+              myResponse: {
+                ...req.myResponse,
+                // After M1 payout, status stays milestone_1_done but m1_paid_at is set
+                // The UI will check this to show "Start M2" button
+                m1_paid_at: data.milestone === 'm1' ? new Date().toISOString() : req.myResponse.m1_paid_at,
+                m2_paid_at: data.milestone === 'm2' ? new Date().toISOString() : req.myResponse.m2_paid_at
+              }
+            };
+          }
+          return req;
+        });
+      });
+      
+      const amount = data.payoutAmount ? `₹${Number(data.payoutAmount).toLocaleString('en-IN')}` : 'Payout';
+      toast.success(`${amount} transferred for ${data.milestone?.toUpperCase() || 'milestone'}!`);
+    });
+
+    // Listen for order delivered (buyer confirmed delivery)
+    socket.on('order:delivered', (data: any) => {
+      if (!data.responseId) return;
+      
+      setRequirements((prevRequirements) => {
+        return prevRequirements.map((req) => {
+          if (req.myResponse && req.myResponse.id === data.responseId) {
+            return {
+              ...req,
+              myResponse: {
+                ...req.myResponse,
+                status: 'delivered',
+                delivered_at: data.delivered_at || new Date().toISOString()
+              }
+            };
+          }
+          return req;
+        });
+      });
+      
+      toast.success('Buyer confirmed delivery! Final payout will be processed soon.');
+    });
+
+    // Listen for order completed (final payout done)
+    socket.on('order:completed', (data: any) => {
+      if (!data.responseId) return;
+      
+      setRequirements((prevRequirements) => {
+        return prevRequirements.map((req) => {
+          if (req.myResponse && req.myResponse.id === data.responseId) {
+            return {
+              ...req,
+              myResponse: {
+                ...req.myResponse,
+                status: 'completed',
+                final_paid_at: new Date().toISOString()
+              }
+            };
+          }
+          return req;
+        });
+      });
+      
+      const amount = data.payoutAmount ? `₹${Number(data.payoutAmount).toLocaleString('en-IN')}` : 'Final payout';
+      toast.success(`${amount} transferred! Order completed successfully.`);
+    });
+
     return () => {
       socket.disconnect();
       socketRef.current = null;
@@ -316,6 +449,81 @@ export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabPro
     }
   };
 
+  // Handle marking milestone as complete
+  const handleMarkMilestoneComplete = async (responseId: string, milestone: 'm1' | 'm2') => {
+    playClickSound();
+    setMarkingMilestoneForId(responseId);
+    
+    try {
+      const result = await apiService.markMilestoneComplete(responseId, milestone);
+      
+      if (result.success) {
+        toast.success(milestone === 'm1' 
+          ? 'Sample marked as ready! Buyer will be notified to review.' 
+          : 'M2 marked as complete! Buyer will be notified to review.');
+        
+        // Update local state
+        setRequirements((prevRequirements) => {
+          return prevRequirements.map((req) => {
+            if (req.myResponse && req.myResponse.id === responseId) {
+              return {
+                ...req,
+                myResponse: {
+                  ...req.myResponse,
+                  status: milestone === 'm1' ? 'milestone_1_pending' : 'milestone_2_pending'
+                }
+              };
+            }
+            return req;
+          });
+        });
+      } else {
+        toast.error(result.message || 'Failed to mark milestone. Please try again.');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to mark milestone. Please try again.');
+    } finally {
+      setMarkingMilestoneForId(null);
+    }
+  };
+
+  // Handle marking order as shipped
+  const handleMarkAsShipped = async (responseId: string) => {
+    playClickSound();
+    setShippingOrderId(responseId);
+    
+    try {
+      const result = await apiService.markAsShipped(responseId);
+      
+      if (result.success) {
+        toast.success('Order marked as shipped! Buyer has been notified.');
+        
+        // Update local state
+        setRequirements((prevRequirements) => {
+          return prevRequirements.map((req) => {
+            if (req.myResponse && req.myResponse.id === responseId) {
+              return {
+                ...req,
+                myResponse: {
+                  ...req.myResponse,
+                  status: 'shipped',
+                  shipped_at: new Date().toISOString()
+                }
+              };
+            }
+            return req;
+          });
+        });
+      } else {
+        toast.error(result.message || 'Failed to mark as shipped. Please try again.');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to mark as shipped. Please try again.');
+    } finally {
+      setShippingOrderId(null);
+    }
+  };
+
   // Format requirement text - capitalize first letter, fix common typos
   const formatText = (text: string) => {
     if (!text) return '';
@@ -338,25 +546,24 @@ export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabPro
   const getStatusTag = (req: any) => {
     const rfqStatus = (req.status || '').toLowerCase().trim();
     if (!req.hasResponse && rfqStatus === 'rejected') {
-      return { label: 'Rejected', color: 'bg-red-100 text-red-700' };
+      return { label: 'Rejected', color: 'bg-red-100 text-red-700', showMarkSampleReady: false };
     }
     if (req.hasResponse && req.myResponse) {
       const status = (req.myResponse.status || req.myResponse.response_status || '').toLowerCase().trim();
       
-      if (status === 'rejected') {
-        return { label: 'Rejected', color: 'bg-red-100 text-red-700' };
+      // Check if we have a config for this status
+      const config = STATUS_CONFIGS[status];
+      if (config) {
+        return config;
       }
-      if (status === 'accepted') {
-        return { label: 'Accepted', color: 'bg-green-100 text-green-700' };
-      }
-      if (status === 'submitted') {
-        return { label: 'Quote sent', color: 'bg-blue-100 text-blue-700' };
-      }
+      
+      // Fallback for unknown statuses
       if (status) {
-        return { label: status.charAt(0).toUpperCase() + status.slice(1), color: 'bg-gray-100 text-gray-700' };
+        const label = status.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+        return { label, color: 'bg-gray-100 text-gray-700', showMarkSampleReady: false };
       }
     }
-    return { label: 'Pending', color: 'bg-yellow-100 text-yellow-700' };
+    return { label: 'Pending', color: 'bg-yellow-100 text-yellow-700', showMarkSampleReady: false };
   };
 
   return (
@@ -456,6 +663,176 @@ export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabPro
                 <div className="mt-auto">
                   {req.hasResponse ? (
                     (() => {
+                      const status = req.myResponse?.status || '';
+                      const isMarkingMilestone = markingMilestoneForId === req.myResponse?.id;
+                      const m1PaidAt = req.myResponse?.m1_paid_at;
+                      
+                      // Show "Mark Sample Ready" for in_production status
+                      if (status === 'in_production') {
+                        return (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMarkMilestoneComplete(req.myResponse.id, 'm1');
+                            }}
+                            disabled={isMarkingMilestone}
+                            className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white px-4 py-2.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                          >
+                            {isMarkingMilestone ? (
+                              <>
+                                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span>Marking...</span>
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Mark Sample Ready</span>
+                              </>
+                            )}
+                          </button>
+                        );
+                      }
+                      
+                      // Show "Start M2 Process" after M1 is paid
+                      if (status === 'milestone_1_done' && m1PaidAt) {
+                        return (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMarkMilestoneComplete(req.myResponse.id, 'm2');
+                            }}
+                            disabled={isMarkingMilestone}
+                            className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white px-4 py-2.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                          >
+                            {isMarkingMilestone ? (
+                              <>
+                                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span>Marking...</span>
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                <span>Mark M2 Complete</span>
+                              </>
+                            )}
+                          </button>
+                        );
+                      }
+                      
+                      // Show "Awaiting M1 Payout" when M1 is done but not yet paid
+                      if (status === 'milestone_1_done' && !m1PaidAt) {
+                        return (
+                          <div className="w-full bg-amber-50 border border-amber-200 text-amber-700 px-4 py-2.5 text-xs font-semibold rounded-lg flex items-center justify-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Awaiting M1 Payout</span>
+                          </div>
+                        );
+                      }
+                      
+                      // Show status-specific messages for other states
+                      if (status === 'milestone_1_pending') {
+                        return (
+                          <div className="w-full bg-amber-50 border border-amber-200 text-amber-700 px-4 py-2.5 text-xs font-semibold rounded-lg flex items-center justify-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Awaiting Buyer Approval</span>
+                          </div>
+                        );
+                      }
+                      
+                      if (status === 'milestone_2_pending') {
+                        return (
+                          <div className="w-full bg-amber-50 border border-amber-200 text-amber-700 px-4 py-2.5 text-xs font-semibold rounded-lg flex items-center justify-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>M2 Awaiting Approval</span>
+                          </div>
+                        );
+                      }
+                      
+                      // Show M2 done, awaiting final payment
+                      if (status === 'milestone_2_done') {
+                        return (
+                          <div className="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-2.5 text-xs font-semibold rounded-lg flex items-center justify-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Awaiting Final Payment</span>
+                          </div>
+                        );
+                      }
+                      
+                      // Show "Mark as Shipped" for cleared_to_ship status
+                      if (status === 'cleared_to_ship') {
+                        const isShipping = shippingOrderId === req.myResponse?.id;
+                        return (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMarkAsShipped(req.myResponse.id);
+                            }}
+                            disabled={isShipping}
+                            className="w-full bg-cyan-600 hover:bg-cyan-700 disabled:bg-cyan-400 text-white px-4 py-2.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                          >
+                            {isShipping ? (
+                              <>
+                                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span>Shipping...</span>
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                                </svg>
+                                <span>Mark as Shipped</span>
+                              </>
+                            )}
+                          </button>
+                        );
+                      }
+                      
+                      // Show shipped status
+                      if (status === 'shipped') {
+                        return (
+                          <div className="w-full bg-indigo-50 border border-indigo-200 text-indigo-700 px-4 py-2.5 text-xs font-semibold rounded-lg flex items-center justify-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Shipped - Awaiting Delivery</span>
+                          </div>
+                        );
+                      }
+                      
+                      // Show delivered/completed status
+                      if (status === 'delivered' || status === 'completed') {
+                        return (
+                          <div className="w-full bg-green-50 border border-green-200 text-green-700 px-4 py-2.5 text-xs font-semibold rounded-lg flex items-center justify-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>{status === 'completed' ? 'Order Completed' : 'Delivered'}</span>
+                          </div>
+                        );
+                      }
+                      
+                      // Default: Quote Submitted
                       return (
                         <div className="w-full bg-gray-50 border border-gray-200 text-gray-600 px-4 py-2.5 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 cursor-not-allowed">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

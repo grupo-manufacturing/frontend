@@ -19,7 +19,7 @@ export default function ManufacturerPortal() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [step, setStep] = useState<'phone' | 'otp' | 'onboarding' | 'dashboard'>('phone');
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  
+
   // On initial load, if a token exists, persist state across refresh
   useEffect(() => {
     const checkAuth = async () => {
@@ -29,14 +29,18 @@ export default function ManufacturerPortal() {
             // Verify token is still valid by attempting to get profile
             const response = await apiService.getManufacturerProfile();
             if (response && response.success) {
-              setStep('dashboard');
+              const profile = response?.data?.profile;
+              const complete = Boolean(profile?.onboarding_complete);
+              setStep(complete ? 'dashboard' : 'onboarding');
               
-              // Restore active tab from localStorage
+              // Restore active tab from localStorage only for dashboard users
+              if (complete) {
                 const storedTab = localStorage.getItem('manufacturer_active_tab');
                 if (storedTab && ['chats', 'requirements', 'analytics', 'profile'].includes(storedTab)) {
                   // Restore the saved tab (this will override the initializer if needed)
                   setActiveTab(storedTab as TabType);
                 }
+              }
                 // Note: We don't check chat state here anymore to avoid overriding the saved tab
                 // The chat state restoration is handled by the ChatsTab component itself
             }
@@ -257,8 +261,21 @@ export default function ManufacturerPortal() {
     }
   };
 
-  const handleOnboardingComplete = () => {
+  const handleOnboardingComplete = async () => {
+    try {
+      const response = await apiService.getManufacturerProfile();
+      const complete = Boolean(response?.data?.profile?.onboarding_complete);
+
+      if (complete) {
         setStep('dashboard');
+      } else {
+        setStep('onboarding');
+        toast.error('Please complete all mandatory onboarding fields to continue.');
+      }
+    } catch {
+      setStep('onboarding');
+      toast.error('Unable to verify onboarding completion. Please try again.');
+    }
   };
 
   // Onboarding View

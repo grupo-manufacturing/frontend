@@ -71,7 +71,7 @@ class RequirementService {
   }
 
   /**
-   * Get requirements with submitted or accepted quotes for a conversation (chat requirement tabs)
+   * Get all requirements for a conversation (chat requirement tabs, no status filter)
    * @param {string} conversationId - Conversation ID
    * @returns {Promise} Response data
    */

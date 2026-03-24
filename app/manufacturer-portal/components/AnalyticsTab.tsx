@@ -18,6 +18,19 @@ export default function AnalyticsTab() {
   });
   const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
 
+  const acceptedLifecycleStatuses = new Set([
+    'accepted',
+    'in_production',
+    'milestone_1_pending',
+    'milestone_1_done',
+    'milestone_2_pending',
+    'milestone_2_done',
+    'cleared_to_ship',
+    'shipped',
+    'delivered',
+    'completed'
+  ]);
+
   // Fetch Analytics Data
   const fetchAnalytics = async () => {
     setIsLoadingAnalytics(true);
@@ -36,7 +49,7 @@ export default function AnalyticsTab() {
       const allRequirements = requirementsResponse.success && requirementsResponse.data ? requirementsResponse.data : [];
 
       // Fetch manufacturer's requirement responses
-      const myResponsesResult = await apiService.getMyRequirementResponses();
+      const myResponsesResult = await apiService.getMyRequirementResponses({ limit: 100 });
       const myResponses = myResponsesResult.success ? myResponsesResult.data : [];
 
       // Create a map of requirement_id to response
@@ -62,7 +75,7 @@ export default function AnalyticsTab() {
           const status = (response.status || response.response_status || '').toLowerCase().trim();
           const quotedPrice = parseFloat(response.quoted_price) || 0;
 
-          if (status === 'accepted') {
+          if (acceptedLifecycleStatuses.has(status)) {
             totalRevenue += quotedPrice;
             acceptedCount++;
           } else if (status === 'rejected') {

@@ -68,6 +68,55 @@ class AdminService {
   async getPendingOrders(filters = {}) {
     return this.getOrders({ ...filters, status: 'submitted' });
   }
+
+  // =============================================
+  // PAYMENT VERIFICATION METHODS
+  // =============================================
+
+  /**
+   * Get all payments pending verification (Admin only)
+   * @param {Object} options - Optional pagination (limit, offset)
+   * @returns {Promise} Response data with pending payments
+   */
+  async getPendingPayments(options = {}) {
+    const queryParams = new URLSearchParams();
+    if (options.limit) queryParams.append('limit', options.limit);
+    if (options.offset) queryParams.append('offset', options.offset);
+
+    const queryString = queryParams.toString();
+    const endpoint = `/payments/admin/pending${queryString ? `?${queryString}` : ''}`;
+    
+    return apiClient.request(endpoint, {
+      method: 'GET'
+    });
+  }
+
+  /**
+   * Verify or reject a payment (Admin only)
+   * @param {string} paymentId - Payment ID
+   * @param {boolean} approved - Whether to approve (true) or reject (false)
+   * @param {string} notes - Optional notes
+   * @returns {Promise} Response data
+   */
+  async verifyPayment(paymentId, approved, notes = null) {
+    return apiClient.request(`/payments/verify/${paymentId}`, {
+      method: 'POST',
+      body: JSON.stringify({ approved, notes })
+    });
+  }
+
+  /**
+   * Refund a payment (Admin only)
+   * @param {string} paymentId - Payment ID
+   * @param {string} reason - Refund reason
+   * @returns {Promise} Response data
+   */
+  async refundPayment(paymentId, reason) {
+    return apiClient.request(`/payments/refund/${paymentId}`, {
+      method: 'POST',
+      body: JSON.stringify({ reason })
+    });
+  }
 }
 
 // Create singleton instance

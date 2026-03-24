@@ -3,21 +3,25 @@
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import apiService from '../lib/apiService';
-import type { Buyer, Manufacturer, Order } from './types';
+import type { Buyer, Manufacturer, Order, Payment } from './types';
 import { formatDate } from './utils';
 import Overview from './components/Overview';
 import Users from './components/Users';
 import Orders from './components/Orders';
+import PaymentVerification from './components/PaymentVerification';
+import MilestonePayouts from './components/MilestonePayouts';
 import Login from './components/Login';
 import { useToast } from '../components/Toast';
 
 type AdminStep = 'login' | 'dashboard';
-type AdminView = 'overview' | 'users' | 'orders';
+type AdminView = 'overview' | 'users' | 'orders' | 'payments' | 'milestones';
 
 const VIEW_TABS: Array<{ id: AdminView; label: string; description: string }> = [
   { id: 'overview', label: 'Overview', description: 'Key metrics across buyers and manufacturers' },
   { id: 'users', label: 'Users', description: 'Manage buyers and manufacturers' },
-  { id: 'orders', label: 'Orders', description: 'View and filter all orders by status' }
+  { id: 'orders', label: 'Orders', description: 'View and filter all orders by status' },
+  { id: 'payments', label: 'Payments', description: 'Verify UTR and approve payments' },
+  { id: 'milestones', label: 'Milestones', description: 'Mark milestone payouts as transferred' }
 ];
 
 export default function AdminPortal() {
@@ -28,6 +32,8 @@ export default function AdminPortal() {
   const [buyers, setBuyers] = useState<Buyer[]>([]);
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [pendingPayments, setPendingPayments] = useState<Payment[]>([]);
+  const [pendingPayouts, setPendingPayouts] = useState<any[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
@@ -114,6 +120,12 @@ export default function AdminPortal() {
       if (activeView === 'orders') {
         void loadOrders();
       }
+      if (activeView === 'payments') {
+        void loadPendingPayments();
+      }
+      if (activeView === 'milestones') {
+        void loadPendingPayouts();
+      }
     }
   }, [activeView, step, isCheckingAuth]);
 
@@ -170,6 +182,75 @@ export default function AdminPortal() {
     }
   };
 
+  const loadPendingPayments = async () => {
+    setIsLoadingData(true);
+    setErrorMessage('');
+    try {
+      const paymentsRes = await apiService.getPendingPayments({ limit: 100 });
+      setPendingPayments(Array.isArray(paymentsRes.data) ? paymentsRes.data : []);
+      setLastUpdated(new Date().toISOString());
+    } catch (error: any) {
+      console.error('Failed to load pending payments:', error);
+      if (error?.message?.includes('Invalid admin token') || error?.message?.includes('Access denied') || error?.message?.includes('expired') || error?.message?.includes('session')) {
+        apiService.removeToken('admin');
+        setStep('login');
+        setErrorMessage('');
+      } else {
+        setErrorMessage('Unable to fetch pending payments. Please try again.');
+      }
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
+  const loadPendingPayouts = async () => {
+    setIsLoadingData(true);
+    setErrorMessage('');
+    try {
+      const payoutsRes = await apiService.getPendingPayouts();
+      setPendingPayouts(Array.isArray(payoutsRes.data) ? payoutsRes.data : []);
+      setLastUpdated(new Date().toISOString());
+    } catch (error: any) {
+      console.error('Failed to load pending payouts:', error);
+      if (error?.message?.includes('Invalid admin token') || error?.message?.includes('Access denied') || error?.message?.includes('expired') || error?.message?.includes('session')) {
+        apiService.removeToken('admin');
+        setStep('login');
+        setErrorMessage('');
+      } else {
+        setErrorMessage('Unable to fetch pending payouts. Please try again.');
+      }
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
+  const handleVerifyPayment = async (paymentId: string, approved: boolean, notes?: string) => {
+    try {
+      await apiService.verifyPayment(paymentId, approved, notes);
+      toast.success(approved ? 'Payment approved successfully!' : 'Payment rejected.');
+    } catch (error: any) {
+      console.error('Failed to verify payment:', error);
+      toast.error(error?.message || 'Failed to verify payment. Please try again.');
+      throw error;
+    }
+  };
+
+  const handleMarkMilestonePaid = async (responseId: string, milestone: 'm1' | 'm2' | 'final', transactionRef?: string) => {
+    try {
+      if (milestone === 'final') {
+        await apiService.markFinalPaid(responseId, transactionRef);
+        toast.success('Final payout marked as transferred! Order completed.');
+      } else {
+        await apiService.markMilestonePaid(responseId, milestone, transactionRef);
+        toast.success(`${milestone.toUpperCase()} payout marked as transferred!`);
+      }
+    } catch (error: any) {
+      console.error('Failed to mark milestone paid:', error);
+      toast.error(error?.message || 'Failed to mark payout. Please try again.');
+      throw error;
+    }
+  };
+
   const handleLoginSuccess = async () => {
     setStep('dashboard');
     await loadData();
@@ -193,6 +274,8 @@ export default function AdminPortal() {
   const isOverview = activeView === 'overview';
   const isUsersView = activeView === 'users';
   const isOrdersView = activeView === 'orders';
+  const isPaymentsView = activeView === 'payments';
+  const isMilestonesView = activeView === 'milestones';
 
   if (isCheckingAuth) {
     return (
@@ -272,6 +355,10 @@ export default function AdminPortal() {
             onClick={() => {
               if (activeView === 'orders') {
                 void loadOrders();
+              } else if (activeView === 'payments') {
+                void loadPendingPayments();
+              } else if (activeView === 'milestones') {
+                void loadPendingPayouts();
               } else {
                 void loadData();
               }
@@ -359,6 +446,26 @@ export default function AdminPortal() {
             lastUpdated={lastUpdated}
             onError={setErrorMessage}
             onReload={loadData}
+          />
+        )}
+
+        {!isLoadingData && isPaymentsView && (
+          <PaymentVerification
+            payments={pendingPayments}
+            isLoadingData={isLoadingData}
+            lastUpdated={lastUpdated}
+            onVerify={handleVerifyPayment}
+            onReload={loadPendingPayments}
+          />
+        )}
+
+        {!isLoadingData && isMilestonesView && (
+          <MilestonePayouts
+            payouts={pendingPayouts}
+            isLoadingData={isLoadingData}
+            lastUpdated={lastUpdated}
+            onMarkPaid={handleMarkMilestonePaid}
+            onReload={loadPendingPayouts}
           />
         )}
 

@@ -89,3 +89,47 @@ export type UserType = 'buyers' | 'manufacturers';
 export type OrderType = 'custom' | 'ai';
 export type OrderStatusFilter = 'all' | 'accepted' | 'rejected' | 'submitted';
 
+export type PaymentStatus = 'pending' | 'pending_verification' | 'paid' | 'failed' | 'refunded';
+
+export interface Payment {
+  id: string;
+  requirement_response_id: string;
+  buyer_id: string;
+  manufacturer_id: string;
+  payment_number: 1 | 2;
+  amount: number;
+  utr_number?: string;
+  status: PaymentStatus;
+  paid_at?: string;
+  verified_by?: string;
+  verified_at?: string;
+  refunded_at?: string;
+  refund_reason?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+  requirement_response?: {
+    id: string;
+    requirement_id: string;
+    quoted_price: number;
+    status: string;
+    requirement?: {
+      id: string;
+      requirement_no?: string;
+      product_type?: string;
+      quantity?: number;
+    };
+  };
+  buyer?: {
+    id: string;
+    full_name?: string;
+    phone_number?: string;
+    business_address?: string;
+  };
+  manufacturer?: {
+    id: string;
+    unit_name?: string;
+    phone_number?: string;
+  };
+}
+

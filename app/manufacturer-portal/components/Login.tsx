@@ -118,10 +118,19 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false, isLoggin
       apiService.setToken(response.data.token, 'manufacturer');
       localStorage.setItem('manufacturerPhoneNumber', phoneNumber);
       localStorage.setItem('user_role', 'manufacturer');
-      
-      // Always go to dashboard after successful login
-      toast.success('Login successful! Welcome back.');
-      onLoginSuccess('dashboard');
+
+      // Enforce onboarding completion before dashboard access
+      const profileResponse = await apiService.getManufacturerProfile();
+      const profile = profileResponse?.data?.profile;
+      const complete = Boolean(profile?.onboarding_complete);
+
+      if (complete) {
+        toast.success('Login successful! Welcome back.');
+        onLoginSuccess('dashboard');
+      } else {
+        toast.info('Please complete onboarding to continue to your dashboard.');
+        onLoginSuccess('onboarding');
+      }
     } catch (error: any) {
       const errorMessage = error.message || 'Invalid OTP. Please try again.';
       
