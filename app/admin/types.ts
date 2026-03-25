@@ -28,8 +28,7 @@ export interface Order {
   requirement_text: string;
   quantity?: number;
   product_type?: string;
-  image_url?: string | null;
-  status?: 'submitted' | 'accepted' | 'rejected';
+  status?: 'pending' | 'accepted' | 'rejected' | 'submitted';
   quoted_price?: number;
   buyer_id: string;
   buyer?: {

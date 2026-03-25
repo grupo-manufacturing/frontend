@@ -393,39 +393,6 @@ export default function ManufacturerPortal() {
         <nav className="sticky top-20 z-40 bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center space-x-1 overflow-x-auto">
-              {/* Chats Tab */}
-              <button
-                onClick={() => setActiveTab('chats')}
-                className={`relative flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all ${
-                  activeTab === 'chats'
-                    ? 'text-[#22a2f2]'
-                    : 'text-gray-500 hover:text-[#22a2f2]'
-                }`}
-              >
-                {activeTab === 'chats' && (
-                  <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-t-lg border-b-2 border-[#22a2f2]"></div>
-                )}
-                <svg
-                  className="relative z-10 w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                  />
-                </svg>
-                <span className="relative z-10">Chats</span>
-                {activeTab !== 'chats' && unreadMessagesCount > 0 && (
-                  <span className="absolute -top-1 right-1 inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-[#22a2f2] text-white text-[10px] font-semibold px-1">
-                    {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
-                  </span>
-                )}
-              </button>
-
               {/* Requirements Tab */}
               <button
                 onClick={() => setActiveTab('requirements')}
@@ -455,6 +422,39 @@ export default function ManufacturerPortal() {
                 {activeTab !== 'requirements' && unseenRequirementsCount > 0 && (
                   <span className="absolute -top-1 right-1 inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-[#22a2f2] text-white text-[10px] font-semibold px-1">
                     {unseenRequirementsCount > 99 ? '99+' : unseenRequirementsCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Chats Tab */}
+              <button
+                onClick={() => setActiveTab('chats')}
+                className={`relative flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all ${
+                  activeTab === 'chats'
+                    ? 'text-[#22a2f2]'
+                    : 'text-gray-500 hover:text-[#22a2f2]'
+                }`}
+              >
+                {activeTab === 'chats' && (
+                  <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-t-lg border-b-2 border-[#22a2f2]"></div>
+                )}
+                <svg
+                  className="relative z-10 w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                  />
+                </svg>
+                <span className="relative z-10">Chats</span>
+                {activeTab !== 'chats' && unreadMessagesCount > 0 && (
+                  <span className="absolute -top-1 right-1 inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-[#22a2f2] text-white text-[10px] font-semibold px-1">
+                    {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
                   </span>
                 )}
               </button>

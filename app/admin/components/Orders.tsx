@@ -117,6 +117,9 @@ export default function Orders({
                 Requirement ID
               </th>
               <th scope="col" className="px-4 py-3 text-left font-semibold">
+                Status
+              </th>
+              <th scope="col" className="px-4 py-3 text-left font-semibold">
                 Buyer
               </th>
               <th scope="col" className="px-4 py-3 text-left font-semibold">
@@ -127,9 +130,6 @@ export default function Orders({
               </th>
               <th scope="col" className="px-4 py-3 text-left font-semibold">
                 Additional Notes
-              </th>
-              <th scope="col" className="px-4 py-3 text-left font-semibold">
-                Product Image
               </th>
               <th scope="col" className="px-4 py-3 text-left font-semibold">
                 Date
@@ -150,6 +150,27 @@ export default function Orders({
                     {requirement.requirement_no ? (
                       <span className="inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold bg-[#22a2f2]/10 text-[#22a2f2] border border-[#22a2f2]/20">
                         {requirement.requirement_no}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    {requirement.status ? (
+                      <span
+                        className={[
+                          'inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold border',
+                          requirement.status === 'accepted'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : requirement.status === 'rejected'
+                            ? 'bg-red-50 text-red-700 border-red-200'
+                            : requirement.status === 'pending'
+                            ? 'bg-amber-50 text-amber-800 border-amber-200'
+                            : 'bg-slate-50 text-slate-600 border-slate-200'
+                        ].join(' ')
+                      }
+                      >
+                        {requirement.status.charAt(0).toUpperCase() + requirement.status.slice(1)}
                       </span>
                     ) : (
                       <span className="text-slate-400">—</span>
@@ -177,24 +198,6 @@ export default function Orders({
                     <div className="text-xs text-slate-500 max-w-xs truncate">
                       {requirement.requirement_text || '—'}
                     </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    {requirement.image_url ? (
-                      <a
-                        href={requirement.image_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs font-medium text-[#22a2f2] hover:underline"
-                      >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 3h7m0 0v7m0-7L10 14" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5v14h14v-5" />
-                        </svg>
-                        Open File
-                      </a>
-                    ) : (
-                      <span className="text-xs text-slate-400">—</span>
-                    )}
                   </td>
                   <td className="px-4 py-3 text-xs text-slate-500">
                     {formatDate(requirement.updated_at || requirement.created_at)}
