@@ -297,13 +297,12 @@ export default function MyOrders({
               <div className="bg-white rounded-xl border border-[#22a2f2]/30 overflow-hidden">
                 {/* Table Header */}
                 <div className="bg-gray-50 border-b border-gray-200 px-6 py-3">
-                  <div className="grid grid-cols-12 gap-4 text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                    <div className="col-span-5">Requirement</div>
-                    <div className="col-span-2">Type</div>
-                    <div className="col-span-1">Quantity</div>
-                    <div className="col-span-2">Status</div>
-                    <div className="col-span-2">Delivery</div>
-                  </div>
+                <div className="grid grid-cols-12 gap-4 items-center w-full text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                  <div className="col-span-5">Requirement</div>
+                  <div className="col-span-2">Type</div>
+                  <div className="col-span-1">Quantity</div>
+                  <div className="col-span-4 flex items-center justify-center">Status</div>
+                </div>
                 </div>
                 
                 {/* Table Body */}
@@ -320,11 +319,6 @@ export default function MyOrders({
                       pending: 'Pending',
                       rejected: 'Rejected'
                     };
-                    
-                    // Get best quote
-                    const acceptedResponse = req.responses?.find((r: any) => r.status === 'accepted');
-                    const submittedResponse = req.responses?.find((r: any) => r.status === 'submitted');
-                    const bestResponse = acceptedResponse || submittedResponse || req.responses?.[0];
                     
                     return (
                       <div key={req.id} className="px-6 py-4 hover:bg-gray-50 transition-colors">
@@ -358,21 +352,10 @@ export default function MyOrders({
                           </div>
                           
                           {/* Status */}
-                          <div className="col-span-2">
+                          <div className="col-span-4 flex items-center justify-center">
                             <span className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${statusColors[status]}`}>
                               {statusLabels[status]}
                             </span>
-                          </div>
-                          
-                          {/* Delivery */}
-                          <div className="col-span-2">
-                            {bestResponse?.delivery_time ? (
-                              <p className="text-sm text-gray-600">
-                                {bestResponse.delivery_time}
-                              </p>
-                            ) : (
-                              <p className="text-sm text-gray-400">—</p>
-                            )}
                           </div>
                         </div>
                       </div>

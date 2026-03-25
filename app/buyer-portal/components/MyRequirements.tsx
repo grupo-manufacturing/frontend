@@ -416,8 +416,8 @@ export default function MyRequirements({
                                 {response.manufacturer?.unit_name || 'Manufacturer'}
                               </p>
                               {response.status === 'submitted' && (
-                                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
-                                  Quote received — chat open
+                                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
+                                  Submitted
                                 </span>
                               )}
                               {isPendingVerification && (

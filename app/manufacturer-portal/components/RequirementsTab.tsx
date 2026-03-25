@@ -13,7 +13,7 @@ interface RequirementsTabProps {
 
 // Status configurations for display
 const STATUS_CONFIGS: Record<string, { label: string; color: string; showMarkSampleReady?: boolean; showM2Action?: boolean }> = {
-  submitted: { label: 'Quote sent', color: 'bg-blue-100 text-blue-700' },
+  submitted: { label: 'Submitted', color: 'bg-blue-100 text-blue-700' },
   accepted: { label: 'Accepted', color: 'bg-green-100 text-green-700' },
   rejected: { label: 'Rejected', color: 'bg-red-100 text-red-700' },
   in_production: { label: 'In Production', color: 'bg-purple-100 text-purple-700', showMarkSampleReady: true },
@@ -832,13 +832,13 @@ export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabPro
                         );
                       }
                       
-                      // Default: Quote Submitted
+                      // Default: Submitted
                       return (
                         <div className="w-full bg-gray-50 border border-gray-200 text-gray-600 px-4 py-2.5 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 cursor-not-allowed">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
-                          <span>Quote Submitted</span>
+                          <span>Submitted</span>
                         </div>
                       );
                     })()

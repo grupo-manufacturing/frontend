@@ -7,14 +7,18 @@ export default function AnalyticsTab() {
   // Analytics states
   const [analyticsData, setAnalyticsData] = useState({
     totalRevenue: 0,
-    potentialRevenue: 0,
     avgOrderValue: 0,
     conversionRate: 0,
     acceptedCount: 0,
-    pendingCount: 0,
-    quotesSubmittedCount: 0,
     rejectedCount: 0,
-    totalRequirementsCount: 0
+    submittedCount: 0,
+    inProductionCount: 0,
+    m1DoneCount: 0,
+    m2DoneCount: 0,
+    shippedCount: 0,
+    deliveredCount: 0,
+    completedCount: 0,
+    totalResponsesCount: 0
   });
   const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
 
@@ -36,91 +40,83 @@ export default function AnalyticsTab() {
     setIsLoadingAnalytics(true);
     
     try {
-      // Get manufacturer profile to get manufacturer ID
-      const profileResponse = await apiService.getManufacturerProfile();
-      const manufacturerId = profileResponse?.data?.profile?.id;
-
-      if (!manufacturerId) {
-        throw new Error('Unable to get manufacturer profile');
-      }
-
-      // Fetch all requirements
-      const requirementsResponse = await apiService.getRequirements();
-      const allRequirements = requirementsResponse.success && requirementsResponse.data ? requirementsResponse.data : [];
-
-      // Fetch manufacturer's requirement responses
-      const myResponsesResult = await apiService.getMyRequirementResponses({ limit: 100 });
+      // Fetch manufacturer requirement responses
+      const myResponsesResult = await apiService.getMyRequirementResponses({ limit: 200 });
       const myResponses = myResponsesResult.success ? myResponsesResult.data : [];
 
-      // Create a map of requirement_id to response
-      const requirementResponseMap = new Map();
-      myResponses.forEach((resp: any) => {
-        requirementResponseMap.set(resp.requirement_id, resp);
-      });
-
-      // Calculate metrics for requirements
+      // Metrics (revenue + conversion)
       let totalRevenue = 0;
-      let potentialRevenue = 0;
       let acceptedCount = 0;
-      let pendingCount = 0;
-      let quotesSubmittedCount = 0;
+
+      // Order status distribution (requirements_response.status)
+      let submittedCount = 0;
       let rejectedCount = 0;
-      let totalRequirementsCount = allRequirements.length;
+      let inProductionCount = 0;
+      let m1DoneCount = 0;
+      let m2DoneCount = 0;
+      let shippedCount = 0;
+      let deliveredCount = 0;
+      let completedCount = 0;
 
-      // Process each requirement
-      allRequirements.forEach((req: any) => {
-        const response = requirementResponseMap.get(req.id);
-        if (response) {
-          // Requirement has a response from manufacturer
-          const status = (response.status || response.response_status || '').toLowerCase().trim();
-          const quotedPrice = parseFloat(response.quoted_price) || 0;
+      myResponses.forEach((response: any) => {
+        const status = String(response?.status || '').toLowerCase().trim();
+        const quotedPrice = parseFloat(response?.quoted_price) || 0;
 
-          if (acceptedLifecycleStatuses.has(status)) {
-            totalRevenue += quotedPrice;
-            acceptedCount++;
-          } else if (status === 'rejected') {
-            rejectedCount++;
-          } else if (status === 'submitted') {
-            potentialRevenue += quotedPrice;
-            quotesSubmittedCount++;
-          }
-        } else {
-          // No response yet - this is a "New" requirement (Pending)
-          pendingCount++;
+        if (acceptedLifecycleStatuses.has(status)) {
+          totalRevenue += quotedPrice;
+          acceptedCount++;
         }
+
+        if (status === 'submitted') submittedCount++;
+        else if (status === 'rejected') rejectedCount++;
+        else if (status === 'in_production') inProductionCount++;
+        else if (status === 'milestone_1_done') m1DoneCount++;
+        else if (status === 'milestone_2_done') m2DoneCount++;
+        else if (status === 'shipped') shippedCount++;
+        else if (status === 'delivered') deliveredCount++;
+        else if (status === 'completed') completedCount++;
       });
+
+      const totalResponsesCount = myResponses.length;
 
       // Calculate average order value
       const avgOrderValue = acceptedCount > 0 ? totalRevenue / acceptedCount : 0;
 
-      // Calculate conversion rate (accepted orders / total opportunities)
-      const conversionRate = totalRequirementsCount > 0
-        ? (acceptedCount / totalRequirementsCount) * 100
-        : 0;
+      // Calculate conversion rate (accepted lifecycle count / total responses)
+      const conversionRate =
+        totalResponsesCount > 0 ? (acceptedCount / totalResponsesCount) * 100 : 0;
 
       setAnalyticsData({
         totalRevenue,
-        potentialRevenue,
         avgOrderValue,
         conversionRate,
         acceptedCount,
-        pendingCount,
-        quotesSubmittedCount,
         rejectedCount,
-        totalRequirementsCount
+        submittedCount,
+        inProductionCount,
+        m1DoneCount,
+        m2DoneCount,
+        shippedCount,
+        deliveredCount,
+        completedCount,
+        totalResponsesCount
       });
     } catch (error) {
       console.error('Failed to fetch analytics:', error);
       setAnalyticsData({
         totalRevenue: 0,
-        potentialRevenue: 0,
         avgOrderValue: 0,
         conversionRate: 0,
         acceptedCount: 0,
-        pendingCount: 0,
-        quotesSubmittedCount: 0,
         rejectedCount: 0,
-        totalRequirementsCount: 0
+        submittedCount: 0,
+        inProductionCount: 0,
+        m1DoneCount: 0,
+        m2DoneCount: 0,
+        shippedCount: 0,
+        deliveredCount: 0,
+        completedCount: 0,
+        totalResponsesCount: 0
       });
     } finally {
       setIsLoadingAnalytics(false);
@@ -154,7 +150,7 @@ export default function AnalyticsTab() {
       </div>
 
       {/* Analytics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in-up">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in-up">
         {/* Total Revenue Card */}
         <div className="group relative overflow-hidden">
           <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-2xl opacity-0 group-hover:opacity-100 transition duration-300"></div>
@@ -174,29 +170,6 @@ export default function AnalyticsTab() {
               <p className="text-sm font-medium text-gray-600 mb-2">Total Revenue</p>
               <p className="text-3xl font-bold text-black mb-1">
                 {isLoadingAnalytics ? '...' : `₹${analyticsData.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Potential Revenue Card */}
-        <div className="group relative overflow-hidden">
-          <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-2xl opacity-0 group-hover:opacity-100 transition duration-300"></div>
-          <div className="relative bg-white rounded-2xl border border-[#22a2f2]/30 p-6 shadow-sm group-hover:shadow-lg transition-all">
-            <div className="flex items-start justify-between mb-4">
-              <div className="p-3 bg-[#22a2f2]/15 text-[#22a2f2] rounded-xl border border-[#22a2f2]/30 shadow-sm">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
-                </svg>
-              </div>
-              <div className="px-2 py-1 bg-[#22a2f2]/10 border border-[#22a2f2]/30 rounded-lg text-xs font-medium text-[#22a2f2]">
-                {isLoadingAnalytics ? '...' : analyticsData.pendingCount + analyticsData.quotesSubmittedCount > 0 ? 'Pending' : '—'}
-              </div>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-600 mb-2">Potential Revenue</p>
-              <p className="text-3xl font-bold text-black mb-1">
-                {isLoadingAnalytics ? '...' : `₹${analyticsData.potentialRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
               </p>
             </div>
           </div>
@@ -267,11 +240,98 @@ export default function AnalyticsTab() {
 
           <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8">
             {(() => {
-              const totalCount = analyticsData.acceptedCount + analyticsData.pendingCount + analyticsData.quotesSubmittedCount + analyticsData.rejectedCount;
-              const acceptedPercentage = totalCount > 0 ? (analyticsData.acceptedCount / totalCount) * 100 : 0;
-              const pendingPercentage = totalCount > 0 ? (analyticsData.pendingCount / totalCount) * 100 : 0;
-              const quotesSubmittedPercentage = totalCount > 0 ? (analyticsData.quotesSubmittedCount / totalCount) * 100 : 0;
-              const rejectedPercentage = totalCount > 0 ? (analyticsData.rejectedCount / totalCount) * 100 : 0;
+              const segments = [
+                {
+                  key: 'submitted',
+                  label: 'Submitted',
+                  count: analyticsData.submittedCount,
+                  color: '#22a2f2',
+                  dot: 'bg-blue-600',
+                  bg: 'bg-blue-50',
+                  hoverBg: 'hover:bg-blue-100',
+                  border: 'border-blue-200',
+                  text: 'text-blue-700'
+                },
+                {
+                  key: 'rejected',
+                  label: 'Rejected',
+                  count: analyticsData.rejectedCount,
+                  color: '#ef4444',
+                  dot: 'bg-red-600',
+                  bg: 'bg-red-50',
+                  hoverBg: 'hover:bg-red-100',
+                  border: 'border-red-200',
+                  text: 'text-red-700'
+                },
+                {
+                  key: 'in_production',
+                  label: 'In Production',
+                  count: analyticsData.inProductionCount,
+                  color: '#8b5cf6',
+                  dot: 'bg-purple-600',
+                  bg: 'bg-purple-50',
+                  hoverBg: 'hover:bg-purple-100',
+                  border: 'border-purple-200',
+                  text: 'text-purple-700'
+                },
+                {
+                  key: 'milestone_1_done',
+                  label: 'M1',
+                  count: analyticsData.m1DoneCount,
+                  color: '#f59e0b',
+                  dot: 'bg-amber-600',
+                  bg: 'bg-amber-50',
+                  hoverBg: 'hover:bg-amber-100',
+                  border: 'border-amber-200',
+                  text: 'text-amber-700'
+                },
+                {
+                  key: 'milestone_2_done',
+                  label: 'M2',
+                  count: analyticsData.m2DoneCount,
+                  color: '#10b981',
+                  dot: 'bg-emerald-600',
+                  bg: 'bg-emerald-50',
+                  hoverBg: 'hover:bg-emerald-100',
+                  border: 'border-emerald-200',
+                  text: 'text-emerald-700'
+                },
+                {
+                  key: 'shipped',
+                  label: 'Shipped',
+                  count: analyticsData.shippedCount,
+                  color: '#6366f1',
+                  dot: 'bg-indigo-600',
+                  bg: 'bg-indigo-50',
+                  hoverBg: 'hover:bg-indigo-100',
+                  border: 'border-indigo-200',
+                  text: 'text-indigo-700'
+                },
+                {
+                  key: 'delivered',
+                  label: 'Delivered',
+                  count: analyticsData.deliveredCount,
+                  color: '#059669',
+                  dot: 'bg-green-600',
+                  bg: 'bg-green-50',
+                  hoverBg: 'hover:bg-green-100',
+                  border: 'border-green-200',
+                  text: 'text-green-700'
+                },
+                {
+                  key: 'completed',
+                  label: 'Completed',
+                  count: analyticsData.completedCount,
+                  color: '#16a34a',
+                  dot: 'bg-green-700',
+                  bg: 'bg-green-50',
+                  hoverBg: 'hover:bg-green-100',
+                  border: 'border-green-200',
+                  text: 'text-green-700'
+                }
+              ];
+
+              const totalShownCount = segments.reduce((sum, s) => sum + s.count, 0);
 
               // Calculate angles for pie chart (starting from top, going clockwise)
               const radius = 80;
@@ -306,12 +366,12 @@ export default function AnalyticsTab() {
                 return { pathData, color };
               };
 
-              const arcs = [
-                createArc(acceptedPercentage, '#22a2f2'),
-                createArc(pendingPercentage, '#fbbf24'),
-                createArc(quotesSubmittedPercentage, '#3b82f6'),
-                createArc(rejectedPercentage, '#ef4444')
-              ].filter(Boolean);
+              const arcs = segments
+                .map((s) => {
+                  const percentage = totalShownCount > 0 ? (s.count / totalShownCount) * 100 : 0;
+                  return createArc(percentage, s.color);
+                })
+                .filter(Boolean);
 
               return (
                 <>
@@ -324,7 +384,7 @@ export default function AnalyticsTab() {
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                       </div>
-                    ) : totalCount === 0 ? (
+                    ) : totalShownCount === 0 ? (
                       <div className="w-64 h-64 flex items-center justify-center">
                         <div className="text-center">
                           <div className="w-32 h-32 rounded-full border-4 border-gray-200 mx-auto mb-4 flex items-center justify-center">
@@ -361,7 +421,7 @@ export default function AnalyticsTab() {
                             className="text-2xl font-bold fill-gray-900"
                             transform={`rotate(90 ${centerX} ${centerY})`}
                           >
-                            {totalCount}
+                            {totalShownCount}
                           </text>
                           <text
                             x={centerX}
@@ -379,57 +439,25 @@ export default function AnalyticsTab() {
 
                   {/* Legend */}
                   <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-                    {/* Accepted Orders */}
-                    <div className="flex items-center gap-3 p-4 rounded-xl bg-[#22a2f2]/5 border border-[#22a2f2]/20 hover:bg-[#22a2f2]/10 transition-all">
-                      <div className="w-4 h-4 rounded-full bg-[#22a2f2] flex-shrink-0"></div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="font-medium text-black text-sm">Accepted</span>
-                          <span className="text-sm font-semibold text-[#22a2f2] whitespace-nowrap">
-                            {isLoadingAnalytics ? '...' : `${analyticsData.acceptedCount} (${acceptedPercentage.toFixed(1)}%)`}
-                          </span>
+                    {segments.map((s) => {
+                      const pct = totalShownCount > 0 ? (s.count / totalShownCount) * 100 : 0;
+                      return (
+                        <div
+                          key={s.key}
+                          className={`flex items-center gap-3 p-4 rounded-xl ${s.bg} border ${s.border} ${s.hoverBg} transition-all`}
+                        >
+                          <div className={`w-4 h-4 rounded-full ${s.dot} flex-shrink-0`} />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-medium text-black text-sm">{s.label}</span>
+                              <span className={`text-sm font-semibold ${s.text} whitespace-nowrap`}>
+                                {isLoadingAnalytics ? '...' : `${s.count} (${pct.toFixed(1)}%)`}
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-
-                    {/* Pending Orders */}
-                    <div className="flex items-center gap-3 p-4 rounded-xl bg-yellow-50 border border-yellow-200 hover:bg-yellow-100 transition-all">
-                      <div className="w-4 h-4 rounded-full bg-yellow-500 flex-shrink-0"></div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="font-medium text-black text-sm">Pending</span>
-                          <span className="text-sm font-semibold text-yellow-700 whitespace-nowrap">
-                            {isLoadingAnalytics ? '...' : `${analyticsData.pendingCount} (${pendingPercentage.toFixed(1)}%)`}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Quote sent (awaiting buyer) */}
-                    <div className="flex items-center gap-3 p-4 rounded-xl bg-blue-50 border border-blue-200 hover:bg-blue-100 transition-all">
-                      <div className="w-4 h-4 rounded-full bg-blue-600 flex-shrink-0"></div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="font-medium text-black text-sm">Quote sent</span>
-                          <span className="text-sm font-semibold text-blue-700 whitespace-nowrap">
-                            {isLoadingAnalytics ? '...' : `${analyticsData.quotesSubmittedCount} (${quotesSubmittedPercentage.toFixed(1)}%)`}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Rejected Orders */}
-                    <div className="flex items-center gap-3 p-4 rounded-xl bg-red-50 border border-red-200 hover:bg-red-100 transition-all">
-                      <div className="w-4 h-4 rounded-full bg-red-600 flex-shrink-0"></div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="font-medium text-black text-sm">Rejected</span>
-                          <span className="text-sm font-semibold text-red-700 whitespace-nowrap">
-                            {isLoadingAnalytics ? '...' : `${analyticsData.rejectedCount} (${rejectedPercentage.toFixed(1)}%)`}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+                      );
+                    })}
                   </div>
                 </>
               );
