@@ -42,6 +42,9 @@ export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabPro
   const [isSubmittingResponse, setIsSubmittingResponse] = useState(false);
   const [markingMilestoneForId, setMarkingMilestoneForId] = useState<string | null>(null);
   const [shippingOrderId, setShippingOrderId] = useState<string | null>(null);
+  const [showShippingFormFor, setShowShippingFormFor] = useState<string | null>(null);
+  const [courierName, setCourierName] = useState('');
+  const [trackingId, setTrackingId] = useState('');
   const socketRef = useRef<Socket | null>(null);
   
   // Get token and WS URL for socket connection
@@ -488,15 +491,26 @@ export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabPro
   };
 
   // Handle marking order as shipped
-  const handleMarkAsShipped = async (responseId: string) => {
+  const handleMarkAsShipped = async (responseId: string, courier: string, tracking: string) => {
     playClickSound();
+    const normalizedCourier = courier.trim();
+    const normalizedTracking = tracking.trim();
+
+    if (!normalizedCourier || !normalizedTracking) {
+      toast.error('Courier name and tracking ID are required.');
+      return;
+    }
+
     setShippingOrderId(responseId);
     
     try {
-      const result = await apiService.markAsShipped(responseId);
+      const result = await apiService.markAsShipped(responseId, normalizedTracking, normalizedCourier);
       
       if (result.success) {
         toast.success('Order marked as shipped! Buyer has been notified.');
+        setShowShippingFormFor(null);
+        setCourierName('');
+        setTrackingId('');
         
         // Update local state
         setRequirements((prevRequirements) => {
@@ -835,32 +849,63 @@ export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabPro
                       // Show "Mark as Shipped" for cleared_to_ship status
                       if (status === 'cleared_to_ship') {
                         const isShipping = shippingOrderId === req.myResponse?.id;
+                        const isEditingShippingDetails = showShippingFormFor === req.myResponse?.id;
                         return (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleMarkAsShipped(req.myResponse.id);
-                            }}
-                            disabled={isShipping}
-                            className="w-full bg-cyan-600 hover:bg-cyan-700 disabled:bg-cyan-400 text-white px-4 py-2.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
-                          >
-                            {isShipping ? (
-                              <>
-                                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                <span>Shipping...</span>
-                              </>
-                            ) : (
-                              <>
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
-                                </svg>
-                                <span>Mark as Shipped</span>
-                              </>
-                            )}
-                          </button>
+                          isEditingShippingDetails ? (
+                            <div className="w-full space-y-2 rounded-lg border border-cyan-200 bg-cyan-50 p-3">
+                              <input
+                                type="text"
+                                value={courierName}
+                                onChange={(e) => setCourierName(e.target.value)}
+                                placeholder="Courier Name"
+                                className="w-full rounded-lg border border-cyan-200 bg-white px-3 py-2 text-xs text-gray-900 placeholder:text-gray-500 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
+                              />
+                              <input
+                                type="text"
+                                value={trackingId}
+                                onChange={(e) => setTrackingId(e.target.value)}
+                                placeholder="Tracking ID"
+                                className="w-full rounded-lg border border-cyan-200 bg-white px-3 py-2 text-xs text-gray-900 placeholder:text-gray-500 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
+                              />
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleMarkAsShipped(req.myResponse.id, courierName, trackingId);
+                                  }}
+                                  disabled={isShipping}
+                                  className="flex-1 rounded-lg bg-cyan-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                  {isShipping ? 'Shipping...' : 'Confirm Shipped'}
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowShippingFormFor(null);
+                                    setCourierName('');
+                                    setTrackingId('');
+                                  }}
+                                  className="rounded-lg border border-cyan-200 bg-white px-3 py-2 text-xs font-semibold text-cyan-700 transition hover:bg-cyan-100"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowShippingFormFor(req.myResponse.id);
+                              }}
+                              disabled={isShipping}
+                              className="w-full bg-cyan-600 hover:bg-cyan-700 disabled:bg-cyan-400 text-white px-4 py-2.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                              </svg>
+                              <span>Mark as Shipped</span>
+                            </button>
+                          )
                         );
                       }
                       

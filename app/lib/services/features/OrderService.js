@@ -7,15 +7,15 @@ class OrderService {
   /**
    * Mark order as shipped (Manufacturer only)
    * @param {string} responseId - Requirement response ID
-   * @param {string} trackingNumber - Optional tracking number
-   * @param {string} shippingProvider - Optional shipping provider name
+   * @param {string} trackingId - Tracking ID (required by shipping flow)
+   * @param {string} courierName - Courier/provider name (required by shipping flow)
    * @param {string} notes - Optional notes
    * @returns {Promise} Response data
    */
-  async markAsShipped(responseId, trackingNumber = '', shippingProvider = '', notes = '') {
+  async markAsShipped(responseId, trackingId = '', courierName = '', notes = '') {
     return apiClient.request(`/orders/ship/${responseId}`, {
       method: 'POST',
-      body: JSON.stringify({ trackingNumber, shippingProvider, notes })
+      body: JSON.stringify({ trackingId, courierName, notes })
     });
   }
 
