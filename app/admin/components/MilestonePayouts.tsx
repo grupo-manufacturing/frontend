@@ -166,9 +166,9 @@ export default function MilestonePayouts({
                         : 'bg-green-100 text-green-800'
                     }`}>
                       {payout.payoutLabel || (
-                        payout.pendingMilestone === 'm1' ? 'M1 Payout (25%)' 
-                        : payout.pendingMilestone === 'm2' ? 'M2 Payout (25%)'
-                        : 'Final Payout (50%)'
+                        payout.pendingMilestone === 'm1' ? 'M1 Payout (30% - 3% fee = 27%)' 
+                        : payout.pendingMilestone === 'm2' ? 'M2 Payout (20% - 2% fee = 18%)'
+                        : 'Final Payout (50% - 5% fee = 45%)'
                       )}
                     </span>
                     <span className="inline-flex items-center rounded-md bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800">

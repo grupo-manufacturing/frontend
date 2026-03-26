@@ -257,10 +257,10 @@ export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabPro
         });
       });
       
-      toast.success(`${data.milestone?.toUpperCase() || 'Milestone'} approved by buyer! Payout will be processed soon.`);
+      toast.success(`${data.milestone?.toUpperCase() || 'Milestone'} approved by buyer!`);
     });
 
-    // Listen for milestone payout completed
+    // Listen for milestone payout completed (admin marked payout)
     socket.on('milestone:payout_completed', (data: any) => {
       if (!data.responseId) return;
       
@@ -666,9 +666,22 @@ export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabPro
                       const status = req.myResponse?.status || '';
                       const isMarkingMilestone = markingMilestoneForId === req.myResponse?.id;
                       const m1PaidAt = req.myResponse?.m1_paid_at;
+                      const m2PaidAt = req.myResponse?.m2_paid_at;
                       
-                      // Show "Mark Sample Ready" for in_production status
-                      if (status === 'in_production') {
+                      // Show "Awaiting Admin M1 Payout" when in_production but M1 not yet paid
+                      if (status === 'in_production' && !m1PaidAt) {
+                        return (
+                          <div className="w-full bg-amber-50 border border-amber-200 text-amber-700 px-4 py-2.5 text-xs font-semibold rounded-lg flex items-center justify-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Awaiting Admin to Mark M1 Payout</span>
+                          </div>
+                        );
+                      }
+                      
+                      // Show "Mark Sample Ready" button only after M1 payout is marked as paid
+                      if (status === 'in_production' && m1PaidAt) {
                         return (
                           <button
                             onClick={(e) => {
@@ -698,8 +711,32 @@ export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabPro
                         );
                       }
                       
-                      // Show "Start M2 Process" after M1 is paid
-                      if (status === 'milestone_1_done' && m1PaidAt) {
+                      // Show "Awaiting M1 Payout" when payment 1 is verified but payout not yet released
+                      if (status === 'in_production' && !m1PaidAt) {
+                        return (
+                          <div className="w-full bg-amber-50 border border-amber-200 text-amber-700 px-4 py-2.5 text-xs font-semibold rounded-lg flex items-center justify-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Awaiting M1 Payout Release</span>
+                          </div>
+                        );
+                      }
+                      
+                      // Show status-specific messages for milestone 1 pending
+                      if (status === 'milestone_1_pending') {
+                        return (
+                          <div className="w-full bg-amber-50 border border-amber-200 text-amber-700 px-4 py-2.5 text-xs font-semibold rounded-lg flex items-center justify-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Awaiting Buyer Approval</span>
+                          </div>
+                        );
+                      }
+                      
+                      // Show "Start M2 Process" after M1 is approved AND M2 payout is released
+                      if (status === 'milestone_1_done' && m2PaidAt) {
                         return (
                           <button
                             onClick={(e) => {
@@ -729,27 +766,46 @@ export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabPro
                         );
                       }
                       
-                      // Show "Awaiting M1 Payout" when M1 is done but not yet paid
-                      if (status === 'milestone_1_done' && !m1PaidAt) {
+                      // Show "Awaiting Admin M2 Payout" when M1 approved but M2 not yet paid
+                      if (status === 'milestone_1_done' && !m2PaidAt) {
                         return (
                           <div className="w-full bg-amber-50 border border-amber-200 text-amber-700 px-4 py-2.5 text-xs font-semibold rounded-lg flex items-center justify-center gap-2">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <span>Awaiting M1 Payout</span>
+                            <span>Awaiting Admin to Mark M2 Payout</span>
                           </div>
                         );
                       }
                       
-                      // Show status-specific messages for other states
-                      if (status === 'milestone_1_pending') {
+                      // Show "Mark M2 Complete" button only after M2 payout is marked as paid
+                      if (status === 'milestone_1_done' && m2PaidAt) {
                         return (
-                          <div className="w-full bg-amber-50 border border-amber-200 text-amber-700 px-4 py-2.5 text-xs font-semibold rounded-lg flex items-center justify-center gap-2">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>Awaiting Buyer Approval</span>
-                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMarkMilestoneComplete(req.myResponse.id, 'm2');
+                            }}
+                            disabled={isMarkingMilestone}
+                            className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white px-4 py-2.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                          >
+                            {isMarkingMilestone ? (
+                              <>
+                                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span>Marking...</span>
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                <span>Mark M2 Complete</span>
+                              </>
+                            )}
+                          </button>
                         );
                       }
                       
@@ -759,7 +815,7 @@ export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabPro
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <span>M2 Awaiting Approval</span>
+                            <span>Awaiting Buyer Approval</span>
                           </div>
                         );
                       }
