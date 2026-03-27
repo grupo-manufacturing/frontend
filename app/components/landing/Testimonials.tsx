@@ -100,7 +100,7 @@ const Testimonials = () => {
                   return (
                     <a
                       key={index}
-                      href="https://www.instagram.com/thegrupoapp"
+                      href="https://www.instagram.com/grupoapp"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="col-span-2 row-span-2 aspect-square bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 rounded-lg flex items-center justify-center group hover:scale-105 transition-transform duration-300 shadow-lg hover:shadow-xl"
@@ -118,7 +118,7 @@ const Testimonials = () => {
                           See updates on Instagram
                         </span>
                         {/* Instagram Handle */}
-                        <span className="text-white font-semibold text-sm sm:text-base">@thegrupoapp</span>
+                        <span className="text-white font-semibold text-sm sm:text-base">@grupoapp</span>
                       </div>
                     </a>
                   );
