@@ -1,7 +1,14 @@
 'use client';
 
 const GlobalExports = () => {
-  const destinations = ['United Kingdom', 'United States', 'Dubai', 'UAE', 'Europe', 'Middle East'];
+  const destinations = [
+    { name: 'United Kingdom', flag: '🇬🇧' },
+    { name: 'United States', flag: '🇺🇸' },
+    { name: 'Dubai', flag: '🇦🇪' },
+    { name: 'UAE', flag: '🇦🇪' },
+    { name: 'Europe', flag: '🇪🇺' },
+    { name: 'Middle East', flag: '🌏' }
+  ];
 
   return (
     <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
@@ -29,17 +36,17 @@ const GlobalExports = () => {
 
         {/* Subheading */}
         <p className="text-lg sm:text-xl text-gray-700 text-center max-w-4xl mx-auto mb-12 leading-relaxed">
-          Groupo now supports export-ready manufacturing and dispatch to international markets, including the UK, US, and Dubai, with a process designed for reliability and confidence.
+          Grupo now supports export-ready manufacturing and dispatch to international markets, including the UK, US, and Dubai, with a process designed for reliability and confidence.
         </p>
 
         {/* Destinations */}
         <div className="flex flex-wrap items-center justify-center gap-3 max-w-5xl mx-auto">
           {destinations.map((destination) => (
             <span
-              key={destination}
+              key={destination.name}
               className="inline-flex items-center rounded-full bg-white/90 backdrop-blur-sm border border-indigo-200 px-5 py-2.5 text-sm font-semibold text-indigo-700 shadow-md hover:shadow-lg hover:bg-white transition-all duration-300"
             >
-              🌍 {destination}
+              {destination.flag} {destination.name}
             </span>
           ))}
         </div>

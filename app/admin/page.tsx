@@ -306,7 +306,7 @@ export default function AdminPortal() {
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-screen-2xl items-center justify-between gap-4 px-2 py-4 sm:px-3">
+        <div className="mx-auto flex max-w-screen-2xl items-center justify-between gap-4 px-16 sm:px-20 lg:px-32 py-4">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#22a2f2]/20 bg-[#22a2f2]/10">
               <Image src="/groupo-logo.png" alt="Grupo" width={28} height={28} className="h-7 w-7" />
@@ -331,7 +331,7 @@ export default function AdminPortal() {
       </header>
 
       <nav className="sticky top-[73px] z-40 border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-screen-2xl items-center gap-2 overflow-x-auto px-2 sm:px-3">
+        <div className="mx-auto flex max-w-screen-2xl items-center gap-2 overflow-x-auto px-16 sm:px-20 lg:px-32">
           {VIEW_TABS.map((tab) => {
             const isActive = tab.id === activeView;
             return (
@@ -383,7 +383,7 @@ export default function AdminPortal() {
         </div>
       </nav>
 
-      <main className="mx-auto max-w-screen-2xl px-2 py-8 sm:px-3">
+      <main className="mx-auto max-w-screen-2xl px-16 sm:px-20 lg:px-32 py-8">
         {errorMessage && (
           <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
             {errorMessage}
