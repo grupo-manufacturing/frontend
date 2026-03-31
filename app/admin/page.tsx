@@ -315,7 +315,7 @@ export default function AdminPortal() {
           <div className="flex items-center gap-3">
             <div>
               <p className="poppins-font text-lg font-bold text-[#22a2f2] leading-none">Grupo</p>
-              <p className="text-sm font-semibold text-slate-900">Groupo Admin Console</p>
+              <p className="text-sm font-semibold text-slate-900">Admin Console</p>
               <p className="text-xs text-slate-500">Manage buyers, manufacturers, and onboarding</p>
             </div>
           </div>

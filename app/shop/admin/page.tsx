@@ -118,7 +118,7 @@ export default function ShopAdminPage() {
           <div className="flex items-center gap-3">
             <div>
               <p className="poppins-font text-lg font-bold text-[#22a2f2] leading-none">Grupo</p>
-              <p className="text-sm font-semibold text-slate-900">Shop Admin Console</p>
+              <p className="text-sm font-semibold text-slate-900">Shop Console</p>
               <p className="text-xs text-slate-500">Manage products &amp; orders</p>
             </div>
           </div>
