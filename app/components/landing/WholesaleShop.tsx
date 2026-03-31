@@ -47,17 +47,17 @@ const WholesaleShop = () => {
       <div className="max-w-7xl mx-auto">
         {/* Badge */}
         <div className="flex justify-center mb-6">
-          <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-full px-4 py-2">
-            <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-full px-4 py-2">
+            <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.5 5h12M10 21a1 1 0 100-2 1 1 0 000 2zM18 21a1 1 0 100-2 1 1 0 000 2z" />
             </svg>
-            <span className="text-sm text-emerald-600 font-semibold">Direct Shopping</span>
+            <span className="text-sm text-blue-600 font-semibold">Direct Shopping</span>
           </div>
         </div>
 
         {/* Heading */}
         <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 text-center mb-4">
-          Not a Custom Order? <span className="text-emerald-600">Shop Wholesale Directly</span>
+          Not a Custom Order? <span className="text-[#22a2f2]">Shop Wholesale Directly</span>
         </h2>
 
         {/* Subtitle */}
@@ -70,9 +70,9 @@ const WholesaleShop = () => {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="bg-white rounded-xl p-6 border border-gray-200 hover:border-emerald-300 hover:shadow-md transition-all duration-300"
+              className="bg-white rounded-xl p-6 border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-300"
             >
-              <div className="w-12 h-12 rounded-lg bg-emerald-500 text-white flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300">
+              <div className="w-12 h-12 rounded-lg bg-[#22a2f2] text-white flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300">
                 {feature.icon}
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">{feature.title}</h3>
@@ -82,7 +82,7 @@ const WholesaleShop = () => {
         </div>
 
         {/* CTA Section */}
-        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-8 sm:p-12 border border-emerald-200 text-center">
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 sm:p-12 border border-blue-200 text-center">
           <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
             Ready to Shop?
           </h3>
@@ -91,7 +91,7 @@ const WholesaleShop = () => {
           </p>
           <Link
             href="/shop"
-            className="inline-block bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-3 rounded-lg transition-colors duration-200"
+            className="inline-block bg-[#22a2f2] hover:bg-[#1c8fd7] text-white font-semibold px-8 py-3 rounded-lg transition-colors duration-200"
           >
             Visit Wholesale Shop
           </Link>
