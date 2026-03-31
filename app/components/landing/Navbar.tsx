@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { useState } from 'react';
 
 const Navbar = () => {
@@ -15,27 +14,23 @@ const Navbar = () => {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+        .poppins-font {
+          font-family: 'Poppins', sans-serif;
+        }
+      `}</style>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
+          {/* Brand - Text Only */}
           <div className="flex-shrink-0">
-            <Link href="/" className="flex items-center gap-3">
-              <Image
-                src="/groupo-logo.png"
-                alt="Grupo Logo"
-                width={50}
-                height={50}
-                className="h-12 w-auto"
-                priority
-              />
-              <div className="flex flex-col">
-                <span className="text-2xl font-bold text-[#22a2f2]">
-                  Grupo
-                </span>
-                <span className="text-xs text-gray-600 font-medium hidden sm:block">
-                  Global Manufacturing Network
-                </span>
-              </div>
+            <Link href="/" className="flex flex-col items-start">
+              <span className="poppins-font text-3xl font-bold text-[#22a2f2] leading-none">
+                Grupo
+              </span>
+              <span className="text-xs text-gray-600 font-medium hidden sm:block">
+                Global Manufacturing Network
+              </span>
             </Link>
           </div>
 
