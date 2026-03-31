@@ -5,6 +5,7 @@ import ProductCategories from './components/landing/ProductCategories';
 import AIFeatures from './components/landing/AIFeatures';
 import PlatformFeatures from './components/landing/PlatformFeatures';
 import GlobalExports from './components/landing/GlobalExports';
+import WholesaleShop from './components/landing/WholesaleShop';
 import Testimonials from './components/landing/Testimonials';
 import FinalCTA from './components/landing/FinalCTA';
 import Footer from './components/landing/Footer';
@@ -19,6 +20,7 @@ export default function Home() {
       <AIFeatures />
       <PlatformFeatures />
       <GlobalExports />
+      <WholesaleShop />
       <Testimonials />
       <FinalCTA />
       <Footer />

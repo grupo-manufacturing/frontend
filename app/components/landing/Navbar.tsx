@@ -33,7 +33,7 @@ const Navbar = () => {
                   Grupo
                 </span>
                 <span className="text-xs text-gray-600 font-medium hidden sm:block">
-                  AI-Powered Manufacturing Platform
+                  Global Manufacturing Network
                 </span>
               </div>
             </Link>

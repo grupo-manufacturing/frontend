@@ -12,7 +12,7 @@ const Footer = () => {
   ];
 
   const companyLinks = [
-    { name: 'How It Works', href: '/howitworks' },
+    { name: 'About', href: '#' },
   ];
 
   return (
@@ -39,20 +39,20 @@ const Footer = () => {
 
             {/* Description */}
             <p className="text-gray-400 mb-6 leading-relaxed">
-              Grupo is an AI-powered platform connecting buyers and manufacturers through structured workflows, collaboration tools, and wholesale commerce.
+              Grupo connects buyers and manufacturers through structured workflows, collaboration tools, and global commerce solutions.
             </p>
 
             {/* Badges */}
             <div className="flex flex-wrap gap-2">
               <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/30 rounded-full px-3 py-1.5">
                 <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                <span className="text-xs text-blue-400 font-semibold">Global</span>
+                <span className="text-xs text-blue-400 font-semibold">Trusted</span>
               </div>
               <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full px-3 py-1.5">
                 <svg className="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" />
                 </svg>
-                <span className="text-xs text-yellow-400 font-semibold">Fast</span>
+                <span className="text-xs text-yellow-400 font-semibold">Reliable</span>
               </div>
             </div>
           </div>
