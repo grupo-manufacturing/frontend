@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import apiService from '../lib/apiService';
 import type { Buyer, Manufacturer, Order, Payment } from './types';
@@ -306,12 +305,16 @@ export default function AdminPortal() {
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white">
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+          .poppins-font {
+            font-family: 'Poppins', sans-serif;
+          }
+        `}</style>
         <div className="mx-auto flex max-w-screen-2xl items-center justify-between gap-4 px-16 sm:px-20 lg:px-32 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#22a2f2]/20 bg-[#22a2f2]/10">
-              <Image src="/groupo-logo.svg" alt="Grupo" width={28} height={28} className="h-7 w-7" unoptimized />
-            </div>
             <div>
+              <p className="poppins-font text-lg font-bold text-[#22a2f2] leading-none">Grupo</p>
               <p className="text-sm font-semibold text-slate-900">Groupo Admin Console</p>
               <p className="text-xs text-slate-500">Manage buyers, manufacturers, and onboarding</p>
             </div>
