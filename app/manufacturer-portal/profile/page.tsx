@@ -158,11 +158,12 @@ export default function ManufacturerProfile() {
                 <div className="absolute inset-0 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300 bg-black"></div>
                 <div className="relative bg-white rounded-xl p-2 border border-gray-200 shadow-sm">
                   <Image
-                    src="/groupo-logo.png"
+                    src="/groupo-logo.svg"
                     alt="Grupo Logo"
                     width={32}
                     height={32}
                     className="w-8 h-8"
+                    unoptimized
                   />
                 </div>
               </div>

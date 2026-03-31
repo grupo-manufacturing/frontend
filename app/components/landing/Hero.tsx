@@ -241,17 +241,6 @@ const Hero = () => {
               {/* ── Stat Legend Cards (bottom-left) ── */}
               <div className="absolute bottom-3 left-3 flex flex-col gap-2">
                 <div className="flex items-center gap-2.5 backdrop-blur-md bg-white/5 border border-white/10 rounded-xl px-3 py-2 min-w-[148px]">
-                  <div className="w-7 h-7 rounded-lg bg-[#22a2f2]/20 border border-[#22a2f2]/30 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-3.5 h-3.5 text-[#22a2f2]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-gray-400 leading-tight">Total Manufacturers</p>
-                    <p className="text-sm font-bold text-white leading-tight">2,400+</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2.5 backdrop-blur-md bg-white/5 border border-white/10 rounded-xl px-3 py-2 min-w-[148px]">
                   <div className="w-7 h-7 rounded-lg bg-[#06b6d4]/20 border border-[#06b6d4]/30 flex items-center justify-center flex-shrink-0">
                     <svg className="w-3.5 h-3.5 text-[#06b6d4]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" />
@@ -259,7 +248,7 @@ const Hero = () => {
                   </div>
                   <div>
                     <p className="text-[10px] text-gray-400 leading-tight">Countries Served</p>
-                    <p className="text-sm font-bold text-white leading-tight">38</p>
+                    <p className="text-sm font-bold text-white leading-tight">10+</p>
                   </div>
                 </div>
               </div>
@@ -274,7 +263,7 @@ const Hero = () => {
                   </div>
                   <div>
                     <p className="text-[10px] text-gray-400 leading-tight">Orders Shipped</p>
-                    <p className="text-sm font-bold text-white leading-tight">18,500+</p>
+                    <p className="text-sm font-bold text-white leading-tight">2,000+</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2.5 backdrop-blur-md bg-white/5 border border-white/10 rounded-xl px-3 py-2 min-w-[148px]">

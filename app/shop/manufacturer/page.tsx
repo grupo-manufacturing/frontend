@@ -125,7 +125,7 @@ export default function ManufacturerDashboardPage() {
         <div className="max-w-md w-full space-y-8">
           <div className="flex flex-col items-center gap-4">
             <div className="rounded-full bg-white shadow-md p-4 border border-slate-100">
-              <Image src="/groupo-logo.png" alt="Grupo" width={56} height={56} className="h-14 w-14" />
+              <Image src="/groupo-logo.svg" alt="Grupo" width={56} height={56} className="h-14 w-14" unoptimized />
             </div>
             <div className="text-center space-y-2">
               <h1 className="text-2xl font-semibold text-slate-900">Manufacturer Dashboard</h1>
@@ -178,7 +178,7 @@ export default function ManufacturerDashboardPage() {
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#22a2f2]/20 bg-[#22a2f2]/10">
-              <Image src="/groupo-logo.png" alt="Grupo" width={28} height={28} className="h-7 w-7" />
+              <Image src="/groupo-logo.svg" alt="Grupo" width={28} height={28} className="h-7 w-7" unoptimized />
             </div>
             <div>
               <p className="text-sm font-semibold text-slate-900">{session?.name}</p>

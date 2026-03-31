@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { useState } from 'react';
 import apiService from '../../lib/apiService';
 import { useToast } from '../../components/Toast';
@@ -66,13 +65,17 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false }: LoginP
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+        .poppins-font {
+          font-family: 'Poppins', sans-serif;
+        }
+      `}</style>
       <div className="max-w-md w-full space-y-8">
         <div className="flex flex-col items-center gap-4">
-          <div className="rounded-full bg-white shadow-md p-4 border border-slate-100">
-            <Image src="/groupo-logo.png" alt="Grupo" width={56} height={56} className="h-14 w-14" />
-          </div>
           <div className="text-center space-y-2">
-            <h1 className="text-2xl font-semibold text-slate-900">Admin Sign In</h1>
+            <h1 className="poppins-font text-3xl font-bold text-[#22a2f2]">Grupo</h1>
+            <p className="text-2xl font-semibold text-slate-900 mt-4">Admin Sign In</p>
             <p className="text-sm text-slate-500">
               Enter your username and password to access the admin portal.
             </p>

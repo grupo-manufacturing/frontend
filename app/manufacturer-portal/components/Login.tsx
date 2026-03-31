@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import apiService from '../../lib/apiService';
@@ -156,27 +155,22 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false, isLoggin
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-white">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+        .poppins-font {
+          font-family: 'Poppins', sans-serif;
+        }
+      `}</style>
       <div className="relative min-h-screen flex flex-col lg:flex-row">
         {/* Left Side - Hero Section */}
         <div className="hidden lg:flex lg:w-1/2 bg-white p-12 flex-col justify-between relative">
           <div className="relative z-10">
             {/* Logo */}
-            <div className="flex items-center gap-4 mb-16">
-              <div className="relative bg-white rounded-2xl p-3 shadow-sm">
-                <Image
-                  src="/groupo-logo.png"
-                  alt="Groupo Logo"
-                  width={48}
-                  height={48}
-                  className="w-12 h-12"
-                />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-black">
-                  Grupo
-                </h1>
-                <p className="text-sm text-gray-600">Your Manufacturing Partner</p>
-              </div>
+            <div className="mb-16">
+              <h1 className="poppins-font text-3xl font-bold text-[#22a2f2]">
+                Grupo
+              </h1>
+              <p className="text-sm text-gray-600">Your Manufacturing Partner</p>
             </div>
 
             {/* Main content */}
@@ -223,21 +217,12 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false, isLoggin
         <div className="flex-1 flex items-center justify-center p-6 lg:p-12 bg-white">
           <div className="w-full max-w-md">
             {/* Mobile Logo */}
-            <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
-              <div className="relative bg-white rounded-2xl p-2.5 shadow-sm">
-                <Image
-                  src="/groupo-logo.png"
-                  alt="Groupo Logo"
-                  width={40}
-                  height={40}
-                  className="w-10 h-10"
-                />
-              </div>
+            <div className="lg:hidden flex items-center justify-center mb-8">
               <div>
-                <h1 className="text-2xl font-bold text-black">
+                <h1 className="poppins-font text-2xl font-bold text-[#22a2f2] text-center">
                   Grupo
                 </h1>
-                <p className="text-xs text-gray-600">Your Manufacturing Partner</p>
+                <p className="text-xs text-gray-600 text-center">Your Manufacturing Partner</p>
               </div>
             </div>
 

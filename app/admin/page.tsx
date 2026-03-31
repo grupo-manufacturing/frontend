@@ -309,7 +309,7 @@ export default function AdminPortal() {
         <div className="mx-auto flex max-w-screen-2xl items-center justify-between gap-4 px-16 sm:px-20 lg:px-32 py-4">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#22a2f2]/20 bg-[#22a2f2]/10">
-              <Image src="/groupo-logo.png" alt="Grupo" width={28} height={28} className="h-7 w-7" />
+              <Image src="/groupo-logo.svg" alt="Grupo" width={28} height={28} className="h-7 w-7" unoptimized />
             </div>
             <div>
               <p className="text-sm font-semibold text-slate-900">Groupo Admin Console</p>
