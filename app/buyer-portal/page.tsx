@@ -416,25 +416,18 @@ export default function BuyerPortal() {
       <div className="min-h-screen bg-white">
         {/* Header */}
         <header className="relative z-50 bg-white/90 backdrop-blur-sm border-b border-gray-200 sticky top-0">
+          <style>{`
+            @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+            .poppins-font {
+              font-family: 'Poppins', sans-serif;
+            }
+          `}</style>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-20">
               {/* Left Side - Logo and Branding */}
               <div className="flex items-center gap-3 animate-fade-in-down">
-                <div className="relative group">
-                  <div className="absolute inset-0 rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300 bg-black"></div>
-                  <div className="relative bg-white rounded-xl p-2 border border-gray-200 shadow-sm">
-                    <Image
-                      src="/groupo-logo.svg"
-                      alt="Grupo Logo"
-                      width={32}
-                      height={32}
-                      className="w-8 h-8"
-                      unoptimized
-                    />
-                  </div>
-                </div>
                 <div className="flex flex-col">
-                  <span className="text-lg font-bold text-black">
+                  <span className="poppins-font text-lg font-bold text-[#22a2f2]">
                     Grupo
                   </span>
                   <span className="text-xs text-gray-600 hidden sm:block">
