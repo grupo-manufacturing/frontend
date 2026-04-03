@@ -38,24 +38,23 @@ export default function AdminPortal() {
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
   const normalizeAdminOrder = (row: any): Order => {
-    const requirement = row?.requirement || {};
-    const buyer = requirement?.buyer || {};
+    // After backend change, /requirements/admin/orders returns plain requirement rows
+    // with a nested buyer, NOT requirement_responses.
+    const requirement = row?.requirement || row || {};
+    const buyer = requirement?.buyer || row?.buyer || {};
     const manufacturer = row?.manufacturer || {};
 
     return {
-      id: row?.id || requirement?.id || crypto.randomUUID(),
-      manufacturer_id: row?.manufacturer_id || manufacturer?.id,
-      requirement_no: requirement?.requirement_no,
-      requirement_text: requirement?.requirement_text || '',
-      quantity: requirement?.quantity,
-      product_type: requirement?.product_type,
+      id: requirement?.id || row?.id || crypto.randomUUID(),
+      manufacturer_id: manufacturer?.id || row?.manufacturer_id,
+      requirement_no: requirement?.requirement_no || row?.requirement_no,
+      requirement_text: requirement?.requirement_text || row?.requirement_text || '',
+      quantity: requirement?.quantity ?? row?.quantity,
+      product_type: requirement?.product_type ?? row?.product_type,
       // Requirement status must come from the `requirements` table.
       status: requirement?.status,
-      quoted_price:
-        typeof row?.quoted_price === 'number'
-          ? row.quoted_price
-          : Number.parseFloat(row?.quoted_price || '0') || 0,
-      buyer_id: requirement?.buyer_id || buyer?.id || '',
+      quoted_price: 0,
+      buyer_id: requirement?.buyer_id || buyer?.id || row?.buyer_id || '',
       buyer: buyer?.id
         ? {
             id: buyer.id,
