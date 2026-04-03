@@ -18,37 +18,13 @@ export default function Overview({
   isLoadingData,
   lastUpdated
 }: OverviewProps) {
-  const revenueStatuses = useMemo(
-    () =>
-      new Set([
-        'accepted',
-        'in_production',
-        'milestone_1_pending',
-        'milestone_1_done',
-        'milestone_2_pending',
-        'milestone_2_done',
-        'cleared_to_ship',
-        'shipped',
-        'delivered',
-        'completed'
-      ]),
-    []
-  );
-
-  // Revenue is derived from all post-acceptance lifecycle responses.
-  const revenueOrders = useMemo(
-    () => orders.filter((order) => revenueStatuses.has(String(order.status || ''))),
-    [orders, revenueStatuses]
-  );
-
   const totalRevenue = useMemo(() => {
-    return revenueOrders.reduce((total, order) => total + (order.quoted_price || 0), 0);
-  }, [revenueOrders]);
+    // Total Revenue: sum quoted_price for ALL requirements, no status filter.
+    return orders.reduce((total, order) => total + (order.quoted_price || 0), 0);
+  }, [orders]);
 
-  const averageOrderValue = useMemo(() => {
-    if (revenueOrders.length === 0) return 0;
-    return totalRevenue / revenueOrders.length;
-  }, [totalRevenue, revenueOrders]);
+  // Total Orders: simply the number of requirements shown in the Orders tab.
+  const totalOrders = useMemo(() => orders.length, [orders]);
 
   // Calculate top buyer based on number of requirements (not revenue since requirements don't have quoted_price)
   const topBuyer = useMemo(() => {
@@ -138,8 +114,13 @@ export default function Overview({
         name: existing.name !== 'Unknown Manufacturer' ? existing.name : manufacturerName,
         phone: existing.phone || manufacturerPhone,
         totalRevenue:
-          existing.totalRevenue + (revenueStatuses.has(String(order.status || '')) ? order.quoted_price || 0 : 0),
-        acceptedCount: existing.acceptedCount + (revenueStatuses.has(String(order.status || '')) ? 1 : 0),
+          existing.totalRevenue +
+          (String(order.status || '').toLowerCase() === 'accepted'
+            ? order.quoted_price || 0
+            : 0),
+        acceptedCount:
+          existing.acceptedCount +
+          (String(order.status || '').toLowerCase() === 'accepted' ? 1 : 0),
         totalOrdersCount: existing.totalOrdersCount + 1
       });
     });
@@ -165,7 +146,7 @@ export default function Overview({
     });
 
     return top;
-  }, [orders, manufacturers, revenueStatuses]);
+  }, [orders, manufacturers]);
 
   if (isLoadingData) {
     return null;
@@ -192,9 +173,9 @@ export default function Overview({
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Average Order Value</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Total Orders</p>
           <p className="mt-2 text-2xl font-semibold text-slate-900">
-            ₹{averageOrderValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+            {totalOrders.toLocaleString('en-IN')}
           </p>
         </div>
       </section>

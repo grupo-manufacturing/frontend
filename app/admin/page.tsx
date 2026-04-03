@@ -53,7 +53,8 @@ export default function AdminPortal() {
       product_type: requirement?.product_type ?? row?.product_type,
       // Requirement status must come from the `requirements` table.
       status: requirement?.status,
-      quoted_price: 0,
+      // Use quoted_price from requirement/row when available so revenue metrics work.
+      quoted_price: requirement?.quoted_price ?? row?.quoted_price ?? 0,
       buyer_id: requirement?.buyer_id || buyer?.id || row?.buyer_id || '',
       buyer: buyer?.id
         ? {
