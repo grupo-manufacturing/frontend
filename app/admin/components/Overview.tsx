@@ -8,6 +8,13 @@ interface OverviewProps {
   manufacturers: Manufacturer[];
   orders: Order[];
   totalRevenue: number;
+  topManufacturer?: {
+    name: string;
+    phone: string;
+    total: number;
+    acceptedCount: number;
+    totalOrdersCount: number;
+  } | null;
   isLoadingData: boolean;
   lastUpdated: string | null;
 }
@@ -17,6 +24,7 @@ export default function Overview({
   manufacturers,
   orders,
   totalRevenue,
+  topManufacturer,
   isLoadingData,
   lastUpdated
 }: OverviewProps) {
@@ -68,82 +76,14 @@ export default function Overview({
     return top;
   }, [orders]);
 
-  // Calculate top manufacturer based on accepted requirement responses
-  const topManufacturer = useMemo(() => {
-    const manufacturerStats = new Map<string, {
-      name: string; 
-      phone: string; 
-      totalRevenue: number; 
-      acceptedCount: number;
-      totalOrdersCount: number;
-    }>();
-
-    orders.forEach((order) => {
-      const manufacturerId = order.manufacturer_id || '';
-      if (!manufacturerId) return;
-
-      const manufacturerFromOrder = order.manufacturer;
-      const manufacturerFromList = manufacturers.find(
-        (m) => String(m.id) === String(manufacturerId)
-      );
-
-      const manufacturerName =
-        manufacturerFromOrder?.unit_name ||
-        manufacturerFromOrder?.manufacturer_id ||
-        manufacturerFromList?.unit_name ||
-        manufacturerFromList?.manufacturer_id ||
-        'Unknown Manufacturer';
-
-      const manufacturerPhone =
-        manufacturerFromOrder?.phone_number ||
-        manufacturerFromList?.phone_number ||
-        '';
-
-      const existing = manufacturerStats.get(manufacturerId) || {
-        name: manufacturerName,
-        phone: manufacturerPhone,
-        totalRevenue: 0,
-        acceptedCount: 0,
-        totalOrdersCount: 0
-      };
-
-      manufacturerStats.set(manufacturerId, {
-        name: existing.name !== 'Unknown Manufacturer' ? existing.name : manufacturerName,
-        phone: existing.phone || manufacturerPhone,
-        totalRevenue:
-          existing.totalRevenue +
-          (String(order.status || '').toLowerCase() === 'accepted'
-            ? order.quoted_price || 0
-            : 0),
-        acceptedCount:
-          existing.acceptedCount +
-          (String(order.status || '').toLowerCase() === 'accepted' ? 1 : 0),
-        totalOrdersCount: existing.totalOrdersCount + 1
-      });
-    });
-
-    // Find manufacturer with highest total revenue.
-    // Fallback to highest totalOrdersCount so we don't show N/A when revenue is 0.
-    let top = { name: 'N/A', phone: '', total: 0, acceptedCount: 0, totalOrdersCount: 0 };
-
-    manufacturerStats.forEach((stats) => {
-      const shouldReplace =
-        stats.totalRevenue > top.total ||
-        (stats.totalRevenue === top.total && stats.totalOrdersCount > top.totalOrdersCount);
-
-      if (shouldReplace) {
-        top = {
-          name: stats.name,
-          phone: stats.phone,
-          total: stats.totalRevenue,
-          acceptedCount: stats.acceptedCount,
-          totalOrdersCount: stats.totalOrdersCount
-        };
-      }
-    });
-
-    return top;
-  }, [orders, manufacturers]);
+  const effectiveTopManufacturer =
+    topManufacturer || {
+      name: 'N/A',
+      phone: '',
+      total: 0,
+      acceptedCount: 0,
+      totalOrdersCount: 0
+    };
 
   if (isLoadingData) {
     return null;
@@ -209,23 +149,23 @@ export default function Overview({
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Top Manufacturer</p>
           <div className="mt-4 space-y-2">
             <p className="text-lg font-semibold text-slate-900">
-              {topManufacturer.name}
+              {effectiveTopManufacturer.name}
             </p>
-            {topManufacturer.phone && (
-              <p className="text-sm text-slate-500">{topManufacturer.phone}</p>
+            {effectiveTopManufacturer.phone && (
+              <p className="text-sm text-slate-500">{effectiveTopManufacturer.phone}</p>
             )}
             <div className="mt-4 pt-4 border-t border-slate-200 space-y-4">
               <div>
                 <p className="text-xs text-slate-500">Total Order Value</p>
                 <p className="mt-1 text-2xl font-semibold text-slate-900">
-                  ₹{topManufacturer.total.toLocaleString('en-IN')}
+                  ₹{effectiveTopManufacturer.total.toLocaleString('en-IN')}
                 </p>
               </div>
               <div>
                 <p className="text-xs text-slate-500">Avg. Accepted Orders</p>
                 <p className="mt-1 text-xl font-semibold text-slate-900">
-                  {topManufacturer.totalOrdersCount > 0
-                    ? ((topManufacturer.acceptedCount / topManufacturer.totalOrdersCount) * 100).toFixed(1)
+                  {effectiveTopManufacturer.totalOrdersCount > 0
+                    ? ((effectiveTopManufacturer.acceptedCount / effectiveTopManufacturer.totalOrdersCount) * 100).toFixed(1)
                     : '0'}%
                 </p>
               </div>

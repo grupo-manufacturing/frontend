@@ -34,6 +34,13 @@ export default function AdminPortal() {
   const [pendingPayments, setPendingPayments] = useState<Payment[]>([]);
   const [pendingPayouts, setPendingPayouts] = useState<any[]>([]);
   const [totalRevenue, setTotalRevenue] = useState<number>(0);
+  const [topManufacturer, setTopManufacturer] = useState<{
+    name: string;
+    phone: string;
+    total: number;
+    acceptedCount: number;
+    totalOrdersCount: number;
+  } | null>(null);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
@@ -141,9 +148,10 @@ export default function AdminPortal() {
 
       setBuyers(buyersRes.data?.buyers || []);
       setManufacturers(manufacturersRes.data?.manufacturers || []);
-      const metricsTotalRevenue =
-        metricsRes?.data?.totalRevenue ?? metricsRes?.totalRevenue ?? 0;
+      const metricsData = metricsRes?.data || metricsRes || {};
+      const metricsTotalRevenue = metricsData.totalRevenue ?? 0;
       setTotalRevenue(Number(metricsTotalRevenue) || 0);
+      setTopManufacturer(metricsData.topManufacturer || null);
       setLastUpdated(new Date().toISOString());
     } catch (error: any) {
       console.error('Failed to load admin data:', error);
@@ -434,6 +442,7 @@ export default function AdminPortal() {
             manufacturers={manufacturers}
             orders={orders}
             totalRevenue={totalRevenue}
+            topManufacturer={topManufacturer}
             isLoadingData={isLoadingData}
             lastUpdated={lastUpdated}
           />
