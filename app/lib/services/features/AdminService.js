@@ -40,6 +40,16 @@ class AdminService {
   }
 
   /**
+   * Get admin overview metrics (Total Revenue, etc.)
+   * Currently returns { totalRevenue } summed from requirement_responses.
+   */
+  async getOverviewMetrics() {
+    return apiClient.request('/requirements/admin/metrics/overview', {
+      method: 'GET'
+    });
+  }
+
+  /**
    * Get all accepted orders (Admin only)
    * @param {Object} filters - Optional filters (limit, offset, sortBy, sortOrder)
    * @returns {Promise} Response data with accepted orders

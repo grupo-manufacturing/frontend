@@ -7,6 +7,7 @@ interface OverviewProps {
   buyers: Buyer[];
   manufacturers: Manufacturer[];
   orders: Order[];
+  totalRevenue: number;
   isLoadingData: boolean;
   lastUpdated: string | null;
 }
@@ -15,14 +16,10 @@ export default function Overview({
   buyers,
   manufacturers,
   orders,
+  totalRevenue,
   isLoadingData,
   lastUpdated
 }: OverviewProps) {
-  const totalRevenue = useMemo(() => {
-    // Total Revenue: sum quoted_price for ALL requirements, no status filter.
-    return orders.reduce((total, order) => total + (order.quoted_price || 0), 0);
-  }, [orders]);
-
   // Total Orders: simply the number of requirements shown in the Orders tab.
   const totalOrders = useMemo(() => orders.length, [orders]);
 

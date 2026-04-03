@@ -33,6 +33,7 @@ export default function AdminPortal() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [pendingPayments, setPendingPayments] = useState<Payment[]>([]);
   const [pendingPayouts, setPendingPayouts] = useState<any[]>([]);
+  const [totalRevenue, setTotalRevenue] = useState<number>(0);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
@@ -132,13 +133,17 @@ export default function AdminPortal() {
     setIsLoadingData(true);
     setErrorMessage('');
     try {
-      const [buyersRes, manufacturersRes] = await Promise.all([
+      const [buyersRes, manufacturersRes, metricsRes] = await Promise.all([
         apiService.getAllBuyers({ sortBy: 'created_at', sortOrder: 'desc', limit: 100 }),
-        apiService.getAllManufacturers({ sortBy: 'created_at', sortOrder: 'desc', limit: 100 })
+        apiService.getAllManufacturers({ sortBy: 'created_at', sortOrder: 'desc', limit: 100 }),
+        apiService.getOverviewMetrics()
       ]);
 
       setBuyers(buyersRes.data?.buyers || []);
       setManufacturers(manufacturersRes.data?.manufacturers || []);
+      const metricsTotalRevenue =
+        metricsRes?.data?.totalRevenue ?? metricsRes?.totalRevenue ?? 0;
+      setTotalRevenue(Number(metricsTotalRevenue) || 0);
       setLastUpdated(new Date().toISOString());
     } catch (error: any) {
       console.error('Failed to load admin data:', error);
@@ -428,6 +433,7 @@ export default function AdminPortal() {
             buyers={buyers}
             manufacturers={manufacturers}
             orders={orders}
+            totalRevenue={totalRevenue}
             isLoadingData={isLoadingData}
             lastUpdated={lastUpdated}
           />

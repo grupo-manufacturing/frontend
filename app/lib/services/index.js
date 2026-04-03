@@ -85,6 +85,7 @@ class ApiService {
     this.getAcceptedOrders = adminService.getAcceptedOrders.bind(adminService);
     this.getRejectedOrders = adminService.getRejectedOrders.bind(adminService);
     this.getPendingOrders = adminService.getPendingOrders.bind(adminService);
+    this.getOverviewMetrics = adminService.getOverviewMetrics.bind(adminService);
     
     // Payment verification methods (Admin)
     this.getPendingPayments = adminService.getPendingPayments.bind(adminService);
