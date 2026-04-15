@@ -33,12 +33,12 @@ export default function AboutPage() {
               </div>
 
               <div className="lg:col-span-5">
-                <div className="mx-auto w-full max-w-sm overflow-hidden rounded-3xl border border-[#22a2f2]/30 bg-white shadow-2xl">
+                <div className="mx-auto w-full max-w-xs overflow-hidden rounded-3xl border border-[#22a2f2]/30 bg-white shadow-2xl">
                   <Image
                     src="/Ajith.jpeg"
                     alt="Portrait of Ajith, founder of Grupo"
-                    width={1000}
-                    height={1250}
+                    width={800}
+                    height={1000}
                     className="h-auto w-full object-cover"
                     priority
                   />
