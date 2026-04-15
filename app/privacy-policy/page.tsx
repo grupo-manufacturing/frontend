@@ -62,7 +62,6 @@ export default function PrivacyPolicyPage() {
               <ul className="list-disc space-y-2 pl-6">
                 <li>Provide, operate, and improve the Grupo Platform and AI-powered matching features.</li>
                 <li>Connect brands with suitable verified Indian factory partners.</li>
-                <li>Process orders, manage transactions, and facilitate payments under our 15% commission model.</li>
                 <li>Send transactional communications, service announcements, and updates.</li>
                 <li>Verify identity and legitimacy of brands and factory partners.</li>
                 <li>Analyze usage and improve recommendation and matching algorithms.</li>
@@ -171,11 +170,11 @@ export default function PrivacyPolicyPage() {
               <p>
                 Grupo.in
                 <br />
-                Email: privacy@grupo.in
+                Email: contact@grupo.in
                 <br />
                 Website: www.grupo.in
                 <br />
-                Registered in India | CIN: [To be added upon incorporation]
+                Registered in India.
               </p>
             </div>
           </div>

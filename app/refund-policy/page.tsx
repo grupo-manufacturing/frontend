@@ -30,6 +30,9 @@ export default function RefundPolicyPage() {
                 or shipped out. Changes can also be made after shipping, but you will need to pay for the shipment and
                 re-shipment of the garment.
               </p>
+              <p>
+                No refunds shall be issued for any cancellations made after the commmencement of production. 
+              </p>
 
               <h2 className="pt-2 text-xl font-semibold text-gray-900">Shipping & Delivery Charges</h2>
 

@@ -26,10 +26,6 @@ export default function TermsAndConditionsPage() {
                 enables clothing brands ("Brands") to connect with verified Indian garment factories ("Factory
                 Partners") to source, manage, and fulfill manufacturing orders.
               </p>
-              <p>
-                Grupo operates on a commission-based model and charges a 15% commission on the value of each
-                successfully completed order facilitated through the Platform.
-              </p>
 
               <h2 className="pt-2 text-xl font-semibold text-gray-900">2. Eligibility and Registration</h2>
               <ul className="list-disc space-y-2 pl-6">
@@ -67,19 +63,13 @@ export default function TermsAndConditionsPage() {
 
               <h2 className="pt-2 text-xl font-semibold text-gray-900">4. Commissions and Payments</h2>
               <ul className="list-disc space-y-2 pl-6">
-                <li>Grupo charges a 15% commission on gross order value for successful transactions.</li>
-                <li>Payment terms and invoicing schedules are communicated at order confirmation.</li>
-                <li>Prices are in INR unless otherwise agreed, plus applicable taxes including GST.</li>
-                <li>Grupo may modify commission structure with 30 days&apos; written notice.</li>
-                <li>In disputed transactions, Grupo may withhold payment pending resolution.</li>
-                <li>Factory Partners remain responsible for GST, TDS, and statutory deductions.</li>
+                <li>Payment terms and invoicing schedules are communicated at order confirmation.</li>                <li>In disputed transactions, Grupo may withhold payment pending resolution.</li>
               </ul>
 
               <h2 className="pt-2 text-xl font-semibold text-gray-900">5. Verified Factory Partners</h2>
               <p>
                 Grupo performs due diligence to onboard Factory Partners, including verification of registration,
-                manufacturing capability, and certifications. Grupo does not guarantee quality, timeliness, or fitness
-                for purpose of goods manufactured. Brands must conduct their own due diligence and quality inspections.
+                manufacturing capability, and certifications.
               </p>
 
               <h2 className="pt-2 text-xl font-semibold text-gray-900">6. User Obligations</h2>
@@ -87,8 +77,7 @@ export default function TermsAndConditionsPage() {
               <ul className="list-disc space-y-2 pl-6">
                 <li>Use the Platform lawfully and in compliance with applicable Indian and international laws.</li>
                 <li>
-                  Not circumvent Platform commissions by transacting outside the Platform for 24 months after initial
-                  introduction through Grupo.
+                  If a user chooses to transact directly with a manufacturer, Grupo shall not be held liable for any payments, damages, or losses arising from such transactions.
                 </li>
                 <li>Maintain confidentiality of commercially sensitive information.</li>
                 <li>Not submit false, misleading, or fraudulent information.</li>
@@ -130,7 +119,7 @@ export default function TermsAndConditionsPage() {
               <p>
                 To the fullest extent permitted under Indian law, Grupo&apos;s total aggregate liability for claims related
                 to these Terms or the Platform is limited to commissions paid by the relevant user to Grupo in the
-                3-month period preceding the claim event.
+                15-days period preceding the claim event.
               </p>
               <p>
                 Grupo is not liable for indirect, incidental, special, consequential, or punitive damages, including
@@ -147,7 +136,7 @@ export default function TermsAndConditionsPage() {
 
               <h2 className="pt-2 text-xl font-semibold text-gray-900">12. Termination</h2>
               <p>
-                Either party may terminate an account with 30 days&apos; written notice. Grupo may suspend or terminate
+                Grupo may suspend or terminate
                 immediately in cases of fraud, material breach, circumvention, or harmful conduct.
               </p>
               <p>
@@ -157,7 +146,8 @@ export default function TermsAndConditionsPage() {
 
               <h2 className="pt-2 text-xl font-semibold text-gray-900">13. Dispute Resolution</h2>
               <ul className="list-disc space-y-2 pl-6">
-                <li>First, good-faith negotiation within 30 days of written notice.</li>
+                <li>First, good-faith negotiation within 30 days of notice.</li>
+                <li>In the event of any dispute between a customer and a manufacturer, Grupo will facilitate discussions between both parties and provide a final resolution.</li>
                 <li>If unresolved, mediation through a mutually agreed mediator.</li>
                 <li>
                   If mediation fails, binding arbitration under the Arbitration and Conciliation Act, 1996 (India), in
@@ -182,7 +172,7 @@ export default function TermsAndConditionsPage() {
               <p>
                 Grupo.in
                 <br />
-                Email: legal@grupo.in
+                Email: contact@grupo.in
                 <br />
                 Website: www.grupo.in
                 <br />
