@@ -10,6 +10,7 @@ const Navbar = () => {
     { name: 'For Buyers', href: '/buyer-portal' },
     { name: 'For Manufacturers', href: '/manufacturer-portal' },
     { name: 'Buy Wholesale', href: '/shop' },
+    { name: 'Blog', href: '/blog' },
   ];
 
   return (
