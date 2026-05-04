@@ -132,3 +132,20 @@ export interface Payment {
   };
 }
 
+export interface AdminBlogPostListItem {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  cover_image_url: string | null;
+  category: string | null;
+  status: 'draft' | 'published';
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminBlogPost extends AdminBlogPostListItem {
+  content?: string;
+}
+

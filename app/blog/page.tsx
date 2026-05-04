@@ -3,7 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import Navbar from "@/app/components/landing/Navbar";
 import Footer from "@/app/components/landing/Footer";
-import { getAllBlogPosts } from "@/app/lib/blog";
+import blogService from "@/app/lib/services/features/BlogService.js";
+import type { BlogPost } from "@/app/types/blog";
 
 export const metadata: Metadata = {
   title: "Grupo Blog | Manufacturing, Sourcing, and AI Insights",
@@ -11,8 +12,16 @@ export const metadata: Metadata = {
     "Explore practical insights on apparel manufacturing, sourcing, buyer-manufacturer collaboration, and AI-driven workflows.",
 };
 
-export default function BlogPage() {
-  const posts = getAllBlogPosts();
+export const revalidate = 60;
+
+export default async function BlogPage() {
+  let loadError: string | null = null;
+  let posts: BlogPost[] = [];
+  try {
+    posts = await blogService.loadPublishedPosts();
+  } catch (e) {
+    loadError = e instanceof Error ? e.message : "Failed to load blog posts.";
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-slate-50 to-blue-50/40">
@@ -33,61 +42,65 @@ export default function BlogPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-            {posts.map((post) => (
-              <article
-                key={post.id}
-                className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-              >
-                <div className="relative h-52 w-full overflow-hidden">
-                  <Image
-                    src={post.coverImage}
-                    alt={post.title}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                  />
-                </div>
-
-                <div className="p-6">
-                  <div className="mb-3 flex items-center justify-between text-xs font-medium text-slate-500">
-                    <span className="rounded-full bg-slate-100 px-2.5 py-1">{post.category}</span>
-                    <span>{post.readTime}</span>
+          {loadError ? (
+            <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-4 text-sm text-red-800">
+              {loadError}
+            </div>
+          ) : posts.length === 0 ? (
+            <p className="text-slate-600">No published posts yet.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+              {posts.map((post) => (
+                <article
+                  key={post.id}
+                  className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                >
+                  <div className="relative h-52 w-full overflow-hidden bg-gradient-to-br from-slate-100 to-blue-50">
+                    {post.coverImage ? (
+                      <Image
+                        src={post.coverImage}
+                        alt={post.title}
+                        fill
+                        unoptimized
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                      />
+                    ) : null}
                   </div>
 
-                  <h2 className="text-xl font-bold text-slate-900 leading-snug">{post.title}</h2>
-                  <p className="mt-3 text-sm text-slate-600 leading-relaxed">{post.excerpt}</p>
-
-                  <div className="mt-5 flex flex-wrap gap-2">
-                    {post.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600"
-                      >
-                        #{tag}
+                  <div className="p-6">
+                    <div className="mb-3 flex items-center justify-between text-xs font-medium text-slate-500">
+                      <span className="rounded-full bg-slate-100 px-2.5 py-1">
+                        {post.category || "Blog"}
                       </span>
-                    ))}
-                  </div>
+                      <span>{post.readTime}</span>
+                    </div>
 
-                  <div className="mt-6 flex items-center justify-between">
-                    <p className="text-xs text-slate-500">
-                      {new Date(post.publishedAt).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </p>
-                    <Link
-                      href={`/blog/${post.slug}`}
-                      className="inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-700"
-                    >
-                      Read More
-                    </Link>
+                    <h2 className="text-xl font-bold text-slate-900 leading-snug">{post.title}</h2>
+                    {post.excerpt ? (
+                      <p className="mt-3 text-sm text-slate-600 leading-relaxed">{post.excerpt}</p>
+                    ) : null}
+
+                    <div className="mt-6 flex items-center justify-between">
+                      <p className="text-xs text-slate-500">
+                        {new Date(post.publishedAt).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </p>
+                      <Link
+                        href={`/blog/${post.slug}`}
+                        className="inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-700"
+                      >
+                        Read More
+                      </Link>
+                    </div>
                   </div>
-                </div>
-              </article>
-            ))}
-          </div>
+                </article>
+              ))}
+            </div>
+          )}
         </section>
       </main>
 

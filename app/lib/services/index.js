@@ -17,6 +17,7 @@ import adminService from './features/AdminService.js';
 import paymentService from './features/PaymentService.js';
 import milestoneService from './features/MilestoneService.js';
 import orderService from './features/OrderService.js';
+import blogService from './features/BlogService.js';
 
 // Utils
 import * as tokenManager from './utils/tokenManager.js';
@@ -110,6 +111,15 @@ class ApiService {
     this.markAsShipped = orderService.markAsShipped.bind(orderService);
     this.getReadyToShipOrders = orderService.getReadyToShipOrders.bind(orderService);
     this.confirmDelivery = orderService.confirmDelivery.bind(orderService);
+
+    // Blog (public + admin)
+    this.loadPublishedBlogPosts = blogService.loadPublishedPosts.bind(blogService);
+    this.loadPublishedBlogPost = blogService.loadPublishedPost.bind(blogService);
+    this.listAdminBlogPosts = blogService.listAdminBlogPosts.bind(blogService);
+    this.getAdminBlogPost = blogService.getAdminBlogPost.bind(blogService);
+    this.createAdminBlogPost = blogService.createAdminBlogPost.bind(blogService);
+    this.updateAdminBlogPost = blogService.updateAdminBlogPost.bind(blogService);
+    this.deleteAdminBlogPost = blogService.deleteAdminBlogPost.bind(blogService);
     
     // Internal method for token expiration handling (used by ApiClient)
     this.handleTokenExpiration = apiClient.handleTokenExpiration.bind(apiClient);
@@ -138,6 +148,7 @@ export {
   paymentService,
   milestoneService,
   orderService,
+  blogService,
   tokenManager,
   API_BASE_URL
 };
