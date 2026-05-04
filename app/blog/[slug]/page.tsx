@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   const { slug } = await params;
   let post: BlogPost | null = null;
   try {
-    post = await blogService.loadPublishedPost(slug);
+    post = (await blogService.loadPublishedPost(slug)) as BlogPost | null;
   } catch {
     return {
       title: "Grupo Blog",
@@ -42,7 +42,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   let post: BlogPost | null = null;
   let loadError: string | null = null;
   try {
-    post = await blogService.loadPublishedPost(slug);
+    post = (await blogService.loadPublishedPost(slug)) as BlogPost | null;
   } catch (e) {
     loadError = e instanceof Error ? e.message : "Failed to load blog post.";
   }

@@ -18,7 +18,7 @@ export default async function BlogPage() {
   let loadError: string | null = null;
   let posts: BlogPost[] = [];
   try {
-    posts = await blogService.loadPublishedPosts();
+    posts = (await blogService.loadPublishedPosts()) as BlogPost[];
   } catch (e) {
     loadError = e instanceof Error ? e.message : "Failed to load blog posts.";
   }
