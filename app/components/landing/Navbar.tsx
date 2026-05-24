@@ -6,12 +6,16 @@ import { useState } from 'react';
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const customOrdersFormUrl =
+    'https://docs.google.com/forms/d/114Qw4OD6VwlmHql6PTdf-xSGyFjTmrknXK8kMuQK7_4/viewform';
+
   const navLinks = [
-    { name: 'For Buyers', href: '/buyer-portal' },
-    { name: 'For Manufacturers', href: '/manufacturer-portal' },
+    { name: 'Custom Orders', href: customOrdersFormUrl },
     { name: 'Buy Wholesale', href: '/shop' },
     { name: 'Blog', href: '/blog' },
   ];
+
+  const isExternalLink = (href: string) => href.startsWith('http');
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
@@ -41,6 +45,9 @@ const Navbar = () => {
               <Link
                 key={link.name}
                 href={link.href}
+                {...(isExternalLink(link.href)
+                  ? { target: '_blank', rel: 'noopener noreferrer' }
+                  : {})}
                 className="text-gray-700 hover:text-[#22a2f2] transition-colors duration-200 font-medium relative group"
               >
                 {link.name}
@@ -103,6 +110,9 @@ const Navbar = () => {
               <Link
                 key={link.name}
                 href={link.href}
+                {...(isExternalLink(link.href)
+                  ? { target: '_blank', rel: 'noopener noreferrer' }
+                  : {})}
                 className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-[#22a2f2] hover:bg-gray-50 transition-colors duration-200 relative group"
                 onClick={() => setIsMenuOpen(false)}
               >
