@@ -1,6 +1,6 @@
 import type { ShopProduct, ShopOrder, BulkPricingTier, CreateProductPayload, CreateOrderPayload, OrderResponse, ColorVariation, RazorpayOrderResponse, VerifyPaymentPayload, TrackedOrder, ShopManufacturer } from './types';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SHOP_API_URL || 'https://shop-backend-31w8.onrender.com';
+const BASE_URL = process.env.NEXT_PUBLIC_SHOP_API_URL || 'https://shop-backend-eih5.onrender.com';
 
 // const BASE_URL = process.env.NEXT_PUBLIC_SHOP_API_URL || 'http://localhost:5001';
 
