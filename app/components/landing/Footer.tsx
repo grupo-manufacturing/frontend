@@ -12,7 +12,6 @@ const Footer = () => {
 
   const companyLinks = [
     { name: 'About', href: '/about' },
-    { name: 'Blog', href: '/blog' },
     { name: 'Terms & Conditions', href: '/terms-and-conditions' },
     { name: 'Privacy Policy', href: '/privacy-policy' },
     { name: 'Refund Policy', href: '/refund-policy' },

@@ -12,7 +12,6 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Custom Orders', href: customOrdersFormUrl },
     { name: 'Buy Wholesale', href: '/shop' },
-    { name: 'Blog', href: '/blog' },
   ];
 
   const isExternalLink = (href: string) => href.startsWith('http');

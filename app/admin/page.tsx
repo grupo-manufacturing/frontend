@@ -9,20 +9,18 @@ import Users from './components/Users';
 import Orders from './components/Orders';
 import PaymentVerification from './components/PaymentVerification';
 import MilestonePayouts from './components/MilestonePayouts';
-import BlogAdmin from './components/BlogAdmin';
 import Login from './components/Login';
 import { useToast } from '../components/Toast';
 
 type AdminStep = 'login' | 'dashboard';
-type AdminView = 'overview' | 'users' | 'orders' | 'payments' | 'milestones' | 'blog';
+type AdminView = 'overview' | 'users' | 'orders' | 'payments' | 'milestones';
 
 const VIEW_TABS: Array<{ id: AdminView; label: string; description: string }> = [
   { id: 'overview', label: 'Overview', description: 'Key metrics across buyers and manufacturers' },
   { id: 'users', label: 'Users', description: 'Manage buyers and manufacturers' },
   { id: 'orders', label: 'Orders', description: 'View and filter all orders by status' },
   { id: 'payments', label: 'Payments', description: 'Verify UTR and approve payments' },
-  { id: 'milestones', label: 'Milestones', description: 'Mark milestone payouts as transferred' },
-  { id: 'blog', label: 'Blog', description: 'Write and publish posts for the public blog' }
+  { id: 'milestones', label: 'Milestones', description: 'Mark milestone payouts as transferred' }
 ];
 
 export default function AdminPortal() {
@@ -46,7 +44,6 @@ export default function AdminPortal() {
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
-  const [blogReloadKey, setBlogReloadKey] = useState(0);
 
   const normalizeAdminOrder = (row: any): Order => {
     // After backend change, /requirements/admin/orders returns plain requirement rows
@@ -291,7 +288,6 @@ export default function AdminPortal() {
   const isOrdersView = activeView === 'orders';
   const isPaymentsView = activeView === 'payments';
   const isMilestonesView = activeView === 'milestones';
-  const isBlogView = activeView === 'blog';
 
   if (isCheckingAuth) {
     return (
@@ -379,8 +375,6 @@ export default function AdminPortal() {
                 void loadPendingPayments();
               } else if (activeView === 'milestones') {
                 void loadPendingPayouts();
-              } else if (activeView === 'blog') {
-                setBlogReloadKey((k) => k + 1);
               } else {
                 void loadData();
               }
@@ -412,7 +406,7 @@ export default function AdminPortal() {
           </div>
         )}
 
-        {isLoadingData && activeView !== 'blog' && (
+        {isLoadingData && (
           <div className="flex items-center justify-center py-20">
             <div className="flex flex-col items-center gap-4">
               <svg
@@ -432,7 +426,7 @@ export default function AdminPortal() {
           </div>
         )}
 
-        {!isLoadingData && lastUpdated && activeView !== 'blog' && (
+        {!isLoadingData && lastUpdated && (
           <p className="mb-6 text-xs text-slate-400">
             Last updated {formatDate(lastUpdated)} •{' '}
             {new Date(lastUpdated).toLocaleTimeString(undefined, {
@@ -441,8 +435,6 @@ export default function AdminPortal() {
             })}
           </p>
         )}
-
-        {isBlogView && <BlogAdmin reloadKey={blogReloadKey} />}
 
         {!isLoadingData && isOverview && (
           <Overview
