@@ -99,16 +99,16 @@ function StatusStepper({ status }: { status: string }) {
               {i > 0 && (
                 <div
                   className={`absolute top-4 right-1/2 w-full h-0.5 -z-10 ${
-                    done || active ? 'bg-[#22a2f2]' : 'bg-gray-200'
+                    done || active ? 'bg-[#1C8FD7]' : 'bg-gray-200'
                   }`}
                 />
               )}
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
                   done
-                    ? 'bg-[#22a2f2] shadow-md shadow-blue-200'
+                    ? 'bg-[#1C8FD7] shadow-md shadow-blue-200'
                     : active
-                      ? 'bg-[#22a2f2] shadow-lg shadow-blue-300 ring-4 ring-blue-100'
+                      ? 'bg-[#1C8FD7] shadow-lg shadow-blue-300 ring-4 ring-blue-100'
                       : 'bg-gray-100 border-2 border-gray-200'
                 }`}
               >
@@ -122,7 +122,7 @@ function StatusStepper({ status }: { status: string }) {
               </div>
               <span
                 className={`mt-2 text-[11px] font-semibold tracking-wide ${
-                  done || active ? 'text-[#22a2f2]' : 'text-gray-400'
+                  done || active ? 'text-[#1C8FD7]' : 'text-gray-400'
                 } ${active ? 'font-bold' : ''}`}
               >
                 {step.label}
@@ -213,7 +213,7 @@ function TrackOrderContent() {
           {/* Header */}
           <div className="text-center mb-10">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-50 mb-5">
-              <svg className="w-8 h-8 text-[#22a2f2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-8 h-8 text-[#1C8FD7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
@@ -230,12 +230,12 @@ function TrackOrderContent() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="e.g. GRUPO-ORD-0001"
-                className="flex-1 px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-800 placeholder:text-gray-400 outline-none transition-colors focus:border-[#22a2f2] focus:ring-2 focus:ring-[#22a2f2]/10 font-mono tracking-wide shadow-sm"
+                className="flex-1 px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-800 placeholder:text-gray-400 outline-none transition-colors focus:border-[#1C8FD7] focus:ring-2 focus:ring-[#1C8FD7]/10 font-mono tracking-wide shadow-sm"
               />
               <button
                 type="submit"
                 disabled={loading || !input.trim()}
-                className="px-6 py-3.5 bg-[#22a2f2] text-white rounded-xl font-semibold text-sm hover:bg-[#1b8bd0] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 flex-shrink-0 shadow-sm"
+                className="px-6 py-3.5 bg-[#1C8FD7] text-white rounded-xl font-semibold text-sm hover:bg-[#1678B5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 flex-shrink-0 shadow-sm"
               >
                 {loading ? (
                   <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -279,7 +279,7 @@ function TrackOrderContent() {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-bold text-gray-900 text-sm leading-tight">{order.productName}</h3>
                     <p className="text-xs text-gray-400 mt-0.5">{order.quantity} units</p>
-                    <span className="inline-block mt-1 px-2 py-0.5 bg-[#22a2f2]/10 text-[#22a2f2] text-[11px] font-bold rounded-md">
+                    <span className="inline-block mt-1 px-2 py-0.5 bg-[#1C8FD7]/10 text-[#1C8FD7] text-[11px] font-bold rounded-md">
                       {order.tier}
                     </span>
                   </div>
@@ -345,7 +345,7 @@ function TrackOrderContent() {
           {/* Back to shop */}
           {!order && !error && (
             <div className="text-center mt-12">
-              <Link href="/shop" className="text-sm text-gray-400 hover:text-[#22a2f2] transition-colors">
+              <Link href="/shop" className="text-sm text-gray-400 hover:text-[#1C8FD7] transition-colors">
                 ← Back to Shop
               </Link>
             </div>

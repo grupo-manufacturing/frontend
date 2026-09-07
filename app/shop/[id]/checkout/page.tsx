@@ -17,7 +17,7 @@ const Field = ({ label, optional, children }: { label: string; optional?: boolea
   </div>
 );
 
-const inputCls = "w-full px-4 py-3 bg-blue-50/40 border border-blue-100 rounded-lg text-sm text-gray-800 placeholder:text-gray-400 outline-none transition-colors focus:bg-white focus:border-[#22a2f2] focus:ring-2 focus:ring-[#22a2f2]/10";
+const inputCls = "w-full px-4 py-3 bg-blue-50/40 border border-blue-100 rounded-lg text-sm text-gray-800 placeholder:text-gray-400 outline-none transition-colors focus:bg-white focus:border-[#1C8FD7] focus:ring-2 focus:ring-[#1C8FD7]/10";
 
 export default function CheckoutPage() {
   const params = useParams<{ id: string }>();
@@ -58,13 +58,13 @@ export default function CheckoutPage() {
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 pt-32 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-100 mb-6">
-            <svg className="w-8 h-8 text-[#22a2f2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-8 h-8 text-[#1C8FD7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Product not found</h1>
           <p className="text-gray-500 mb-6">Please return to the shop and try again.</p>
-          <Link href="/shop" className="inline-flex items-center gap-2 px-6 py-3 bg-[#22a2f2] text-white rounded-xl hover:bg-[#1b8bd0] transition-colors font-semibold text-sm">
+          <Link href="/shop" className="inline-flex items-center gap-2 px-6 py-3 bg-[#1C8FD7] text-white rounded-xl hover:bg-[#1678B5] transition-colors font-semibold text-sm">
             ← Back to Shop
           </Link>
         </div>
@@ -145,7 +145,7 @@ function CheckoutForm({ product, searchParams }: { product: ShopProduct; searchP
       description: `${product.name} — ${quantity} units (${tierLabel})`,
       order_id: razorpayOrderId,
       prefill: { name: fullName.trim(), email: email.trim(), contact: phone.trim() },
-      theme: { color: '#22a2f2' },
+      theme: { color: '#1C8FD7' },
       handler: async (response) => {
         try {
           const result = await verifyPayment({
@@ -218,8 +218,8 @@ function CheckoutForm({ product, searchParams }: { product: ShopProduct; searchP
         <div className="flex-1 flex items-center justify-center px-4 pt-16">
           <div className="bg-white rounded-3xl shadow-xl shadow-blue-100 p-10 sm:p-14 text-center max-w-md w-full border border-blue-50">
             <div className="relative w-20 h-20 mx-auto mb-8">
-              <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-full animate-ping opacity-30" />
-              <div className="relative w-20 h-20 bg-gradient-to-br from-[#22a2f2] to-[#1b8bd0] rounded-full flex items-center justify-center shadow-lg shadow-blue-200">
+              <div className="absolute inset-0 bg-[#1C8FD7]/10 rounded-full animate-ping opacity-30" />
+              <div className="relative w-20 h-20 bg-gradient-to-br from-[#1C8FD7] to-[#1678B5] rounded-full flex items-center justify-center shadow-lg shadow-blue-200">
                 <svg className="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                 </svg>
@@ -228,16 +228,16 @@ function CheckoutForm({ product, searchParams }: { product: ShopProduct; searchP
             <h1 className="text-3xl font-bold text-gray-900 mb-3 tracking-tight">Payment Successful!</h1>
             <p className="text-gray-500 leading-relaxed mb-2">
               Thanks, <span className="font-semibold text-gray-700">{fullName}</span>. Your order for{' '}
-              <span className="font-semibold text-[#22a2f2]">{product.name}</span> is confirmed and paid.
+              <span className="font-semibold text-[#1C8FD7]">{product.name}</span> is confirmed and paid.
             </p>
             {orderNumber && (
-              <p className="text-sm font-semibold text-[#22a2f2] mb-2">
+              <p className="text-sm font-semibold text-[#1C8FD7] mb-2">
                 Order #{orderNumber}
               </p>
             )}
             <p className="text-xs text-gray-400 mb-3">Amount paid: ₹{finalTotal.toLocaleString('en-IN')}</p>
             <p className="text-sm text-gray-400 mb-10">You'll receive order updates on WhatsApp shortly.</p>
-            <Link href="/shop" className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#22a2f2] text-white rounded-2xl hover:bg-[#1b8bd0] transition-all font-semibold shadow-md shadow-blue-200 hover:shadow-lg hover:shadow-blue-300 hover:-translate-y-0.5 duration-200">
+            <Link href="/shop" className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#1C8FD7] text-white rounded-2xl hover:bg-[#1678B5] transition-all font-semibold shadow-md shadow-blue-200 hover:shadow-lg hover:shadow-blue-300 hover:-translate-y-0.5 duration-200">
               Continue Shopping →
             </Link>
           </div>
@@ -270,7 +270,7 @@ function CheckoutForm({ product, searchParams }: { product: ShopProduct; searchP
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
                 onClick={handleRetry}
-                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-[#22a2f2] text-white rounded-2xl hover:bg-[#1b8bd0] transition-all font-semibold shadow-md shadow-blue-200 hover:shadow-lg hover:shadow-blue-300 hover:-translate-y-0.5 duration-200"
+                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-[#1C8FD7] text-white rounded-2xl hover:bg-[#1678B5] transition-all font-semibold shadow-md shadow-blue-200 hover:shadow-lg hover:shadow-blue-300 hover:-translate-y-0.5 duration-200"
               >
                 Try Again
               </button>
@@ -305,7 +305,7 @@ function CheckoutForm({ product, searchParams }: { product: ShopProduct; searchP
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
                 onClick={handleRetry}
-                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-[#22a2f2] text-white rounded-2xl hover:bg-[#1b8bd0] transition-all font-semibold shadow-md shadow-blue-200 hover:shadow-lg hover:shadow-blue-300 hover:-translate-y-0.5 duration-200"
+                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-[#1C8FD7] text-white rounded-2xl hover:bg-[#1678B5] transition-all font-semibold shadow-md shadow-blue-200 hover:shadow-lg hover:shadow-blue-300 hover:-translate-y-0.5 duration-200"
               >
                 Try Again
               </button>
@@ -324,7 +324,7 @@ function CheckoutForm({ product, searchParams }: { product: ShopProduct; searchP
       <Navbar />
 
       {/* Decorative top bar */}
-      <div className="h-1 bg-gradient-to-r from-[#22a2f2] via-blue-300 to-[#22a2f2]" />
+      <div className="h-1 bg-gradient-to-r from-[#1C8FD7] via-blue-300 to-[#1C8FD7]" />
 
       <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 lg:px-12 pt-20 pb-4 flex flex-col">
 
@@ -340,7 +340,7 @@ function CheckoutForm({ product, searchParams }: { product: ShopProduct; searchP
           <div className="lg:col-span-3">
             <div className="bg-white rounded-2xl shadow-sm shadow-blue-100 border border-blue-50/80 p-6 sm:p-8">
               <div className="flex items-center gap-2.5 mb-5">
-                <div className="w-8 h-8 rounded-lg bg-[#22a2f2] flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-[#1C8FD7] flex items-center justify-center flex-shrink-0">
                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
@@ -412,7 +412,7 @@ function CheckoutForm({ product, searchParams }: { product: ShopProduct; searchP
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full py-3.5 bg-[#22a2f2] text-white rounded-xl font-bold text-sm tracking-wide hover:bg-[#1b8bd0] transition-colors flex flex-col items-center justify-center gap-1 disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="w-full py-3.5 bg-[#1C8FD7] text-white rounded-xl font-bold text-sm tracking-wide hover:bg-[#1678B5] transition-colors flex flex-col items-center justify-center gap-1 disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {submitting ? (
                       <span className="flex items-center gap-2">
@@ -453,7 +453,7 @@ function CheckoutForm({ product, searchParams }: { product: ShopProduct; searchP
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-gray-900 text-sm leading-tight">{product.name}</h3>
                   <p className="text-xs text-gray-400 mt-0.5">{quantity} units</p>
-                  <span className="inline-block mt-1.5 px-2 py-0.5 bg-[#22a2f2]/10 text-[#22a2f2] text-[11px] font-bold rounded-md">{tier.label}</span>
+                  <span className="inline-block mt-1.5 px-2 py-0.5 bg-[#1C8FD7]/10 text-[#1C8FD7] text-[11px] font-bold rounded-md">{tier.label}</span>
                 </div>
               </div>
 
@@ -492,7 +492,7 @@ function CheckoutForm({ product, searchParams }: { product: ShopProduct; searchP
                     <div className="h-px bg-blue-50 my-0.5" />
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-gray-900 text-sm">Total</span>
-                      <span className="text-lg font-black text-[#22a2f2]">₹{finalTotal.toLocaleString('en-IN')}</span>
+                      <span className="text-lg font-black text-[#1C8FD7]">₹{finalTotal.toLocaleString('en-IN')}</span>
                     </div>
                   </>
                 )}

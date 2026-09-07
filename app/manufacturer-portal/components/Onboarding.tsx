@@ -212,7 +212,7 @@ export default function Onboarding({ phoneNumber, onComplete, toast }: Onboardin
                 <div className="flex flex-col items-center flex-shrink-0">
                   <div className={`relative w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-xl sm:text-2xl transition-all duration-500 ${
                     currentStep >= s.id 
-                      ? 'bg-gradient-to-r from-[#22a2f2] to-[#1b8bd0] shadow-lg shadow-[#22a2f2]/50 scale-110 text-white' 
+                      ? 'bg-gradient-to-r from-[#1C8FD7] to-[#1678B5] shadow-lg shadow-[#1C8FD7]/50 scale-110 text-white' 
                       : 'bg-gray-100 border border-gray-300 text-gray-500'
                   }`}>
                     {currentStep > s.id ? (
@@ -223,7 +223,7 @@ export default function Onboarding({ phoneNumber, onComplete, toast }: Onboardin
                       <span>{s.icon}</span>
                     )}
                     {currentStep === s.id && (
-                      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#22a2f2] to-[#1b8bd0] animate-ping opacity-50"></div>
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#1C8FD7] to-[#1678B5] animate-ping opacity-50"></div>
                     )}
                   </div>
                   <span className={`mt-2 text-xs sm:text-sm font-medium transition-colors hidden sm:block ${
@@ -281,16 +281,16 @@ export default function Onboarding({ phoneNumber, onComplete, toast }: Onboardin
                   {/* Manufacturing Unit Name */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Manufacturing Unit Name <span className="text-[#22a2f2]">*</span>
+                      Manufacturing Unit Name <span className="text-[#1C8FD7]">*</span>
                     </label>
                     <div className="relative group">
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#22a2f2] to-[#1b8bd0] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#1C8FD7] to-[#1678B5] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
                       <input
                         type="text"
                         value={formData.unitName}
                         onChange={(e) => handleInputChange('unitName', e.target.value)}
                         placeholder="Enter your manufacturing unit name"
-                        className="relative w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 transition-all outline-none text-black placeholder:text-gray-400"
+                        className="relative w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1C8FD7] focus:border-[#1C8FD7]/60 transition-all outline-none text-black placeholder:text-gray-400"
                         required
                       />
                     </div>
@@ -299,14 +299,14 @@ export default function Onboarding({ phoneNumber, onComplete, toast }: Onboardin
                   {/* Business Type */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Business Type <span className="text-[#22a2f2]">*</span>
+                      Business Type <span className="text-[#1C8FD7]">*</span>
                     </label>
                     <div className="relative group">
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#22a2f2] to-[#1b8bd0] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#1C8FD7] to-[#1678B5] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
                       <select
                         value={formData.businessType}
                         onChange={(e) => handleInputChange('businessType', e.target.value)}
-                        className="relative w-full px-4 py-3.5 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 transition-all outline-none text-black appearance-none cursor-pointer"
+                        className="relative w-full px-4 py-3.5 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1C8FD7] focus:border-[#1C8FD7]/60 transition-all outline-none text-black appearance-none cursor-pointer"
                         required
                       >
                         <option value="" className="bg-white text-black">Select your business type</option>
@@ -328,16 +328,16 @@ export default function Onboarding({ phoneNumber, onComplete, toast }: Onboardin
                   {/* GST Number */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      GST Number <span className="text-[#22a2f2]">*</span>
+                      GST Number <span className="text-[#1C8FD7]">*</span>
                     </label>
                     <div className="relative group">
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#22a2f2] to-[#1b8bd0] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#1C8FD7] to-[#1678B5] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
                       <input
                         type="text"
                         value={formData.gstNumber}
                         onChange={(e) => handleInputChange('gstNumber', e.target.value)}
                         placeholder="Enter GST number"
-                        className="relative w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 transition-all outline-none text-black placeholder:text-gray-400"
+                        className="relative w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1C8FD7] focus:border-[#1C8FD7]/60 transition-all outline-none text-black placeholder:text-gray-400"
                         required
                       />
                     </div>
@@ -346,16 +346,16 @@ export default function Onboarding({ phoneNumber, onComplete, toast }: Onboardin
                   {/* PAN */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      PAN <span className="text-[#22a2f2]">*</span>
+                      PAN <span className="text-[#1C8FD7]">*</span>
                     </label>
                     <div className="relative group">
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#22a2f2] to-[#1b8bd0] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#1C8FD7] to-[#1678B5] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
                       <input
                         type="text"
                         value={formData.panNumber}
                         onChange={(e) => handleInputChange('panNumber', e.target.value.toUpperCase())}
                         placeholder="Enter PAN number"
-                        className="relative w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 transition-all outline-none text-black placeholder:text-gray-400"
+                        className="relative w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1C8FD7] focus:border-[#1C8FD7]/60 transition-all outline-none text-black placeholder:text-gray-400"
                       />
                     </div>
                   </div>
@@ -366,13 +366,13 @@ export default function Onboarding({ phoneNumber, onComplete, toast }: Onboardin
                       MSME Number
                     </label>
                     <div className="relative group">
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#22a2f2] to-[#1b8bd0] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#1C8FD7] to-[#1678B5] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
                       <input
                         type="text"
                         value={formData.msmeNumber}
                         onChange={(e) => handleInputChange('msmeNumber', e.target.value)}
                         placeholder="Enter MSME number"
-                        className="relative w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 transition-all outline-none text-black placeholder:text-gray-400"
+                        className="relative w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1C8FD7] focus:border-[#1C8FD7]/60 transition-all outline-none text-black placeholder:text-gray-400"
                       />
                     </div>
                   </div>
@@ -435,14 +435,14 @@ export default function Onboarding({ phoneNumber, onComplete, toast }: Onboardin
                       Daily Manufacturing Capacity
                     </label>
                     <div className="relative group">
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#22a2f2] to-[#1b8bd0] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#1C8FD7] to-[#1678B5] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
                       <div className="relative flex items-center">
                         <input
                           type="number"
                           value={formData.capacity}
                           onChange={(e) => handleInputChange('capacity', e.target.value)}
                           placeholder="Enter daily capacity"
-                          className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 transition-all outline-none text-black placeholder:text-gray-400"
+                          className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1C8FD7] focus:border-[#1C8FD7]/60 transition-all outline-none text-black placeholder:text-gray-400"
                         />
                         <span className="absolute right-4 text-gray-500 text-sm">units/day</span>
                       </div>
@@ -455,8 +455,8 @@ export default function Onboarding({ phoneNumber, onComplete, toast }: Onboardin
                       Manufacturing Unit Image
                     </label>
                     <div className="relative group">
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#22a2f2] to-[#1b8bd0] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
-                      <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-[#22a2f2] transition-all">
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#1C8FD7] to-[#1678B5] rounded-xl blur opacity-0 group-hover:opacity-10 transition duration-300"></div>
+                      <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-[#1C8FD7] transition-all">
                         <label className="flex flex-col items-center justify-center cursor-pointer">
                           {formData.manufacturingUnitImage ? (
                             <div className="w-full">
@@ -485,9 +485,9 @@ export default function Onboarding({ phoneNumber, onComplete, toast }: Onboardin
                             </div>
                           ) : (
                             <>
-                              <div className="p-3 bg-[#22a2f2]/10 rounded-xl mb-3">
+                              <div className="p-3 bg-[#1C8FD7]/10 rounded-xl mb-3">
                                 <svg
-                                  className="w-8 h-8 text-[#22a2f2]"
+                                  className="w-8 h-8 text-[#1C8FD7]"
                                   fill="none"
                                   stroke="currentColor"
                                   viewBox="0 0 24 24"

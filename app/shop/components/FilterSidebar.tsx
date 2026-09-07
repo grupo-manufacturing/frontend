@@ -77,7 +77,7 @@ export default function FilterSidebar({
               key={category}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors text-sm ${
                 selectedCategories.includes(category)
-                  ? 'bg-[#22a2f2]/10 text-[#22a2f2] font-medium'
+                  ? 'bg-[#1C8FD7]/10 text-[#1C8FD7] font-medium'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -91,7 +91,7 @@ export default function FilterSidebar({
               <span
                 className={`w-4.5 h-4.5 rounded flex items-center justify-center border-2 transition-colors flex-shrink-0 ${
                   selectedCategories.includes(category)
-                    ? 'bg-[#22a2f2] border-[#22a2f2]'
+                    ? 'bg-[#1C8FD7] border-[#1C8FD7]'
                     : 'border-gray-300'
                 }`}
               >
@@ -118,7 +118,7 @@ export default function FilterSidebar({
               key={range.id}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors text-sm ${
                 selectedPriceRanges.includes(range.id)
-                  ? 'bg-[#22a2f2]/10 text-[#22a2f2] font-medium'
+                  ? 'bg-[#1C8FD7]/10 text-[#1C8FD7] font-medium'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -131,7 +131,7 @@ export default function FilterSidebar({
               <span
                 className={`w-4.5 h-4.5 rounded flex items-center justify-center border-2 transition-colors flex-shrink-0 ${
                   selectedPriceRanges.includes(range.id)
-                    ? 'bg-[#22a2f2] border-[#22a2f2]'
+                    ? 'bg-[#1C8FD7] border-[#1C8FD7]'
                     : 'border-gray-300'
                 }`}
               >
@@ -162,7 +162,7 @@ export default function FilterSidebar({
               key={option.value}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors text-sm ${
                 stockFilter === option.value
-                  ? 'bg-[#22a2f2]/10 text-[#22a2f2] font-medium'
+                  ? 'bg-[#1C8FD7]/10 text-[#1C8FD7] font-medium'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -176,12 +176,12 @@ export default function FilterSidebar({
               <span
                 className={`w-4 h-4 rounded-full flex items-center justify-center border-2 transition-colors flex-shrink-0 ${
                   stockFilter === option.value
-                    ? 'border-[#22a2f2]'
+                    ? 'border-[#1C8FD7]'
                     : 'border-gray-300'
                 }`}
               >
                 {stockFilter === option.value && (
-                  <span className="w-2 h-2 rounded-full bg-[#22a2f2]" />
+                  <span className="w-2 h-2 rounded-full bg-[#1C8FD7]" />
                 )}
               </span>
               <span>{option.label}</span>
@@ -210,7 +210,7 @@ export default function FilterSidebar({
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-base font-semibold text-gray-900">Filters</h2>
             {hasActiveFilters && (
-              <span className="text-xs font-medium text-[#22a2f2] bg-[#22a2f2]/10 px-2 py-0.5 rounded-full">
+              <span className="text-xs font-medium text-[#1C8FD7] bg-[#1C8FD7]/10 px-2 py-0.5 rounded-full">
                 Active
               </span>
             )}
@@ -251,7 +251,7 @@ export default function FilterSidebar({
             <div className="p-4 border-t border-gray-100 bg-white">
               <button
                 onClick={onClose}
-                className="w-full py-3 bg-[#22a2f2] text-white rounded-xl font-medium text-sm hover:bg-[#1b8bd0] transition-colors"
+                className="w-full py-3 bg-[#1C8FD7] text-white rounded-xl font-medium text-sm hover:bg-[#1678B5] transition-colors"
               >
                 Show Results
               </button>

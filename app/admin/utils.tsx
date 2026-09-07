@@ -14,7 +14,7 @@ export const renderBadge = (
   tone: 'info' | 'success' | 'warning' | 'neutral' = 'neutral'
 ) => {
   const tones: Record<typeof tone, string> = {
-    info: 'bg-[#22a2f2]/10 text-[#187dc5]',
+    info: 'bg-[#1C8FD7]/10 text-[#187dc5]',
     success: 'bg-emerald-500/10 text-emerald-600',
     warning: 'bg-amber-500/10 text-amber-600',
     neutral: 'bg-slate-100 text-slate-600'

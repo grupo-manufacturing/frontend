@@ -10,10 +10,10 @@ export default function EmptyState({ searchQuery, onClearAll }: EmptyStateProps)
     <div className="flex flex-col items-center justify-center py-16 sm:py-24 px-4">
       {/* Illustration */}
       <div className="w-28 h-28 sm:w-36 sm:h-36 mb-6 relative">
-        <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-full" />
+        <div className="absolute inset-0 bg-[#1C8FD7]/10 rounded-full" />
         <div className="absolute inset-0 flex items-center justify-center">
           <svg
-            className="w-14 h-14 sm:w-18 sm:h-18 text-[#22a2f2]/40"
+            className="w-14 h-14 sm:w-18 sm:h-18 text-[#1C8FD7]/40"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth={1.5}
@@ -45,7 +45,7 @@ export default function EmptyState({ searchQuery, onClearAll }: EmptyStateProps)
 
       <button
         onClick={onClearAll}
-        className="px-6 py-2.5 bg-[#22a2f2] text-white rounded-lg hover:bg-[#1b8bd0] transition-colors font-medium text-sm"
+        className="px-6 py-2.5 bg-[#1C8FD7] text-white rounded-lg hover:bg-[#1678B5] transition-colors font-medium text-sm"
       >
         Clear All Filters
       </button>

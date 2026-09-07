@@ -88,7 +88,7 @@ export default function ShopAdminPage() {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
         <div className="flex flex-col items-center gap-4">
-          <svg className="h-8 w-8 animate-spin text-[#22a2f2]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <svg className="h-8 w-8 animate-spin text-[#1C8FD7]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 12a9 9 0 11-6.219-8.56" />
             <path d="M21 3v6h-6" />
           </svg>
@@ -117,7 +117,7 @@ export default function ShopAdminPage() {
         <div className="mx-auto flex max-w-screen-2xl items-center justify-between gap-4 px-16 sm:px-20 lg:px-32 py-4">
           <div className="flex items-center gap-3">
             <div>
-              <p className="poppins-font text-lg font-bold text-[#22a2f2] leading-none">Grupo</p>
+              <p className="poppins-font text-lg font-bold text-[#1C8FD7] leading-none">Grupo</p>
               <p className="text-sm font-semibold text-slate-900">Shop Console</p>
               <p className="text-xs text-slate-500">Manage products &amp; orders</p>
             </div>
@@ -146,11 +146,11 @@ export default function ShopAdminPage() {
                 key={tab.id}
                 onClick={() => setActiveView(tab.id)}
                 className={`relative flex flex-col gap-1 px-4 py-3 text-left transition ${
-                  isActive ? 'text-[#147ac2]' : 'text-slate-500 hover:text-slate-700'
+                  isActive ? 'text-[#1678B5]' : 'text-slate-500 hover:text-slate-700'
                 }`}
               >
                 {isActive && (
-                  <span className="absolute inset-x-0 bottom-0 h-1 rounded-full bg-[#22a2f2]" />
+                  <span className="absolute inset-x-0 bottom-0 h-1 rounded-full bg-[#1C8FD7]" />
                 )}
                 <span className="text-sm font-semibold">{tab.label}</span>
                 <span className="text-xs text-slate-400">{tab.description}</span>
@@ -164,7 +164,7 @@ export default function ShopAdminPage() {
             className="my-2 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <svg
-              className={`h-4 w-4 ${isLoadingData ? 'animate-spin text-[#22a2f2]' : 'text-slate-400'}`}
+              className={`h-4 w-4 ${isLoadingData ? 'animate-spin text-[#1C8FD7]' : 'text-slate-400'}`}
               viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
             >
               <path d="M21 12a9 9 0 11-6.219-8.56" />
@@ -186,7 +186,7 @@ export default function ShopAdminPage() {
         {isLoadingData && (
           <div className="flex items-center justify-center py-20">
             <div className="flex flex-col items-center gap-4">
-              <svg className="h-8 w-8 animate-spin text-[#22a2f2]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <svg className="h-8 w-8 animate-spin text-[#1C8FD7]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 12a9 9 0 11-6.219-8.56" />
                 <path d="M21 3v6h-6" />
               </svg>

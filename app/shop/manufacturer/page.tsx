@@ -139,7 +139,7 @@ export default function ManufacturerDashboardPage() {
               <input
                 type="text"
                 name="phone"
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 shadow-sm focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 shadow-sm focus:border-[#1C8FD7] focus:outline-none focus:ring-2 focus:ring-[#1C8FD7]/30"
                 placeholder="Phone number"
               />
             </div>
@@ -148,7 +148,7 @@ export default function ManufacturerDashboardPage() {
               <input
                 type="password"
                 name="password"
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 shadow-sm focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 shadow-sm focus:border-[#1C8FD7] focus:outline-none focus:ring-2 focus:ring-[#1C8FD7]/30"
                 placeholder="Password"
               />
             </div>
@@ -162,7 +162,7 @@ export default function ManufacturerDashboardPage() {
             <button
               type="submit"
               disabled={isLoadingData}
-              className="w-full rounded-lg bg-[#22a2f2] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1b8bd0] disabled:cursor-not-allowed disabled:bg-[#22a2f2]/50"
+              className="w-full rounded-lg bg-[#1C8FD7] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1678B5] disabled:cursor-not-allowed disabled:bg-[#1C8FD7]/50"
             >
               {isLoadingData ? 'Signing In…' : 'Sign In'}
             </button>
@@ -177,7 +177,7 @@ export default function ManufacturerDashboardPage() {
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#22a2f2]/20 bg-[#22a2f2]/10">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#1C8FD7]/20 bg-[#1C8FD7]/10">
               <Image src="/groupo-logo.svg" alt="Grupo" width={28} height={28} className="h-7 w-7" unoptimized />
             </div>
             <div>
@@ -203,10 +203,10 @@ export default function ManufacturerDashboardPage() {
                 key={tab.id}
                 onClick={() => setActiveView(tab.id)}
                 className={`relative flex flex-col gap-1 px-4 py-3 text-left transition ${
-                  isActive ? 'text-[#147ac2]' : 'text-slate-500 hover:text-slate-700'
+                  isActive ? 'text-[#1678B5]' : 'text-slate-500 hover:text-slate-700'
                 }`}
               >
-                {isActive && <span className="absolute inset-x-0 bottom-0 h-1 rounded-full bg-[#22a2f2]" />}
+                {isActive && <span className="absolute inset-x-0 bottom-0 h-1 rounded-full bg-[#1C8FD7]" />}
                 <span className="text-sm font-semibold">{tab.label}</span>
                 <span className="text-xs text-slate-400">{tab.description}</span>
               </button>

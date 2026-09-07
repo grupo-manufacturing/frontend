@@ -67,7 +67,7 @@ export default function SizeGuide({ category, sizes }: SizeGuideProps) {
       {/* Trigger button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="inline-flex items-center gap-1.5 text-sm text-[#22a2f2] hover:text-[#1b8bd0] font-medium transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-[#1C8FD7] hover:text-[#1678B5] font-medium transition-colors"
         aria-label="Open size guide"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -113,7 +113,7 @@ export default function SizeGuide({ category, sizes }: SizeGuideProps) {
                 onClick={() => setUnit('in')}
                 className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
                   unit === 'in'
-                    ? 'bg-[#22a2f2] text-white'
+                    ? 'bg-[#1C8FD7] text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
@@ -123,7 +123,7 @@ export default function SizeGuide({ category, sizes }: SizeGuideProps) {
                 onClick={() => setUnit('cm')}
                 className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
                   unit === 'cm'
-                    ? 'bg-[#22a2f2] text-white'
+                    ? 'bg-[#1C8FD7] text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
@@ -182,7 +182,7 @@ export default function SizeGuide({ category, sizes }: SizeGuideProps) {
 
               {/* Measurement tip */}
               <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                <p className="text-xs text-[#22a2f2] font-medium mb-1">How to Measure</p>
+                <p className="text-xs text-[#1C8FD7] font-medium mb-1">How to Measure</p>
                 <p className="text-xs text-gray-600 leading-relaxed">
                   {isBottom
                     ? 'Waist: Measure around your natural waistline. Hip: Measure around the fullest part of your hips. Inseam: Measure from the crotch seam to the ankle.'

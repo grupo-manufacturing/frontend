@@ -128,7 +128,7 @@ export default function Overview({ products, orders }: OverviewProps) {
 
 function MetricCard({ label, value, color }: { label: string; value: string | number; color: string }) {
   const colorMap: Record<string, string> = {
-    blue: 'bg-[#22a2f2]/10 text-[#22a2f2]',
+    blue: 'bg-[#1C8FD7]/10 text-[#1C8FD7]',
     green: 'bg-green-100 text-green-600',
     amber: 'bg-amber-100 text-amber-600',
     purple: 'bg-purple-100 text-purple-600',

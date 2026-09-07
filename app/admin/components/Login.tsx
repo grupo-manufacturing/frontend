@@ -46,7 +46,7 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false }: LoginP
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
         <div className="flex flex-col items-center gap-4">
           <svg
-            className="h-8 w-8 animate-spin text-[#22a2f2]"
+            className="h-8 w-8 animate-spin text-[#1C8FD7]"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -74,7 +74,7 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false }: LoginP
       <div className="max-w-md w-full space-y-8">
         <div className="flex flex-col items-center gap-4">
           <div className="text-center space-y-2">
-            <h1 className="poppins-font text-3xl font-bold text-[#22a2f2]">Grupo</h1>
+            <h1 className="poppins-font text-3xl font-bold text-[#1C8FD7]">Grupo</h1>
             <p className="text-2xl font-semibold text-slate-900 mt-4">Admin Sign In</p>
             <p className="text-sm text-slate-500">
               Enter your username and password to access the admin portal.
@@ -93,7 +93,7 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false }: LoginP
               value={username}
               onChange={(event) => setUsername(event.target.value)}
               placeholder="Enter username"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 shadow-sm focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 shadow-sm focus:border-[#1C8FD7] focus:outline-none focus:ring-2 focus:ring-[#1C8FD7]/30"
               autoComplete="username"
             />
           </div>
@@ -109,7 +109,7 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false }: LoginP
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="Enter password"
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 pr-10 text-slate-900 shadow-sm focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 pr-10 text-slate-900 shadow-sm focus:border-[#1C8FD7] focus:outline-none focus:ring-2 focus:ring-[#1C8FD7]/30"
                 autoComplete="current-password"
               />
               <button
@@ -168,7 +168,7 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false }: LoginP
           <button
             type="submit"
             disabled={isLoggingIn || !username.trim() || !password.trim()}
-            className="w-full rounded-lg bg-[#22a2f2] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1b8bd0] disabled:cursor-not-allowed disabled:bg-[#22a2f2]/50"
+            className="w-full rounded-lg bg-[#1C8FD7] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1678B5] disabled:cursor-not-allowed disabled:bg-[#1C8FD7]/50"
           >
             {isLoggingIn ? 'Signing In…' : 'Sign In'}
           </button>

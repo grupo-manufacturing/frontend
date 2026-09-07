@@ -33,11 +33,11 @@ export default function ProductCard({ product }: ProductCardProps) {
 
       {/* Product Info */}
       <div className="p-3 sm:p-4 flex flex-col flex-1">
-        <span className="text-[10px] sm:text-xs font-medium text-[#22a2f2] uppercase tracking-wide">
+        <span className="text-[10px] sm:text-xs font-medium text-[#1C8FD7] uppercase tracking-wide">
           {product.category}
         </span>
         <Link href={`/shop/${product.id}`} className="mt-1">
-          <h3 className="text-sm sm:text-base font-semibold text-gray-900 group-hover:text-[#22a2f2] transition-colors leading-snug">
+          <h3 className="text-sm sm:text-base font-semibold text-gray-900 group-hover:text-[#1C8FD7] transition-colors leading-snug">
             {product.name}
           </h3>
         </Link>
@@ -52,7 +52,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           {product.inStock ? (
             <Link
               href={`/shop/${product.id}`}
-              className="block w-full text-center px-3 py-2 sm:py-2.5 bg-[#22a2f2] text-white rounded-lg hover:bg-[#1b8bd0] transition-colors font-medium text-xs sm:text-sm"
+              className="block w-full text-center px-3 py-2 sm:py-2.5 bg-[#1C8FD7] text-white rounded-lg hover:bg-[#1678B5] transition-colors font-medium text-xs sm:text-sm"
             >
               View Product
             </Link>

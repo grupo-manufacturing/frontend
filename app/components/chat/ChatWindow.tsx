@@ -510,7 +510,7 @@ export default function ChatWindow({
                     onClick={() => setActiveTab(reqTab.id)}
                     className={`px-4 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap ${
                       activeRequirementId === reqTab.id
-                        ? 'bg-[#22a2f2] text-white'
+                        ? 'bg-[#1C8FD7] text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                     title={reqTab.requirement_no || reqTab.requirement_text}
@@ -580,8 +580,8 @@ export default function ChatWindow({
           <div className="flex items-center justify-center py-8">
             <div className="flex flex-col items-center gap-3">
               <div className="relative">
-                <div className="w-8 h-8 border-4 border-[#22a2f2]/20 rounded-full"></div>
-                <div className="w-8 h-8 border-4 border-[#22a2f2] border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
+                <div className="w-8 h-8 border-4 border-[#1C8FD7]/20 rounded-full"></div>
+                <div className="w-8 h-8 border-4 border-[#1C8FD7] border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
               </div>
               <p className={inline ? 'text-sm text-gray-400' : 'text-sm text-gray-500'}>Loading messages...</p>
             </div>
@@ -616,10 +616,10 @@ export default function ChatWindow({
           const isSelf = message.sender_role === selfRole;
           const wrapperClass = isSelf ? 'flex justify-end' : 'flex justify-start';
           const bubbleTone = isSelf
-            ? 'bg-[#22a2f2] text-white shadow-[#22a2f2]/20'
+            ? 'bg-[#1C8FD7] text-white shadow-[#1C8FD7]/20'
             : (inline
-                ? 'bg-gray-100 text-gray-900 border border-[#22a2f2]/10 shadow-sm'
-                : 'bg-white text-gray-900 border border-[#22a2f2]/20 shadow-sm');
+                ? 'bg-gray-100 text-gray-900 border border-[#1C8FD7]/10 shadow-sm'
+                : 'bg-white text-gray-900 border border-[#1C8FD7]/20 shadow-sm');
 
           return (
             <div key={item.id} className={wrapperClass}>
@@ -718,7 +718,7 @@ export default function ChatWindow({
           <button
             onClick={handleSend}
             disabled={sending || uploadingFiles || !activeRequirementId || (!input.trim() && selectedFiles.length === 0)}
-            className="px-3 py-2 bg-[#22a2f2] hover:bg-[#1b8bd0] disabled:opacity-50 text-white rounded-lg text-sm shadow-sm transition-colors"
+            className="px-3 py-2 bg-[#1C8FD7] hover:bg-[#1678B5] disabled:opacity-50 text-white rounded-lg text-sm shadow-sm transition-colors"
           >
             {uploadingFiles ? 'Uploading...' : 'Send'}
           </button>

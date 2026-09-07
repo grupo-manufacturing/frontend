@@ -129,7 +129,7 @@ export default function MilestonePayouts({
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="Search by requirement, buyer, or manufacturer"
-            className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-700 shadow-sm focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30"
+            className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-700 shadow-sm focus:border-[#1C8FD7] focus:outline-none focus:ring-2 focus:ring-[#1C8FD7]/30"
           />
         </div>
       </div>

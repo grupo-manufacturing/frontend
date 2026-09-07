@@ -39,7 +39,7 @@ export default function ColorSwatches({ colors, selected, onChange }: ColorSwatc
               onClick={() => onChange(color)}
               className={`relative w-10 h-10 rounded-full transition-all focus:outline-none ${
                 isSelected
-                  ? 'ring-2 ring-offset-2 ring-[#22a2f2] scale-110'
+                  ? 'ring-2 ring-offset-2 ring-[#1C8FD7] scale-110'
                   : 'ring-1 ring-gray-200 hover:ring-gray-400 hover:scale-105'
               }`}
               style={{ backgroundColor: hex }}

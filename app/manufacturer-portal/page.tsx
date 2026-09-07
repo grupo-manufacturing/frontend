@@ -288,7 +288,7 @@ export default function ManufacturerPortal() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="flex flex-col items-center gap-4">
-          <svg className="animate-spin h-12 w-12 text-[#22a2f2]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <svg className="animate-spin h-12 w-12 text-[#1C8FD7]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
@@ -315,7 +315,7 @@ export default function ManufacturerPortal() {
               {/* Left Side - Logo and Branding */}
               <div className="flex items-center gap-3 animate-fade-in-down">
                 <div className="flex flex-col">
-                  <span className="poppins-font text-lg font-bold text-[#22a2f2]">
+                  <span className="poppins-font text-lg font-bold text-[#1C8FD7]">
                     Grupo
                   </span>
                   <span className="text-xs text-gray-500 hidden sm:block">
@@ -392,12 +392,12 @@ export default function ManufacturerPortal() {
                 onClick={() => setActiveTab('requirements')}
                 className={`relative flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all ${
                   activeTab === 'requirements'
-                    ? 'text-[#22a2f2]'
-                    : 'text-gray-500 hover:text-[#22a2f2]'
+                    ? 'text-[#1C8FD7]'
+                    : 'text-gray-500 hover:text-[#1C8FD7]'
                 }`}
               >
                 {activeTab === 'requirements' && (
-                  <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-t-lg border-b-2 border-[#22a2f2]"></div>
+                  <div className="absolute inset-0 bg-[#1C8FD7]/10 rounded-t-lg border-b-2 border-[#1C8FD7]"></div>
                 )}
                 <svg
                   className="relative z-10 w-5 h-5"
@@ -414,7 +414,7 @@ export default function ManufacturerPortal() {
                 </svg>
                 <span className="relative z-10">Requirements</span>
                 {activeTab !== 'requirements' && unseenRequirementsCount > 0 && (
-                  <span className="absolute -top-1 right-1 inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-[#22a2f2] text-white text-[10px] font-semibold px-1">
+                  <span className="absolute -top-1 right-1 inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-[#1C8FD7] text-white text-[10px] font-semibold px-1">
                     {unseenRequirementsCount > 99 ? '99+' : unseenRequirementsCount}
                   </span>
                 )}
@@ -425,12 +425,12 @@ export default function ManufacturerPortal() {
                 onClick={() => setActiveTab('chats')}
                 className={`relative flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all ${
                   activeTab === 'chats'
-                    ? 'text-[#22a2f2]'
-                    : 'text-gray-500 hover:text-[#22a2f2]'
+                    ? 'text-[#1C8FD7]'
+                    : 'text-gray-500 hover:text-[#1C8FD7]'
                 }`}
               >
                 {activeTab === 'chats' && (
-                  <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-t-lg border-b-2 border-[#22a2f2]"></div>
+                  <div className="absolute inset-0 bg-[#1C8FD7]/10 rounded-t-lg border-b-2 border-[#1C8FD7]"></div>
                 )}
                 <svg
                   className="relative z-10 w-5 h-5"
@@ -447,7 +447,7 @@ export default function ManufacturerPortal() {
                 </svg>
                 <span className="relative z-10">Chats</span>
                 {activeTab !== 'chats' && unreadMessagesCount > 0 && (
-                  <span className="absolute -top-1 right-1 inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-[#22a2f2] text-white text-[10px] font-semibold px-1">
+                  <span className="absolute -top-1 right-1 inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-[#1C8FD7] text-white text-[10px] font-semibold px-1">
                     {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
                   </span>
                 )}
@@ -458,12 +458,12 @@ export default function ManufacturerPortal() {
                 onClick={() => setActiveTab('analytics')}
                 className={`relative flex items-center gap-2 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all ${
                   activeTab === 'analytics'
-                    ? 'text-[#22a2f2]'
-                    : 'text-gray-500 hover:text-[#22a2f2]'
+                    ? 'text-[#1C8FD7]'
+                    : 'text-gray-500 hover:text-[#1C8FD7]'
                 }`}
               >
                 {activeTab === 'analytics' && (
-                  <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-t-lg border-b-2 border-[#22a2f2]"></div>
+                  <div className="absolute inset-0 bg-[#1C8FD7]/10 rounded-t-lg border-b-2 border-[#1C8FD7]"></div>
                 )}
                 <svg
                   className="relative z-10 w-5 h-5"

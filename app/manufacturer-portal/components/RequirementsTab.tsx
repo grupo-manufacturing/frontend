@@ -584,7 +584,7 @@ export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabPro
     <div>
       {/* Header Section */}
       <div className="mb-8">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22a2f2]/10 text-[#22a2f2] text-sm font-semibold mb-3">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1C8FD7]/10 text-[#1C8FD7] text-sm font-semibold mb-3">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
           </svg>
@@ -592,16 +592,16 @@ export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabPro
         </div>
         <div className="flex items-center gap-3 mb-2">
           <h1 className="text-3xl font-bold text-black">Requirements</h1>
-          <div className="h-8 w-0.5 bg-[#22a2f2]/30"></div>
+          <div className="h-8 w-0.5 bg-[#1C8FD7]/30"></div>
         </div>
         <p className="text-sm font-medium text-gray-500">View and respond to buyer requirements</p>
       </div>
 
       {/* Loading State */}
       {isLoadingRequirements && (
-        <div className="bg-white rounded-xl border border-[#22a2f2]/30 p-12">
+        <div className="bg-white rounded-xl border border-[#1C8FD7]/30 p-12">
           <div className="flex flex-col items-center justify-center text-center">
-            <svg className="animate-spin w-12 h-12 text-[#22a2f2] mb-4" fill="none" viewBox="0 0 24 24">
+            <svg className="animate-spin w-12 h-12 text-[#1C8FD7] mb-4" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
@@ -621,14 +621,14 @@ export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabPro
             return (
               <div 
                 key={req.id} 
-                className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-[#22a2f2]/50 transition-all duration-200 p-5 aspect-square flex flex-col cursor-pointer group"
+                className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-[#1C8FD7]/50 transition-all duration-200 p-5 aspect-square flex flex-col cursor-pointer group"
                 onClick={() => !req.hasResponse && handleRespondToRequirement(req)}
               >
                 {/* Date badge - smaller and positioned better */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2 flex-wrap">
                     {req.requirement_no && (
-                      <span className="px-2 py-1 rounded-md text-xs font-semibold bg-[#22a2f2]/10 text-[#22a2f2] border border-[#22a2f2]/20">
+                      <span className="px-2 py-1 rounded-md text-xs font-semibold bg-[#1C8FD7]/10 text-[#1C8FD7] border border-[#1C8FD7]/20">
                         {req.requirement_no}
                       </span>
                     )}
@@ -949,7 +949,7 @@ export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabPro
                         e.stopPropagation();
                         handleRespondToRequirement(req);
                       }}
-                      className="w-full bg-[#22a2f2] hover:bg-[#1b8bd0] text-white px-4 py-2.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                      className="w-full bg-[#1C8FD7] hover:bg-[#1678B5] text-white px-4 py-2.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
                       title="View details & submit quote"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -967,13 +967,13 @@ export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabPro
 
       {/* Empty State */}
       {!isLoadingRequirements && requirements.length === 0 && (
-        <div className="bg-white rounded-xl border border-[#22a2f2]/30 p-12">
+        <div className="bg-white rounded-xl border border-[#1C8FD7]/30 p-12">
           <div className="flex flex-col items-center justify-center text-center">
             <div className="relative mb-6">
-              <div className="absolute inset-0 bg-[#22a2f2]/30 rounded-full blur-xl opacity-40"></div>
-              <div className="relative bg-[#22a2f2]/10 rounded-full p-6 border border-[#22a2f2]/30">
+              <div className="absolute inset-0 bg-[#1C8FD7]/30 rounded-full blur-xl opacity-40"></div>
+              <div className="relative bg-[#1C8FD7]/10 rounded-full p-6 border border-[#1C8FD7]/30">
                 <svg
-                  className="w-16 h-16 text-[#22a2f2]"
+                  className="w-16 h-16 text-[#1C8FD7]"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -1049,7 +1049,7 @@ export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabPro
                       href={selectedRequirement.image_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-sm font-medium text-[#22a2f2] hover:underline"
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-[#1C8FD7] hover:underline"
                     >
                       View Uploaded Attachment
                     </a>
@@ -1081,7 +1081,7 @@ export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabPro
                       }
                     }}
                     placeholder="e.g., 100"
-                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500"
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1C8FD7] focus:border-[#1C8FD7] outline-none text-black placeholder:text-gray-500"
                     required
                   />
                   <p className="text-xs text-gray-500 mt-1">Enter the price per unit (whole numbers only, before taxes and fees)</p>
@@ -1096,7 +1096,7 @@ export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabPro
                     value={responseForm.deliveryTime}
                     onChange={(e) => setResponseForm({...responseForm, deliveryTime: e.target.value})}
                     placeholder="e.g., 20-25 days"
-                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500"
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1C8FD7] focus:border-[#1C8FD7] outline-none text-black placeholder:text-gray-500"
                     required
                   />
                 </div>
@@ -1110,7 +1110,7 @@ export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabPro
                     onChange={(e) => setResponseForm({...responseForm, notes: e.target.value})}
                     placeholder="Any additional details or terms..."
                     rows={4}
-                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 resize-none"
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1C8FD7] focus:border-[#1C8FD7] outline-none text-black placeholder:text-gray-500 resize-none"
                   />
                 </div>
 
@@ -1219,7 +1219,7 @@ export default function RequirementsTab({ onQuoteSubmitted }: RequirementsTabPro
                   <button
                     type="submit"
                     disabled={isSubmittingResponse}
-                    className={`flex-1 px-4 py-3 ${isSubmittingResponse ? 'bg-gray-400' : 'bg-[#22a2f2] hover:bg-[#1b8bd0]'} text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2`}
+                    className={`flex-1 px-4 py-3 ${isSubmittingResponse ? 'bg-gray-400' : 'bg-[#1C8FD7] hover:bg-[#1678B5]'} text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2`}
                   >
                     {isSubmittingResponse ? (
                       <>

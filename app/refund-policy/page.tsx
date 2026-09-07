@@ -8,7 +8,7 @@ export default function RefundPolicyPage() {
       <main className="pt-20 pb-16">
         <section className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-lg md:p-10">
-            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.22em] text-[#22a2f2]">
+            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.22em] text-[#1C8FD7]">
               Legal
             </p>
             <h1 className="text-3xl font-bold text-gray-900 md:text-4xl">Refund Policy</h1>

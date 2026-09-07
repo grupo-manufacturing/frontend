@@ -35,7 +35,7 @@ export default function SearchBar({ value, onChange }: SearchBarProps) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Search products..."
-        className="w-full pl-12 pr-10 py-3 sm:py-3.5 bg-white border border-gray-200 rounded-xl text-sm sm:text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30 focus:border-[#22a2f2] transition-all shadow-sm"
+        className="w-full pl-12 pr-10 py-3 sm:py-3.5 bg-white border border-gray-200 rounded-xl text-sm sm:text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1C8FD7]/30 focus:border-[#1C8FD7] transition-all shadow-sm"
         aria-label="Search products"
       />
 

@@ -46,7 +46,7 @@ export default function MyOrders({
     <div>
       {/* Header Section */}
       <div className="mb-8">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22a2f2]/10 text-[#22a2f2] text-sm font-semibold mb-3">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1C8FD7]/10 text-[#1C8FD7] text-sm font-semibold mb-3">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-9 8h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
@@ -62,14 +62,14 @@ export default function MyOrders({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {/* Total Requirements Card */}
             <div className="group relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#22a2f2]/15 to-[#1b8bd0]/10 rounded-2xl blur opacity-40 group-hover:opacity-70 transition duration-300"></div>
-              <div className="relative bg-white rounded-2xl border border-[#22a2f2]/30 p-6 hover:border-[#22a2f2]/60 transition-all">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#1C8FD7]/15 to-[#1678B5]/10 rounded-2xl blur opacity-40 group-hover:opacity-70 transition duration-300"></div>
+              <div className="relative bg-white rounded-2xl border border-[#1C8FD7]/30 p-6 hover:border-[#1C8FD7]/60 transition-all">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[#22a2f2] font-semibold mb-1">Total Requirements</p>
+                    <p className="text-sm text-[#1C8FD7] font-semibold mb-1">Total Requirements</p>
                     <p className="text-3xl font-bold text-black">{isLoadingRequirements ? '...' : requirementStats.total}</p>
                   </div>
-                  <div className="p-3 bg-[#22a2f2]/15 rounded-xl shadow-lg shadow-[#22a2f2]/20 text-[#22a2f2]">
+                  <div className="p-3 bg-[#1C8FD7]/15 rounded-xl shadow-lg shadow-[#1C8FD7]/20 text-[#1C8FD7]">
                     <svg
                       className="w-8 h-8"
                       fill="none"
@@ -90,14 +90,14 @@ export default function MyOrders({
 
             {/* Accepted Card */}
             <div className="group relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#22a2f2]/15 to-[#1b8bd0]/10 rounded-2xl blur opacity-40 group-hover:opacity-70 transition duration-300"></div>
-              <div className="relative bg-white rounded-2xl border border-[#22a2f2]/30 p-6 hover:border-[#22a2f2]/60 transition-all">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#1C8FD7]/15 to-[#1678B5]/10 rounded-2xl blur opacity-40 group-hover:opacity-70 transition duration-300"></div>
+              <div className="relative bg-white rounded-2xl border border-[#1C8FD7]/30 p-6 hover:border-[#1C8FD7]/60 transition-all">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[#1b8bd0] font-semibold mb-1">Accepted</p>
-                    <p className="text-3xl font-bold text-[#22a2f2]">{isLoadingRequirements ? '...' : requirementStats.accepted}</p>
+                    <p className="text-sm text-[#1678B5] font-semibold mb-1">Accepted</p>
+                    <p className="text-3xl font-bold text-[#1C8FD7]">{isLoadingRequirements ? '...' : requirementStats.accepted}</p>
                   </div>
-                  <div className="p-3 bg-[#22a2f2]/15 rounded-xl shadow-lg shadow-[#22a2f2]/20 text-[#22a2f2]">
+                  <div className="p-3 bg-[#1C8FD7]/15 rounded-xl shadow-lg shadow-[#1C8FD7]/20 text-[#1C8FD7]">
                     <svg
                       className="w-8 h-8"
                       fill="none"
@@ -118,14 +118,14 @@ export default function MyOrders({
 
             {/* Pending Card */}
             <div className="group relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#22a2f2]/15 to-[#1b8bd0]/10 rounded-2xl blur opacity-40 group-hover:opacity-70 transition duration-300"></div>
-              <div className="relative bg-white rounded-2xl border border-[#22a2f2]/30 p-6 hover:border-[#22a2f2]/60 transition-all">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#1C8FD7]/15 to-[#1678B5]/10 rounded-2xl blur opacity-40 group-hover:opacity-70 transition duration-300"></div>
+              <div className="relative bg-white rounded-2xl border border-[#1C8FD7]/30 p-6 hover:border-[#1C8FD7]/60 transition-all">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[#1b8bd0] font-semibold mb-1">Pending</p>
-                    <p className="text-3xl font-bold text-[#22a2f2]">{isLoadingRequirements ? '...' : requirementStats.pending}</p>
+                    <p className="text-sm text-[#1678B5] font-semibold mb-1">Pending</p>
+                    <p className="text-3xl font-bold text-[#1C8FD7]">{isLoadingRequirements ? '...' : requirementStats.pending}</p>
                   </div>
-                  <div className="p-3 bg-[#22a2f2]/15 rounded-xl shadow-lg shadow-[#22a2f2]/20 text-[#22a2f2]">
+                  <div className="p-3 bg-[#1C8FD7]/15 rounded-xl shadow-lg shadow-[#1C8FD7]/20 text-[#1C8FD7]">
                     <svg
                       className="w-8 h-8"
                       fill="none"
@@ -146,14 +146,14 @@ export default function MyOrders({
 
             {/* Rejected */}
             <div className="group relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#22a2f2]/15 to-[#1b8bd0]/10 rounded-2xl blur opacity-40 group-hover:opacity-70 transition duration-300"></div>
-              <div className="relative bg-white rounded-2xl border border-[#22a2f2]/30 p-6 hover:border-[#22a2f2]/60 transition-all">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#1C8FD7]/15 to-[#1678B5]/10 rounded-2xl blur opacity-40 group-hover:opacity-70 transition duration-300"></div>
+              <div className="relative bg-white rounded-2xl border border-[#1C8FD7]/30 p-6 hover:border-[#1C8FD7]/60 transition-all">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[#1b8bd0] font-semibold mb-1">Rejected</p>
-                    <p className="text-3xl font-bold text-[#22a2f2]">{isLoadingRequirements ? '...' : requirementStats.rejected}</p>
+                    <p className="text-sm text-[#1678B5] font-semibold mb-1">Rejected</p>
+                    <p className="text-3xl font-bold text-[#1C8FD7]">{isLoadingRequirements ? '...' : requirementStats.rejected}</p>
                   </div>
-                  <div className="p-3 bg-[#22a2f2]/15 rounded-xl shadow-lg shadow-[#22a2f2]/20 text-[#22a2f2]">
+                  <div className="p-3 bg-[#1C8FD7]/15 rounded-xl shadow-lg shadow-[#1C8FD7]/20 text-[#1C8FD7]">
                     <svg
                       className="w-8 h-8"
                       fill="none"
@@ -174,13 +174,13 @@ export default function MyOrders({
           </div>
 
           {/* Search and Filter Bar */}
-          <div className="bg-white rounded-xl border border-[#22a2f2]/30 p-4 mb-6">
+          <div className="bg-white rounded-xl border border-[#1C8FD7]/30 p-4 mb-6">
             <div className="flex flex-col md:flex-row gap-4">
               {/* Search Input */}
               <div className="flex-1 relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <svg
-                    className="h-5 w-5 text-gray-400 group-focus-within:text-[#22a2f2] transition-colors"
+                    className="h-5 w-5 text-gray-400 group-focus-within:text-[#1C8FD7] transition-colors"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -198,7 +198,7 @@ export default function MyOrders({
                   placeholder="Search orders by product, brand, or order ID..."
                   value={orderSearchQuery}
                   onChange={(e) => setOrderSearchQuery(e.target.value)}
-                  className="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 transition-all"
+                  className="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1C8FD7] focus:border-[#1C8FD7] outline-none text-black placeholder:text-gray-500 transition-all"
                 />
               </div>
 
@@ -208,7 +208,7 @@ export default function MyOrders({
                   type="button"
                   onClick={() => setIsOrderFilterDropdownOpen(!isOrderFilterDropdownOpen)}
                   onBlur={() => setTimeout(() => setIsOrderFilterDropdownOpen(false), 200)}
-                  className="appearance-none w-full md:w-48 px-4 py-2.5 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black cursor-pointer transition-all text-left flex items-center justify-between"
+                  className="appearance-none w-full md:w-48 px-4 py-2.5 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1C8FD7] focus:border-[#1C8FD7] outline-none text-black cursor-pointer transition-all text-left flex items-center justify-between"
                 >
                   <span className={orderFilter !== 'all' ? 'text-black' : 'text-gray-500'}>
                     {orderFilter === 'all' 
@@ -253,7 +253,7 @@ export default function MyOrders({
                             setIsOrderFilterDropdownOpen(false);
                           }}
                           className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${
-                            orderFilter === option.value ? 'bg-[#22a2f2]/10 text-[#22a2f2] font-medium' : 'text-gray-900'
+                            orderFilter === option.value ? 'bg-[#1C8FD7]/10 text-[#1C8FD7] font-medium' : 'text-gray-900'
                           }`}
                         >
                           {option.label}
@@ -268,9 +268,9 @@ export default function MyOrders({
 
           {/* Requirements List */}
           {isLoadingRequirements ? (
-            <div className="bg-white rounded-xl border border-[#22a2f2]/30 p-12">
+            <div className="bg-white rounded-xl border border-[#1C8FD7]/30 p-12">
               <div className="flex flex-col items-center justify-center text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#22a2f2] mb-4"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1C8FD7] mb-4"></div>
                 <p className="text-gray-500">Loading requirements...</p>
               </div>
             </div>
@@ -294,7 +294,7 @@ export default function MyOrders({
             });
             
             return filteredRequirements.length > 0 ? (
-              <div className="bg-white rounded-xl border border-[#22a2f2]/30 overflow-hidden">
+              <div className="bg-white rounded-xl border border-[#1C8FD7]/30 overflow-hidden">
                 {/* Table Header */}
                 <div className="bg-gray-50 border-b border-gray-200 px-6 py-3">
                 <div className="grid grid-cols-12 gap-4 items-center w-full text-xs font-semibold text-gray-700 uppercase tracking-wide">
@@ -364,13 +364,13 @@ export default function MyOrders({
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-xl border border-[#22a2f2]/30 p-12">
+              <div className="bg-white rounded-xl border border-[#1C8FD7]/30 p-12">
                 <div className="flex flex-col items-center justify-center text-center">
                   <div className="relative mb-6">
-                    <div className="absolute inset-0 bg-[#22a2f2]/30 rounded-full blur-xl opacity-40"></div>
-                    <div className="relative bg-[#22a2f2]/10 rounded-full p-6 border border-[#22a2f2]/30">
+                    <div className="absolute inset-0 bg-[#1C8FD7]/30 rounded-full blur-xl opacity-40"></div>
+                    <div className="relative bg-[#1C8FD7]/10 rounded-full p-6 border border-[#1C8FD7]/30">
                       <svg
-                        className="w-16 h-16 text-[#22a2f2]"
+                        className="w-16 h-16 text-[#1C8FD7]"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"

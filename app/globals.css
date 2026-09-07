@@ -1,28 +1,59 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Brand palette */
+  --brand: #1c8fd7;
+  --surface: #feffff;
+
+  --background: var(--surface);
+  --foreground: #0b1220;
 }
 
 @theme inline {
+  --color-brand: var(--brand);
+  --color-surface: var(--surface);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-heading: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-nav: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  --font-sans: var(--font-ibm-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  --font-brand: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-sans);
+  font-weight: 400;
+}
+
+/* Brand wordmark — Poppins */
+.font-brand {
+  font-family: var(--font-brand);
+}
+
+/* Archivo family — set weight per use (font-semibold / font-black) */
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+h1,
+h2 {
+  font-family: var(--font-heading);
+}
+
+/* Nav links + subheadings — IBM Plex Mono */
+.font-nav,
+.font-subheading {
+  font-family: var(--font-nav);
+}
+
+/* Regular copy — IBM Plex Sans */
+.font-body {
+  font-family: var(--font-sans);
+  font-weight: 400;
 }
 
 @keyframes popup {
@@ -200,6 +231,144 @@ body {
 
 .animate-slide-right {
   animation: slideRight 1.5s ease-in-out infinite;
+}
+
+@keyframes hero-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes hero-image-in {
+  from {
+    transform: scale(1.08);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+@keyframes hero-kenburns {
+  from {
+    transform: scale(1.05) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.14) translate3d(-1.5%, 1%, 0);
+  }
+}
+
+@keyframes hero-grid-drift {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 56px 56px;
+  }
+}
+
+@keyframes hero-sweep {
+  0%,
+  100% {
+    transform: translateX(-20%) skewX(-18deg);
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.55;
+  }
+  55% {
+    transform: translateX(160%) skewX(-18deg);
+    opacity: 0;
+  }
+}
+
+@keyframes hero-line-draw {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+@keyframes nav-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes map-route-travel {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: calc(var(--map-dash, 1000) * -1);
+  }
+}
+
+@keyframes map-grid-pulse {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes map-glow-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translateY(-50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.12);
+  }
+}
+
+@keyframes about-portrait-float {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-6px) scale(1.02);
+  }
+}
+
+@keyframes process-ribbon {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -400;
+  }
+}
+
+@keyframes why-stage-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* Grid pattern background */

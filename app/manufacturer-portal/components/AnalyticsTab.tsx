@@ -132,7 +132,7 @@ export default function AnalyticsTab() {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22a2f2]/10 text-[#22a2f2] text-sm font-semibold mb-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1C8FD7]/10 text-[#1C8FD7] text-sm font-semibold mb-3">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm6 0V7a2 2 0 00-2-2h-2a2 2 0 00-2 2v10m6 0a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2h-2a2 2 0 00-2 2z" />
             </svg>
@@ -141,7 +141,7 @@ export default function AnalyticsTab() {
           <h1 className="text-3xl font-bold text-black">Performance Dashboard</h1>
           <p className="text-sm text-gray-500 mt-1">Monitor revenue, conversion, and order health at a glance.</p>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-[#22a2f2]/10 border border-[#22a2f2]/20 text-[#22a2f2] rounded-xl text-sm font-medium">
+        <div className="flex items-center gap-2 px-4 py-2 bg-[#1C8FD7]/10 border border-[#1C8FD7]/20 text-[#1C8FD7] rounded-xl text-sm font-medium">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12A9 9 0 113 12a9 9 0 0118 0z" />
           </svg>
@@ -153,16 +153,16 @@ export default function AnalyticsTab() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in-up">
         {/* Total Revenue Card */}
         <div className="group relative overflow-hidden">
-          <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-2xl opacity-0 group-hover:opacity-100 transition duration-300"></div>
-          <div className="relative bg-white rounded-2xl border border-[#22a2f2]/30 p-6 shadow-sm group-hover:shadow-lg transition-all">
+          <div className="absolute inset-0 bg-[#1C8FD7]/10 rounded-2xl opacity-0 group-hover:opacity-100 transition duration-300"></div>
+          <div className="relative bg-white rounded-2xl border border-[#1C8FD7]/30 p-6 shadow-sm group-hover:shadow-lg transition-all">
             <div className="flex items-start justify-between mb-4">
-              <div className="p-3 bg-[#22a2f2]/15 text-[#22a2f2] rounded-xl border border-[#22a2f2]/30 shadow-sm">
+              <div className="p-3 bg-[#1C8FD7]/15 text-[#1C8FD7] rounded-xl border border-[#1C8FD7]/30 shadow-sm">
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd"/>
                 </svg>
               </div>
-              <div className="px-2 py-1 bg-[#22a2f2]/10 border border-[#22a2f2]/30 rounded-lg text-xs font-medium text-[#22a2f2]">
+              <div className="px-2 py-1 bg-[#1C8FD7]/10 border border-[#1C8FD7]/30 rounded-lg text-xs font-medium text-[#1C8FD7]">
                 {isLoadingAnalytics ? '...' : analyticsData.acceptedCount > 0 ? 'Active' : '—'}
               </div>
             </div>
@@ -177,15 +177,15 @@ export default function AnalyticsTab() {
 
         {/* Avg Order Value Card */}
         <div className="group relative overflow-hidden">
-          <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-2xl opacity-0 group-hover:opacity-100 transition duration-300"></div>
-          <div className="relative bg-white rounded-2xl border border-[#22a2f2]/30 p-6 shadow-sm group-hover:shadow-lg transition-all">
+          <div className="absolute inset-0 bg-[#1C8FD7]/10 rounded-2xl opacity-0 group-hover:opacity-100 transition duration-300"></div>
+          <div className="relative bg-white rounded-2xl border border-[#1C8FD7]/30 p-6 shadow-sm group-hover:shadow-lg transition-all">
             <div className="flex items-start justify-between mb-4">
-              <div className="p-3 bg-[#22a2f2]/15 text-[#22a2f2] rounded-xl border border-[#22a2f2]/30 shadow-sm">
+              <div className="p-3 bg-[#1C8FD7]/15 text-[#1C8FD7] rounded-xl border border-[#1C8FD7]/30 shadow-sm">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
               </div>
-              <div className="px-2 py-1 bg-[#22a2f2]/10 border border-[#22a2f2]/30 rounded-lg text-xs font-medium text-[#22a2f2]">
+              <div className="px-2 py-1 bg-[#1C8FD7]/10 border border-[#1C8FD7]/30 rounded-lg text-xs font-medium text-[#1C8FD7]">
                 Avg
               </div>
             </div>
@@ -200,15 +200,15 @@ export default function AnalyticsTab() {
 
         {/* Conversion Rate Card */}
         <div className="group relative overflow-hidden">
-          <div className="absolute inset-0 bg-[#22a2f2]/10 rounded-2xl opacity-0 group-hover:opacity-100 transition duration-300"></div>
-          <div className="relative bg-white rounded-2xl border border-[#22a2f2]/30 p-6 shadow-sm group-hover:shadow-lg transition-all">
+          <div className="absolute inset-0 bg-[#1C8FD7]/10 rounded-2xl opacity-0 group-hover:opacity-100 transition duration-300"></div>
+          <div className="relative bg-white rounded-2xl border border-[#1C8FD7]/30 p-6 shadow-sm group-hover:shadow-lg transition-all">
             <div className="flex items-start justify-between mb-4">
-              <div className="p-3 bg-[#22a2f2]/15 text-[#22a2f2] rounded-xl border border-[#22a2f2]/30 shadow-sm">
+              <div className="p-3 bg-[#1C8FD7]/15 text-[#1C8FD7] rounded-xl border border-[#1C8FD7]/30 shadow-sm">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z"/>
                 </svg>
               </div>
-              <div className="px-2 py-1 bg-[#22a2f2]/10 border border-[#22a2f2]/30 rounded-lg text-xs font-medium text-[#22a2f2]">
+              <div className="px-2 py-1 bg-[#1C8FD7]/10 border border-[#1C8FD7]/30 rounded-lg text-xs font-medium text-[#1C8FD7]">
                 Rate
               </div>
             </div>
@@ -225,9 +225,9 @@ export default function AnalyticsTab() {
       {/* Order Status Overview */}
       <div className="relative overflow-hidden animate-fade-in-up animation-delay-200">
         <div className="absolute inset-0 rounded-2xl opacity-0"></div>
-        <div className="relative bg-white rounded-2xl border border-[#22a2f2]/30 p-6 shadow-sm">
+        <div className="relative bg-white rounded-2xl border border-[#1C8FD7]/30 p-6 shadow-sm">
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-[#22a2f2]/15 text-[#22a2f2] rounded-xl border border-[#22a2f2]/30">
+            <div className="p-2 bg-[#1C8FD7]/15 text-[#1C8FD7] rounded-xl border border-[#1C8FD7]/30">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
               </svg>
@@ -245,7 +245,7 @@ export default function AnalyticsTab() {
                   key: 'submitted',
                   label: 'Submitted',
                   count: analyticsData.submittedCount,
-                  color: '#22a2f2',
+                  color: '#1C8FD7',
                   dot: 'bg-blue-600',
                   bg: 'bg-blue-50',
                   hoverBg: 'hover:bg-blue-100',
@@ -379,7 +379,7 @@ export default function AnalyticsTab() {
                   <div className="flex-shrink-0">
                     {isLoadingAnalytics ? (
                       <div className="w-64 h-64 flex items-center justify-center">
-                        <svg className="animate-spin w-12 h-12 text-[#22a2f2]" fill="none" viewBox="0 0 24 24">
+                        <svg className="animate-spin w-12 h-12 text-[#1C8FD7]" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>

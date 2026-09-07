@@ -188,7 +188,7 @@ export default function PaymentModal({
           {/* Loading State */}
           {step === 'loading' && (
             <div className="flex flex-col items-center justify-center py-12">
-              <svg className="animate-spin w-12 h-12 text-[#22a2f2] mb-4" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin w-12 h-12 text-[#1C8FD7] mb-4" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
@@ -208,7 +208,7 @@ export default function PaymentModal({
               <p className="text-sm text-gray-500 text-center mb-6">{errorMessage}</p>
               <button
                 onClick={handleRetry}
-                className="px-6 py-2.5 bg-[#22a2f2] hover:bg-[#1a8cd8] text-white font-semibold rounded-lg transition-colors"
+                className="px-6 py-2.5 bg-[#1C8FD7] hover:bg-[#1a8cd8] text-white font-semibold rounded-lg transition-colors"
               >
                 Try Again
               </button>
@@ -219,9 +219,9 @@ export default function PaymentModal({
           {step === 'show_qr' && qrData && (
             <div className="space-y-6">
               {/* Amount Display */}
-              <div className="text-center bg-gradient-to-r from-[#22a2f2]/10 to-[#22a2f2]/5 rounded-xl p-4 border border-[#22a2f2]/20">
+              <div className="text-center bg-gradient-to-r from-[#1C8FD7]/10 to-[#1C8FD7]/5 rounded-xl p-4 border border-[#1C8FD7]/20">
                 <p className="text-sm text-gray-500 mb-1">Amount to Pay</p>
-                <p className="text-3xl font-bold text-[#22a2f2]">{formatCurrency(qrData.amount)}</p>
+                <p className="text-3xl font-bold text-[#1C8FD7]">{formatCurrency(qrData.amount)}</p>
                 <p className="text-xs text-gray-400 mt-1">
                   {paymentNumber === 1 ? '50% of' : 'Remaining 50% of'} {formatCurrency(requirementResponse.quoted_price)}
                 </p>
@@ -281,8 +281,8 @@ export default function PaymentModal({
           {step === 'enter_utr' && qrData && (
             <div className="space-y-6">
               <div className="text-center">
-                <div className="w-16 h-16 rounded-full bg-[#22a2f2]/10 flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-[#22a2f2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-16 h-16 rounded-full bg-[#1C8FD7]/10 flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-[#1C8FD7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
@@ -301,7 +301,7 @@ export default function PaymentModal({
                   value={utrInput}
                   onChange={(e) => setUtrInput(e.target.value.toUpperCase())}
                   placeholder="e.g., 123456789012"
-                  className="w-full px-4 py-3 border border-gray-300 bg-white rounded-xl text-lg font-mono tracking-wide text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none transition-all"
+                  className="w-full px-4 py-3 border border-gray-300 bg-white rounded-xl text-lg font-mono tracking-wide text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#1C8FD7] focus:border-[#1C8FD7] outline-none transition-all"
                   autoFocus
                 />
                 <p className="text-xs text-gray-400 mt-2">
@@ -319,7 +319,7 @@ export default function PaymentModal({
                 <button
                   onClick={handleSubmitUTR}
                   disabled={isSubmitting || utrInput.trim().length < 6}
-                  className="flex-1 py-3 bg-[#22a2f2] hover:bg-[#1a8cd8] text-white font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 py-3 bg-[#1C8FD7] hover:bg-[#1a8cd8] text-white font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? (
                     <>

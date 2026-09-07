@@ -3,97 +3,72 @@
 import Link from 'next/link';
 import { useState } from 'react';
 
-const Navbar = () => {
+type NavbarProps = {
+  variant?: 'light' | 'dark';
+};
+
+const REQUIREMENTS_FORM_URL =
+  'https://docs.google.com/forms/d/114Qw4OD6VwlmHql6PTdf-xSGyFjTmrknXK8kMuQK7_4/viewform';
+
+const Navbar = ({ variant = 'light' }: NavbarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const customOrdersFormUrl =
-    'https://docs.google.com/forms/d/114Qw4OD6VwlmHql6PTdf-xSGyFjTmrknXK8kMuQK7_4/viewform';
-
-  const navLinks = [
-    { name: 'Custom Orders', href: customOrdersFormUrl },
-    { name: 'Buy Wholesale', href: '/shop' },
-  ];
-
-  const isExternalLink = (href: string) => href.startsWith('http');
+  const isDark = variant === 'dark';
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
-        .poppins-font {
-          font-family: 'Poppins', sans-serif;
-        }
-      `}</style>
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 border-b backdrop-blur-md animate-[nav-slide-down_0.7s_cubic-bezier(0.22,1,0.36,1)_both] ${
+        isDark
+          ? 'border-surface/10 bg-black/20'
+          : 'border-brand/15 bg-surface/80'
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Brand - Text Only */}
-          <div className="flex-shrink-0">
-            <Link href="/" className="flex flex-col items-start">
-              <span className="poppins-font text-3xl font-bold text-[#22a2f2] leading-none">
+        <div className="relative flex items-center justify-between h-16">
+          <div className="flex-shrink-0 z-10">
+            <Link href="/" className="inline-flex items-center" aria-label="Grupo home">
+              <span className="font-brand text-3xl font-bold leading-none text-brand">
                 Grupo
-              </span>
-              <span className="text-xs text-gray-600 font-medium hidden sm:block">
-                Global Manufacturing Network
               </span>
             </Link>
           </div>
 
-          {/* Desktop Navigation Links */}
-          <div className="hidden md:flex items-center space-x-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                {...(isExternalLink(link.href)
-                  ? { target: '_blank', rel: 'noopener noreferrer' }
-                  : {})}
-                className="text-gray-700 hover:text-[#22a2f2] transition-colors duration-200 font-medium relative group"
-              >
-                {link.name}
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#22a2f2] group-hover:w-full transition-all duration-300 ease-in-out"></span>
-              </Link>
-            ))}
-          </div>
+          <div className="flex items-center gap-2 sm:gap-3 z-10">
+            <Link
+              href="/shop"
+              className={`font-nav hidden sm:inline-flex items-center justify-center border px-4 py-2.5 text-[10px] uppercase tracking-[0.14em] transition-colors duration-200 sm:text-[11px] ${
+                isDark
+                  ? 'border-surface/80 text-surface hover:border-brand hover:text-brand'
+                  : 'border-foreground/25 text-foreground hover:border-brand hover:text-brand'
+              }`}
+            >
+              Explore Products →
+            </Link>
+            <Link
+              href={REQUIREMENTS_FORM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-nav hidden sm:inline-flex items-center justify-center bg-brand px-4 py-2.5 text-[10px] uppercase tracking-[0.14em] text-[#0b1220] transition-colors duration-200 hover:bg-[#1678B5] hover:text-surface sm:text-[11px]"
+            >
+              Send Requirements →
+            </Link>
 
-          {/* Mobile Menu Button */}
-          <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-[#22a2f2] hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#22a2f2] transition-colors duration-200"
-              aria-expanded="false"
+              className={`sm:hidden inline-flex items-center justify-center p-2 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand ${
+                isDark
+                  ? 'text-surface/85 hover:text-brand hover:bg-surface/10'
+                  : 'text-foreground/80 hover:text-brand hover:bg-brand/5'
+              }`}
+              aria-expanded={isMenuOpen}
             >
               <span className="sr-only">Open main menu</span>
               {!isMenuOpen ? (
-                <svg
-                  className="block h-6 w-6"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
+                <svg className="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               ) : (
-                <svg
-                  className="block h-6 w-6"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+                <svg className="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               )}
             </button>
@@ -101,24 +76,31 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-200">
-          <div className="px-2 pt-2 pb-3 space-y-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                {...(isExternalLink(link.href)
-                  ? { target: '_blank', rel: 'noopener noreferrer' }
-                  : {})}
-                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-[#22a2f2] hover:bg-gray-50 transition-colors duration-200 relative group"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {link.name}
-                <span className="absolute bottom-2 left-3 w-0 h-0.5 bg-[#22a2f2] group-hover:w-[calc(100%-1.5rem)] transition-all duration-300 ease-in-out"></span>
-              </Link>
-            ))}
+        <div
+          className={`sm:hidden border-t ${
+            isDark ? 'bg-[#0a0f14]/95 border-surface/10' : 'bg-surface border-brand/15'
+          }`}
+        >
+          <div className="flex flex-col gap-2 px-4 py-3">
+            <Link
+              href="/shop"
+              className={`font-nav inline-flex items-center justify-center border px-4 py-2.5 text-[10px] uppercase tracking-[0.14em] ${
+                isDark ? 'border-surface/80 text-surface' : 'border-foreground/25 text-foreground'
+              }`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Explore Products →
+            </Link>
+            <Link
+              href={REQUIREMENTS_FORM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-nav inline-flex items-center justify-center bg-brand px-4 py-2.5 text-[10px] uppercase tracking-[0.14em] text-[#0b1220]"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Send Requirements →
+            </Link>
           </div>
         </div>
       )}

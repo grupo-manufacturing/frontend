@@ -107,7 +107,7 @@ export default function PaymentVerification({
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="Search by UTR, buyer, manufacturer, or requirement"
-            className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-700 shadow-sm focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30"
+            className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-700 shadow-sm focus:border-[#1C8FD7] focus:outline-none focus:ring-2 focus:ring-[#1C8FD7]/30"
           />
         </div>
       </div>
@@ -139,7 +139,7 @@ export default function PaymentVerification({
                     <span className="inline-flex items-center rounded-md bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">
                       Payment {payment.payment_number} of 2
                     </span>
-                    <span className="inline-flex items-center rounded-md bg-[#22a2f2]/10 px-2.5 py-1 text-xs font-semibold text-[#22a2f2]">
+                    <span className="inline-flex items-center rounded-md bg-[#1C8FD7]/10 px-2.5 py-1 text-xs font-semibold text-[#1C8FD7]">
                       {formatAmount(payment.amount)}
                     </span>
                     {payment.requirement_response?.requirement?.requirement_no && (

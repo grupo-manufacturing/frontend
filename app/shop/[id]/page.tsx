@@ -69,7 +69,7 @@ export default function ProductDetailsPage() {
             <p className="text-gray-600 mt-2">Please return to the shop and try again.</p>
             <Link
               href="/shop"
-              className="inline-block mt-4 px-5 py-2.5 bg-[#22a2f2] text-white rounded-lg hover:bg-[#1b8bd0] transition-colors text-sm font-medium"
+              className="inline-block mt-4 px-5 py-2.5 bg-[#1C8FD7] text-white rounded-lg hover:bg-[#1678B5] transition-colors text-sm font-medium"
             >
               Back to Shop
             </Link>
@@ -192,11 +192,11 @@ function ProductDetails({ product }: { product: ShopProduct }) {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
         <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6" aria-label="Breadcrumb">
-          <Link href="/" className="hover:text-[#22a2f2] transition-colors">Home</Link>
+          <Link href="/" className="hover:text-[#1C8FD7] transition-colors">Home</Link>
           <svg className="w-3.5 h-3.5 text-gray-300" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
           </svg>
-          <Link href="/shop" className="hover:text-[#22a2f2] transition-colors">Shop</Link>
+          <Link href="/shop" className="hover:text-[#1C8FD7] transition-colors">Shop</Link>
           <svg className="w-3.5 h-3.5 text-gray-300" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
           </svg>
@@ -207,14 +207,14 @@ function ProductDetails({ product }: { product: ShopProduct }) {
           <ImageGallery images={product.images} productName={product.name} inStock={product.inStock} />
 
           <div className="bg-white rounded-xl shadow-sm p-6 sm:p-8">
-            <p className="text-xs font-semibold text-[#22a2f2] uppercase tracking-wide">{product.category}</p>
+            <p className="text-xs font-semibold text-[#1C8FD7] uppercase tracking-wide">{product.category}</p>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">{product.name}</h1>
             <p className="text-gray-600 mt-3 leading-relaxed">{product.description}</p>
 
             {product.manufacturingTime > 0 && (
               <div className="mt-4 inline-flex flex-wrap items-center gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
                 <div className="inline-flex items-center gap-2">
-                  <svg className="w-4 h-4 text-[#22a2f2] flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <svg className="w-4 h-4 text-[#1C8FD7] flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                   </svg>
                   <span className="text-sm text-gray-700">
@@ -228,7 +228,7 @@ function ProductDetails({ product }: { product: ShopProduct }) {
                       href={product.sizeChartUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm font-medium text-[#22a2f2] hover:text-[#1b8bd0] hover:underline"
+                      className="text-sm font-medium text-[#1C8FD7] hover:text-[#1678B5] hover:underline"
                     >
                       View Size Chart
                     </a>
@@ -259,13 +259,13 @@ function ProductDetails({ product }: { product: ShopProduct }) {
                         key={tier.label}
                         className={`p-4 rounded-lg border transition-all duration-200 ${
                           isActive
-                            ? isRFQ ? 'border-amber-400 bg-amber-50 shadow-sm scale-[1.02]' : 'border-[#22a2f2] bg-blue-50 shadow-sm scale-[1.02]'
+                            ? isRFQ ? 'border-amber-400 bg-amber-50 shadow-sm scale-[1.02]' : 'border-[#1C8FD7] bg-blue-50 shadow-sm scale-[1.02]'
                             : 'border-gray-200 bg-white'
                         }`}
                       >
                         <div className="flex items-center justify-between">
                           <span className="flex items-center gap-1.5">
-                            <span className={`font-semibold ${isActive ? (isRFQ ? 'text-amber-600' : 'text-[#22a2f2]') : 'text-gray-900'}`}>
+                            <span className={`font-semibold ${isActive ? (isRFQ ? 'text-amber-600' : 'text-[#1C8FD7]') : 'text-gray-900'}`}>
                               {tier.label}
                             </span>
                             {isRFQ && <span className="text-[10px] font-semibold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">RFQ</span>}
@@ -300,7 +300,7 @@ function ProductDetails({ product }: { product: ShopProduct }) {
                   {/* Progress bar */}
                   <div className="h-1.5 bg-gray-100 rounded-full mb-4 overflow-hidden">
                     <div
-                      className={`h-full rounded-full transition-all duration-300 ${allAllocated ? 'bg-green-500' : 'bg-[#22a2f2]'}`}
+                      className={`h-full rounded-full transition-all duration-300 ${allAllocated ? 'bg-green-500' : 'bg-[#1C8FD7]'}`}
                       style={{ width: `${Math.min((totalAllocated / quantity) * 100, 100)}%` }}
                     />
                   </div>
@@ -313,7 +313,7 @@ function ProductDetails({ product }: { product: ShopProduct }) {
                       const isDark = ['Black', 'Navy', 'Maroon', 'Charcoal', 'Burgundy', 'Brown'].includes(color);
 
                       return (
-                        <div key={color} className={`border rounded-xl overflow-hidden transition-colors ${isOpen ? 'border-[#22a2f2] shadow-sm' : 'border-gray-200'}`}>
+                        <div key={color} className={`border rounded-xl overflow-hidden transition-colors ${isOpen ? 'border-[#1C8FD7] shadow-sm' : 'border-gray-200'}`}>
                           {/* Color header row */}
                           <button
                             type="button"
@@ -432,7 +432,7 @@ function ProductDetails({ product }: { product: ShopProduct }) {
                 <Link
                   href={`/shop/${product.id}/checkout?quantity=${quantity}&tier=${encodeURIComponent(activeTier?.label ?? 'Standard')}`}
                   onClick={handleProceed}
-                  className="block w-full text-center px-4 py-3.5 bg-[#22a2f2] text-white rounded-xl hover:bg-[#1b8bd0] transition-colors font-semibold text-base shadow-md hover:shadow-lg"
+                  className="block w-full text-center px-4 py-3.5 bg-[#1C8FD7] text-white rounded-xl hover:bg-[#1678B5] transition-colors font-semibold text-base shadow-md hover:shadow-lg"
                 >
                   Proceed to Checkout
                 </Link>
@@ -446,7 +446,7 @@ function ProductDetails({ product }: { product: ShopProduct }) {
           <div className="mt-16">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-gray-900">More Like This</h2>
-              <Link href="/shop" className="text-sm text-[#22a2f2] hover:text-[#1b8bd0]">View all</Link>
+              <Link href="/shop" className="text-sm text-[#1C8FD7] hover:text-[#1678B5]">View all</Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {relatedProducts.map((item) => (
@@ -455,8 +455,8 @@ function ProductDetails({ product }: { product: ShopProduct }) {
                     <Image src={item.image} alt={item.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" />
                   </div>
                   <div className="p-4">
-                    <p className="text-xs font-medium text-[#22a2f2] uppercase tracking-wide">{item.category}</p>
-                    <h3 className="text-base font-semibold text-gray-900 mt-1 group-hover:text-[#22a2f2] transition-colors">{item.name}</h3>
+                    <p className="text-xs font-medium text-[#1C8FD7] uppercase tracking-wide">{item.category}</p>
+                    <h3 className="text-base font-semibold text-gray-900 mt-1 group-hover:text-[#1C8FD7] transition-colors">{item.name}</h3>
                     <p className="text-sm text-gray-500 mt-1">From &#8377;{item.bulkPricing[0]?.unitPrice}/unit</p>
                   </div>
                 </Link>

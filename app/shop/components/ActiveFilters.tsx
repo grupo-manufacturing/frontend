@@ -62,11 +62,11 @@ export default function ActiveFilters({
 
 function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
-    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#22a2f2]/10 text-[#22a2f2] rounded-full text-xs font-medium">
+    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1C8FD7]/10 text-[#1C8FD7] rounded-full text-xs font-medium">
       {label}
       <button
         onClick={onRemove}
-        className="hover:bg-[#22a2f2]/20 rounded-full p-0.5 transition-colors"
+        className="hover:bg-[#1C8FD7]/20 rounded-full p-0.5 transition-colors"
         aria-label={`Remove ${label} filter`}
       >
         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor">

@@ -2,71 +2,53 @@
 
 import Link from 'next/link';
 
-const Footer = () => {
-  const productLinks = [
-    { name: 'Buyer Portal', href: '/buyer-portal' },
-    { name: 'Manufacturer Portal', href: '/manufacturer-portal' },
-    { name: 'Wholesale Shop', href: '/shop' },
-    { name: 'Order Tracking', href: '/shop/track' },
-  ];
+const exploreLinks = [
+  { name: 'About', href: '/#about' },
+  { name: 'Products', href: '/#products' },
+  { name: 'Our Process', href: '/#process' },
+  { name: 'Wholesale Shop', href: '/shop' },
+];
 
-  const companyLinks = [
-    { name: 'About', href: '/about' },
-    { name: 'Terms & Conditions', href: '/terms-and-conditions' },
-    { name: 'Privacy Policy', href: '/privacy-policy' },
-    { name: 'Refund Policy', href: '/refund-policy' },
-  ];
+const legalLinks = [
+  { name: 'Terms & Conditions', href: '/terms-and-conditions' },
+  { name: 'Privacy Policy', href: '/privacy-policy' },
+  { name: 'Refund Policy', href: '/refund-policy' },
+];
 
+export default function Footer() {
   return (
-    <footer className="bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 text-gray-300">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
-        .poppins-font {
-          font-family: 'Poppins', sans-serif;
-        }
-      `}</style>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
-          {/* Brand Section */}
-          <div className="lg:col-span-2">
-            {/* Logo */}
-            <Link href="/" className="flex flex-col mb-4">
-              <span className="poppins-font text-2xl font-bold text-[#22a2f2]">Grupo</span>
-              <p className="text-xs text-gray-400">Global Manufacturing Network</p>
+    <footer className="relative overflow-hidden bg-[#0a0f14] text-surface">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-70"
+        style={{
+          backgroundImage: `
+            radial-gradient(ellipse 50% 60% at 0% 100%, rgba(28, 143, 215, 0.22), transparent 55%),
+            radial-gradient(ellipse 40% 50% at 100% 0%, rgba(28, 143, 215, 0.12), transparent 50%)
+          `,
+        }}
+        aria-hidden
+      />
+
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-2 gap-10 py-12 sm:grid-cols-3 sm:gap-12 lg:grid-cols-12 lg:py-14">
+          <div className="col-span-2 sm:col-span-3 lg:col-span-3">
+            <Link href="/" className="inline-block" aria-label="Grupo home">
+              <span className="font-brand text-3xl font-bold leading-none text-[#1C8FD7]">Grupo</span>
             </Link>
-
-            {/* Description */}
-            <p className="text-gray-400 mb-6 leading-relaxed">
-              Grupo connects buyers and manufacturers through structured workflows, collaboration tools, and global commerce solutions.
+            <p className="font-nav mt-3 text-[11px] uppercase tracking-[0.18em] text-surface/45">
+              Global Manufacturing Network
             </p>
-
-            {/* Badges */}
-            <div className="flex flex-wrap gap-2">
-              <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/30 rounded-full px-3 py-1.5">
-                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                <span className="text-xs text-blue-400 font-semibold">Trusted</span>
-              </div>
-              <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full px-3 py-1.5">
-                <svg className="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" />
-                </svg>
-                <span className="text-xs text-yellow-400 font-semibold">Reliable</span>
-              </div>
-            </div>
           </div>
 
-          {/* Product Links */}
-          <div>
-            <h3 className="text-white font-bold text-lg mb-4">Product</h3>
-            <ul className="space-y-3">
-              {productLinks.map((link, index) => (
-                <li key={index}>
+          <div className="lg:col-span-3">
+            <p className="font-nav text-[10px] uppercase tracking-[0.2em] text-[#1C8FD7]">Explore</p>
+            <ul className="mt-4 space-y-3">
+              {exploreLinks.map((link) => (
+                <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-gray-400 hover:text-blue-400 transition-colors duration-200 flex items-center gap-2 group"
+                    className="font-body text-sm text-surface/65 transition-colors duration-200 hover:text-surface"
                   >
-                    <span className="w-0 group-hover:w-2 h-0.5 bg-blue-400 transition-all duration-200"></span>
                     {link.name}
                   </Link>
                 </li>
@@ -74,38 +56,42 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Company Links */}
-          <div>
-            <h3 className="text-white font-bold text-lg mb-4">Company</h3>
-            <ul className="space-y-3">
-              {companyLinks.map((link, index) => (
-                <li key={index}>
+          <div className="lg:col-span-3">
+            <p className="font-nav text-[10px] uppercase tracking-[0.2em] text-[#1C8FD7]">Legal</p>
+            <ul className="mt-4 space-y-3">
+              {legalLinks.map((link) => (
+                <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-gray-400 hover:text-blue-400 transition-colors duration-200 flex items-center gap-2 group"
+                    className="font-body text-sm text-surface/65 transition-colors duration-200 hover:text-surface"
                   >
-                    <span className="w-0 group-hover:w-2 h-0.5 bg-blue-400 transition-all duration-200"></span>
                     {link.name}
                   </Link>
                 </li>
               ))}
             </ul>
+          </div>
+
+          <div className="col-span-2 sm:col-span-1 lg:col-span-3">
+            <p className="font-nav text-[10px] uppercase tracking-[0.2em] text-[#1C8FD7]">Markets</p>
+            <p className="font-nav mt-4 text-xs uppercase tracking-[0.16em] text-surface/70">
+              GB · US · AE · EU
+            </p>
+            <p className="font-body mt-3 max-w-xs text-sm leading-relaxed text-surface/50">
+              Manufactured in India. Delivered to globally reputed buyers worldwide.
+            </p>
           </div>
         </div>
 
-        {/* Divider */}
-        <div className="border-t border-gray-800 pt-8">
-          <div className="flex items-center justify-center">
-            {/* Copyright */}
-            <div className="text-gray-500 text-sm">
-              © {new Date().getFullYear()} Grupo. All rights reserved.
-            </div>
-          </div>
+        <div className="flex flex-col items-start justify-between gap-3 border-t border-surface/10 py-6 sm:flex-row sm:items-center">
+          <p className="font-body text-xs text-surface/45">
+            © {new Date().getFullYear()} Grupo. All rights reserved.
+          </p>
+          <p className="font-nav text-[10px] uppercase tracking-[0.16em] text-surface/35">
+            Built for global brands
+          </p>
         </div>
       </div>
     </footer>
   );
-};
-
-export default Footer;
-
+}

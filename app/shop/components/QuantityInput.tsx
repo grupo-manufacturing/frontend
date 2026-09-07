@@ -134,7 +134,7 @@ export default function QuantityInput({
           value={displayValue}
           onChange={handleChange}
           onBlur={handleBlur}
-          className={`w-full text-center px-4 py-3 border-y border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#22a2f2] transition-all text-base font-medium ${
+          className={`w-full text-center px-4 py-3 border-y border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#1C8FD7] transition-all text-base font-medium ${
             error ? 'border-red-300 focus:ring-red-400' : ''
           }`}
           aria-label="Quantity"

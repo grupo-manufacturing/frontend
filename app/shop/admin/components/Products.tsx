@@ -86,11 +86,11 @@ export default function Products({ products, onReload, manufacturerId }: Product
           placeholder="Search products…"
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          className="w-full sm:w-72 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30"
+          className="w-full sm:w-72 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-[#1C8FD7] focus:outline-none focus:ring-2 focus:ring-[#1C8FD7]/30"
         />
         <button
           onClick={openCreate}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#22a2f2] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1b8bd0]"
+          className="inline-flex items-center gap-2 rounded-lg bg-[#1C8FD7] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1678B5]"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -197,7 +197,7 @@ export default function Products({ products, onReload, manufacturerId }: Product
                   key={p}
                   onClick={() => setPage(p)}
                   className={`w-8 h-8 rounded-lg text-xs font-medium transition ${
-                    page === p ? 'bg-[#22a2f2] text-white' : 'text-slate-600 hover:bg-slate-100'
+                    page === p ? 'bg-[#1C8FD7] text-white' : 'text-slate-600 hover:bg-slate-100'
                   }`}
                 >
                   {p}
@@ -429,7 +429,7 @@ function ProductFormModal({
                     href={sizeChartUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="truncate text-sm font-medium text-[#22a2f2] hover:text-[#1b8bd0] hover:underline"
+                    className="truncate text-sm font-medium text-[#1C8FD7] hover:text-[#1678B5] hover:underline"
                   >
                     View uploaded size chart
                   </a>
@@ -444,16 +444,16 @@ function ProductFormModal({
               </div>
             ) : (
               <label className={`flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-xl cursor-pointer transition ${
-                uploadingSizeChart ? 'border-[#22a2f2] bg-[#22a2f2]/5' : 'border-slate-300 hover:border-[#22a2f2] hover:bg-slate-50'
+                uploadingSizeChart ? 'border-[#1C8FD7] bg-[#1C8FD7]/5' : 'border-slate-300 hover:border-[#1C8FD7] hover:bg-slate-50'
               }`}>
                 <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={handleSizeChartUpload} disabled={uploadingSizeChart} />
                 {uploadingSizeChart ? (
                   <div className="flex flex-col items-center gap-2">
-                    <svg className="w-5 h-5 animate-spin text-[#22a2f2]" fill="none" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 animate-spin text-[#1C8FD7]" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
-                    <span className="text-xs text-[#22a2f2] font-medium">Uploading…</span>
+                    <span className="text-xs text-[#1C8FD7] font-medium">Uploading…</span>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-1.5">
@@ -489,16 +489,16 @@ function ProductFormModal({
               </div>
             ) : (
               <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition ${
-                uploadingMain ? 'border-[#22a2f2] bg-[#22a2f2]/5' : 'border-slate-300 hover:border-[#22a2f2] hover:bg-slate-50'
+                uploadingMain ? 'border-[#1C8FD7] bg-[#1C8FD7]/5' : 'border-slate-300 hover:border-[#1C8FD7] hover:bg-slate-50'
               }`}>
                 <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={handleMainImageUpload} disabled={uploadingMain} />
                 {uploadingMain ? (
                   <div className="flex flex-col items-center gap-2">
-                    <svg className="w-6 h-6 animate-spin text-[#22a2f2]" fill="none" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6 animate-spin text-[#1C8FD7]" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
-                    <span className="text-xs text-[#22a2f2] font-medium">Uploading…</span>
+                    <span className="text-xs text-[#1C8FD7] font-medium">Uploading…</span>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-2">
@@ -538,11 +538,11 @@ function ProductFormModal({
 
               {/* Upload more button */}
               <label className={`flex flex-col items-center justify-center w-20 h-20 border-2 border-dashed rounded-lg cursor-pointer transition ${
-                uploadingExtra ? 'border-[#22a2f2] bg-[#22a2f2]/5' : 'border-slate-300 hover:border-[#22a2f2] hover:bg-slate-50'
+                uploadingExtra ? 'border-[#1C8FD7] bg-[#1C8FD7]/5' : 'border-slate-300 hover:border-[#1C8FD7] hover:bg-slate-50'
               }`}>
                 <input type="file" accept="image/jpeg,image/png,image/webp" multiple className="sr-only" onChange={handleAdditionalUpload} disabled={uploadingExtra} />
                 {uploadingExtra ? (
-                  <svg className="w-5 h-5 animate-spin text-[#22a2f2]" fill="none" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 animate-spin text-[#1C8FD7]" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
@@ -571,7 +571,7 @@ function ProductFormModal({
                     onClick={() => setSelectedColors((prev) => active ? prev.filter((c) => c !== color) : [...prev, color])}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition ${
                       active
-                        ? 'border-[#22a2f2] bg-[#22a2f2]/10 text-[#22a2f2]'
+                        ? 'border-[#1C8FD7] bg-[#1C8FD7]/10 text-[#1C8FD7]'
                         : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                     }`}
                   >
@@ -598,7 +598,7 @@ function ProductFormModal({
                     onClick={() => setSelectedSizes((prev) => active ? prev.filter((s) => s !== size) : [...prev, size])}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition ${
                       active
-                        ? 'border-[#22a2f2] bg-[#22a2f2]/10 text-[#22a2f2]'
+                        ? 'border-[#1C8FD7] bg-[#1C8FD7]/10 text-[#1C8FD7]'
                         : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                     }`}
                   >
@@ -626,7 +626,7 @@ function ProductFormModal({
                       value={tier.unitPrice || ''}
                       onChange={(e) => updateTierPrice(i, e.target.value)}
                       placeholder="₹ price"
-                      className="w-full rounded border border-slate-200 px-2 py-1.5 text-xs text-slate-900 focus:border-[#22a2f2] focus:outline-none focus:ring-1 focus:ring-[#22a2f2]/30"
+                      className="w-full rounded border border-slate-200 px-2 py-1.5 text-xs text-slate-900 focus:border-[#1C8FD7] focus:outline-none focus:ring-1 focus:ring-[#1C8FD7]/30"
                     />
                   )}
                 </div>
@@ -642,7 +642,7 @@ function ProductFormModal({
               min={1}
               value={manufacturingTime}
               onChange={(e) => setManufacturingTime(Math.max(1, parseInt(e.target.value, 10) || 1))}
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-[#22a2f2] focus:ring-2 focus:ring-[#22a2f2]/10"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-[#1C8FD7] focus:ring-2 focus:ring-[#1C8FD7]/10"
             />
           </div>
 
@@ -652,7 +652,7 @@ function ProductFormModal({
               type="button"
               onClick={() => setInStock(!inStock)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                inStock ? 'bg-[#22a2f2]' : 'bg-slate-200'
+                inStock ? 'bg-[#1C8FD7]' : 'bg-slate-200'
               }`}
             >
               <span className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
@@ -675,7 +675,7 @@ function ProductFormModal({
           <button
             onClick={(e) => { e.preventDefault(); document.querySelector<HTMLFormElement>('form')?.requestSubmit(); }}
             disabled={saving || uploadingMain || uploadingExtra || uploadingSizeChart}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#22a2f2] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1b8bd0] disabled:opacity-60 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#1C8FD7] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1678B5] disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {saving ? (
               <>
@@ -697,7 +697,7 @@ function ProductFormModal({
 
 /* ── Shared helpers ──────────────────────────────────────────────────── */
 
-const inputCls = 'w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30';
+const inputCls = 'w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-[#1C8FD7] focus:outline-none focus:ring-2 focus:ring-[#1C8FD7]/30';
 
 function FormField({ label, required, hint, children }: { label: string; required?: boolean; hint?: string; children: React.ReactNode }) {
   return (

@@ -173,18 +173,18 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
     <div className="flex flex-col items-center">
       {/* Header Section */}
       <div className="mb-8 text-center max-w-3xl">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22a2f2]/10 text-[#22a2f2] text-sm font-semibold mb-3">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1C8FD7]/10 text-[#1C8FD7] text-sm font-semibold mb-3">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
           </svg>
           <span>Custom quote</span>
         </div>
         <h1 className="text-3xl font-bold text-black mb-2">Request for Quotation</h1>
-        <p className="text-[#22a2f2]">Fill in the details below and connect with verified manufacturers</p>
+        <p className="text-[#1C8FD7]">Fill in the details below and connect with verified manufacturers</p>
       </div>
 
       {/* Custom Quote Form */}
-      <div className="w-full max-w-3xl bg-white rounded-2xl border border-[#22a2f2]/30 p-8 shadow-lg">
+      <div className="w-full max-w-3xl bg-white rounded-2xl border border-[#1C8FD7]/30 p-8 shadow-lg">
         <form className="space-y-6">
           {/* Product Type */}
           <div>
@@ -202,7 +202,7 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
                   }
                 }}
                 onBlur={() => setTimeout(() => setIsProductTypeDropdownOpen(false), 200)}
-                className={`appearance-none w-full px-4 py-3 pr-10 bg-white border rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black cursor-pointer transition-all text-left flex items-center justify-between ${
+                className={`appearance-none w-full px-4 py-3 pr-10 bg-white border rounded-xl focus:ring-2 focus:ring-[#1C8FD7] focus:border-[#1C8FD7] outline-none text-black cursor-pointer transition-all text-left flex items-center justify-between ${
                   errors.productType ? 'border-red-500' : 'border-gray-200'
                 }`}
               >
@@ -254,7 +254,7 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
                           setIsProductTypeDropdownOpen(false);
                         }}
                         className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${
-                          customProductType === option ? 'bg-[#22a2f2]/10 text-[#22a2f2] font-medium' : 'text-gray-900'
+                          customProductType === option ? 'bg-[#1C8FD7]/10 text-[#1C8FD7] font-medium' : 'text-gray-900'
                         }`}
                       >
                         {option}
@@ -286,7 +286,7 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
               }}
               placeholder={`Enter quantity (minimum ${MIN_REQUIREMENT_QUANTITY})`}
               min={MIN_REQUIREMENT_QUANTITY}
-              className={`w-full px-4 py-3 bg-white border rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 transition-all ${
+              className={`w-full px-4 py-3 bg-white border rounded-xl focus:ring-2 focus:ring-[#1C8FD7] focus:border-[#1C8FD7] outline-none text-black placeholder:text-gray-500 transition-all ${
                 errors.quantity ? 'border-red-500' : 'border-gray-200'
               }`}
             />
@@ -321,7 +321,7 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
                 value={productLink}
                 onChange={(e) => setProductLink(e.target.value)}
                 placeholder="https://example.com/product"
-                className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 transition-all"
+                className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1C8FD7] focus:border-[#1C8FD7] outline-none text-black placeholder:text-gray-500 transition-all"
               />
             </div>
           </div>
@@ -336,7 +336,7 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
               onChange={(e) => setRequirement(e.target.value)}
               placeholder="Add any additional notes or details..."
               rows={5}
-              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2] outline-none text-black placeholder:text-gray-500 resize-none transition-all"
+              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1C8FD7] focus:border-[#1C8FD7] outline-none text-black placeholder:text-gray-500 resize-none transition-all"
             />
           </div>
 
@@ -345,9 +345,9 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Upload Image (Optional)
             </label>
-            <div className="border-2 border-dashed border-[#22a2f2]/30 rounded-xl bg-[#22a2f2]/5 hover:bg-[#22a2f2]/10 hover:border-[#22a2f2]/60 transition-all">
+            <div className="border-2 border-dashed border-[#1C8FD7]/30 rounded-xl bg-[#1C8FD7]/5 hover:bg-[#1C8FD7]/10 hover:border-[#1C8FD7]/60 transition-all">
               <label className="flex flex-col items-center justify-center py-12 cursor-pointer group">
-                <div className="p-3 bg-[#22a2f2]/15 rounded-xl mb-3 group-hover:scale-110 transition-transform text-[#22a2f2]">
+                <div className="p-3 bg-[#1C8FD7]/15 rounded-xl mb-3 group-hover:scale-110 transition-transform text-[#1C8FD7]">
                   <svg
                     className="w-10 h-10"
                     fill="none"
@@ -365,8 +365,8 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
                 <span className="text-sm text-gray-700 font-medium mb-1">Click to upload image</span>
                 <span className="text-xs text-gray-500">PDF, PNG, JPG, WEBP, GIF and more (Max 10MB)</span>
                 {uploadedImage && (
-                  <div className="mt-3 px-4 py-2 bg-[#22a2f2]/15 border border-[#22a2f2]/40 rounded-lg">
-                    <span className="text-xs text-[#22a2f2] font-medium">
+                  <div className="mt-3 px-4 py-2 bg-[#1C8FD7]/15 border border-[#1C8FD7]/40 rounded-lg">
+                    <span className="text-xs text-[#1C8FD7] font-medium">
                       {uploadedImage.name}
                     </span>
                   </div>
@@ -403,7 +403,7 @@ export default function CustomQuote({ onRequirementSubmitted, onSwitchToRequirem
             disabled={isSubmittingRequirement}
             className="relative w-full group overflow-hidden rounded-xl"
           >
-            <div className={`${isSubmittingRequirement ? 'bg-gray-400' : 'bg-[#22a2f2] hover:bg-[#1b8bd0]'} text-white px-6 py-3.5 font-semibold rounded-xl transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg`}>
+            <div className={`${isSubmittingRequirement ? 'bg-gray-400' : 'bg-[#1C8FD7] hover:bg-[#1678B5]'} text-white px-6 py-3.5 font-semibold rounded-xl transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg`}>
               {isSubmittingRequirement ? (
                 <>
                   <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">

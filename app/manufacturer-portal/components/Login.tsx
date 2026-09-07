@@ -167,7 +167,7 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false, isLoggin
           <div className="relative z-10">
             {/* Logo */}
             <div className="mb-16">
-              <h1 className="poppins-font text-3xl font-bold text-[#22a2f2]">
+              <h1 className="poppins-font text-3xl font-bold text-[#1C8FD7]">
                 Grupo
               </h1>
               <p className="text-sm text-gray-600">Your Manufacturing Partner</p>
@@ -219,7 +219,7 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false, isLoggin
             {/* Mobile Logo */}
             <div className="lg:hidden flex items-center justify-center mb-8">
               <div>
-                <h1 className="poppins-font text-2xl font-bold text-[#22a2f2] text-center">
+                <h1 className="poppins-font text-2xl font-bold text-[#1C8FD7] text-center">
                   Grupo
                 </h1>
                 <p className="text-xs text-gray-600 text-center">Your Manufacturing Partner</p>
@@ -228,10 +228,10 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false, isLoggin
 
             {/* Login Card */}
             <div className="relative">
-              <div className="relative bg-white rounded-3xl p-8 border-2 border-[#22a2f2] shadow-xl">
+              <div className="relative bg-white rounded-3xl p-8 border-2 border-[#1C8FD7] shadow-xl">
                 {/* Icon */}
                 <div className="flex justify-center mb-6">
-                  <div className="relative bg-[#22a2f2] rounded-2xl p-4">
+                  <div className="relative bg-[#1C8FD7] rounded-2xl p-4">
                     <svg
                       className="w-8 h-8 text-white"
                       fill="none"
@@ -261,7 +261,7 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false, isLoggin
                 {(isCheckingAuth || isLoggingOut) ? (
                   <div className="flex items-center justify-center py-12">
                     <div className="flex flex-col items-center gap-4">
-                      <svg className="animate-spin h-8 w-8 text-[#22a2f2]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin h-8 w-8 text-[#1C8FD7]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
@@ -280,7 +280,7 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false, isLoggin
                           <select
                             value={countryCode}
                             onChange={(e) => setCountryCode(e.target.value)}
-                            className="w-full sm:w-32 px-3 py-3.5 bg-white border-2 border-gray-300 rounded-xl focus:border-[#22a2f2] transition-all outline-none text-black font-medium"
+                            className="w-full sm:w-32 px-3 py-3.5 bg-white border-2 border-gray-300 rounded-xl focus:border-[#1C8FD7] transition-all outline-none text-black font-medium"
                           >
                             <option value="+91">🇮🇳 +91</option>
                             <option value="+1">🇺🇸 +1</option>
@@ -293,7 +293,7 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false, isLoggin
                             value={phoneNumber}
                             onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
                             placeholder="1234567890"
-                            className="flex-1 w-full px-4 py-3.5 bg-white border-2 border-gray-300 rounded-xl focus:border-[#22a2f2] transition-all outline-none text-black placeholder:text-gray-400"
+                            className="flex-1 w-full px-4 py-3.5 bg-white border-2 border-gray-300 rounded-xl focus:border-[#1C8FD7] transition-all outline-none text-black placeholder:text-gray-400"
                             required
                           />
                         </div>
@@ -302,7 +302,7 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false, isLoggin
                       <button
                         type="submit"
                         disabled={isLoadingOtp}
-                        className="w-full bg-[#22a2f2] text-white px-6 py-3.5 rounded-xl font-semibold hover:bg-[#1b8bd0] transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full bg-[#1C8FD7] text-white px-6 py-3.5 rounded-xl font-semibold hover:bg-[#1678B5] transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
                         {isLoadingOtp ? (
                           <>
@@ -345,7 +345,7 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false, isLoggin
                             }}
                             placeholder="000000"
                             maxLength={6}
-                            className="relative w-full px-4 py-4 bg-white border-2 border-[#22a2f2] rounded-xl focus:border-[#22a2f2] transition-all outline-none text-center text-2xl tracking-[0.5em] text-black placeholder:text-gray-400 font-mono"
+                            className="relative w-full px-4 py-4 bg-white border-2 border-[#1C8FD7] rounded-xl focus:border-[#1C8FD7] transition-all outline-none text-center text-2xl tracking-[0.5em] text-black placeholder:text-gray-400 font-mono"
                             required
                           />
                         </div>
@@ -358,7 +358,7 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false, isLoggin
                           <div className="text-center mt-3">
                             <p className="text-base text-gray-600">
                               Resend OTP in{' '}
-                              <span className="font-bold text-[#22a2f2] text-lg">
+                              <span className="font-bold text-[#1C8FD7] text-lg">
                                 {Math.floor(otpTimer / 60)}:{(otpTimer % 60).toString().padStart(2, '0')}
                               </span>
                             </p>
@@ -386,7 +386,7 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false, isLoggin
                               type="button"
                               onClick={handleResendOTP}
                               disabled={isResendingOtp}
-                              className="text-sm font-semibold text-[#22a2f2] hover:text-[#1b8bd0] transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mx-auto"
+                              className="text-sm font-semibold text-[#1C8FD7] hover:text-[#1678B5] transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mx-auto"
                             >
                               {isResendingOtp ? (
                                 <>
@@ -412,7 +412,7 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false, isLoggin
                       <button
                         type="submit"
                         disabled={isVerifyingOtp}
-                        className="w-full bg-[#22a2f2] text-white px-6 py-3.5 rounded-xl font-semibold hover:bg-[#1b8bd0] transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full bg-[#1C8FD7] text-white px-6 py-3.5 rounded-xl font-semibold hover:bg-[#1678B5] transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         aria-busy={isVerifyingOtp}
                       >
                         {isVerifyingOtp ? (
@@ -447,7 +447,7 @@ export default function Login({ onLoginSuccess, isCheckingAuth = false, isLoggin
                 <div className="mt-6 text-center">
                   <Link
                     href="/buyer-portal"
-                    className="text-sm font-semibold text-[#22a2f2] hover:text-[#1b8bd0] transition-colors"
+                    className="text-sm font-semibold text-[#1C8FD7] hover:text-[#1678B5] transition-colors"
                   >
                     Sign in with Buyer
                   </Link>

@@ -75,7 +75,7 @@ export default function SortDropdown({ value, onChange }: SortDropdownProps) {
               aria-selected={value === option.value}
               className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
                 value === option.value
-                  ? 'bg-[#22a2f2]/10 text-[#22a2f2] font-medium'
+                  ? 'bg-[#1C8FD7]/10 text-[#1C8FD7] font-medium'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
             >

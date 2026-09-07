@@ -174,7 +174,7 @@ export default function ShopContent() {
             </svg>
             Filters
             {activeFilterCount > 0 && (
-              <span className="bg-[#22a2f2] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+              <span className="bg-[#1C8FD7] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                 {activeFilterCount}
               </span>
             )}
@@ -248,7 +248,7 @@ export default function ShopContent() {
               <p className="text-red-500 mb-4">{error}</p>
               <button
                 onClick={fetchProducts}
-                className="px-5 py-2.5 bg-[#22a2f2] text-white rounded-lg hover:bg-[#1b8bd0] transition-colors text-sm font-medium"
+                className="px-5 py-2.5 bg-[#1C8FD7] text-white rounded-lg hover:bg-[#1678B5] transition-colors text-sm font-medium"
               >
                 Retry
               </button>

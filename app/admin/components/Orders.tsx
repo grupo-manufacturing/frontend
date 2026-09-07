@@ -104,7 +104,7 @@ export default function Orders({
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="Search requirements by buyer, requirement text, or product type"
-            className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-700 shadow-sm focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30"
+            className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-700 shadow-sm focus:border-[#1C8FD7] focus:outline-none focus:ring-2 focus:ring-[#1C8FD7]/30"
           />
         </div>
       </div>
@@ -148,7 +148,7 @@ export default function Orders({
                 <tr key={requirement.id} className="hover:bg-slate-50/80">
                   <td className="px-4 py-3">
                     {requirement.requirement_no ? (
-                      <span className="inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold bg-[#22a2f2]/10 text-[#22a2f2] border border-[#22a2f2]/20">
+                      <span className="inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold bg-[#1C8FD7]/10 text-[#1C8FD7] border border-[#1C8FD7]/20">
                         {requirement.requirement_no}
                       </span>
                     ) : (
@@ -241,7 +241,7 @@ export default function Orders({
                       onClick={() => handlePageClick(page)}
                       className={`min-w-[2.5rem] rounded-lg border px-3 py-2 text-sm font-medium transition ${
                         currentPage === page
-                          ? 'border-[#22a2f2] bg-[#22a2f2] text-white'
+                          ? 'border-[#1C8FD7] bg-[#1C8FD7] text-white'
                           : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                       }`}
                     >

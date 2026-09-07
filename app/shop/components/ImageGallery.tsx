@@ -125,7 +125,7 @@ export default function ImageGallery({ images, productName, inStock }: ImageGall
               onClick={() => setActiveIndex(index)}
               className={`relative aspect-square rounded-lg overflow-hidden transition-all ${
                 activeIndex === index
-                  ? 'ring-2 ring-[#22a2f2] shadow-md'
+                  ? 'ring-2 ring-[#1C8FD7] shadow-md'
                   : 'ring-1 ring-gray-200 hover:ring-gray-300'
               }`}
               aria-label={`View image ${index + 1}`}

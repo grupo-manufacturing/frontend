@@ -219,7 +219,7 @@ export default function ManufacturerProfile() {
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22a2f2]/10 text-[#22a2f2] text-sm font-semibold mb-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1C8FD7]/10 text-[#1C8FD7] text-sm font-semibold mb-3">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
@@ -230,12 +230,12 @@ export default function ManufacturerProfile() {
         </div>
 
         {/* Profile Form Card */}
-        <div className="bg-white rounded-3xl border-2 border-[#22a2f2]/30 shadow-xl p-8">
+        <div className="bg-white rounded-3xl border-2 border-[#1C8FD7]/30 shadow-xl p-8">
           {isLoadingProfile ? (
             <div className="flex flex-col items-center justify-center py-12">
               <div className="relative">
-                <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[#22a2f2]"></div>
-                <div className="absolute inset-0 animate-ping rounded-full h-16 w-16 border border-[#22a2f2] opacity-20"></div>
+                <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[#1C8FD7]"></div>
+                <div className="absolute inset-0 animate-ping rounded-full h-16 w-16 border border-[#1C8FD7] opacity-20"></div>
               </div>
               <p className="mt-4 text-gray-600">Loading your profile...</p>
             </div>
@@ -251,7 +251,7 @@ export default function ManufacturerProfile() {
                   value={formData.unitName}
                   onChange={(e) => handleInputChange('unitName', e.target.value)}
                   placeholder="Enter unit name"
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-400 transition-all"
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1C8FD7] focus:border-[#1C8FD7]/60 outline-none text-black placeholder:text-gray-400 transition-all"
                   required
                 />
               </div>
@@ -265,7 +265,7 @@ export default function ManufacturerProfile() {
                   <select
                     value={formData.businessType}
                     onChange={(e) => handleInputChange('businessType', e.target.value)}
-                    className="w-full px-4 py-3 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black appearance-none cursor-pointer transition-all"
+                    className="w-full px-4 py-3 pr-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1C8FD7] focus:border-[#1C8FD7]/60 outline-none text-black appearance-none cursor-pointer transition-all"
                     required
                   >
                     <option value="" className="bg-white">Select your business type</option>
@@ -294,7 +294,7 @@ export default function ManufacturerProfile() {
                   value={formData.gstNumber}
                   onChange={(e) => handleInputChange('gstNumber', e.target.value)}
                   placeholder="Enter GST number"
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-400 transition-all"
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1C8FD7] focus:border-[#1C8FD7]/60 outline-none text-black placeholder:text-gray-400 transition-all"
                   required
                 />
               </div>
@@ -309,7 +309,7 @@ export default function ManufacturerProfile() {
                   value={formData.panNumber}
                   onChange={(e) => handleInputChange('panNumber', e.target.value.toUpperCase())}
                   placeholder="Enter PAN number"
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-400 transition-all"
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1C8FD7] focus:border-[#1C8FD7]/60 outline-none text-black placeholder:text-gray-400 transition-all"
                   required
                 />
               </div>
@@ -331,8 +331,8 @@ export default function ManufacturerProfile() {
                       key={product} 
                       className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
                         formData.productTypes.includes(product)
-                          ? 'bg-[#22a2f2] border-[#22a2f2] text-white shadow-lg shadow-[#22a2f2]/20'
-                          : 'bg-white border-gray-200 hover:border-[#22a2f2] hover:bg-[#22a2f2]/10'
+                          ? 'bg-[#1C8FD7] border-[#1C8FD7] text-white shadow-lg shadow-[#1C8FD7]/20'
+                          : 'bg-white border-gray-200 hover:border-[#1C8FD7] hover:bg-[#1C8FD7]/10'
                       }`}
                     >
                       <input
@@ -343,11 +343,11 @@ export default function ManufacturerProfile() {
                       />
                       <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
                         formData.productTypes.includes(product)
-                          ? 'bg-white text-[#22a2f2] border-white'
+                          ? 'bg-white text-[#1C8FD7] border-white'
                           : 'border-gray-300 text-transparent'
                       }`}>
                         {formData.productTypes.includes(product) && (
-                          <svg className="w-3 h-3 text-[#22a2f2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-3 h-3 text-[#1C8FD7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                           </svg>
                         )}
@@ -368,7 +368,7 @@ export default function ManufacturerProfile() {
                   value={formData.capacity}
                   onChange={(e) => handleInputChange('capacity', e.target.value)}
                   placeholder="Enter capacity (units per day)"
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-400 transition-all"
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1C8FD7] focus:border-[#1C8FD7]/60 outline-none text-black placeholder:text-gray-400 transition-all"
                 />
               </div>
 
@@ -382,7 +382,7 @@ export default function ManufacturerProfile() {
                   value={formData.msmeNumber}
                   onChange={(e) => handleInputChange('msmeNumber', e.target.value)}
                   placeholder="Enter MSME number"
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#22a2f2] focus:border-[#22a2f2]/60 outline-none text-black placeholder:text-gray-400 transition-all"
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1C8FD7] focus:border-[#1C8FD7]/60 outline-none text-black placeholder:text-gray-400 transition-all"
                 />
               </div>
 
@@ -392,7 +392,7 @@ export default function ManufacturerProfile() {
                   Manufacturing Unit Image
                 </label>
                 <div className="relative group">
-                  <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-[#22a2f2] transition-all">
+                  <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-[#1C8FD7] transition-all">
                     <label className="flex flex-col items-center justify-center cursor-pointer">
                       {formData.manufacturingUnitImage ? (
                         <div className="w-full">
@@ -445,9 +445,9 @@ export default function ManufacturerProfile() {
                         </div>
                       ) : (
                         <>
-                          <div className="p-3 bg-[#22a2f2]/10 rounded-xl mb-3">
+                          <div className="p-3 bg-[#1C8FD7]/10 rounded-xl mb-3">
                             <svg
-                              className="w-8 h-8 text-[#22a2f2]"
+                              className="w-8 h-8 text-[#1C8FD7]"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -498,7 +498,7 @@ export default function ManufacturerProfile() {
               <div className="flex gap-4 pt-4">
                 <Link
                   href="/manufacturer-portal"
-                  className="flex-1 px-4 py-3 bg-white hover:bg-[#22a2f2]/10 border border-[#22a2f2]/30 text-black font-semibold rounded-xl transition-all text-center"
+                  className="flex-1 px-4 py-3 bg-white hover:bg-[#1C8FD7]/10 border border-[#1C8FD7]/30 text-black font-semibold rounded-xl transition-all text-center"
                 >
                   Cancel
                 </Link>
@@ -507,7 +507,7 @@ export default function ManufacturerProfile() {
                   disabled={isSaving || isUploadingImage}
                   className="relative flex-1 group overflow-hidden rounded-xl disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  <div className="absolute inset-0 bg-[#22a2f2] transition-transform group-hover:scale-105"></div>
+                  <div className="absolute inset-0 bg-[#1C8FD7] transition-transform group-hover:scale-105"></div>
                   <div className="relative px-4 py-3 font-semibold text-white flex items-center justify-center gap-2">
                     {isSaving || isUploadingImage ? (
                       <>

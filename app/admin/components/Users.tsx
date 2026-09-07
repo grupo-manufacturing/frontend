@@ -124,7 +124,7 @@ export default function Users({
               onClick={() => setUserType('buyers')}
               className={`rounded-md px-4 py-2 text-sm font-medium transition ${
                 isShowingBuyers
-                  ? 'bg-[#22a2f2] text-white shadow-sm'
+                  ? 'bg-[#1C8FD7] text-white shadow-sm'
                   : 'text-slate-600 hover:bg-slate-50'
               }`}
             >
@@ -134,7 +134,7 @@ export default function Users({
               onClick={() => setUserType('manufacturers')}
               className={`rounded-md px-4 py-2 text-sm font-medium transition ${
                 isShowingManufacturers
-                  ? 'bg-[#22a2f2] text-white shadow-sm'
+                  ? 'bg-[#1C8FD7] text-white shadow-sm'
                   : 'text-slate-600 hover:bg-slate-50'
               }`}
             >
@@ -160,7 +160,7 @@ export default function Users({
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder={`Search ${isShowingBuyers ? 'buyers' : 'manufacturers'} by name or phone`}
-            className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-700 shadow-sm focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30"
+            className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-700 shadow-sm focus:border-[#1C8FD7] focus:outline-none focus:ring-2 focus:ring-[#1C8FD7]/30"
           />
         </div>
       </div>
@@ -262,7 +262,7 @@ export default function Users({
                         href={manufacturer.manufacturing_unit_image_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs font-medium text-[#22a2f2] hover:text-[#1b8bd0] hover:underline transition-colors"
+                        className="inline-flex items-center gap-1 text-xs font-medium text-[#1C8FD7] hover:text-[#1678B5] hover:underline transition-colors"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -277,7 +277,7 @@ export default function Users({
                     <button
                       onClick={() => handleToggleVerified(String(manufacturer.id), manufacturer.is_verified)}
                       disabled={updatingVerifiedId === String(manufacturer.id)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#22a2f2] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#1C8FD7] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
                         manufacturer.is_verified ? 'bg-green-500' : 'bg-gray-300'
                       }`}
                       role="switch"
@@ -339,7 +339,7 @@ export default function Users({
                       onClick={() => handlePageClick(page)}
                       className={`min-w-[2.5rem] rounded-lg border px-3 py-2 text-sm font-medium transition ${
                         currentPage === page
-                          ? 'border-[#22a2f2] bg-[#22a2f2] text-white'
+                          ? 'border-[#1C8FD7] bg-[#1C8FD7] text-white'
                           : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                       }`}
                     >

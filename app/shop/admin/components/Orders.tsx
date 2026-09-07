@@ -88,7 +88,7 @@ export default function Orders({ orders, onReload, manufacturerId }: OrdersProps
           placeholder="Search orders…"
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          className="w-full sm:w-72 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30"
+          className="w-full sm:w-72 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-[#1C8FD7] focus:outline-none focus:ring-2 focus:ring-[#1C8FD7]/30"
         />
         <div className="flex flex-wrap gap-1.5">
           {STATUSES.map((s) => (
@@ -97,7 +97,7 @@ export default function Orders({ orders, onReload, manufacturerId }: OrdersProps
               onClick={() => { setStatusFilter(s); setPage(1); }}
               className={`rounded-lg px-3 py-1.5 text-xs font-medium capitalize transition ${
                 statusFilter === s
-                  ? 'bg-[#22a2f2] text-white shadow-sm'
+                  ? 'bg-[#1C8FD7] text-white shadow-sm'
                   : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
               }`}
             >
@@ -148,7 +148,7 @@ export default function Orders({ orders, onReload, manufacturerId }: OrdersProps
                           onClick={() => setExpandedId(isExpanded ? null : order.id)}
                         >
                           <div className="px-4 py-3 w-[14%] min-w-[100px]">
-                            <p className="text-sm font-medium text-[#22a2f2]">{order.orderNumber}</p>
+                            <p className="text-sm font-medium text-[#1C8FD7]">{order.orderNumber}</p>
                           </div>
                           <div className="px-4 py-3 w-[16%] min-w-[120px]">
                             <p className="text-sm text-slate-900 truncate">{order.customerName}</p>
@@ -220,7 +220,7 @@ export default function Orders({ orders, onReload, manufacturerId }: OrdersProps
                                     className={`rounded-lg px-3 py-1.5 text-xs font-medium capitalize transition disabled:opacity-50 disabled:cursor-not-allowed ${
                                       ns === 'cancelled'
                                         ? 'border border-red-200 bg-red-50 text-red-600 hover:bg-red-100'
-                                        : 'border border-[#22a2f2]/30 bg-[#22a2f2]/10 text-[#22a2f2] hover:bg-[#22a2f2]/20'
+                                        : 'border border-[#1C8FD7]/30 bg-[#1C8FD7]/10 text-[#1C8FD7] hover:bg-[#1C8FD7]/20'
                                     }`}
                                   >
                                     {updatingId === order.id ? '…' : `Mark ${ns}`}
@@ -249,7 +249,7 @@ export default function Orders({ orders, onReload, manufacturerId }: OrdersProps
                   key={p}
                   onClick={() => setPage(p)}
                   className={`w-8 h-8 rounded-lg text-xs font-medium transition ${
-                    page === p ? 'bg-[#22a2f2] text-white' : 'text-slate-600 hover:bg-slate-100'
+                    page === p ? 'bg-[#1C8FD7] text-white' : 'text-slate-600 hover:bg-slate-100'
                   }`}
                 >
                   {p}

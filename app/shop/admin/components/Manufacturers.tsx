@@ -118,26 +118,26 @@ export default function Manufacturers({ onReload }: ManufacturersProps) {
             placeholder="Manufacturer name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30"
+            className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-[#1C8FD7] focus:outline-none focus:ring-2 focus:ring-[#1C8FD7]/30"
           />
           <input
             type="text"
             placeholder="Phone number"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30"
+            className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-[#1C8FD7] focus:outline-none focus:ring-2 focus:ring-[#1C8FD7]/30"
           />
           <input
             type="text"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30"
+            className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-[#1C8FD7] focus:outline-none focus:ring-2 focus:ring-[#1C8FD7]/30"
           />
           <button
             type="submit"
             disabled={submitting || !name.trim() || !phone.trim() || !password.trim()}
-            className="rounded-lg bg-[#22a2f2] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1b8bd0] disabled:opacity-60 disabled:cursor-not-allowed"
+            className="rounded-lg bg-[#1C8FD7] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1678B5] disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {submitting ? 'Creating…' : 'Create Manufacturer'}
           </button>
@@ -177,7 +177,7 @@ export default function Manufacturers({ onReload }: ManufacturersProps) {
                             type="text"
                             value={editName}
                             onChange={(e) => setEditName(e.target.value)}
-                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30"
+                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-[#1C8FD7] focus:outline-none focus:ring-2 focus:ring-[#1C8FD7]/30"
                           />
                         ) : (
                           <p className="text-sm font-medium text-slate-900">{m.name}</p>
@@ -190,7 +190,7 @@ export default function Manufacturers({ onReload }: ManufacturersProps) {
                               type="text"
                               value={editPhone}
                               onChange={(e) => setEditPhone(e.target.value)}
-                              className="w-full max-w-[220px] rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-[#22a2f2] focus:outline-none focus:ring-2 focus:ring-[#22a2f2]/30"
+                              className="w-full max-w-[220px] rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-[#1C8FD7] focus:outline-none focus:ring-2 focus:ring-[#1C8FD7]/30"
                             />
                           ) : (
                             <p className="text-sm text-slate-700">{m.phone}</p>
@@ -201,7 +201,7 @@ export default function Manufacturers({ onReload }: ManufacturersProps) {
                                 <button
                                   onClick={() => handleSaveEdit(m.id)}
                                   disabled={isBusy || !editName.trim() || !editPhone.trim()}
-                                  className="rounded-lg bg-[#22a2f2] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#1b8bd0] disabled:opacity-60 disabled:cursor-not-allowed"
+                                  className="rounded-lg bg-[#1C8FD7] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#1678B5] disabled:opacity-60 disabled:cursor-not-allowed"
                                 >
                                   {isBusy ? 'Saving…' : 'Save'}
                                 </button>

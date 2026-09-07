@@ -401,7 +401,7 @@ export default function BuyerPortal() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="flex flex-col items-center gap-4">
-          <svg className="animate-spin h-12 w-12 text-[#22a2f2]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <svg className="animate-spin h-12 w-12 text-[#1C8FD7]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
@@ -427,7 +427,7 @@ export default function BuyerPortal() {
               {/* Left Side - Logo and Branding */}
               <div className="flex items-center gap-3 animate-fade-in-down">
                 <div className="flex flex-col">
-                  <span className="poppins-font text-lg font-bold text-[#22a2f2]">
+                  <span className="poppins-font text-lg font-bold text-[#1C8FD7]">
                     Grupo
                   </span>
                   <span className="text-xs text-gray-600 hidden sm:block">
@@ -610,7 +610,7 @@ export default function BuyerPortal() {
                 </svg>
                 <span className="relative z-10 hidden sm:inline">Chats</span>
                 {activeTab !== 'chats' && unreadMessagesCount > 0 && (
-                  <span className="absolute -top-1 right-1 inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-[#22a2f2] text-white text-[10px] font-semibold px-1">
+                  <span className="absolute -top-1 right-1 inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-[#1C8FD7] text-white text-[10px] font-semibold px-1">
                     {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
                   </span>
                 )}
@@ -643,7 +643,7 @@ export default function BuyerPortal() {
                 </svg>
                 <span className="relative z-10 hidden sm:inline">Requirements</span>
                 {activeTab !== 'requirements' && unseenRequirementResponsesCount > 0 && (
-                  <span className="absolute -top-1 right-1 inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-[#22a2f2] text-white text-[10px] font-semibold px-1">
+                  <span className="absolute -top-1 right-1 inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-[#1C8FD7] text-white text-[10px] font-semibold px-1">
                     {unseenRequirementResponsesCount > 99 ? '99+' : unseenRequirementResponsesCount}
                   </span>
                 )}
