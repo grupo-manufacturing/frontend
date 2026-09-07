@@ -24,8 +24,8 @@ export default function ColorSwatches({ colors, selected, onChange }: ColorSwatc
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <label className="block text-sm font-semibold text-gray-700">Color</label>
-        <span className="text-sm text-gray-500">{selected}</span>
+        <label className="font-nav block text-[10px] uppercase tracking-[0.14em] text-foreground/70">Color</label>
+        <span className="font-body text-sm text-foreground/50">{selected}</span>
       </div>
       <div className="flex flex-wrap gap-2.5">
         {colors.map((color) => {
@@ -37,10 +37,10 @@ export default function ColorSwatches({ colors, selected, onChange }: ColorSwatc
             <button
               key={color}
               onClick={() => onChange(color)}
-              className={`relative w-10 h-10 rounded-full transition-all focus:outline-none ${
+              className={`relative w-10 h-10 transition-all focus:outline-none ${
                 isSelected
                   ? 'ring-2 ring-offset-2 ring-[#1C8FD7] scale-110'
-                  : 'ring-1 ring-gray-200 hover:ring-gray-400 hover:scale-105'
+                  : 'ring-1 ring-brand/15 hover:ring-brand/40 hover:scale-105'
               }`}
               style={{ backgroundColor: hex }}
               aria-label={`Select ${color}`}
@@ -51,7 +51,7 @@ export default function ColorSwatches({ colors, selected, onChange }: ColorSwatc
               {isSelected && (
                 <span className="absolute inset-0 flex items-center justify-center">
                   <svg
-                    className={`w-5 h-5 ${isLight ? 'text-gray-800' : 'text-white'}`}
+                    className={`w-5 h-5 ${isLight ? 'text-foreground' : 'text-surface'}`}
                     fill="none"
                     viewBox="0 0 24 24"
                     strokeWidth={3}
@@ -64,7 +64,7 @@ export default function ColorSwatches({ colors, selected, onChange }: ColorSwatc
 
               {/* Border for white/light swatches */}
               {isLight && !isSelected && (
-                <span className="absolute inset-0 rounded-full ring-1 ring-inset ring-gray-200" />
+                <span className="absolute inset-0 ring-1 ring-inset ring-brand/15" />
               )}
             </button>
           );

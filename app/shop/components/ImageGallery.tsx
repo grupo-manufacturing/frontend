@@ -53,7 +53,7 @@ export default function ImageGallery({ images, productName, inStock }: ImageGall
         {/* ── Main Image with Zoom ──────────────────────────────────── */}
         <div
           ref={imageContainerRef}
-          className="relative aspect-square bg-white rounded-xl shadow-sm overflow-hidden cursor-zoom-in group"
+          className="relative aspect-square bg-surface border border-brand/10 overflow-hidden cursor-zoom-in group"
           onMouseMove={handleMouseMove}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
@@ -94,14 +94,14 @@ export default function ImageGallery({ images, productName, inStock }: ImageGall
           {/* Out of stock overlay */}
           {!inStock && (
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
-              <span className="bg-white text-gray-900 px-4 py-2 rounded-lg font-semibold text-sm">
+              <span className="font-nav border border-surface/40 bg-black/40 px-4 py-2 text-[10px] uppercase tracking-[0.16em] text-surface backdrop-blur-sm">
                 Out of Stock
               </span>
             </div>
           )}
 
           {/* Fullscreen hint */}
-          <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+          <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-surface font-nav text-[10px] uppercase tracking-[0.12em] px-3 py-1.5 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9m11.25-5.25v4.5m0-4.5h-4.5m4.5 0L15 9m-11.25 11.25v-4.5m0 4.5h4.5m-4.5 0L9 15m11.25 5.25v-4.5m0 4.5h-4.5m4.5 0L15 15" />
             </svg>
@@ -109,7 +109,7 @@ export default function ImageGallery({ images, productName, inStock }: ImageGall
           </div>
 
           {/* Zoom hint on mobile (tap) */}
-          <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 sm:hidden z-10">
+          <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-surface font-nav text-[10px] uppercase tracking-[0.12em] px-3 py-1.5 flex items-center gap-1.5 sm:hidden z-10">
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9m11.25-5.25v4.5m0-4.5h-4.5m4.5 0L15 9m-11.25 11.25v-4.5m0 4.5h4.5m-4.5 0L9 15m11.25 5.25v-4.5m0 4.5h-4.5m4.5 0L15 15" />
             </svg>
@@ -123,10 +123,10 @@ export default function ImageGallery({ images, productName, inStock }: ImageGall
             <button
               key={index}
               onClick={() => setActiveIndex(index)}
-              className={`relative aspect-square rounded-lg overflow-hidden transition-all ${
+              className={`relative aspect-square overflow-hidden transition-all ${
                 activeIndex === index
-                  ? 'ring-2 ring-[#1C8FD7] shadow-md'
-                  : 'ring-1 ring-gray-200 hover:ring-gray-300'
+                  ? 'ring-2 ring-[#1C8FD7]'
+                  : 'ring-1 ring-brand/15 hover:ring-brand/35'
               }`}
               aria-label={`View image ${index + 1}`}
             >
@@ -155,7 +155,7 @@ export default function ImageGallery({ images, productName, inStock }: ImageGall
           {/* Close button */}
           <button
             onClick={() => setIsFullscreen(false)}
-            className="absolute top-4 right-4 z-10 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+            className="absolute top-4 right-4 z-10 p-2 bg-white/10 hover:bg-white/20 text-surface transition-colors"
             aria-label="Close fullscreen"
           >
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -164,14 +164,14 @@ export default function ImageGallery({ images, productName, inStock }: ImageGall
           </button>
 
           {/* Image counter */}
-          <div className="absolute top-4 left-4 text-white/70 text-sm font-medium">
+          <div className="absolute top-4 left-4 text-surface/70 font-nav text-[10px] uppercase tracking-[0.14em]">
             {activeIndex + 1} / {images.length}
           </div>
 
           {/* Previous button */}
           <button
             onClick={goToPrev}
-            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors z-10"
+            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 hover:bg-white/20 text-surface transition-colors z-10"
             aria-label="Previous image"
           >
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -182,7 +182,7 @@ export default function ImageGallery({ images, productName, inStock }: ImageGall
           {/* Next button */}
           <button
             onClick={goToNext}
-            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors z-10"
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 hover:bg-white/20 text-surface transition-colors z-10"
             aria-label="Next image"
           >
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -208,9 +208,9 @@ export default function ImageGallery({ images, productName, inStock }: ImageGall
               <button
                 key={index}
                 onClick={() => setActiveIndex(index)}
-                className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden flex-shrink-0 transition-all ${
+                className={`relative w-16 h-16 sm:w-20 sm:h-20 overflow-hidden flex-shrink-0 transition-all ${
                   activeIndex === index
-                    ? 'ring-2 ring-white shadow-lg'
+                    ? 'ring-2 ring-surface'
                     : 'ring-1 ring-white/20 opacity-50 hover:opacity-80'
                 }`}
                 aria-label={`View image ${index + 1}`}

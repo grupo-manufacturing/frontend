@@ -146,42 +146,54 @@ export default function ShopContent() {
 
   /* ── Render ────────────────────────────────────────────────────────── */
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
-      {/* ── Page Header ────────────────────────────────────────────────── */}
-      <div className="mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Grupo Marketplace</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Premium bulk apparel for brands &amp; businesses
-        </p>
+    <div className="bg-surface">
+      {/* Editorial header */}
+      <div className="relative overflow-hidden border-b border-brand/10 bg-[#0a0f14]">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-60"
+          style={{
+            backgroundImage:
+              'radial-gradient(ellipse 50% 60% at 80% 20%, rgba(28,143,215,0.2), transparent 60%)',
+          }}
+          aria-hidden
+        />
+        <div className="relative z-10 mx-auto max-w-7xl px-4 pb-10 pt-28 sm:px-6 lg:px-8">
+          <p className="font-nav text-[11px] uppercase tracking-[0.18em] text-[#1C8FD7]">
+            Wholesale Catalog
+          </p>
+          <h1 className="font-heading mt-3 text-3xl font-black uppercase tracking-[-0.02em] text-surface sm:text-4xl md:text-5xl">
+            Grupo Marketplace.
+            <span className="mt-1 block text-[#1C8FD7]">Bulk Apparel for Brands.</span>
+          </h1>
+          <p className="font-body mt-4 max-w-xl text-sm leading-relaxed text-surface/65 sm:text-base">
+            Premium manufacturing-ready styles for commercial quantities and repeat orders.
+          </p>
+        </div>
       </div>
 
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
       {/* ── Search Bar ─────────────────────────────────────────────────── */}
-      <div className="mb-5">
+      <div className="mb-6">
         <SearchBar value={searchQuery} onChange={setSearchQuery} />
       </div>
 
       {/* ── Toolbar: Filter toggle (mobile) + Active count + Sort ─────── */}
-      <div className="flex items-center justify-between gap-3 mb-4">
+      <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          {/* Mobile filter button */}
           <button
             onClick={() => setMobileFiltersOpen(true)}
-            className="lg:hidden flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:border-gray-300 transition-colors shadow-sm"
+            className="font-nav flex items-center gap-2 border border-brand/15 bg-surface px-4 py-2.5 text-[10px] uppercase tracking-[0.14em] text-foreground transition-colors hover:border-[#1C8FD7] lg:hidden"
             aria-label="Open filters"
           >
-            <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
-            </svg>
             Filters
             {activeFilterCount > 0 && (
-              <span className="bg-[#1C8FD7] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+              <span className="flex h-5 w-5 items-center justify-center bg-[#1C8FD7] text-[10px] font-bold text-surface">
                 {activeFilterCount}
               </span>
             )}
           </button>
 
-          {/* Product count */}
-          <span className="text-sm text-gray-500 hidden sm:inline">
+          <span className="font-nav hidden text-[10px] uppercase tracking-[0.14em] text-foreground/45 sm:inline">
             {loading ? '...' : `${products.length} ${products.length === 1 ? 'product' : 'products'}`}
           </span>
         </div>
@@ -190,7 +202,7 @@ export default function ShopContent() {
       </div>
 
       {/* ── Active Filter Chips ────────────────────────────────────────── */}
-      <div className="mb-5">
+      <div className="mb-6">
         <ActiveFilters
           selectedCategories={selectedCategories}
           onRemoveCategory={(cat) =>
@@ -208,7 +220,6 @@ export default function ShopContent() {
 
       {/* ── Main Layout: Sidebar + Grid ──────────────────────────────── */}
       <div className="flex gap-8">
-        {/* Filter Sidebar */}
         <FilterSidebar
           categories={categories}
           selectedCategories={selectedCategories}
@@ -222,39 +233,36 @@ export default function ShopContent() {
           onClose={() => setMobileFiltersOpen(false)}
         />
 
-        {/* Product Grid / Loading / Error / Empty State */}
-        <div className="flex-1 min-w-0">
-          {/* Mobile product count */}
-          <p className="text-sm text-gray-500 mb-4 sm:hidden">
+        <div className="min-w-0 flex-1">
+          <p className="font-nav mb-4 text-[10px] uppercase tracking-[0.14em] text-foreground/45 sm:hidden">
             {loading ? '...' : `${products.length} ${products.length === 1 ? 'product' : 'products'}`}
           </p>
 
           {loading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="bg-white rounded-xl shadow-sm overflow-hidden animate-pulse">
-                  <div className="aspect-square bg-gray-200" />
-                  <div className="p-4 space-y-3">
-                    <div className="h-3 bg-gray-200 rounded w-1/3" />
-                    <div className="h-4 bg-gray-200 rounded w-2/3" />
-                    <div className="h-3 bg-gray-200 rounded w-1/2" />
-                    <div className="h-9 bg-gray-200 rounded" />
+                <div key={i} className="animate-pulse overflow-hidden border border-brand/10">
+                  <div className="aspect-[4/5] bg-brand/10" />
+                  <div className="space-y-3 p-4">
+                    <div className="h-3 w-1/3 bg-brand/10" />
+                    <div className="h-4 w-2/3 bg-brand/10" />
+                    <div className="h-9 bg-brand/10" />
                   </div>
                 </div>
               ))}
             </div>
           ) : error ? (
-            <div className="text-center py-16">
-              <p className="text-red-500 mb-4">{error}</p>
+            <div className="border border-brand/10 py-16 text-center">
+              <p className="font-body mb-4 text-red-500">{error}</p>
               <button
                 onClick={fetchProducts}
-                className="px-5 py-2.5 bg-[#1C8FD7] text-white rounded-lg hover:bg-[#1678B5] transition-colors text-sm font-medium"
+                className="font-nav bg-[#1C8FD7] px-5 py-2.5 text-[10px] uppercase tracking-[0.14em] text-[#0b1220] transition-colors hover:bg-[#1678B5] hover:text-surface"
               >
                 Retry
               </button>
             </div>
           ) : products.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
               {products.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -263,6 +271,7 @@ export default function ShopContent() {
             <EmptyState searchQuery={searchQuery} onClearAll={clearAllFilters} />
           )}
         </div>
+      </div>
       </div>
     </div>
   );

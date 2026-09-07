@@ -12,10 +12,9 @@ export default function SearchBar({ value, onChange }: SearchBarProps) {
 
   return (
     <div className="relative w-full">
-      {/* Search Icon */}
-      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
         <svg
-          className="h-5 w-5 text-gray-400"
+          className="h-5 w-5 text-foreground/35"
           fill="none"
           viewBox="0 0 24 24"
           strokeWidth={2}
@@ -35,18 +34,17 @@ export default function SearchBar({ value, onChange }: SearchBarProps) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Search products..."
-        className="w-full pl-12 pr-10 py-3 sm:py-3.5 bg-white border border-gray-200 rounded-xl text-sm sm:text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1C8FD7]/30 focus:border-[#1C8FD7] transition-all shadow-sm"
+        className="font-body w-full border border-brand/15 bg-surface py-3.5 pl-12 pr-10 text-sm text-foreground placeholder:text-foreground/35 outline-none transition-colors focus:border-[#1C8FD7] sm:text-base"
         aria-label="Search products"
       />
 
-      {/* Clear Button */}
       {value && (
         <button
           onClick={() => {
             onChange('');
             inputRef.current?.focus();
           }}
-          className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+          className="absolute inset-y-0 right-0 flex items-center pr-4 text-foreground/35 transition-colors hover:text-foreground"
           aria-label="Clear search"
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">

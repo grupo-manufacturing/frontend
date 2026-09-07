@@ -109,10 +109,10 @@ export default function QuantityInput({
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <label className="block text-sm font-semibold text-gray-700">
+        <label className="font-nav block text-[10px] uppercase tracking-[0.14em] text-foreground/70">
           Number of Units
         </label>
-        <span className="text-xs text-gray-400">Min. {min} units</span>
+        <span className="font-nav text-[10px] uppercase tracking-[0.12em] text-foreground/40">Min. {min} units</span>
       </div>
 
       <div className="flex items-stretch">
@@ -120,7 +120,7 @@ export default function QuantityInput({
         <button
           onClick={decrement}
           disabled={value <= min}
-          className="px-4 bg-gray-100 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed rounded-l-xl border border-r-0 border-gray-200 transition-colors text-gray-600 font-medium text-lg"
+          className="px-4 bg-brand/5 hover:bg-brand/10 disabled:opacity-40 disabled:cursor-not-allowed border border-r-0 border-brand/10 transition-colors text-foreground/60 font-medium text-lg"
           aria-label="Decrease quantity"
         >
           &minus;
@@ -134,7 +134,7 @@ export default function QuantityInput({
           value={displayValue}
           onChange={handleChange}
           onBlur={handleBlur}
-          className={`w-full text-center px-4 py-3 border-y border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#1C8FD7] transition-all text-base font-medium ${
+          className={`font-body w-full text-center px-4 py-3 border-y border-brand/10 bg-surface text-foreground focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#1C8FD7] transition-all text-base font-medium ${
             error ? 'border-red-300 focus:ring-red-400' : ''
           }`}
           aria-label="Quantity"
@@ -145,7 +145,7 @@ export default function QuantityInput({
         {/* Increment */}
         <button
           onClick={increment}
-          className="px-4 bg-gray-100 hover:bg-gray-200 rounded-r-xl border border-l-0 border-gray-200 transition-colors text-gray-600 font-medium text-lg"
+          className="px-4 bg-brand/5 hover:bg-brand/10 border border-l-0 border-brand/10 transition-colors text-foreground/60 font-medium text-lg"
           aria-label="Increase quantity"
         >
           +
@@ -154,7 +154,7 @@ export default function QuantityInput({
 
       {/* Error message */}
       {error && (
-        <p id="qty-error" className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
+        <p id="qty-error" className="mt-1.5 font-body text-xs text-red-500 flex items-center gap-1">
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
           </svg>

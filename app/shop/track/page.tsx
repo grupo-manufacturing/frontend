@@ -27,7 +27,7 @@ const STATUS_RANK: Record<string, number> = {
 };
 
 function StepIcon({ type, active }: { type: string; active: boolean }) {
-  const cls = active ? 'text-white' : 'text-gray-400';
+  const cls = active ? 'text-surface' : 'text-foreground/40';
 
   if (type === 'check') return (
     <svg className={`w-4 h-4 ${cls}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,12 +58,12 @@ function StatusStepper({ status }: { status: string }) {
   if (status === 'cancelled' || status === 'payment_failed') {
     return (
       <div className="flex items-center justify-center gap-3 py-6">
-        <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+        <div className="w-10 h-10 bg-red-100 flex items-center justify-center">
           <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </div>
-        <span className="text-sm font-semibold text-red-600">
+        <span className="font-nav text-[11px] uppercase tracking-[0.14em] font-semibold text-red-600">
           {status === 'cancelled' ? 'Order Cancelled' : 'Payment Failed'}
         </span>
       </div>
@@ -73,13 +73,13 @@ function StatusStepper({ status }: { status: string }) {
   if (status === 'payment_pending' || status === 'pending') {
     return (
       <div className="flex items-center justify-center gap-3 py-6">
-        <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+        <div className="w-10 h-10 bg-amber-100 flex items-center justify-center">
           <svg className="w-5 h-5 text-amber-500 animate-spin" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
         </div>
-        <span className="text-sm font-semibold text-amber-600">
+        <span className="font-nav text-[11px] uppercase tracking-[0.14em] font-semibold text-amber-600">
           {status === 'payment_pending' ? 'Awaiting Payment' : 'Order Pending'}
         </span>
       </div>
@@ -99,21 +99,21 @@ function StatusStepper({ status }: { status: string }) {
               {i > 0 && (
                 <div
                   className={`absolute top-4 right-1/2 w-full h-0.5 -z-10 ${
-                    done || active ? 'bg-[#1C8FD7]' : 'bg-gray-200'
+                    done || active ? 'bg-[#1C8FD7]' : 'bg-brand/15'
                   }`}
                 />
               )}
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+                className={`w-8 h-8 flex items-center justify-center transition-all duration-300 ${
                   done
-                    ? 'bg-[#1C8FD7] shadow-md shadow-blue-200'
+                    ? 'bg-[#1C8FD7]'
                     : active
-                      ? 'bg-[#1C8FD7] shadow-lg shadow-blue-300 ring-4 ring-blue-100'
-                      : 'bg-gray-100 border-2 border-gray-200'
+                      ? 'bg-[#1C8FD7] ring-4 ring-brand/20'
+                      : 'bg-brand/5 border-2 border-brand/15'
                 }`}
               >
                 {done ? (
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-surface" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
                 ) : (
@@ -121,9 +121,9 @@ function StatusStepper({ status }: { status: string }) {
                 )}
               </div>
               <span
-                className={`mt-2 text-[11px] font-semibold tracking-wide ${
-                  done || active ? 'text-[#1C8FD7]' : 'text-gray-400'
-                } ${active ? 'font-bold' : ''}`}
+                className={`font-nav mt-2 text-[10px] font-semibold uppercase tracking-[0.14em] ${
+                  done || active ? 'text-[#1C8FD7]' : 'text-foreground/40'
+                }`}
               >
                 {step.label}
               </span>
@@ -138,14 +138,14 @@ function StatusStepper({ status }: { status: string }) {
 export default function TrackOrderPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        <Navbar />
+      <div className="min-h-screen bg-surface flex flex-col">
+        <Navbar variant="dark" />
         <div className="flex-1 pt-24 pb-16 px-4 flex items-center justify-center">
           <div className="animate-pulse space-y-4 w-full max-w-lg">
-            <div className="h-16 bg-gray-200 rounded-2xl mx-auto w-16" />
-            <div className="h-8 bg-gray-200 rounded w-1/2 mx-auto" />
-            <div className="h-4 bg-gray-200 rounded w-1/3 mx-auto" />
-            <div className="h-12 bg-gray-200 rounded-xl mt-8" />
+            <div className="h-16 bg-brand/10 mx-auto w-16" />
+            <div className="h-8 bg-brand/10 w-1/2 mx-auto" />
+            <div className="h-4 bg-brand/10 w-1/3 mx-auto" />
+            <div className="h-12 bg-brand/10 mt-8" />
           </div>
         </div>
       </div>
@@ -205,20 +205,20 @@ function TrackOrderContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
+    <div className="min-h-screen bg-surface flex flex-col">
+      <Navbar variant="dark" />
 
       <div className="flex-1 pt-24 pb-16 px-4">
         <div className="max-w-lg mx-auto">
           {/* Header */}
           <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-50 mb-5">
+            <div className="inline-flex items-center justify-center w-16 h-16 border border-brand/15 bg-brand/5 mb-5">
               <svg className="w-8 h-8 text-[#1C8FD7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Track Your Order</h1>
-            <p className="text-sm text-gray-400 mt-2">Enter your order number to see its current status</p>
+            <h1 className="font-heading text-3xl font-bold uppercase tracking-[-0.02em] text-foreground">Track Your Order</h1>
+            <p className="font-body text-sm text-foreground/40 mt-2">Enter your order number to see its current status</p>
           </div>
 
           {/* Search form */}
@@ -230,12 +230,12 @@ function TrackOrderContent() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="e.g. GRUPO-ORD-0001"
-                className="flex-1 px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-800 placeholder:text-gray-400 outline-none transition-colors focus:border-[#1C8FD7] focus:ring-2 focus:ring-[#1C8FD7]/10 font-mono tracking-wide shadow-sm"
+                className="font-nav flex-1 px-4 py-3.5 bg-surface border border-brand/10 text-sm text-foreground placeholder:text-foreground/35 outline-none transition-colors focus:border-[#1C8FD7] focus:ring-1 focus:ring-[#1C8FD7]/20 tracking-wide"
               />
               <button
                 type="submit"
                 disabled={loading || !input.trim()}
-                className="px-6 py-3.5 bg-[#1C8FD7] text-white rounded-xl font-semibold text-sm hover:bg-[#1678B5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 flex-shrink-0 shadow-sm"
+                className="font-nav px-6 py-3.5 bg-[#1C8FD7] text-[#0b1220] text-[10px] uppercase tracking-[0.14em] hover:bg-[#1678B5] hover:text-surface transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 flex-shrink-0 sm:text-[11px]"
               >
                 {loading ? (
                   <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -254,11 +254,11 @@ function TrackOrderContent() {
 
           {/* Error */}
           {error && (
-            <div className="bg-red-50 border border-red-100 rounded-xl p-5 text-center">
+            <div className="bg-red-50 border border-red-100 p-5 text-center">
               <svg className="w-10 h-10 text-red-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <p className="text-sm text-red-600 font-medium">{error}</p>
+              <p className="font-body text-sm text-red-600 font-medium">{error}</p>
             </div>
           )}
 
@@ -266,40 +266,40 @@ function TrackOrderContent() {
           {order && (
             <div className="space-y-5">
               {/* Status stepper */}
-              <div className="bg-white rounded-2xl px-5 py-2 border border-gray-200 shadow-sm">
+              <div className="bg-surface border border-brand/10 px-5 py-2">
                 <StatusStepper status={order.status} />
               </div>
 
               {/* Product info */}
-              <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
+              <div className="bg-surface border border-brand/10 p-5">
                 <div className="flex gap-4 items-start">
-                  <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-blue-50">
+                  <div className="relative w-16 h-16 overflow-hidden flex-shrink-0 bg-brand/5 border border-brand/10">
                     <Image src={order.productImage} alt={order.productName} fill className="object-cover" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-gray-900 text-sm leading-tight">{order.productName}</h3>
-                    <p className="text-xs text-gray-400 mt-0.5">{order.quantity} units</p>
-                    <span className="inline-block mt-1 px-2 py-0.5 bg-[#1C8FD7]/10 text-[#1C8FD7] text-[11px] font-bold rounded-md">
+                    <h3 className="font-heading font-bold text-foreground text-sm leading-tight">{order.productName}</h3>
+                    <p className="font-body text-xs text-foreground/40 mt-0.5">{order.quantity} units</p>
+                    <span className="font-nav inline-block mt-1 px-2 py-0.5 bg-[#1C8FD7]/10 text-[#1C8FD7] text-[10px] font-bold uppercase tracking-[0.12em]">
                       {order.tier}
                     </span>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="text-lg font-bold text-gray-900">
+                    <p className="font-heading text-lg font-bold text-foreground">
                       ₹{order.totalAmount.toLocaleString('en-IN')}
                     </p>
-                    <p className="text-[11px] text-gray-400">
+                    <p className="font-body text-[11px] text-foreground/40">
                       ₹{order.unitPrice.toLocaleString('en-IN')}/unit
                     </p>
                   </div>
                 </div>
 
                 {order.variations.length > 0 && (
-                  <div className="mt-4 pt-3 border-t border-gray-100 space-y-1.5">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-gray-400">Variations</p>
+                  <div className="mt-4 pt-3 border-t border-brand/10 space-y-1.5">
+                    <p className="font-nav text-[10px] font-bold uppercase tracking-[0.14em] text-foreground/40">Variations</p>
                     {order.variations.map((v) => (
-                      <div key={v.color} className="text-xs">
-                        <span className="font-semibold text-gray-700">{v.color}</span>
-                        <span className="text-gray-400 ml-1">
+                      <div key={v.color} className="font-body text-xs">
+                        <span className="font-semibold text-foreground/70">{v.color}</span>
+                        <span className="text-foreground/40 ml-1">
                           — {v.sizes.map((s) => `${s.size} ×${s.qty}`).join(', ')}
                         </span>
                       </div>
@@ -310,23 +310,23 @@ function TrackOrderContent() {
 
               {/* Order details */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="bg-white rounded-xl p-3 border border-gray-200 shadow-sm">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-gray-400 mb-1">Order Number</p>
-                  <p className="text-sm font-semibold text-gray-800 font-mono">{order.orderNumber}</p>
+                <div className="bg-surface p-3 border border-brand/10">
+                  <p className="font-nav text-[10px] font-bold uppercase tracking-[0.14em] text-foreground/40 mb-1">Order Number</p>
+                  <p className="font-nav text-sm font-semibold text-foreground">{order.orderNumber}</p>
                 </div>
-                <div className="bg-white rounded-xl p-3 border border-gray-200 shadow-sm">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-gray-400 mb-1">Shipping To</p>
-                  <p className="text-sm font-semibold text-gray-800">{order.city}, {order.state}</p>
+                <div className="bg-surface p-3 border border-brand/10">
+                  <p className="font-nav text-[10px] font-bold uppercase tracking-[0.14em] text-foreground/40 mb-1">Shipping To</p>
+                  <p className="font-body text-sm font-semibold text-foreground">{order.city}, {order.state}</p>
                 </div>
-                <div className="bg-white rounded-xl p-3 border border-gray-200 shadow-sm">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-gray-400 mb-1">Placed On</p>
-                  <p className="text-sm font-semibold text-gray-800">
+                <div className="bg-surface p-3 border border-brand/10">
+                  <p className="font-nav text-[10px] font-bold uppercase tracking-[0.14em] text-foreground/40 mb-1">Placed On</p>
+                  <p className="font-body text-sm font-semibold text-foreground">
                     {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </p>
                 </div>
-                <div className="bg-white rounded-xl p-3 border border-gray-200 shadow-sm">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-gray-400 mb-1">Last Updated</p>
-                  <p className="text-sm font-semibold text-gray-800">
+                <div className="bg-surface p-3 border border-brand/10">
+                  <p className="font-nav text-[10px] font-bold uppercase tracking-[0.14em] text-foreground/40 mb-1">Last Updated</p>
+                  <p className="font-body text-sm font-semibold text-foreground">
                     {new Date(order.updatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </p>
                 </div>
@@ -335,7 +335,7 @@ function TrackOrderContent() {
               {/* Track another */}
               <button
                 onClick={handleReset}
-                className="w-full py-3 bg-white border border-gray-200 text-gray-600 rounded-xl font-semibold text-sm hover:bg-gray-50 transition-colors shadow-sm"
+                className="font-nav w-full py-3 bg-surface border border-brand/15 text-foreground/60 text-[10px] uppercase tracking-[0.14em] hover:border-[#1C8FD7] hover:text-[#1C8FD7] transition-colors sm:text-[11px]"
               >
                 Track Another Order
               </button>
@@ -345,7 +345,7 @@ function TrackOrderContent() {
           {/* Back to shop */}
           {!order && !error && (
             <div className="text-center mt-12">
-              <Link href="/shop" className="text-sm text-gray-400 hover:text-[#1C8FD7] transition-colors">
+              <Link href="/shop" className="font-nav text-[10px] uppercase tracking-[0.14em] text-foreground/40 hover:text-[#1C8FD7] transition-colors">
                 ← Back to Shop
               </Link>
             </div>

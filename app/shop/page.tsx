@@ -4,8 +4,8 @@ import ShopContent from './components/ShopContent';
 
 export default function ShopPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
+    <div className="min-h-screen bg-surface">
+      <Navbar variant="dark" />
       <ShopContent />
       <Footer />
     </div>

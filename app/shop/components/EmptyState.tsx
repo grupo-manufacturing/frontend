@@ -7,45 +7,26 @@ interface EmptyStateProps {
 
 export default function EmptyState({ searchQuery, onClearAll }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 sm:py-24 px-4">
-      {/* Illustration */}
-      <div className="w-28 h-28 sm:w-36 sm:h-36 mb-6 relative">
-        <div className="absolute inset-0 bg-[#1C8FD7]/10 rounded-full" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <svg
-            className="w-14 h-14 sm:w-18 sm:h-18 text-[#1C8FD7]/40"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
-            />
-          </svg>
-        </div>
-      </div>
-
-      <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 text-center">
+    <div className="flex flex-col items-center justify-center border border-brand/10 px-4 py-16 sm:py-24">
+      <p className="font-nav text-[11px] uppercase tracking-[0.18em] text-[#1C8FD7]">No Results</p>
+      <h3 className="font-heading mt-3 text-xl font-black uppercase tracking-[-0.02em] text-foreground sm:text-2xl">
         No products found
       </h3>
 
       {searchQuery ? (
-        <p className="text-sm sm:text-base text-gray-500 text-center max-w-md mb-6">
-          We couldn&apos;t find any products matching &quot;<span className="font-medium text-gray-700">{searchQuery}</span>&quot;.
+        <p className="font-body mt-3 max-w-md text-center text-sm text-foreground/55 sm:text-base">
+          Nothing matched &quot;<span className="font-medium text-foreground">{searchQuery}</span>&quot;.
           Try adjusting your search or filters.
         </p>
       ) : (
-        <p className="text-sm sm:text-base text-gray-500 text-center max-w-md mb-6">
+        <p className="font-body mt-3 max-w-md text-center text-sm text-foreground/55 sm:text-base">
           No products match the selected filters. Try removing some filters to see more results.
         </p>
       )}
 
       <button
         onClick={onClearAll}
-        className="px-6 py-2.5 bg-[#1C8FD7] text-white rounded-lg hover:bg-[#1678B5] transition-colors font-medium text-sm"
+        className="font-nav mt-6 bg-[#1C8FD7] px-6 py-2.5 text-[10px] uppercase tracking-[0.14em] text-[#0b1220] transition-colors hover:bg-[#1678B5] hover:text-surface sm:text-[11px]"
       >
         Clear All Filters
       </button>

@@ -28,12 +28,10 @@ export default function ActiveFilters({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {/* Category chips */}
       {selectedCategories.map((category) => (
         <Chip key={`cat-${category}`} label={category} onRemove={() => onRemoveCategory(category)} />
       ))}
 
-      {/* Price range chips */}
       {selectedPriceRanges.map((rangeId) => {
         const range = PRICE_RANGES.find((r) => r.id === rangeId);
         return range ? (
@@ -41,7 +39,6 @@ export default function ActiveFilters({
         ) : null;
       })}
 
-      {/* Stock filter chip */}
       {stockFilter !== 'all' && (
         <Chip
           label={stockFilter === 'in-stock' ? 'In Stock' : 'Out of Stock'}
@@ -49,10 +46,9 @@ export default function ActiveFilters({
         />
       )}
 
-      {/* Clear all */}
       <button
         onClick={onClearAll}
-        className="text-xs font-medium text-gray-500 hover:text-red-500 transition-colors ml-1 px-2 py-1"
+        className="font-nav ml-1 px-2 py-1 text-[10px] uppercase tracking-[0.14em] text-foreground/45 transition-colors hover:text-red-500"
       >
         Clear all
       </button>
@@ -62,14 +58,14 @@ export default function ActiveFilters({
 
 function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
-    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1C8FD7]/10 text-[#1C8FD7] rounded-full text-xs font-medium">
+    <span className="font-nav inline-flex items-center gap-1.5 border border-[#1C8FD7]/25 bg-[#1C8FD7]/10 px-3 py-1.5 text-[10px] uppercase tracking-[0.12em] text-[#1C8FD7]">
       {label}
       <button
         onClick={onRemove}
-        className="hover:bg-[#1C8FD7]/20 rounded-full p-0.5 transition-colors"
+        className="p-0.5 transition-colors hover:bg-[#1C8FD7]/20"
         aria-label={`Remove ${label} filter`}
       >
-        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor">
+        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>

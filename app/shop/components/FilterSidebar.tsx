@@ -1,6 +1,5 @@
 'use client';
 
-/* ── Price range buckets (based on Standard tier unit price) ────────── */
 export interface PriceRange {
   id: string;
   label: string;
@@ -15,10 +14,8 @@ export const PRICE_RANGES: PriceRange[] = [
   { id: 'above-1000', label: 'Above ₹1,000', min: 1001, max: Infinity },
 ];
 
-/* ── Stock filter options ───────────────────────────────────────────── */
 export type StockFilter = 'all' | 'in-stock' | 'out-of-stock';
 
-/* ── Props ──────────────────────────────────────────────────────────── */
 interface FilterSidebarProps {
   categories: string[];
   selectedCategories: string[];
@@ -63,138 +60,133 @@ export default function FilterSidebar({
     }
   }
 
-  /* ── Shared filter panel content ────────────────────────────────── */
   const filterContent = (
-    <div className="flex flex-col gap-6">
-      {/* ── Category ────────────────────────────────────────────────── */}
+    <div className="flex flex-col gap-8">
       <div>
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+        <h3 className="font-nav mb-3 text-[10px] uppercase tracking-[0.18em] text-[#1C8FD7]">
           Category
         </h3>
-        <div className="flex flex-col gap-1.5">
-          {categories.map((category) => (
-            <label
-              key={category}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors text-sm ${
-                selectedCategories.includes(category)
-                  ? 'bg-[#1C8FD7]/10 text-[#1C8FD7] font-medium'
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <input
-                type="checkbox"
-                checked={selectedCategories.includes(category)}
-                onChange={() => toggleCategory(category)}
-                className="sr-only"
-              />
-              {/* Custom checkbox */}
-              <span
-                className={`w-4.5 h-4.5 rounded flex items-center justify-center border-2 transition-colors flex-shrink-0 ${
-                  selectedCategories.includes(category)
-                    ? 'bg-[#1C8FD7] border-[#1C8FD7]'
-                    : 'border-gray-300'
+        <div className="flex flex-col gap-1">
+          {categories.map((category) => {
+            const selected = selectedCategories.includes(category);
+            return (
+              <label
+                key={category}
+                className={`font-body flex cursor-pointer items-center gap-3 px-3 py-2.5 text-sm transition-colors ${
+                  selected
+                    ? 'bg-[#1C8FD7] text-surface'
+                    : 'text-foreground/70 hover:bg-brand/5 hover:text-foreground'
                 }`}
               >
-                {selectedCategories.includes(category) && (
-                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                  </svg>
-                )}
-              </span>
-              <span className="flex-1">{category}</span>
-            </label>
-          ))}
+                <input
+                  type="checkbox"
+                  checked={selected}
+                  onChange={() => toggleCategory(category)}
+                  className="sr-only"
+                />
+                <span
+                  className={`flex h-4 w-4 flex-shrink-0 items-center justify-center border transition-colors ${
+                    selected ? 'border-surface bg-surface' : 'border-foreground/25'
+                  }`}
+                >
+                  {selected && (
+                    <svg className="h-2.5 w-2.5 text-[#1C8FD7]" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                  )}
+                </span>
+                <span className="flex-1">{category}</span>
+              </label>
+            );
+          })}
         </div>
       </div>
 
-      {/* ── Price Range ─────────────────────────────────────────────── */}
       <div>
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+        <h3 className="font-nav mb-3 text-[10px] uppercase tracking-[0.18em] text-[#1C8FD7]">
           Price Range
         </h3>
-        <div className="flex flex-col gap-1.5">
-          {PRICE_RANGES.map((range) => (
-            <label
-              key={range.id}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors text-sm ${
-                selectedPriceRanges.includes(range.id)
-                  ? 'bg-[#1C8FD7]/10 text-[#1C8FD7] font-medium'
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <input
-                type="checkbox"
-                checked={selectedPriceRanges.includes(range.id)}
-                onChange={() => togglePriceRange(range.id)}
-                className="sr-only"
-              />
-              <span
-                className={`w-4.5 h-4.5 rounded flex items-center justify-center border-2 transition-colors flex-shrink-0 ${
-                  selectedPriceRanges.includes(range.id)
-                    ? 'bg-[#1C8FD7] border-[#1C8FD7]'
-                    : 'border-gray-300'
+        <div className="flex flex-col gap-1">
+          {PRICE_RANGES.map((range) => {
+            const selected = selectedPriceRanges.includes(range.id);
+            return (
+              <label
+                key={range.id}
+                className={`font-body flex cursor-pointer items-center gap-3 px-3 py-2.5 text-sm transition-colors ${
+                  selected
+                    ? 'bg-[#1C8FD7] text-surface'
+                    : 'text-foreground/70 hover:bg-brand/5 hover:text-foreground'
                 }`}
               >
-                {selectedPriceRanges.includes(range.id) && (
-                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                  </svg>
-                )}
-              </span>
-              <span>{range.label}</span>
-            </label>
-          ))}
+                <input
+                  type="checkbox"
+                  checked={selected}
+                  onChange={() => togglePriceRange(range.id)}
+                  className="sr-only"
+                />
+                <span
+                  className={`flex h-4 w-4 flex-shrink-0 items-center justify-center border transition-colors ${
+                    selected ? 'border-surface bg-surface' : 'border-foreground/25'
+                  }`}
+                >
+                  {selected && (
+                    <svg className="h-2.5 w-2.5 text-[#1C8FD7]" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                  )}
+                </span>
+                <span>{range.label}</span>
+              </label>
+            );
+          })}
         </div>
       </div>
 
-      {/* ── Availability ────────────────────────────────────────────── */}
       <div>
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+        <h3 className="font-nav mb-3 text-[10px] uppercase tracking-[0.18em] text-[#1C8FD7]">
           Availability
         </h3>
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1">
           {[
             { value: 'all' as StockFilter, label: 'All Products' },
             { value: 'in-stock' as StockFilter, label: 'In Stock Only' },
             { value: 'out-of-stock' as StockFilter, label: 'Out of Stock' },
-          ].map((option) => (
-            <label
-              key={option.value}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors text-sm ${
-                stockFilter === option.value
-                  ? 'bg-[#1C8FD7]/10 text-[#1C8FD7] font-medium'
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <input
-                type="radio"
-                name="stock-filter"
-                checked={stockFilter === option.value}
-                onChange={() => onStockFilterChange(option.value)}
-                className="sr-only"
-              />
-              <span
-                className={`w-4 h-4 rounded-full flex items-center justify-center border-2 transition-colors flex-shrink-0 ${
-                  stockFilter === option.value
-                    ? 'border-[#1C8FD7]'
-                    : 'border-gray-300'
+          ].map((option) => {
+            const selected = stockFilter === option.value;
+            return (
+              <label
+                key={option.value}
+                className={`font-body flex cursor-pointer items-center gap-3 px-3 py-2.5 text-sm transition-colors ${
+                  selected
+                    ? 'bg-[#1C8FD7] text-surface'
+                    : 'text-foreground/70 hover:bg-brand/5 hover:text-foreground'
                 }`}
               >
-                {stockFilter === option.value && (
-                  <span className="w-2 h-2 rounded-full bg-[#1C8FD7]" />
-                )}
-              </span>
-              <span>{option.label}</span>
-            </label>
-          ))}
+                <input
+                  type="radio"
+                  name="stock-filter"
+                  checked={selected}
+                  onChange={() => onStockFilterChange(option.value)}
+                  className="sr-only"
+                />
+                <span
+                  className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+                    selected ? 'border-surface' : 'border-foreground/25'
+                  }`}
+                >
+                  {selected && <span className="h-1.5 w-1.5 rounded-full bg-surface" />}
+                </span>
+                <span>{option.label}</span>
+              </label>
+            );
+          })}
         </div>
       </div>
 
-      {/* ── Clear All Button ─────────────────────────────────────────── */}
       {hasActiveFilters && (
         <button
           onClick={onClearAll}
-          className="w-full py-2.5 text-sm font-medium text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          className="font-nav w-full border border-red-400/30 py-2.5 text-[10px] uppercase tracking-[0.14em] text-red-500 transition-colors hover:bg-red-50"
         >
           Clear All Filters
         </button>
@@ -204,13 +196,14 @@ export default function FilterSidebar({
 
   return (
     <>
-      {/* ── Desktop Sidebar ──────────────────────────────────────────── */}
-      <aside className="hidden lg:block w-64 flex-shrink-0">
-        <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-base font-semibold text-gray-900">Filters</h2>
+      <aside className="hidden w-64 flex-shrink-0 lg:block">
+        <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto border border-brand/10 bg-surface p-5">
+          <div className="mb-5 flex items-center justify-between">
+            <h2 className="font-heading text-base font-semibold uppercase tracking-[-0.01em] text-foreground">
+              Filters
+            </h2>
             {hasActiveFilters && (
-              <span className="text-xs font-medium text-[#1C8FD7] bg-[#1C8FD7]/10 px-2 py-0.5 rounded-full">
+              <span className="font-nav text-[10px] uppercase tracking-[0.14em] text-[#1C8FD7]">
                 Active
               </span>
             )}
@@ -219,39 +212,27 @@ export default function FilterSidebar({
         </div>
       </aside>
 
-      {/* ── Mobile Filter Overlay ────────────────────────────────────── */}
       {isOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={onClose}
-          />
-
-          {/* Drawer */}
-          <div className="absolute bottom-0 left-0 right-0 max-h-[85vh] bg-white rounded-t-2xl shadow-xl flex flex-col overflow-hidden">
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+          <div className="absolute bottom-0 left-0 right-0 flex max-h-[85vh] flex-col overflow-hidden border-t border-brand/15 bg-surface">
+            <div className="flex items-center justify-between border-b border-brand/10 p-4">
+              <h2 className="font-heading text-lg font-semibold uppercase text-foreground">Filters</h2>
               <button
                 onClick={onClose}
-                className="p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-lg hover:bg-gray-100"
+                className="p-2 text-foreground/40 transition-colors hover:text-foreground"
                 aria-label="Close filters"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-
-            {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto p-4">{filterContent}</div>
-
-            {/* Footer */}
-            <div className="p-4 border-t border-gray-100 bg-white">
+            <div className="border-t border-brand/10 p-4">
               <button
                 onClick={onClose}
-                className="w-full py-3 bg-[#1C8FD7] text-white rounded-xl font-medium text-sm hover:bg-[#1678B5] transition-colors"
+                className="font-nav w-full bg-[#1C8FD7] py-3 text-[11px] uppercase tracking-[0.14em] text-[#0b1220] transition-colors hover:bg-[#1678B5] hover:text-surface"
               >
                 Show Results
               </button>

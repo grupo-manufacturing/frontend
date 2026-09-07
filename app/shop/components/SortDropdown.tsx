@@ -20,7 +20,6 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 export default function SortDropdown({ value, onChange }: SortDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
   const selectedLabel = SORT_OPTIONS.find((o) => o.value === value)?.label ?? 'Sort';
 
   useEffect(() => {
@@ -37,18 +36,15 @@ export default function SortDropdown({ value, onChange }: SortDropdownProps) {
     <div ref={dropdownRef} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:border-gray-300 transition-colors shadow-sm whitespace-nowrap"
+        className="font-nav flex items-center gap-2 whitespace-nowrap border border-brand/15 bg-surface px-4 py-2.5 text-[10px] uppercase tracking-[0.14em] text-foreground transition-colors hover:border-[#1C8FD7] sm:text-[11px]"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
         aria-label="Sort products"
       >
-        <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m13.5-4.5L16.5 16.5m0 0L12 12m4.5 4.5V3" />
-        </svg>
         <span className="hidden sm:inline">{selectedLabel}</span>
         <span className="sm:hidden">Sort</span>
         <svg
-          className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={`h-3.5 w-3.5 text-foreground/40 transition-transform ${isOpen ? 'rotate-180' : ''}`}
           fill="none"
           viewBox="0 0 24 24"
           strokeWidth={2}
@@ -60,7 +56,7 @@ export default function SortDropdown({ value, onChange }: SortDropdownProps) {
 
       {isOpen && (
         <div
-          className="absolute right-0 mt-2 w-52 bg-white border border-gray-200 rounded-xl shadow-lg z-30 py-1"
+          className="absolute right-0 z-30 mt-2 w-56 border border-brand/15 bg-surface py-1 shadow-[0_16px_40px_rgba(11,18,32,0.12)]"
           role="listbox"
           aria-label="Sort options"
         >
@@ -73,10 +69,10 @@ export default function SortDropdown({ value, onChange }: SortDropdownProps) {
               }}
               role="option"
               aria-selected={value === option.value}
-              className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+              className={`font-body w-full px-4 py-2.5 text-left text-sm transition-colors ${
                 value === option.value
-                  ? 'bg-[#1C8FD7]/10 text-[#1C8FD7] font-medium'
-                  : 'text-gray-700 hover:bg-gray-50'
+                  ? 'bg-[#1C8FD7]/10 font-medium text-[#1C8FD7]'
+                  : 'text-foreground/70 hover:bg-brand/5 hover:text-foreground'
               }`}
             >
               {option.label}

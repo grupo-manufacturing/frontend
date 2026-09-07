@@ -37,27 +37,21 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
-        .poppins-font {
-          font-family: 'Poppins', sans-serif;
-        }
-      `}</style>
+    <div className="min-h-screen bg-surface flex items-center justify-center px-4">
       <div className="max-w-md w-full space-y-8">
         <div className="flex flex-col items-center gap-4">
           <div className="text-center space-y-2">
-            <h1 className="poppins-font text-3xl font-bold text-[#1C8FD7]">Grupo</h1>
-            <p className="text-2xl font-semibold text-slate-900 mt-4">Shop Admin</p>
-            <p className="text-sm text-slate-500">
+            <h1 className="font-brand text-3xl font-bold text-[#1C8FD7]">Grupo</h1>
+            <p className="font-heading text-2xl font-semibold text-foreground mt-4">Shop Admin</p>
+            <p className="font-body text-sm text-foreground/50">
               Sign in to manage products and orders.
             </p>
           </div>
         </div>
 
-        <form onSubmit={handleLogin} className="bg-white shadow-md rounded-2xl border border-slate-100 p-6 space-y-4">
+        <form onSubmit={handleLogin} className="bg-surface border border-brand/10 p-6 space-y-4">
           <div className="space-y-2">
-            <label htmlFor="shop-admin-username" className="text-sm font-medium text-slate-700">
+            <label htmlFor="shop-admin-username" className="font-nav text-[10px] uppercase tracking-[0.14em] text-foreground/70">
               Username
             </label>
             <input
@@ -66,13 +60,13 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter username"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 shadow-sm focus:border-[#1C8FD7] focus:outline-none focus:ring-2 focus:ring-[#1C8FD7]/30"
+              className="font-body w-full border border-brand/10 px-3 py-2 text-foreground focus:border-[#1C8FD7] focus:outline-none focus:ring-1 focus:ring-[#1C8FD7]/20"
               autoComplete="username"
             />
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="shop-admin-password" className="text-sm font-medium text-slate-700">
+            <label htmlFor="shop-admin-password" className="font-nav text-[10px] uppercase tracking-[0.14em] text-foreground/70">
               Password
             </label>
             <div className="relative">
@@ -82,7 +76,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter password"
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 pr-10 text-slate-900 shadow-sm focus:border-[#1C8FD7] focus:outline-none focus:ring-2 focus:ring-[#1C8FD7]/30"
+                className="font-body w-full border border-brand/10 px-3 py-2 pr-10 text-foreground focus:border-[#1C8FD7] focus:outline-none focus:ring-1 focus:ring-[#1C8FD7]/20"
                 autoComplete="current-password"
               />
               <button
@@ -106,7 +100,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           </div>
 
           {errorMessage && (
-            <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-600">
+            <div className="border border-rose-200 bg-rose-50 px-3 py-2 font-body text-sm text-rose-600">
               {errorMessage}
             </div>
           )}
@@ -114,7 +108,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           <button
             type="submit"
             disabled={isLoggingIn || !username.trim() || !password.trim()}
-            className="w-full rounded-lg bg-[#1C8FD7] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1678B5] disabled:cursor-not-allowed disabled:bg-[#1C8FD7]/50"
+            className="font-nav w-full bg-[#1C8FD7] px-4 py-2.5 text-[10px] uppercase tracking-[0.14em] text-[#0b1220] transition hover:bg-[#1678B5] hover:text-surface disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isLoggingIn ? 'Signing In…' : 'Sign In'}
           </button>

@@ -86,13 +86,13 @@ export default function ShopAdminPage() {
   /* ── Loading state while checking auth ─────────────────────────────── */
   if (isCheckingAuth) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-surface flex items-center justify-center px-4">
         <div className="flex flex-col items-center gap-4">
           <svg className="h-8 w-8 animate-spin text-[#1C8FD7]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 12a9 9 0 11-6.219-8.56" />
             <path d="M21 3v6h-6" />
           </svg>
-          <p className="text-sm font-medium text-slate-600">Loading...</p>
+          <p className="font-body text-sm font-medium text-foreground/60">Loading...</p>
         </div>
       </div>
     );
@@ -105,30 +105,24 @@ export default function ShopAdminPage() {
 
   /* ── Dashboard ─────────────────────────────────────────────────────── */
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-surface">
       {/* ── Header ────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white">
-        <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
-          .poppins-font {
-            font-family: 'Poppins', sans-serif;
-          }
-        `}</style>
+      <header className="sticky top-0 z-50 border-b border-brand/10 bg-surface">
         <div className="mx-auto flex max-w-screen-2xl items-center justify-between gap-4 px-16 sm:px-20 lg:px-32 py-4">
           <div className="flex items-center gap-3">
             <div>
-              <p className="poppins-font text-lg font-bold text-[#1C8FD7] leading-none">Grupo</p>
-              <p className="text-sm font-semibold text-slate-900">Shop Console</p>
-              <p className="text-xs text-slate-500">Manage products &amp; orders</p>
+              <p className="font-brand text-lg font-bold text-[#1C8FD7] leading-none">Grupo</p>
+              <p className="font-heading text-sm font-semibold text-foreground">Shop Console</p>
+              <p className="font-body text-xs text-foreground/50">Manage products &amp; orders</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="hidden rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 sm:flex">
+            <div className="hidden border border-brand/15 bg-brand/5 px-3 py-1 font-nav text-[10px] uppercase tracking-[0.14em] text-foreground/60 sm:flex">
               Admin
             </div>
             <button
               onClick={handleLogout}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-100"
+              className="font-nav border border-brand/15 bg-surface px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-foreground/60 transition hover:border-[#1C8FD7] hover:text-[#1C8FD7]"
             >
               Logout
             </button>
@@ -137,7 +131,7 @@ export default function ShopAdminPage() {
       </header>
 
       {/* ── Tab Navigation ────────────────────────────────────────────── */}
-      <nav className="sticky top-[73px] z-40 border-b border-slate-200 bg-white">
+      <nav className="sticky top-[73px] z-40 border-b border-brand/10 bg-surface">
         <div className="mx-auto flex max-w-screen-2xl items-center gap-2 overflow-x-auto px-16 sm:px-20 lg:px-32">
           {VIEW_TABS.map((tab) => {
             const isActive = tab.id === activeView;
@@ -146,14 +140,14 @@ export default function ShopAdminPage() {
                 key={tab.id}
                 onClick={() => setActiveView(tab.id)}
                 className={`relative flex flex-col gap-1 px-4 py-3 text-left transition ${
-                  isActive ? 'text-[#1678B5]' : 'text-slate-500 hover:text-slate-700'
+                  isActive ? 'text-[#1678B5]' : 'text-foreground/50 hover:text-foreground/70'
                 }`}
               >
                 {isActive && (
-                  <span className="absolute inset-x-0 bottom-0 h-1 rounded-full bg-[#1C8FD7]" />
+                  <span className="absolute inset-x-0 bottom-0 h-1 bg-[#1C8FD7]" />
                 )}
-                <span className="text-sm font-semibold">{tab.label}</span>
-                <span className="text-xs text-slate-400">{tab.description}</span>
+                <span className="font-nav text-[11px] uppercase tracking-[0.14em] font-semibold">{tab.label}</span>
+                <span className="font-body text-xs text-foreground/40">{tab.description}</span>
               </button>
             );
           })}
@@ -161,7 +155,7 @@ export default function ShopAdminPage() {
           <button
             onClick={() => void loadAllData()}
             disabled={isLoadingData}
-            className="my-2 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+            className="my-2 font-nav inline-flex items-center gap-2 border border-brand/15 bg-surface px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-foreground/60 transition hover:border-[#1C8FD7] hover:text-[#1C8FD7] disabled:cursor-not-allowed disabled:opacity-60"
           >
             <svg
               className={`h-4 w-4 ${isLoadingData ? 'animate-spin text-[#1C8FD7]' : 'text-slate-400'}`}

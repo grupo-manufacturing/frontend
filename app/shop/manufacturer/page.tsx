@@ -113,48 +113,49 @@ export default function ManufacturerDashboardPage() {
 
   if (isCheckingAuth) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-        <div className="text-sm text-slate-500">Loading...</div>
+      <div className="min-h-screen bg-surface flex items-center justify-center px-4">
+        <div className="font-body text-sm text-foreground/50">Loading...</div>
       </div>
     );
   }
 
   if (step === 'login') {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-surface flex items-center justify-center px-4">
         <div className="max-w-md w-full space-y-8">
           <div className="flex flex-col items-center gap-4">
-            <div className="rounded-full bg-white shadow-md p-4 border border-slate-100">
+            <div className="border border-brand/10 bg-surface p-4">
               <Image src="/groupo-logo.svg" alt="Grupo" width={56} height={56} className="h-14 w-14" unoptimized />
             </div>
             <div className="text-center space-y-2">
-              <h1 className="text-2xl font-semibold text-slate-900">Manufacturer Dashboard</h1>
-              <p className="text-sm text-slate-500">Sign in to manage your products and orders.</p>
+              <p className="font-brand text-2xl font-bold text-[#1C8FD7]">Grupo</p>
+              <h1 className="font-heading text-2xl font-semibold text-foreground">Manufacturer Dashboard</h1>
+              <p className="font-body text-sm text-foreground/50">Sign in to manage your products and orders.</p>
             </div>
           </div>
 
-          <form onSubmit={handleLogin} className="bg-white shadow-md rounded-2xl border border-slate-100 p-6 space-y-4">
+          <form onSubmit={handleLogin} className="bg-surface border border-brand/10 p-6 space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Phone Number</label>
+              <label className="font-nav text-[10px] uppercase tracking-[0.14em] text-foreground/70">Phone Number</label>
               <input
                 type="text"
                 name="phone"
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 shadow-sm focus:border-[#1C8FD7] focus:outline-none focus:ring-2 focus:ring-[#1C8FD7]/30"
+                className="font-body w-full border border-brand/10 px-3 py-2 text-foreground focus:border-[#1C8FD7] focus:outline-none focus:ring-1 focus:ring-[#1C8FD7]/20"
                 placeholder="Phone number"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Password</label>
+              <label className="font-nav text-[10px] uppercase tracking-[0.14em] text-foreground/70">Password</label>
               <input
                 type="password"
                 name="password"
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 shadow-sm focus:border-[#1C8FD7] focus:outline-none focus:ring-2 focus:ring-[#1C8FD7]/30"
+                className="font-body w-full border border-brand/10 px-3 py-2 text-foreground focus:border-[#1C8FD7] focus:outline-none focus:ring-1 focus:ring-[#1C8FD7]/20"
                 placeholder="Password"
               />
             </div>
 
             {errorMessage && (
-              <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-600">
+              <div className="border border-rose-200 bg-rose-50 px-3 py-2 font-body text-sm text-rose-600">
                 {errorMessage}
               </div>
             )}
@@ -162,7 +163,7 @@ export default function ManufacturerDashboardPage() {
             <button
               type="submit"
               disabled={isLoadingData}
-              className="w-full rounded-lg bg-[#1C8FD7] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1678B5] disabled:cursor-not-allowed disabled:bg-[#1C8FD7]/50"
+              className="font-nav w-full bg-[#1C8FD7] px-4 py-2.5 text-[10px] uppercase tracking-[0.14em] text-[#0b1220] transition hover:bg-[#1678B5] hover:text-surface disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoadingData ? 'Signing In…' : 'Sign In'}
             </button>
@@ -173,28 +174,28 @@ export default function ManufacturerDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white">
+    <div className="min-h-screen bg-surface">
+      <header className="sticky top-0 z-50 border-b border-brand/10 bg-surface">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#1C8FD7]/20 bg-[#1C8FD7]/10">
+            <div className="flex h-10 w-10 items-center justify-center border border-brand/20 bg-brand/10">
               <Image src="/groupo-logo.svg" alt="Grupo" width={28} height={28} className="h-7 w-7" unoptimized />
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-900">{session?.name}</p>
-              <p className="text-xs text-slate-500">Manufacturer Console</p>
+              <p className="font-heading text-sm font-semibold text-foreground">{session?.name}</p>
+              <p className="font-nav text-[10px] uppercase tracking-[0.14em] text-foreground/50">Manufacturer Console</p>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-100"
+            className="font-nav border border-brand/15 bg-surface px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-foreground/60 transition hover:border-[#1C8FD7] hover:text-[#1C8FD7]"
           >
             Logout
           </button>
         </div>
       </header>
 
-      <nav className="sticky top-[73px] z-40 border-b border-slate-200 bg-white">
+      <nav className="sticky top-[73px] z-40 border-b border-brand/10 bg-surface">
         <div className="mx-auto flex max-w-6xl items-center gap-2 overflow-x-auto px-4 sm:px-6">
           {VIEW_TABS.map((tab) => {
             const isActive = tab.id === activeView;
@@ -203,12 +204,12 @@ export default function ManufacturerDashboardPage() {
                 key={tab.id}
                 onClick={() => setActiveView(tab.id)}
                 className={`relative flex flex-col gap-1 px-4 py-3 text-left transition ${
-                  isActive ? 'text-[#1678B5]' : 'text-slate-500 hover:text-slate-700'
+                  isActive ? 'text-[#1678B5]' : 'text-foreground/50 hover:text-foreground/70'
                 }`}
               >
-                {isActive && <span className="absolute inset-x-0 bottom-0 h-1 rounded-full bg-[#1C8FD7]" />}
-                <span className="text-sm font-semibold">{tab.label}</span>
-                <span className="text-xs text-slate-400">{tab.description}</span>
+                {isActive && <span className="absolute inset-x-0 bottom-0 h-1 bg-[#1C8FD7]" />}
+                <span className="font-nav text-[11px] uppercase tracking-[0.14em] font-semibold">{tab.label}</span>
+                <span className="font-body text-xs text-foreground/40">{tab.description}</span>
               </button>
             );
           })}
@@ -216,7 +217,7 @@ export default function ManufacturerDashboardPage() {
           <button
             onClick={() => void loadAllData()}
             disabled={isLoadingData}
-            className="my-2 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+            className="my-2 font-nav inline-flex items-center gap-2 border border-brand/15 bg-surface px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-foreground/60 transition hover:border-[#1C8FD7] hover:text-[#1C8FD7] disabled:cursor-not-allowed disabled:opacity-60"
           >
             Refresh
           </button>
