@@ -4,7 +4,9 @@ import GlobalReach from './components/landing/GlobalReach';
 import AboutGrupo from './components/landing/AboutGrupo';
 import ProductRange from './components/landing/ProductRange';
 import HowWeManufacture from './components/landing/HowWeManufacture';
+import Testimonials from './components/landing/Testimonials';
 import WhyGrupo from './components/landing/WhyGrupo';
+import Instagram from './components/landing/Instagram';
 import Footer from './components/landing/Footer';
 import ScrollChrome from './components/landing/ScrollChrome';
 
@@ -18,7 +20,9 @@ export default function Home() {
       <AboutGrupo />
       <ProductRange />
       <HowWeManufacture />
+      <Testimonials />
       <WhyGrupo />
+      <Instagram />
       <Footer />
     </main>
   );

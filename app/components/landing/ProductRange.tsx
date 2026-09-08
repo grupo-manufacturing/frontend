@@ -52,7 +52,7 @@ export default function ProductRange() {
               <span className="mt-1 block text-brand">Built for Every Brief.</span>
             </h2>
             <p className="font-body mt-5 max-w-xl text-base leading-relaxed text-foreground/70 sm:text-lg">
-              From everyday essentials to statement outerwear — manufacture the styles your brand
+              From everyday essentials to statement outerwear manufacture the styles your brand
               needs, at scale, through Grupo.
             </p>
           </div>
@@ -99,7 +99,7 @@ export default function ProductRange() {
                 Your product isn&apos;t listed?
               </h3>
               <p className="font-body mt-3 text-base leading-relaxed text-foreground/70">
-                Send us the requirement — we&apos;ll match you with the right manufacturing capacity
+                Send us the requirement we&apos;ll match you with the right manufacturing capacity
                 for your style, quantity, and market.
               </p>
             </div>
@@ -109,7 +109,7 @@ export default function ProductRange() {
               rel="noopener noreferrer"
               className="font-nav group inline-flex shrink-0 items-center justify-center bg-brand px-5 py-3.5 text-[10px] uppercase tracking-[0.14em] text-[#0b1220] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#1678B5] hover:text-surface hover:shadow-[0_12px_40px_rgba(28,143,215,0.35)] sm:px-6 sm:text-[11px]"
             >
-              Send Requirements
+              Request For Quotation
               <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">
                 →
               </span>

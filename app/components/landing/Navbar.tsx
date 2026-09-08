@@ -49,7 +49,7 @@ const Navbar = ({ variant = 'light' }: NavbarProps) => {
               rel="noopener noreferrer"
               className="font-nav hidden sm:inline-flex items-center justify-center bg-brand px-4 py-2.5 text-[10px] uppercase tracking-[0.14em] text-[#0b1220] transition-colors duration-200 hover:bg-[#1678B5] hover:text-surface sm:text-[11px]"
             >
-              Send Requirements →
+              Request For Quotation →
             </Link>
 
             <button
@@ -99,7 +99,7 @@ const Navbar = ({ variant = 'light' }: NavbarProps) => {
               className="font-nav inline-flex items-center justify-center bg-brand px-4 py-2.5 text-[10px] uppercase tracking-[0.14em] text-[#0b1220]"
               onClick={() => setIsMenuOpen(false)}
             >
-              Send Requirements →
+              Request For Quotation →
             </Link>
           </div>
         </div>

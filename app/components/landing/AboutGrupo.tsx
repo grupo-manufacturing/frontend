@@ -4,8 +4,8 @@ import Image from 'next/image';
 import Reveal from './Reveal';
 
 const STORY = [
-  `In 2021, Ajith was a student in Germany trying to launch a fashion brand with Indian craftsmanship. Months of WhatsApp leads, silent factories, and 500-piece MOQs made it clear: the problem wasn't capacity — it was access, trust, and infrastructure.`,
-  `He returned to India and founded Grupo in December 2023 — a manufacturing operating system for global fashion brands. Today, brands across the UK, US, and UAE get accurate quotes, real-time production tracking, direct communication, and QC verification before goods ship.`,
+  `In 2021, Ajith was a student in Germany trying to launch a fashion brand with Indian craftsmanship. Months of WhatsApp leads, silent factories, and 500-piece MOQs made it clear: the problem wasn't capacity it was access, trust, and infrastructure.`,
+  `He returned to India and founded Grupo in December 2023 a manufacturing operating system for global fashion brands. Today, brands across the UK, US, and UAE get accurate quotes, real-time production tracking, direct communication, and QC verification before goods ship.`,
   `The student who couldn't find a factory built the platform so no one else has to look.`,
 ];
 

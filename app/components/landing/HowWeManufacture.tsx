@@ -95,7 +95,7 @@ export default function HowWeManufacture() {
               <span className="mt-1 block text-[#1C8FD7]">Six Steps. Zero Guesswork.</span>
             </h2>
             <p className="font-body mt-5 max-w-xl text-base leading-relaxed text-surface/65 sm:text-lg">
-              A clear path from your brief to export-ready goods — structured, tracked, and built for
+              A clear path from your brief to export-ready goods structured, tracked, and built for
               global brands.
             </p>
           </div>
