@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Archivo, IBM_Plex_Mono, IBM_Plex_Sans, Poppins } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
-import { ToastProvider } from "./components/Toast";
 
 const archivo = Archivo({
   variable: "--font-archivo",
@@ -29,8 +28,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Grupo - One-Stop AI Manufacturing Platform",
-  description: "Your complete AI-powered manufacturing solution connecting buyers, manufacturers, and designers",
+  title: "Grupo - Apparel Manufacturing for Global Brands",
+  description: "From product development to bulk production and export, Grupo helps international brands source and manufacture quality apparel at scale.",
 };
 
 export default function RootLayout({
@@ -43,9 +42,7 @@ export default function RootLayout({
       <body
         className={`${archivo.variable} ${ibmPlexMono.variable} ${ibmPlexSans.variable} ${poppins.variable} antialiased`}
       >
-        <ToastProvider>
-          {children}
-        </ToastProvider>
+        {children}
         <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       </body>
     </html>

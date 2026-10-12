@@ -1,5 +1,9 @@
+import Link from 'next/link';
 import Navbar from '../components/landing/Navbar';
 import Footer from '../components/landing/Footer';
+
+const RFQ_FORM_URL =
+  'https://docs.google.com/forms/d/114Qw4OD6VwlmHql6PTdf-xSGyFjTmrknXK8kMuQK7_4/viewform';
 
 export default function TermsAndConditionsPage() {
   return (
@@ -12,142 +16,206 @@ export default function TermsAndConditionsPage() {
               Legal
             </p>
             <h1 className="text-3xl font-bold text-gray-900 md:text-4xl">Terms & Conditions</h1>
+            <p className="mt-2 text-sm text-gray-500">Last updated: 12 October 2026</p>
 
             <div className="mt-6 space-y-6 text-base leading-7 text-gray-700">
               <p>
-                These Terms and Conditions ("Terms") govern your access to and use of the Grupo.in platform
-                ("Platform"), operated by Grupo.in ("Grupo", "we", "us"). By registering for or using the Platform,
-                you agree to be bound by these Terms. If you do not agree, do not use the Platform.
+                These Terms and Conditions (&ldquo;Terms&rdquo;) govern your use of the website grupo.in
+                (&ldquo;Website&rdquo;) and any purchase or manufacturing order placed with Grupo.in
+                (&ldquo;Grupo&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;). By using the Website, placing an order, or
+                submitting a quotation request, you agree to these Terms. If you do not agree, please do not use the
+                Website.
               </p>
 
               <h2 className="pt-2 text-xl font-semibold text-gray-900">1. About Grupo</h2>
               <p>
-                Grupo is an AI-powered B2B manufacturing operating system for the global apparel industry. The Platform
-                enables clothing brands ("Brands") to connect with verified Indian garment factories ("Factory
-                Partners") to source, manage, and fulfill manufacturing orders.
+                Grupo is an apparel manufacturing and export company based in India. We work with brands, wholesalers,
+                and businesses (&ldquo;Customers&rdquo;, &ldquo;you&rdquo;) in two ways:
+              </p>
+              <ul className="list-disc space-y-2 pl-6">
+                <li>
+                  <strong>Wholesale Shop</strong> &mdash; ready-to-order products sold in bulk quantities and paid for
+                  online through the Website.
+                </li>
+                <li>
+                  <strong>Custom Manufacturing</strong> &mdash; products developed to your specifications, starting
+                  with a Request for Quotation (&ldquo;RFQ&rdquo;) and continuing through product development,
+                  sampling, bulk production, quality control, and export.
+                </li>
+              </ul>
+              <p>
+                Products are produced by Grupo and its manufacturing partners in India. Grupo remains your point of
+                contact for every order placed with us.
               </p>
 
-              <h2 className="pt-2 text-xl font-semibold text-gray-900">2. Eligibility and Registration</h2>
+              <h2 className="pt-2 text-xl font-semibold text-gray-900">2. Using the Website</h2>
               <ul className="list-disc space-y-2 pl-6">
-                <li>You must be at least 18 years old and have legal authority to bind your business entity.</li>
-                <li>You agree to provide accurate and complete registration information and keep it updated.</li>
-                <li>You are responsible for all activity under your account and must report unauthorized access.</li>
                 <li>
-                  Grupo may verify the identity and legitimacy of Brands or Factory Partners and may refuse or revoke
-                  access at its sole discretion.
+                  You must be at least 18 years old and, if ordering for a business, authorised to act on its behalf.
+                </li>
+                <li>You agree to provide accurate and complete information when ordering or requesting a quote.</li>
+                <li>
+                  No customer account is required to browse, order from the Wholesale Shop, or submit an RFQ.
                 </li>
               </ul>
 
-              <h2 className="pt-2 text-xl font-semibold text-gray-900">3. Platform Services</h2>
-              <h3 className="text-lg font-semibold text-gray-900">3.1 For Brands</h3>
+              <h2 className="pt-2 text-xl font-semibold text-gray-900">3. Wholesale Shop Orders</h2>
               <ul className="list-disc space-y-2 pl-6">
-                <li>Submit sourcing requirements and receive AI-powered factory recommendations.</li>
-                <li>Browse verified factory profiles, certifications, and production capabilities.</li>
-                <li>Manage orders end-to-end, including specifications, sampling, tracking, and quality assurance.</li>
-                <li>Access communication logs, order management tools, and invoice tracking.</li>
-              </ul>
-
-              <h3 className="text-lg font-semibold text-gray-900">3.2 For Factory Partners</h3>
-              <ul className="list-disc space-y-2 pl-6">
-                <li>Create and maintain a verified business profile.</li>
-                <li>Receive qualified order leads matched by Grupo&apos;s AI system.</li>
-                <li>Manage timelines, sample approvals, and delivery confirmations.</li>
-                <li>Access payment records and commission deduction statements.</li>
-              </ul>
-
-              <h3 className="text-lg font-semibold text-gray-900">3.3 AI-Powered Features</h3>
-              <p>
-                Grupo&apos;s Platform uses artificial intelligence for matching, order management, and analytics. While we
-                strive for accuracy, AI recommendations are informational and do not guarantee business outcomes.
-              </p>
-
-              <h2 className="pt-2 text-xl font-semibold text-gray-900">4. Commissions and Payments</h2>
-              <ul className="list-disc space-y-2 pl-6">
-                <li>Payment terms and invoicing schedules are communicated at order confirmation.</li>                <li>In disputed transactions, Grupo may withhold payment pending resolution.</li>
-              </ul>
-
-              <h2 className="pt-2 text-xl font-semibold text-gray-900">5. Verified Factory Partners</h2>
-              <p>
-                Grupo performs due diligence to onboard Factory Partners, including verification of registration,
-                manufacturing capability, and certifications.
-              </p>
-
-              <h2 className="pt-2 text-xl font-semibold text-gray-900">6. User Obligations</h2>
-              <p>All users agree to:</p>
-              <ul className="list-disc space-y-2 pl-6">
-                <li>Use the Platform lawfully and in compliance with applicable Indian and international laws.</li>
                 <li>
-                  If a user chooses to transact directly with a manufacturer, Grupo shall not be held liable for any payments, damages, or losses arising from such transactions.
+                  Products are sold in bulk. Unit prices depend on the quantity tier shown on each product page, and a
+                  minimum order quantity applies.
                 </li>
-                <li>Maintain confidentiality of commercially sensitive information.</li>
-                <li>Not submit false, misleading, or fraudulent information.</li>
-                <li>Not use bots, scrapers, or automated extraction tools without written consent.</li>
-                <li>Not disrupt, damage, or impair the Platform or infrastructure.</li>
-                <li>Comply with applicable export control laws for international markets.</li>
+                <li>
+                  All prices are in Indian Rupees (INR). Shipping charges are shown at checkout before you pay.
+                  Applicable taxes are charged as required by law.
+                </li>
+                <li>
+                  Shop orders are currently delivered to addresses in India. For international delivery, please submit
+                  an RFQ.
+                </li>
+                <li>
+                  An order is confirmed only after your payment is successfully verified. You will receive an order
+                  number, which you can use on the Track Order page.
+                </li>
+                <li>
+                  Products are produced or prepared after confirmation. The production time shown on the product page
+                  is an estimate, not a guaranteed delivery date.
+                </li>
+                <li>
+                  Product images are for reference. Slight variations in colour, shade, or finish may occur between
+                  production batches and on different screens.
+                </li>
+                <li>
+                  Quantities marked &ldquo;Custom Quote&rdquo; are not sold online and are handled as Custom
+                  Manufacturing.
+                </li>
+                <li>
+                  If a product becomes unavailable or was listed at an obviously incorrect price, we may cancel the
+                  order and refund the amount paid in full.
+                </li>
               </ul>
 
-              <h2 className="pt-2 text-xl font-semibold text-gray-900">7. Intellectual Property</h2>
+              <h2 className="pt-2 text-xl font-semibold text-gray-900">4. Payments</h2>
+              <ul className="list-disc space-y-2 pl-6">
+                <li>
+                  Online payments are processed by Razorpay, a third-party payment gateway, using UPI, cards, net
+                  banking, or wallets. Grupo does not receive or store your card or bank details.
+                </li>
+                <li>
+                  If a payment fails or is cancelled, no order is created. Amounts debited for a failed payment are
+                  reversed by your bank or payment provider according to their timelines.
+                </li>
+                <li>
+                  Payment terms for Custom Manufacturing (such as advance and balance payments) are stated in your
+                  quotation or order confirmation.
+                </li>
+              </ul>
+
+              <h2 className="pt-2 text-xl font-semibold text-gray-900">5. Custom Manufacturing and Quotations</h2>
+              <ul className="list-disc space-y-2 pl-6">
+                <li>
+                  You can request a quotation using our{' '}
+                  <a
+                    href={RFQ_FORM_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#1C8FD7] underline underline-offset-2"
+                  >
+                    Request for Quotation form
+                  </a>
+                  . Submitting an RFQ does not create a binding order for either party.
+                </li>
+                <li>
+                  Quotations are based on the information you provide and are valid for the period stated in the
+                  quotation. Changes to specifications, quantities, or materials may change the price and timeline.
+                </li>
+                <li>
+                  A custom order is confirmed once you accept the quotation in writing and make any required advance
+                  payment. Specifications, sample approval, timelines, and payment schedule are agreed per order.
+                </li>
+                <li>
+                  Bulk production follows the approved sample and agreed specifications. Changes requested after sample
+                  approval may incur additional cost and time.
+                </li>
+                <li>
+                  For export orders, you are responsible for import duties, taxes, and compliance requirements in the
+                  destination country unless otherwise agreed in writing.
+                </li>
+              </ul>
+
+              <h2 className="pt-2 text-xl font-semibold text-gray-900">6. Cancellations, Returns, and Refunds</h2>
               <p>
-                All intellectual property on the Platform, including software, AI models, algorithms, branding, content,
-                and data compilations, is owned by or licensed to Grupo. You receive a limited, non-exclusive,
-                non-transferable license for intended business use.
+                Cancellations, returns, refunds, and shipping responsibilities are governed by our{' '}
+                <Link href="/refund-policy" className="text-[#1C8FD7] underline underline-offset-2">
+                  Refund Policy
+                </Link>
+                , which forms part of these Terms.
               </p>
-              <p>
-                You may not copy, reverse-engineer, adapt, or create derivative works without written consent. You
-                retain ownership of submitted content but grant Grupo a license to use it to provide and improve services.
-              </p>
+
+              <h2 className="pt-2 text-xl font-semibold text-gray-900">7. Your Designs and Intellectual Property</h2>
+              <ul className="list-disc space-y-2 pl-6">
+                <li>
+                  You keep ownership of the designs, logos, artwork, tech packs, and other materials you provide. You
+                  grant Grupo and its manufacturing partners permission to use them only to quote for, develop,
+                  produce, and deliver your order.
+                </li>
+                <li>
+                  You confirm that you have the rights to the materials you provide and that producing them will not
+                  infringe anyone else&apos;s intellectual property. You are responsible for any claim that it does.
+                </li>
+                <li>
+                  All content on the Website, including text, images, branding, and design, belongs to Grupo or its
+                  licensors and may not be copied or reused without written permission.
+                </li>
+              </ul>
 
               <h2 className="pt-2 text-xl font-semibold text-gray-900">8. Confidentiality</h2>
               <p>
-                Parties may access commercially sensitive information (pricing, production methods, supplier
-                relationships, and order data) and agree to keep it confidential, except where disclosure is required by
-                law.
+                We treat your designs, specifications, pricing, and order details as confidential and share them only
+                with the manufacturing, logistics, and payment partners who need them to fulfil your order, or where
+                required by law. We ask you to keep our quotations and pricing confidential as well.
               </p>
 
-              <h2 className="pt-2 text-xl font-semibold text-gray-900">9. Disclaimer of Warranties</h2>
-              <p>
-                The Platform is provided "as is" and "as available." To the maximum extent permitted by law, Grupo
-                disclaims all warranties, express or implied, including merchantability, fitness for a particular
-                purpose, and non-infringement.
-              </p>
-              <p>
-                Grupo does not warrant uninterrupted, error-free operation or that the Platform is free of viruses or
-                harmful components.
-              </p>
-
-              <h2 className="pt-2 text-xl font-semibold text-gray-900">10. Limitation of Liability</h2>
-              <p>
-                To the fullest extent permitted under Indian law, Grupo&apos;s total aggregate liability for claims related
-                to these Terms or the Platform is limited to commissions paid by the relevant user to Grupo in the
-                15-days period preceding the claim event.
-              </p>
-              <p>
-                Grupo is not liable for indirect, incidental, special, consequential, or punitive damages, including
-                loss of profits, data loss, or business interruption.
-              </p>
-
-              <h2 className="pt-2 text-xl font-semibold text-gray-900">11. Indemnification</h2>
-              <p>
-                You agree to indemnify and hold harmless Grupo and its directors, officers, employees, and agents from
-                claims, liabilities, costs, and expenses (including legal fees) arising from your use of the Platform,
-                violation of these Terms, infringement of third-party rights, or goods manufactured through Platform
-                orders.
-              </p>
-
-              <h2 className="pt-2 text-xl font-semibold text-gray-900">12. Termination</h2>
-              <p>
-                Grupo may suspend or terminate
-                immediately in cases of fraud, material breach, circumvention, or harmful conduct.
-              </p>
-              <p>
-                Upon termination, outstanding commissions become immediately payable. Confidentiality, intellectual
-                property, and dispute resolution obligations survive termination.
-              </p>
-
-              <h2 className="pt-2 text-xl font-semibold text-gray-900">13. Dispute Resolution</h2>
+              <h2 className="pt-2 text-xl font-semibold text-gray-900">9. Acceptable Use</h2>
+              <p>You agree not to:</p>
               <ul className="list-disc space-y-2 pl-6">
-                <li>First, good-faith negotiation within 30 days of notice.</li>
-                <li>In the event of any dispute between a customer and a manufacturer, Grupo will facilitate discussions between both parties and provide a final resolution.</li>
+                <li>Use the Website unlawfully or submit false, misleading, or fraudulent information or orders.</li>
+                <li>Use bots, scrapers, or automated tools to extract content or data from the Website.</li>
+                <li>Attempt to disrupt, damage, or gain unauthorised access to the Website or its systems.</li>
+              </ul>
+
+              <h2 className="pt-2 text-xl font-semibold text-gray-900">10. Third-Party Services</h2>
+              <p>
+                The Website uses or links to third-party services, including Razorpay (payments), Google Forms
+                (quotation requests), and Instagram. Their use is subject to their own terms and privacy policies, and
+                Grupo is not responsible for their content or availability.
+              </p>
+
+              <h2 className="pt-2 text-xl font-semibold text-gray-900">11. Disclaimer</h2>
+              <p>
+                The Website is provided &ldquo;as is&rdquo; and &ldquo;as available&rdquo;. We work to keep product
+                information, pricing, and availability accurate, but we do not guarantee that the Website will be
+                error-free or uninterrupted.
+              </p>
+
+              <h2 className="pt-2 text-xl font-semibold text-gray-900">12. Limitation of Liability</h2>
+              <p>
+                To the fullest extent permitted under Indian law, Grupo&apos;s total liability for any claim relating to
+                an order or to these Terms is limited to the amount you paid for the specific order that gave rise to
+                the claim. Grupo is not liable for indirect, incidental, or consequential losses, including loss of
+                profit, revenue, or business opportunity.
+              </p>
+
+              <h2 className="pt-2 text-xl font-semibold text-gray-900">13. Indemnification</h2>
+              <p>
+                You agree to indemnify Grupo against claims, losses, and expenses (including reasonable legal fees)
+                arising from your breach of these Terms, materials you provide that infringe third-party rights, or your
+                resale or use of the goods.
+              </p>
+
+              <h2 className="pt-2 text-xl font-semibold text-gray-900">14. Dispute Resolution</h2>
+              <ul className="list-disc space-y-2 pl-6">
+                <li>First, good-faith negotiation within 30 days of written notice.</li>
                 <li>If unresolved, mediation through a mutually agreed mediator.</li>
                 <li>
                   If mediation fails, binding arbitration under the Arbitration and Conciliation Act, 1996 (India), in
@@ -156,19 +224,19 @@ export default function TermsAndConditionsPage() {
                 <li>Either party may seek urgent injunctive relief from a competent court to prevent irreparable harm.</li>
               </ul>
 
-              <h2 className="pt-2 text-xl font-semibold text-gray-900">14. Governing Law and Jurisdiction</h2>
+              <h2 className="pt-2 text-xl font-semibold text-gray-900">15. Governing Law and Jurisdiction</h2>
               <p>
                 These Terms are governed by the laws of India. Subject to the arbitration clause, courts in Bengaluru,
                 Karnataka, India have exclusive jurisdiction.
               </p>
 
-              <h2 className="pt-2 text-xl font-semibold text-gray-900">15. Modifications to Terms</h2>
+              <h2 className="pt-2 text-xl font-semibold text-gray-900">16. Changes to These Terms</h2>
               <p>
-                Grupo may modify these Terms at any time and will provide at least 15 days&apos; notice of material changes
-                via email or platform notice. Continued use after effective date means acceptance of revised Terms.
+                We may update these Terms from time to time. The updated version will be posted on this page with a new
+                &ldquo;Last updated&rdquo; date. Orders are governed by the Terms in effect when the order was placed.
               </p>
 
-              <h2 className="pt-2 text-xl font-semibold text-gray-900">16. Contact Information</h2>
+              <h2 className="pt-2 text-xl font-semibold text-gray-900">17. Contact Information</h2>
               <p>
                 Grupo.in
                 <br />

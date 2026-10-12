@@ -1,6 +1,6 @@
-# Groupo - AI Manufacturing Platform
+# Grupo - Apparel Manufacturing for Global Brands
 
-An AI-powered platform connecting buyers with verified manufacturers worldwide.
+Marketing site and wholesale shop for Grupo.
 
 ## 🚀 Tech Stack
 
@@ -12,21 +12,13 @@ An AI-powered platform connecting buyers with verified manufacturers worldwide.
 ## 🎨 Features
 
 ### Landing Page
-- Responsive navigation and hero section
-- Product categories and AI features showcase
-- Platform features and testimonials
-- Call-to-action sections
+- Hero, global reach, about, product range, process, testimonials, why Grupo, Instagram
+- "Request For Quotation" CTA linking to the Google Form
 
-### Buyer Portal
-- Phone-based authentication with OTP
-- Dashboard with multiple tabs (Designs, Quotes, Orders, Chat, etc.)
-- AI chatbot integration for manufacturer discovery
-- Interactive order forms and manufacturer cards
-
-### Backend Authentication
-- Twilio SMS OTP verification
-- JWT token management
-- Secure session handling
+### Shop (`/shop`)
+- Product listing with search, filters and sorting
+- Product detail, checkout (Razorpay) and order tracking
+- Shop admin (`/shop/admin`) and manufacturer dashboard (`/shop/manufacturer`)
 
 ## 🚦 Getting Started
 
@@ -43,20 +35,8 @@ npm run dev
 3. **Open browser:**
 Navigate to [http://localhost:3000](http://localhost:3000)
 
-### Backend
-The frontend is configured to use the production backend at [https://backend-47rb.onrender.com/](https://backend-47rb.onrender.com/).
-
-For local backend development:
-```bash
-cd backend
-npm install
-npm run dev
-```
-
-Then create `.env.local` with:
-```
-NEXT_PUBLIC_API_URL=http://localhost:5000/api
-```
+### Shop backend
+The shop uses the separate shop backend at [https://shop-backend-eih5.onrender.com](https://shop-backend-eih5.onrender.com). Override it with `NEXT_PUBLIC_SHOP_API_URL` in `.env.local`.
 
 ## 📝 Build & Deploy
 
