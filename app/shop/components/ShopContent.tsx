@@ -13,6 +13,15 @@ import ProductCard from './ProductCard';
 import EmptyState from './EmptyState';
 
 const PET_CLOTHING_CATEGORY = 'Pet Clothing';
+const PER_PAGE = 15;
+
+const SORT_PARAMS: Record<SortOption, Pick<GetProductsParams, 'sort' | 'order'>> = {
+  default: { sort: 'created_at', order: 'desc' },
+  newest: { sort: 'created_at', order: 'desc' },
+  'price-low': { sort: 'price', order: 'asc' },
+  'price-high': { sort: 'price', order: 'desc' },
+  'name-az': { sort: 'name', order: 'asc' },
+};
 
 export default function ShopContent() {
   /* ── State ─────────────────────────────────────────────────────────── */
@@ -24,11 +33,15 @@ export default function ShopContent() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const [products, setProducts] = useState<ShopProduct[]>([]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   /* ── Fetch categories once ─────────────────────────────────────────── */
   useEffect(() => {
@@ -46,73 +59,39 @@ export default function ShopContent() {
     setError('');
 
     try {
-      const params: GetProductsParams = { limit: 100 };
+      const params: GetProductsParams = { page, limit: PER_PAGE, ...SORT_PARAMS[sortOption] };
 
       if (searchQuery.trim()) params.search = searchQuery.trim();
+      if (selectedCategories.length) params.category = selectedCategories.join(',');
 
-      if (selectedCategories.length === 1) {
-        params.category = selectedCategories[0];
+      if (selectedPriceRanges.length) {
+        params.price = PRICE_RANGES
+          .filter((r) => selectedPriceRanges.includes(r.id))
+          .map((r) => `${r.min}-${Number.isFinite(r.max) ? r.max : ''}`)
+          .join(',');
       }
 
       if (stockFilter === 'in-stock') params.inStock = 'true';
       else if (stockFilter === 'out-of-stock') params.inStock = 'false';
 
-      switch (sortOption) {
-        case 'price-low':
-          params.sort = 'name';
-          params.order = 'asc';
-          break;
-        case 'price-high':
-          params.sort = 'name';
-          params.order = 'desc';
-          break;
-        case 'newest':
-          params.sort = 'created_at';
-          params.order = 'desc';
-          break;
-        case 'name-az':
-          params.sort = 'name';
-          params.order = 'asc';
-          break;
-        default:
-          params.sort = 'created_at';
-          params.order = 'desc';
-      }
-
       const data = await getProducts(params);
-      let fetched = data.products;
-
-      // Client-side: multi-category filter (API only supports single category)
-      if (selectedCategories.length > 1) {
-        fetched = fetched.filter((p) => selectedCategories.includes(p.category));
-      }
-
-      // Client-side: price-range filter
-      if (selectedPriceRanges.length > 0) {
-        const ranges = selectedPriceRanges
-          .map((id) => PRICE_RANGES.find((r) => r.id === id))
-          .filter(Boolean);
-        fetched = fetched.filter((p) => {
-          const price = p.bulkPricing[0]?.unitPrice ?? 0;
-          return ranges.some((r) => r && price >= r.min && price <= r.max);
-        });
-      }
-
-      // Client-side: price sorting (backend can't sort by JSONB field)
-      if (sortOption === 'price-low') {
-        fetched.sort((a, b) => (a.bulkPricing[0]?.unitPrice ?? 0) - (b.bulkPricing[0]?.unitPrice ?? 0));
-      } else if (sortOption === 'price-high') {
-        fetched.sort((a, b) => (b.bulkPricing[0]?.unitPrice ?? 0) - (a.bulkPricing[0]?.unitPrice ?? 0));
-      }
-
-      setProducts(fetched);
+      setProducts(data.products);
+      setTotal(data.total);
+      setTotalPages(data.totalPages);
     } catch (err) {
       console.error('Failed to load products:', err);
       setError('Unable to load products. Please try again.');
       setProducts([]);
+      setTotal(0);
+      setTotalPages(0);
     } finally {
       setLoading(false);
     }
+  }, [page, searchQuery, selectedCategories, selectedPriceRanges, stockFilter, sortOption]);
+
+  /* ── Back to page 1 whenever the result set changes ───────────────── */
+  useEffect(() => {
+    setPage(1);
   }, [searchQuery, selectedCategories, selectedPriceRanges, stockFilter, sortOption]);
 
   /* ── Debounced fetch on state changes ─────────────────────────────── */
@@ -142,6 +121,11 @@ export default function ShopContent() {
     setSelectedCategories([]);
     setSelectedPriceRanges([]);
     setStockFilter('all');
+  }
+
+  function goToPage(next: number) {
+    setPage(next);
+    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   /* ── Render ────────────────────────────────────────────────────────── */
@@ -194,7 +178,7 @@ export default function ShopContent() {
           </button>
 
           <span className="font-nav hidden text-[10px] uppercase tracking-[0.14em] text-foreground/45 sm:inline">
-            {loading ? '...' : `${products.length} ${products.length === 1 ? 'product' : 'products'}`}
+            {loading ? '...' : `${total} ${total === 1 ? 'product' : 'products'}`}
           </span>
         </div>
 
@@ -233,9 +217,9 @@ export default function ShopContent() {
           onClose={() => setMobileFiltersOpen(false)}
         />
 
-        <div className="min-w-0 flex-1">
+        <div ref={resultsRef} className="min-w-0 flex-1 scroll-mt-24">
           <p className="font-nav mb-4 text-[10px] uppercase tracking-[0.14em] text-foreground/45 sm:hidden">
-            {loading ? '...' : `${products.length} ${products.length === 1 ? 'product' : 'products'}`}
+            {loading ? '...' : `${total} ${total === 1 ? 'product' : 'products'}`}
           </p>
 
           {loading ? (
@@ -262,11 +246,14 @@ export default function ShopContent() {
               </button>
             </div>
           ) : products.length > 0 ? (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+                {products.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+              <Pagination page={page} totalPages={totalPages} onChange={goToPage} />
+            </>
           ) : (
             <EmptyState searchQuery={searchQuery} onClearAll={clearAllFilters} />
           )}
@@ -274,5 +261,47 @@ export default function ShopContent() {
       </div>
       </div>
     </div>
+  );
+}
+
+function pageItems(page: number, totalPages: number): (number | 'gap')[] {
+  const pages = [...new Set([1, page - 1, page, page + 1, totalPages])]
+    .filter((p) => p >= 1 && p <= totalPages)
+    .sort((a, b) => a - b);
+  return pages.flatMap((p, i) => (i > 0 && p - pages[i - 1] > 1 ? ['gap' as const, p] : [p]));
+}
+
+function Pagination({ page, totalPages, onChange }: { page: number; totalPages: number; onChange: (page: number) => void }) {
+  if (totalPages <= 1) return null;
+
+  const base =
+    'font-nav flex h-9 min-w-9 items-center justify-center border px-3 text-[10px] uppercase tracking-[0.14em] transition-colors disabled:cursor-not-allowed disabled:opacity-40';
+  const idle = 'border-brand/15 text-foreground hover:border-[#1C8FD7]';
+
+  return (
+    <nav aria-label="Product pages" className="mt-10 flex flex-wrap items-center justify-center gap-2">
+      <button onClick={() => onChange(page - 1)} disabled={page === 1} className={`${base} ${idle}`}>
+        Prev
+      </button>
+      {pageItems(page, totalPages).map((item, i) =>
+        item === 'gap' ? (
+          <span key={`gap-${i}`} className="font-nav px-1 text-[10px] text-foreground/40">
+            ...
+          </span>
+        ) : (
+          <button
+            key={item}
+            onClick={() => onChange(item)}
+            aria-current={item === page ? 'page' : undefined}
+            className={`${base} ${item === page ? 'border-[#1C8FD7] bg-[#1C8FD7] text-[#0b1220]' : idle}`}
+          >
+            {item}
+          </button>
+        )
+      )}
+      <button onClick={() => onChange(page + 1)} disabled={page === totalPages} className={`${base} ${idle}`}>
+        Next
+      </button>
+    </nav>
   );
 }

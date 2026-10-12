@@ -81,8 +81,7 @@ function buildQS(params: Record<string, unknown>): string {
 }
 
 export type GetProductsParams = {
-  search?: string; category?: string; minPrice?: number; maxPrice?: number;
-  inStock?: string; sort?: string; order?: string; page?: number; limit?: number;
+  search?: string; category?: string; price?: string; inStock?: string; sort?: string; order?: string; page?: number; limit?: number;
 };
 export type ProductsResponse = { products: ShopProduct[]; total: number; page: number; totalPages: number; };
 export type ProductOptions = { categories: string[]; colors: string[]; sizes: string[]; };
@@ -100,9 +99,6 @@ export async function getCategories(): Promise<string[]> {
 }
 export async function getProductOptions(): Promise<ProductOptions> {
   return request<ProductOptions>('/api/products/options');
-}
-export async function placeOrder(payload: CreateOrderPayload): Promise<{ message: string; order: OrderResponse }> {
-  return request('/api/orders', { method: 'POST', body: JSON.stringify(payload) });
 }
 export async function uploadImage(file: File): Promise<string> {
   const fd = new FormData();
