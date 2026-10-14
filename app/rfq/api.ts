@@ -1,4 +1,4 @@
-const OMS_API_URL = process.env.NEXT_PUBLIC_OMS_API_URL || 'https://oms-backend-pf2e.onrender.com';
+export const OMS_API_URL = process.env.NEXT_PUBLIC_OMS_API_URL || 'https://oms-backend-pf2e.onrender.com';
 
 export const RFQ_PRODUCTS = [
   'T-shirt',

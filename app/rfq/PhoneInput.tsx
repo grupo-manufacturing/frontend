@@ -13,7 +13,6 @@ function buildCountries(): Country[] {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-// Windows doesn't render flag emojis, so flags are small images instead.
 function Flag({ code }: { code: CountryCode }) {
   const [failed, setFailed] = useState(false);
   if (failed) {
