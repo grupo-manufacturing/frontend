@@ -1,0 +1,44 @@
+export default function RefundPolicy() {
+  return (
+    <>
+      <p>
+        Grupo provides its customers with only strictly quality-controlled goods without exemption according to
+        Grupo quality standards. We follow the specifications instructed by the customer at the time of order.
+        Any changes during production will be notified and confirmed by the customer.
+      </p>
+
+      <p>
+        We do not accept returns or refunds for any customized goods once the order has been placed or shipped.
+        You may ask for pictures, video conferences, or anything feasible to verify that your specifications are
+        being followed.
+      </p>
+
+      <p>
+        You can request changes to the garment as long as the sample has not been approved for bulk production
+        or shipped out. Changes can also be made after shipping, but you will need to pay for the shipment and
+        re-shipment of the garment.
+      </p>
+      <p>
+        No refunds shall be issued for any cancellations made after the commencement of production.
+      </p>
+
+      <h2 className="pt-2 text-xl font-semibold text-gray-900">Shipping & Delivery Charges</h2>
+
+      <p>
+        We do not take responsibility for guaranteed delivery. The guarantee of delivery of your order is
+        undertaken by the shipping company, which provides the tracking information.
+      </p>
+
+      <p>
+        Once we provide the tracking ID, it is your responsibility to contact the shipping company regarding
+        shipment status. We do not own a shipping company. We ship goods as a favor to clients to reduce
+        additional hassles, but we do not take responsibility for lost shipments.
+      </p>
+
+      <p>
+        In case of lost shipment, the client will need to pay the production charges again. If the shipping
+        company does not waive shipping charges, those charges must also be paid by the client.
+      </p>
+    </>
+  );
+}
