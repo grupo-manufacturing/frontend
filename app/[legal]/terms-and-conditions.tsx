@@ -1,8 +1,5 @@
 import Link from 'next/link';
 
-const RFQ_FORM_URL =
-  'https://docs.google.com/forms/d/114Qw4OD6VwlmHql6PTdf-xSGyFjTmrknXK8kMuQK7_4/viewform';
-
 export default function TermsAndConditions() {
   return (
     <>
@@ -102,14 +99,9 @@ export default function TermsAndConditions() {
       <ul className="list-disc space-y-2 pl-6">
         <li>
           You can request a quotation using our{' '}
-          <a
-            href={RFQ_FORM_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#1C8FD7] underline underline-offset-2"
-          >
+          <Link href="/rfq" className="text-[#1C8FD7] underline underline-offset-2">
             Request for Quotation form
-          </a>
+          </Link>
           . Submitting an RFQ does not create a binding order for either party.
         </li>
         <li>
@@ -173,8 +165,7 @@ export default function TermsAndConditions() {
 
       <h2 className="pt-2 text-xl font-semibold text-gray-900">10. Third-Party Services</h2>
       <p>
-        The Website uses or links to third-party services, including Razorpay (payments), Google Forms
-        (quotation requests), and Instagram. Their use is subject to their own terms and privacy policies, and
+        The Website uses or links to third-party services, including Razorpay (payments) and Instagram. Their use is subject to their own terms and privacy policies, and
         Grupo is not responsible for their content or availability.
       </p>
 

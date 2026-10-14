@@ -4,9 +4,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Reveal from './Reveal';
 
-const REQUIREMENTS_FORM_URL =
-  'https://docs.google.com/forms/d/114Qw4OD6VwlmHql6PTdf-xSGyFjTmrknXK8kMuQK7_4/viewform';
-
 const PRODUCTS = [
   { name: 'T-Shirts', image: '/Categories/t-shirt.jpg' },
   { name: 'Shirts', image: '/Categories/plain-shirts.jpg' },
@@ -104,9 +101,7 @@ export default function ProductRange() {
               </p>
             </div>
             <Link
-              href={REQUIREMENTS_FORM_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/rfq"
               className="font-nav group inline-flex shrink-0 items-center justify-center bg-brand px-5 py-3.5 text-[10px] uppercase tracking-[0.14em] text-[#0b1220] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#1678B5] hover:text-surface hover:shadow-[0_12px_40px_rgba(28,143,215,0.35)] sm:px-6 sm:text-[11px]"
             >
               Request For Quotation

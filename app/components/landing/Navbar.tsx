@@ -7,9 +7,6 @@ type NavbarProps = {
   variant?: 'light' | 'dark';
 };
 
-const REQUIREMENTS_FORM_URL =
-  'https://docs.google.com/forms/d/114Qw4OD6VwlmHql6PTdf-xSGyFjTmrknXK8kMuQK7_4/viewform';
-
 const Navbar = ({ variant = 'light' }: NavbarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isDark = variant === 'dark';
@@ -44,9 +41,7 @@ const Navbar = ({ variant = 'light' }: NavbarProps) => {
               Explore Products →
             </Link>
             <Link
-              href={REQUIREMENTS_FORM_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/rfq"
               className="font-nav hidden sm:inline-flex items-center justify-center bg-brand px-4 py-2.5 text-[10px] uppercase tracking-[0.14em] text-[#0b1220] transition-colors duration-200 hover:bg-[#1678B5] hover:text-surface sm:text-[11px]"
             >
               Request For Quotation →
@@ -93,9 +88,7 @@ const Navbar = ({ variant = 'light' }: NavbarProps) => {
               Explore Products →
             </Link>
             <Link
-              href={REQUIREMENTS_FORM_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/rfq"
               className="font-nav inline-flex items-center justify-center bg-brand px-4 py-2.5 text-[10px] uppercase tracking-[0.14em] text-[#0b1220]"
               onClick={() => setIsMenuOpen(false)}
             >

@@ -13,9 +13,9 @@ type LegalPage = {
 };
 
 const LEGAL_PAGES: Record<string, LegalPage> = {
-  'privacy-policy': { title: 'Privacy Policy', lastUpdated: '12 October 2026', Content: PrivacyPolicy },
+  'privacy-policy': { title: 'Privacy Policy', lastUpdated: '14 October 2026', Content: PrivacyPolicy },
   'refund-policy': { title: 'Refund Policy', Content: RefundPolicy },
-  'terms-and-conditions': { title: 'Terms & Conditions', lastUpdated: '12 October 2026', Content: TermsAndConditions },
+  'terms-and-conditions': { title: 'Terms & Conditions', lastUpdated: '14 October 2026', Content: TermsAndConditions },
 };
 
 export const dynamicParams = false;

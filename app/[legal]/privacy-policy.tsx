@@ -27,10 +27,9 @@ export default function PrivacyPolicy() {
 
       <h3 className="text-lg font-semibold text-gray-900">1.3 Quotation Requests</h3>
       <p>
-        Requests for Quotation are submitted through a Google Form. We collect the information you choose to
-        provide, such as your name, contact details, brand or company, target market, product requirements,
-        quantities, and any reference images or tech packs. Google processes form submissions on our behalf
-        under its own privacy policy.
+        Requests for Quotation are submitted through the quotation form on our Website. We collect your name,
+        brand name, email address, phone number, and location, the products and quantities you are interested
+        in, and any tech pack link you choose to share.
       </p>
 
       <h3 className="text-lg font-semibold text-gray-900">1.4 Communications</h3>
