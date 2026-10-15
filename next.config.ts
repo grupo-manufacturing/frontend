@@ -13,6 +13,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [{ source: '/rfq', destination: '/request-for-quotation', permanent: true }];
+  },
 };
 
 export default nextConfig;

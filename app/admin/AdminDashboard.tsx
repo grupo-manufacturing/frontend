@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
-import { wakeOmsBackend } from '../rfq/api';
+import { wakeOmsBackend } from '../request-for-quotation/api';
 import {
   AdminAuthError,
   adminLogin,
@@ -18,7 +18,6 @@ const PAGE_SIZE = 25;
 
 const STATUS_STYLES: Record<string, string> = {
   new: 'bg-brand/10 text-brand',
-  contacted: 'bg-amber-100 text-amber-700',
   quoted: 'bg-violet-100 text-violet-700',
   won: 'bg-emerald-100 text-emerald-700',
   lost: 'bg-gray-100 text-gray-500',

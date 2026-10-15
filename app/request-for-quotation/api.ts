@@ -7,16 +7,11 @@ export const RFQ_PRODUCTS = [
   'Hoodie',
   'Sweatshirt',
   'Acid Wash Tshirts / Hoodies',
-  'Cargos / Denim Jeans / Parachute Pants',
   'Jacket [Denim / Leather]',
   'Crop Tops',
   'Wind Cheaters',
-  'Caps',
-  'Scarfs',
   'Shacket',
-  'Women Clothing [Indian]',
   'Women Clothing [Western]',
-  'Bags [Laptop, Pouch, Hand bags]',
 ] as const;
 
 export type RfqProduct = (typeof RFQ_PRODUCTS)[number];

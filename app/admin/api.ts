@@ -1,4 +1,4 @@
-import { OMS_API_URL } from '../rfq/api';
+import { OMS_API_URL } from '../request-for-quotation/api';
 
 const SESSION_KEY = 'grupo_admin_session';
 

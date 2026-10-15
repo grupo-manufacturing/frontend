@@ -99,7 +99,7 @@ export default function TermsAndConditions() {
       <ul className="list-disc space-y-2 pl-6">
         <li>
           You can request a quotation using our{' '}
-          <Link href="/rfq" className="text-[#1C8FD7] underline underline-offset-2">
+          <Link href="/request-for-quotation" className="text-[#1C8FD7] underline underline-offset-2">
             Request for Quotation form
           </Link>
           . Submitting an RFQ does not create a binding order for either party.

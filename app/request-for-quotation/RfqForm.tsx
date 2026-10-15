@@ -14,6 +14,7 @@ const ICONS = {
   mail: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
   link: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1',
   pin: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z',
+  info: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
 } as const;
 
 const Icon = ({ name, className = 'h-4 w-4' }: { name: keyof typeof ICONS; className?: string }) => (
@@ -42,6 +43,20 @@ function Field({ label, optional, htmlFor, icon, children }: { label: string; op
       </div>
     </div>
   );
+}
+
+async function celebrate() {
+  const { default: confetti } = await import('canvas-confetti');
+  const shared = {
+    colors: ['#1C8FD7', '#7cc4f0', '#0b1220', '#ffffff', '#f5b700'],
+    disableForReducedMotion: true,
+    zIndex: 60,
+  };
+  confetti({ ...shared, particleCount: 120, spread: 80, startVelocity: 45, origin: { x: 0.5, y: 0.6 } });
+  setTimeout(() => {
+    confetti({ ...shared, particleCount: 70, angle: 60, spread: 60, origin: { x: 0, y: 0.7 } });
+    confetti({ ...shared, particleCount: 70, angle: 120, spread: 60, origin: { x: 1, y: 0.7 } });
+  }, 250);
 }
 
 function SectionHeader({ step, title, description }: { step: string; title: string; description: string }) {
@@ -124,6 +139,7 @@ export default function RfqForm() {
       setRfqNumber(number);
       setSubmitted(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      celebrate().catch(() => {});
     } catch (err) {
       if (err instanceof RfqSubmitError) {
         setError(err.message);
@@ -193,6 +209,14 @@ export default function RfqForm() {
       <div className="absolute inset-x-0 top-0 h-1 bg-brand" aria-hidden />
 
       <div className="px-6 pt-10 pb-8 sm:px-10">
+        <div className="mb-8 flex items-start gap-3 border-l-2 border-brand bg-brand/[0.05] px-4 py-3">
+          <span className="mt-0.5 flex-shrink-0 text-brand">
+            <Icon name="info" />
+          </span>
+          <p className="font-body text-sm leading-relaxed text-foreground/70">
+            Please fill in your details as clearly and accurately as possible. The more we know about your requirements, the better the quote we can give you.
+          </p>
+        </div>
         <SectionHeader step="01" title="About You" description="So we know who to send the quotation to." />
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <Field label="Your Name" htmlFor="rfq-name" icon="user">
