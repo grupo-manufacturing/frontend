@@ -324,7 +324,7 @@ export default function RfqForm() {
         <SectionHeader step="03" title="Details" description="Where you are, and your tech pack if you have one." />
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <Field label="Location" htmlFor="rfq-location" icon="pin">
-            <input id="rfq-location" type="text" required maxLength={200} value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Jaipur, Rajasthan" className={inputCls} />
+            <input id="rfq-location" type="text" required maxLength={200} value={location} onChange={(e) => setLocation(e.target.value)} placeholder="London, United Kingdom" className={inputCls} />
           </Field>
           <Field label="Tech Pack Link" optional htmlFor="rfq-techpack" icon="link">
             <input id="rfq-techpack" type="url" maxLength={2048} value={techPackUrl} onChange={(e) => setTechPackUrl(e.target.value)} placeholder="https://drive.google.com/..." className={inputCls} />
