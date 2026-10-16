@@ -19,7 +19,7 @@ export type AdminRfq = {
 export type AdminRfqPage = {
   rfqs: AdminRfq[];
   total: number;
-  counts: Record<string, number>;
+  counts?: Record<string, number>;
   page: number;
   pageSize: number;
 };
@@ -77,11 +77,12 @@ export async function fetchAdminRfqs(
   token: string,
   page: number,
   pageSize: number,
-  filters: { status?: string; search?: string } = {},
+  filters: { status?: string; search?: string; withCounts?: boolean } = {},
 ): Promise<AdminRfqPage> {
   const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
   if (filters.status) params.set('status', filters.status);
   if (filters.search) params.set('q', filters.search);
+  if (filters.withCounts === false) params.set('counts', '0');
 
   const res = await fetch(`${OMS_API_URL}/api/admin/rfqs?${params}`, {
     headers: { Authorization: `Bearer ${token}` },

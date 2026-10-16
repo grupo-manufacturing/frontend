@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import { wakeOmsBackend } from '../request-for-quotation/api';
 import {
@@ -315,12 +315,17 @@ function RfqList({ token }: { token: string }) {
     return () => clearTimeout(timer);
   }, [searchInput, search]);
 
+  const countsKeyRef = useRef<string | null>(null);
+
   useEffect(() => {
     let cancelled = false;
-    fetchAdminRfqs(token, page, PAGE_SIZE, { status: statusFilter, search })
+    const countsKey = `${search}|${reloadKey}`;
+    const withCounts = countsKeyRef.current !== countsKey;
+    fetchAdminRfqs(token, page, PAGE_SIZE, { status: statusFilter, search, withCounts })
       .then((result) => {
         if (cancelled) return;
-        setData(result);
+        if (withCounts) countsKeyRef.current = countsKey;
+        setData((current) => ({ ...result, counts: result.counts ?? current?.counts }));
         setError('');
       })
       .catch((err) => {
@@ -405,7 +410,7 @@ function RfqList({ token }: { token: string }) {
       </div>
 
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex max-w-full gap-1 overflow-x-auto rounded-lg bg-zinc-200/60 p-1" role="tablist" aria-label="Filter by status">
+        <div className="flex max-w-full gap-2 overflow-x-auto pb-0.5" role="tablist" aria-label="Filter by status">
           {STATUS_FILTERS.map((filter) => {
             const active = statusFilter === filter.value;
             const count = data
@@ -420,15 +425,21 @@ function RfqList({ token }: { token: string }) {
                 role="tab"
                 aria-selected={active}
                 onClick={() => selectStatus(filter.value)}
-                className={`flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition ${
-                  active ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'
+                className={`flex h-9 items-center gap-2 whitespace-nowrap rounded-full border pl-3.5 pr-1.5 text-sm font-medium transition ${
+                  active
+                    ? 'border-zinc-900 bg-zinc-900 text-white shadow-sm'
+                    : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:text-zinc-900'
                 }`}
               >
-                {filter.dot && <span className={`h-1.5 w-1.5 rounded-full ${filter.dot}`} />}
+                {filter.dot && <span className={`h-2 w-2 rounded-full ${filter.dot}`} />}
                 {filter.label}
-                {count !== null && (
-                  <span className={`admin-mono text-xs ${active ? 'text-zinc-500' : 'text-zinc-400'}`}>{count}</span>
-                )}
+                <span
+                  className={`admin-mono min-w-6 rounded-full px-1.5 py-0.5 text-center text-xs ${
+                    active ? 'bg-white/15 text-white' : 'bg-zinc-100 text-zinc-500'
+                  }`}
+                >
+                  {count ?? '–'}
+                </span>
               </button>
             );
           })}
