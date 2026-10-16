@@ -73,36 +73,91 @@ export async function adminLogin(username: string, password: string): Promise<vo
   notifySessionListeners();
 }
 
-export async function fetchAdminRfqs(
-  token: string,
-  page: number,
-  pageSize: number,
-  filters: { status?: string; search?: string; withCounts?: boolean } = {},
-): Promise<AdminRfqPage> {
+export type ListFilters = { status?: string; search?: string; withCounts?: boolean };
+
+async function adminRequest<T>(token: string, path: string, fallbackError: string, init: RequestInit = {}): Promise<T> {
+  const res = await fetch(`${OMS_API_URL}${path}`, {
+    ...init,
+    headers: {
+      ...(init.body ? { 'Content-Type': 'application/json' } : {}),
+      Authorization: `Bearer ${token}`,
+    },
+    cache: 'no-store',
+  });
+  const body = res.status === 204 ? {} : await res.json().catch(() => ({}));
+
+  if (res.status === 401) throw new AdminAuthError('Your session has expired. Please log in again.');
+  if (!res.ok) {
+    const details = Array.isArray(body.details) ? body.details.join(' · ') : '';
+    throw new Error(details || body.error || fallbackError);
+  }
+  return body as T;
+}
+
+function listPath(base: string, page: number, pageSize: number, filters: ListFilters) {
   const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
   if (filters.status) params.set('status', filters.status);
   if (filters.search) params.set('q', filters.search);
   if (filters.withCounts === false) params.set('counts', '0');
+  return `${base}?${params}`;
+}
 
-  const res = await fetch(`${OMS_API_URL}/api/admin/rfqs?${params}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: 'no-store',
-  });
-  const body = await res.json().catch(() => ({}));
-
-  if (res.status === 401) throw new AdminAuthError('Your session has expired. Please log in again.');
-  if (!res.ok) throw new Error(body.error || 'Failed to load RFQs.');
-  return body as AdminRfqPage;
+export function fetchAdminRfqs(token: string, page: number, pageSize: number, filters: ListFilters = {}) {
+  return adminRequest<AdminRfqPage>(token, listPath('/api/admin/rfqs', page, pageSize, filters), 'Failed to load RFQs.');
 }
 
 export async function updateRfqStatus(token: string, id: string, status: string): Promise<void> {
-  const res = await fetch(`${OMS_API_URL}/api/admin/rfqs/${encodeURIComponent(id)}/status`, {
+  await adminRequest(token, `/api/admin/rfqs/${encodeURIComponent(id)}/status`, 'Failed to update status.', {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify({ status }),
   });
-  const body = await res.json().catch(() => ({}));
+}
 
-  if (res.status === 401) throw new AdminAuthError('Your session has expired. Please log in again.');
-  if (!res.ok) throw new Error(body.error || 'Failed to update status.');
+export type Manufacturer = {
+  id: string;
+  companyName: string;
+  email: string;
+  phone: string;
+  location: string;
+  status: 'active' | 'inactive';
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ManufacturerInput = Pick<Manufacturer, 'companyName' | 'email' | 'phone' | 'location' | 'status'>;
+
+export type ManufacturerPage = {
+  manufacturers: Manufacturer[];
+  total: number;
+  counts?: Record<string, number>;
+  page: number;
+  pageSize: number;
+};
+
+export function fetchManufacturers(token: string, page: number, pageSize: number, filters: ListFilters = {}) {
+  return adminRequest<ManufacturerPage>(
+    token,
+    listPath('/api/admin/manufacturers', page, pageSize, filters),
+    'Failed to load manufacturers.',
+  );
+}
+
+export function createManufacturer(token: string, input: ManufacturerInput) {
+  return adminRequest<Manufacturer>(token, '/api/admin/manufacturers', 'Failed to add manufacturer.', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateManufacturer(token: string, id: string, input: Partial<ManufacturerInput>) {
+  return adminRequest<Manufacturer>(token, `/api/admin/manufacturers/${encodeURIComponent(id)}`, 'Failed to update manufacturer.', {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+}
+
+export async function deleteManufacturer(token: string, id: string): Promise<void> {
+  await adminRequest(token, `/api/admin/manufacturers/${encodeURIComponent(id)}`, 'Failed to delete manufacturer.', {
+    method: 'DELETE',
+  });
 }

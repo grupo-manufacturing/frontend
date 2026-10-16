@@ -6,6 +6,53 @@ import { getCountries, getCountryCallingCode, parsePhoneNumberFromString, type C
 
 type Country = { code: CountryCode; name: string; dialCode: string };
 
+const STYLES = {
+  site: {
+    flagFallback: 'font-nav bg-brand/10 text-brand',
+    flag: 'shadow-[0_0_0_1px_rgba(11,18,32,0.08)]',
+    highlight: 'font-semibold text-foreground',
+    box: 'flex h-12 border border-brand/15 bg-[#f7fbfe] transition-all duration-200 focus-within:border-brand focus-within:bg-surface focus-within:shadow-[0_0_0_4px_rgba(28,143,215,0.12)] hover:border-brand/35',
+    button: 'border-r border-brand/15 pl-3.5 pr-3 hover:bg-brand/[0.05] focus-visible:bg-brand/[0.08]',
+    dial: 'font-body text-sm text-foreground',
+    chevron: 'text-brand/60',
+    input: 'font-body px-3.5 text-sm text-foreground placeholder:text-gray-400',
+    menu: 'mt-2 border border-brand/15 bg-surface shadow-[0_20px_50px_-20px_rgba(11,18,32,0.35)]',
+    searchWrap: 'border-b border-brand/10',
+    searchIcon: 'text-brand/50',
+    searchInput: 'font-body h-11 text-sm text-foreground placeholder:text-gray-400',
+    empty: 'font-body text-foreground/45',
+    itemActive: 'bg-brand/[0.07]',
+    name: 'font-body',
+    nameSelected: 'font-semibold text-foreground',
+    nameIdle: 'text-foreground/75',
+    itemDial: 'font-nav text-xs text-foreground/45',
+    check: 'text-brand',
+  },
+  admin: {
+    flagFallback: 'rounded-sm bg-zinc-100 text-zinc-500',
+    flag: 'rounded-[2px] shadow-[0_0_0_1px_rgba(0,0,0,0.08)]',
+    highlight: 'font-semibold text-zinc-900',
+    box: 'flex h-10 rounded-lg border border-zinc-200 bg-white shadow-sm transition focus-within:border-zinc-400 focus-within:ring-4 focus-within:ring-zinc-900/5',
+    button: 'rounded-l-lg border-r border-zinc-200 pl-3 pr-2.5 hover:bg-zinc-50 focus-visible:bg-zinc-50',
+    dial: 'admin-mono text-sm text-zinc-900',
+    chevron: 'text-zinc-400',
+    input: 'admin-mono rounded-r-lg px-3 text-sm text-zinc-900 placeholder:text-zinc-400',
+    menu: 'mt-1.5 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-xl',
+    searchWrap: 'border-b border-zinc-100',
+    searchIcon: 'text-zinc-400',
+    searchInput: 'h-10 text-sm text-zinc-900 placeholder:text-zinc-400',
+    empty: 'text-zinc-400',
+    itemActive: 'bg-zinc-100',
+    name: '',
+    nameSelected: 'font-medium text-zinc-900',
+    nameIdle: 'text-zinc-600',
+    itemDial: 'admin-mono text-xs text-zinc-400',
+    check: 'text-zinc-900',
+  },
+};
+
+type Variant = keyof typeof STYLES;
+
 function buildCountries(): Country[] {
   const names = new Intl.DisplayNames(['en'], { type: 'region' });
   return getCountries()
@@ -13,11 +60,11 @@ function buildCountries(): Country[] {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-function Flag({ code }: { code: CountryCode }) {
+function Flag({ code, variant }: { code: CountryCode; variant: Variant }) {
   const [failed, setFailed] = useState(false);
   if (failed) {
     return (
-      <span className="font-nav flex h-[15px] w-5 flex-shrink-0 items-center justify-center bg-brand/10 text-[8px] text-brand">
+      <span className={`flex h-[15px] w-5 flex-shrink-0 items-center justify-center text-[8px] ${STYLES[variant].flagFallback}`}>
         {code}
       </span>
     );
@@ -30,18 +77,18 @@ function Flag({ code }: { code: CountryCode }) {
       height={15}
       unoptimized
       onError={() => setFailed(true)}
-      className="h-[15px] w-5 flex-shrink-0 object-cover shadow-[0_0_0_1px_rgba(11,18,32,0.08)]"
+      className={`h-[15px] w-5 flex-shrink-0 object-cover ${STYLES[variant].flag}`}
     />
   );
 }
 
-function Highlight({ text, query }: { text: string; query: string }) {
+function Highlight({ text, query, variant }: { text: string; query: string; variant: Variant }) {
   const index = query ? text.toLowerCase().indexOf(query) : -1;
   if (index === -1) return <>{text}</>;
   return (
     <>
       {text.slice(0, index)}
-      <strong className="font-semibold text-foreground">{text.slice(index, index + query.length)}</strong>
+      <strong className={STYLES[variant].highlight}>{text.slice(index, index + query.length)}</strong>
       {text.slice(index + query.length)}
     </>
   );
@@ -53,9 +100,11 @@ type PhoneInputProps = {
   onCountryChange: (country: CountryCode) => void;
   number: string;
   onNumberChange: (number: string) => void;
+  variant?: Variant;
 };
 
-export default function PhoneInput({ id, country, onCountryChange, number, onNumberChange }: PhoneInputProps) {
+export default function PhoneInput({ id, country, onCountryChange, number, onNumberChange, variant = 'site' }: PhoneInputProps) {
+  const s = STYLES[variant];
   const listId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -118,6 +167,7 @@ export default function PhoneInput({ id, country, onCountryChange, number, onNum
       if (filtered[active]) selectCountry(filtered[active].code);
     } else if (e.key === 'Escape') {
       e.preventDefault();
+      e.stopPropagation();
       setOpen(false);
       buttonRef.current?.focus();
     }
@@ -140,7 +190,7 @@ export default function PhoneInput({ id, country, onCountryChange, number, onNum
 
   return (
     <div ref={rootRef} className="relative">
-      <div className="flex h-12 border border-brand/15 bg-[#f7fbfe] transition-all duration-200 focus-within:border-brand focus-within:bg-surface focus-within:shadow-[0_0_0_4px_rgba(28,143,215,0.12)] hover:border-brand/35">
+      <div className={s.box}>
         <button
           ref={buttonRef}
           type="button"
@@ -148,11 +198,11 @@ export default function PhoneInput({ id, country, onCountryChange, number, onNum
           aria-haspopup="listbox"
           aria-expanded={open}
           aria-label={`Country code ${dialCode}`}
-          className="flex flex-shrink-0 items-center gap-2 border-r border-brand/15 pl-3.5 pr-3 outline-none transition-colors hover:bg-brand/[0.05] focus-visible:bg-brand/[0.08]"
+          className={`flex flex-shrink-0 items-center gap-2 outline-none transition-colors ${s.button}`}
         >
-          <Flag code={country} />
-          <span className="font-body text-sm text-foreground">{dialCode}</span>
-          <svg className={`h-3.5 w-3.5 text-brand/60 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+          <Flag code={country} variant={variant} />
+          <span className={s.dial}>{dialCode}</span>
+          <svg className={`h-3.5 w-3.5 transition-transform duration-200 ${s.chevron} ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </button>
@@ -166,14 +216,14 @@ export default function PhoneInput({ id, country, onCountryChange, number, onNum
           value={number}
           onChange={(e) => onNumberInput(e.target.value)}
           placeholder={country === 'IN' ? '98765 43210' : 'Phone number'}
-          className="font-body h-full min-w-0 flex-1 bg-transparent px-3.5 text-sm text-foreground placeholder:text-gray-400 outline-none"
+          className={`h-full min-w-0 flex-1 bg-transparent outline-none ${s.input}`}
         />
       </div>
 
       {open && (
-        <div className="absolute inset-x-0 top-full z-30 mt-2 border border-brand/15 bg-surface shadow-[0_20px_50px_-20px_rgba(11,18,32,0.35)]">
-          <div className="relative border-b border-brand/10">
-            <svg className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-brand/50" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+        <div className={`absolute inset-x-0 top-full z-30 ${s.menu}`}>
+          <div className={`relative ${s.searchWrap}`}>
+            <svg className={`pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 ${s.searchIcon}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
             </svg>
             <input
@@ -191,13 +241,11 @@ export default function PhoneInput({ id, country, onCountryChange, number, onNum
               }}
               onKeyDown={onSearchKeyDown}
               placeholder="Search country or code"
-              className="font-body h-11 w-full bg-transparent pl-10 pr-4 text-sm text-foreground placeholder:text-gray-400 outline-none"
+              className={`w-full bg-transparent pl-10 pr-4 outline-none ${s.searchInput}`}
             />
           </div>
           <ul ref={listRef} id={listId} role="listbox" className="max-h-64 overflow-y-auto py-1">
-            {filtered.length === 0 && (
-              <li className="font-body px-4 py-6 text-center text-sm text-foreground/45">No countries found</li>
-            )}
+            {filtered.length === 0 && <li className={`px-4 py-6 text-center text-sm ${s.empty}`}>No countries found</li>}
             {filtered.map((c, i) => {
               const selected = c.code === country;
               return (
@@ -209,15 +257,15 @@ export default function PhoneInput({ id, country, onCountryChange, number, onNum
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => selectCountry(c.code)}
                   onMouseEnter={() => setActive(i)}
-                  className={`flex cursor-pointer items-center gap-3 px-3.5 py-2.5 transition-colors ${i === active ? 'bg-brand/[0.07]' : ''}`}
+                  className={`flex cursor-pointer items-center gap-3 px-3.5 py-2.5 transition-colors ${i === active ? s.itemActive : ''}`}
                 >
-                  <Flag code={c.code} />
-                  <span className={`font-body flex-1 truncate text-sm ${selected ? 'font-semibold text-foreground' : 'text-foreground/75'}`}>
-                    <Highlight text={c.name} query={normalisedQuery} />
+                  <Flag code={c.code} variant={variant} />
+                  <span className={`flex-1 truncate text-sm ${s.name} ${selected ? s.nameSelected : s.nameIdle}`}>
+                    <Highlight text={c.name} query={normalisedQuery} variant={variant} />
                   </span>
-                  <span className="font-nav text-xs text-foreground/45">{c.dialCode}</span>
+                  <span className={s.itemDial}>{c.dialCode}</span>
                   {selected && (
-                    <svg className="h-4 w-4 flex-shrink-0 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                    <svg className={`h-4 w-4 flex-shrink-0 ${s.check}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                     </svg>
                   )}
