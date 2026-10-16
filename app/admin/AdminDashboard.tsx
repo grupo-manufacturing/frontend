@@ -11,16 +11,16 @@ import {
   fetchAdminRfqs,
   getSessionToken,
   subscribeSession,
+  updateRfqStatus,
+  type AdminRfq,
   type AdminRfqPage,
 } from './api';
 
 const PAGE_SIZE = 25;
 
 const STATUS_STYLES: Record<string, string> = {
-  new: 'bg-brand/10 text-brand',
-  quoted: 'bg-violet-100 text-violet-700',
-  won: 'bg-emerald-100 text-emerald-700',
-  lost: 'bg-gray-100 text-gray-500',
+  lead: 'bg-brand/10 text-brand',
+  quotation: 'bg-violet-100 text-violet-700',
 };
 
 const dateFormatter = new Intl.DateTimeFormat('en-IN', {
@@ -177,6 +177,31 @@ function RfqList({ token }: { token: string }) {
     setReloadKey((key) => key + 1);
   };
 
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  const markQuotationSent = async (rfq: AdminRfq) => {
+    if (!window.confirm(`Mark ${rfq.rfqNumber} (${rfq.brandName}) as Quotation sent? This cannot be undone.`)) return;
+    setUpdatingId(rfq.id);
+    setError('');
+    try {
+      await updateRfqStatus(token, rfq.id, 'quotation');
+      setData((current) =>
+        current && {
+          ...current,
+          rfqs: current.rfqs.map((r) => (r.id === rfq.id ? { ...r, status: 'quotation' } : r)),
+        },
+      );
+    } catch (err) {
+      if (err instanceof AdminAuthError) {
+        clearSession();
+        return;
+      }
+      setError(err instanceof Error ? err.message : 'Failed to update status.');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
 
   return (
@@ -279,6 +304,16 @@ function RfqList({ token }: { token: string }) {
                     >
                       {rfq.status}
                     </span>
+                    {rfq.status === 'lead' && (
+                      <button
+                        type="button"
+                        onClick={() => markQuotationSent(rfq)}
+                        disabled={updatingId !== null}
+                        className="font-nav mt-2 block whitespace-nowrap border border-violet-300 px-2.5 py-1 text-[10px] uppercase tracking-[0.12em] text-violet-700 transition-colors hover:bg-violet-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {updatingId === rfq.id ? 'Updating…' : 'Quotation Sent →'}
+                      </button>
+                    )}
                   </td>
                 </tr>
               );

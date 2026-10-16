@@ -83,3 +83,15 @@ export async function fetchAdminRfqs(token: string, page: number, pageSize: numb
   if (!res.ok) throw new Error(body.error || 'Failed to load RFQs.');
   return body as AdminRfqPage;
 }
+
+export async function updateRfqStatus(token: string, id: string, status: string): Promise<void> {
+  const res = await fetch(`${OMS_API_URL}/api/admin/rfqs/${encodeURIComponent(id)}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ status }),
+  });
+  const body = await res.json().catch(() => ({}));
+
+  if (res.status === 401) throw new AdminAuthError('Your session has expired. Please log in again.');
+  if (!res.ok) throw new Error(body.error || 'Failed to update status.');
+}
