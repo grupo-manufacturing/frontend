@@ -56,6 +56,17 @@ h2 {
   font-weight: 400;
 }
 
+/* Admin portal — its own type, independent of the marketing site */
+.admin-root,
+.admin-root h1,
+.admin-root h2 {
+  font-family: var(--font-admin-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+.admin-mono {
+  font-family: var(--font-admin-mono), ui-monospace, monospace;
+}
+
 @keyframes hero-fade-up {
   from {
     opacity: 0;
