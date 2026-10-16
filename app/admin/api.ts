@@ -19,6 +19,7 @@ export type AdminRfq = {
 export type AdminRfqPage = {
   rfqs: AdminRfq[];
   total: number;
+  counts: Record<string, number>;
   page: number;
   pageSize: number;
 };
@@ -72,8 +73,17 @@ export async function adminLogin(username: string, password: string): Promise<vo
   notifySessionListeners();
 }
 
-export async function fetchAdminRfqs(token: string, page: number, pageSize: number): Promise<AdminRfqPage> {
-  const res = await fetch(`${OMS_API_URL}/api/admin/rfqs?page=${page}&pageSize=${pageSize}`, {
+export async function fetchAdminRfqs(
+  token: string,
+  page: number,
+  pageSize: number,
+  filters: { status?: string; search?: string } = {},
+): Promise<AdminRfqPage> {
+  const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+  if (filters.status) params.set('status', filters.status);
+  if (filters.search) params.set('q', filters.search);
+
+  const res = await fetch(`${OMS_API_URL}/api/admin/rfqs?${params}`, {
     headers: { Authorization: `Bearer ${token}` },
     cache: 'no-store',
   });

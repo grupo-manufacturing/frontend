@@ -26,6 +26,11 @@ const STATUS_STYLES: Record<string, { label: string; pill: string; dot: string }
   lost: { label: 'Lost', pill: 'bg-zinc-100 text-zinc-600 ring-zinc-500/15', dot: 'bg-zinc-400' },
 };
 
+const STATUS_FILTERS = [
+  { value: '', label: 'All', dot: '' },
+  ...Object.entries(STATUS_STYLES).map(([value, style]) => ({ value, label: style.label, dot: style.dot })),
+];
+
 type StatusAction = { to: string; label: string; confirmText: string; className: string };
 
 const STATUS_ACTIONS: Record<string, StatusAction[]> = {
@@ -73,6 +78,9 @@ export default function AdminDashboard() {
     wakeOmsBackend();
   }, []);
 
+  if (token === undefined) return <div className="min-h-screen bg-zinc-50" />;
+  if (!token) return <LoginScreen />;
+
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-900 antialiased">
       <header className="sticky top-0 z-10 border-b border-zinc-200/80 bg-white/80 backdrop-blur">
@@ -81,30 +89,48 @@ export default function AdminDashboard() {
             <Image src="/logo.jpg" alt="Grupo" width={32} height={32} priority className="h-8 w-8 rounded-lg" />
             <span className="rounded-md bg-zinc-100 px-1.5 py-0.5 text-[11px] font-medium text-zinc-500">Admin</span>
           </Link>
-          {token && (
-            <button
-              type="button"
-              onClick={clearSession}
-              aria-label="Log out"
-              title="Log out"
-              className="grid h-9 w-9 place-items-center rounded-lg text-red-500 transition hover:bg-red-50 hover:text-red-600"
-            >
-              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-[18px] w-[18px]" aria-hidden>
-                <path d="M8 3.5H5A1.5 1.5 0 0 0 3.5 5v10A1.5 1.5 0 0 0 5 16.5h3M13 6.5 16.5 10 13 13.5M16.5 10H8" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={clearSession}
+            aria-label="Log out"
+            title="Log out"
+            className="grid h-9 w-9 place-items-center rounded-lg text-red-500 transition hover:bg-red-50 hover:text-red-600"
+          >
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-[18px] w-[18px]" aria-hidden>
+              <path d="M8 3.5H5A1.5 1.5 0 0 0 3.5 5v10A1.5 1.5 0 0 0 5 16.5h3M13 6.5 16.5 10 13 13.5M16.5 10H8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
         </div>
       </header>
 
-      {token === undefined ? null : token ? <RfqList token={token} /> : <LoginForm />}
+      <RfqList token={token} />
     </div>
   );
 }
 
-function LoginForm() {
+function FieldIcon({ d }: { d: string }) {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
+      aria-hidden
+    >
+      <path d={d} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+const USER_ICON = 'M10 10a3.25 3.25 0 1 0 0-6.5 3.25 3.25 0 0 0 0 6.5ZM4 16.5c.8-2.6 3.1-4 6-4s5.2 1.4 6 4';
+const SEARCH_ICON = 'M9 15.5a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13ZM17.5 17.5l-3.9-3.9';
+const LOCK_ICON = 'M5.5 9V6.5a4.5 4.5 0 0 1 9 0V9M4.5 9h11v7.5h-11V9Z';
+
+function LoginScreen() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -121,41 +147,67 @@ function LoginForm() {
   };
 
   return (
-    <main className="flex items-center justify-center px-4 py-20 sm:py-28">
-      <div className="w-full max-w-sm">
-        <div className="mb-6 text-center">
-          <h1 className="text-xl font-semibold tracking-tight">Welcome back</h1>
-          <p className="mt-1 text-sm text-zinc-500">Sign in to manage RFQs.</p>
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-zinc-50 px-4 py-16 text-zinc-900 antialiased">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 [background-image:radial-gradient(#d4d4d8_1px,transparent_1px)] [background-size:22px_22px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)]"
+      />
+      <div aria-hidden className="pointer-events-none absolute left-1/2 top-1/3 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-sky-200/40 blur-3xl" />
+
+      <div className="relative w-full max-w-[380px]">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <Image src="/logo.jpg" alt="Grupo" width={56} height={56} priority className="h-14 w-14 rounded-2xl shadow-lg shadow-sky-500/20 ring-1 ring-black/5" />
+          <h1 className="mt-5 text-2xl font-semibold tracking-tight">Welcome Back</h1>
+          <p className="mt-1.5 text-sm text-zinc-500">Sign in to the Grupo admin portal.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-5 rounded-2xl border border-zinc-200/80 bg-white/90 p-7 shadow-xl shadow-zinc-900/5 backdrop-blur"
+        >
           <div className="space-y-1.5">
             <label htmlFor="admin-username" className="text-sm font-medium text-zinc-700">
               Username
             </label>
-            <input
-              id="admin-username"
-              autoComplete="username"
-              required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className={inputCls}
-            />
+            <div className="relative">
+              <FieldIcon d={USER_ICON} />
+              <input
+                id="admin-username"
+                autoComplete="username"
+                autoFocus
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter your username"
+                className={`${inputCls} pl-9`}
+              />
+            </div>
           </div>
 
           <div className="space-y-1.5">
             <label htmlFor="admin-password" className="text-sm font-medium text-zinc-700">
               Password
             </label>
-            <input
-              id="admin-password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={inputCls}
-            />
+            <div className="relative">
+              <FieldIcon d={LOCK_ICON} />
+              <input
+                id="admin-password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                className={`${inputCls} pl-9 pr-16`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((show) => !show)}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-md px-2 py-1 text-xs font-medium text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900"
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
           </div>
 
           {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-inset ring-red-600/15">{error}</p>}
@@ -163,11 +215,22 @@ function LoginForm() {
           <button
             type="submit"
             disabled={submitting}
-            className="h-10 w-full rounded-lg bg-zinc-900 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="group flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitting ? 'Signing in…' : 'Sign in'}
+            {submitting ? (
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" aria-label="Signing in" />
+            ) : (
+              <>
+                Sign in
+                <span className="transition-transform group-hover:translate-x-0.5" aria-hidden>
+                  →
+                </span>
+              </>
+            )}
           </button>
         </form>
+
+        <p className="mt-6 text-center text-xs text-zinc-400">Restricted area · Authorised Grupo staff only</p>
       </div>
     </main>
   );
@@ -237,10 +300,24 @@ function RfqList({ token }: { token: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    const term = searchInput.trim();
+    if (term === search) return;
+    const timer = setTimeout(() => {
+      setLoading(true);
+      setPage(1);
+      setSearch(term);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput, search]);
 
   useEffect(() => {
     let cancelled = false;
-    fetchAdminRfqs(token, page, PAGE_SIZE)
+    fetchAdminRfqs(token, page, PAGE_SIZE, { status: statusFilter, search })
       .then((result) => {
         if (cancelled) return;
         setData(result);
@@ -260,7 +337,24 @@ function RfqList({ token }: { token: string }) {
     return () => {
       cancelled = true;
     };
-  }, [token, page, reloadKey]);
+  }, [token, page, reloadKey, statusFilter, search]);
+
+  const selectStatus = (status: string) => {
+    if (status === statusFilter) return;
+    setLoading(true);
+    setPage(1);
+    setStatusFilter(status);
+  };
+
+  const clearFilters = () => {
+    setSearchInput('');
+    if (search || statusFilter) {
+      setLoading(true);
+      setPage(1);
+      setSearch('');
+      setStatusFilter('');
+    }
+  };
 
   const goToPage = (next: number) => {
     setLoading(true);
@@ -284,6 +378,7 @@ function RfqList({ token }: { token: string }) {
           rfqs: current.rfqs.map((r) => (r.id === rfq.id ? { ...r, status: action.to } : r)),
         },
       );
+      setReloadKey((key) => key + 1);
     } catch (err) {
       if (err instanceof AdminAuthError) {
         clearSession();
@@ -307,6 +402,60 @@ function RfqList({ token }: { token: string }) {
           <RefreshIcon spinning={loading} />
           Refresh
         </button>
+      </div>
+
+      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex max-w-full gap-1 overflow-x-auto rounded-lg bg-zinc-200/60 p-1" role="tablist" aria-label="Filter by status">
+          {STATUS_FILTERS.map((filter) => {
+            const active = statusFilter === filter.value;
+            const count = data
+              ? filter.value
+                ? data.counts?.[filter.value] ?? 0
+                : Object.values(data.counts ?? {}).reduce((sum, n) => sum + n, 0)
+              : null;
+            return (
+              <button
+                key={filter.label}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => selectStatus(filter.value)}
+                className={`flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition ${
+                  active ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'
+                }`}
+              >
+                {filter.dot && <span className={`h-1.5 w-1.5 rounded-full ${filter.dot}`} />}
+                {filter.label}
+                {count !== null && (
+                  <span className={`admin-mono text-xs ${active ? 'text-zinc-500' : 'text-zinc-400'}`}>{count}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="relative w-full lg:w-80">
+          <FieldIcon d={SEARCH_ICON} />
+          <input
+            type="search"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search RFQ no., name, brand, email, phone…"
+            aria-label="Search RFQs"
+            maxLength={100}
+            className={`${inputCls} pl-9 pr-9 [&::-webkit-search-cancel-button]:hidden`}
+          />
+          {searchInput && (
+            <button
+              type="button"
+              onClick={() => setSearchInput('')}
+              aria-label="Clear search"
+              className="absolute right-2 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-md text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700"
+            >
+              ×
+            </button>
+          )}
+        </div>
       </div>
 
       {error && <p className="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-inset ring-red-600/15">{error}</p>}
@@ -338,8 +487,20 @@ function RfqList({ token }: { token: string }) {
               {data && data.rfqs.length === 0 && (
                 <tr>
                   <td colSpan={COLUMNS.length} className="px-4 py-16 text-center">
-                    <p className="font-medium text-zinc-900">No RFQs yet</p>
-                    <p className="mt-1 text-zinc-500">New requests from the website will show up here.</p>
+                    {search || statusFilter ? (
+                      <>
+                        <p className="font-medium text-zinc-900">No matching RFQs</p>
+                        <p className="mt-1 text-zinc-500">Try a different search or status.</p>
+                        <button type="button" onClick={clearFilters} className={`${ghostButtonCls} mt-4`}>
+                          Clear filters
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <p className="font-medium text-zinc-900">No RFQs yet</p>
+                        <p className="mt-1 text-zinc-500">New requests from the website will show up here.</p>
+                      </>
+                    )}
                   </td>
                 </tr>
               )}
