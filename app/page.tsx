@@ -12,7 +12,7 @@ import ScrollChrome from './components/landing/ScrollChrome';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-surface">
+    <main className="hide-scrollbars min-h-screen bg-surface">
       <ScrollChrome />
       <Navbar variant="dark" />
       <Hero />

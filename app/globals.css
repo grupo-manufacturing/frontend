@@ -67,16 +67,22 @@ h2 {
   font-family: var(--font-admin-mono), ui-monospace, monospace;
 }
 
-/* Admin portal hides scrollbars everywhere (page, tables, dropdowns); scrolling still works. */
+/* Admin portal and pages marked .hide-scrollbars hide scrollbars everywhere (page, tables, dropdowns); scrolling still works. */
 html:has(.admin-root),
 .admin-root,
-.admin-root * {
+.admin-root *,
+html:has(.hide-scrollbars),
+.hide-scrollbars,
+.hide-scrollbars * {
   scrollbar-width: none;
 }
 
 html:has(.admin-root)::-webkit-scrollbar,
 .admin-root::-webkit-scrollbar,
-.admin-root *::-webkit-scrollbar {
+.admin-root *::-webkit-scrollbar,
+html:has(.hide-scrollbars)::-webkit-scrollbar,
+.hide-scrollbars::-webkit-scrollbar,
+.hide-scrollbars *::-webkit-scrollbar {
   display: none;
 }
 
@@ -204,6 +210,26 @@ html:has(.admin-root)::-webkit-scrollbar,
   }
   to {
     stroke-dashoffset: -400;
+  }
+}
+
+@keyframes rfq-collage-scroll {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
+}
+
+.rfq-collage-column {
+  animation: rfq-collage-scroll var(--rfq-collage-duration, 90s) linear infinite;
+  animation-direction: var(--rfq-collage-direction, normal);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rfq-collage-column {
+    animation: none;
   }
 }
 
