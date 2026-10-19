@@ -348,7 +348,7 @@ function ManufacturerDialog({
 
   return (
     <div
-      className="fixed inset-0 z-30 flex items-start justify-center overflow-y-auto bg-zinc-900/30 px-4 py-16 backdrop-blur-[2px]"
+      className="fixed inset-0 z-30 flex items-start justify-center overflow-y-auto bg-zinc-900/30 px-4 py-10 backdrop-blur-[2px]"
       onMouseDown={onClose}
     >
       <form
@@ -357,7 +357,7 @@ function ManufacturerDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="manufacturer-dialog-title"
-        className="w-full max-w-lg rounded-2xl border border-zinc-200 bg-white shadow-2xl"
+        className="w-full max-w-3xl rounded-2xl border border-zinc-200 bg-white shadow-2xl"
       >
         <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
           <h2 id="manufacturer-dialog-title" className="text-base font-semibold">
@@ -373,7 +373,7 @@ function ManufacturerDialog({
           </button>
         </div>
 
-        <div className="space-y-4 px-6 py-5">
+        <div className="grid grid-cols-1 gap-x-5 gap-y-4 px-6 py-5 sm:grid-cols-2">
           <Field label="Company name" htmlFor="m-company">
             <input
               id="m-company"
@@ -432,7 +432,7 @@ function ManufacturerDialog({
               className={inputCls}
             />
           </Field>
-          <Field label="Type of manufacturer">
+          <Field label="Type of Manufacturer">
             <Segmented
               options={(['garments', 'fabric'] as const).map((type) => ({ value: type, label: TYPE_LABELS[type] }))}
               value={form.manufacturerType}
@@ -455,7 +455,7 @@ function ManufacturerDialog({
             </Field>
           ) : (
             <>
-              <Field label="Type of products" hint={`${form.products.length} selected`}>
+              <Field label="Type of Products" hint={`${form.products.length} selected`} className="sm:col-span-2">
                 <div className="flex flex-wrap gap-1.5">
                   {RFQ_PRODUCTS.map((product) => {
                     const selected = form.products.includes(product);
@@ -477,7 +477,7 @@ function ManufacturerDialog({
                   })}
                 </div>
               </Field>
-              <Field label="Winner product" htmlFor="m-winner" hint="The product this manufacturer is best at.">
+              <Field label="Winner Product" htmlFor="m-winner" hint="The product this manufacturer is best at.">
                 <select
                   id="m-winner"
                   required
@@ -511,7 +511,11 @@ function ManufacturerDialog({
             />
           </Field>
 
-          {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-inset ring-red-600/15">{error}</p>}
+          {error && (
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-inset ring-red-600/15 sm:col-span-2">
+              {error}
+            </p>
+          )}
         </div>
 
         <div className="flex justify-end gap-2 border-t border-zinc-100 px-6 py-4">
@@ -557,9 +561,21 @@ function Segmented<T extends string>({
   );
 }
 
-function Field({ label, htmlFor, hint, children }: { label: string; htmlFor?: string; hint?: string; children: React.ReactNode }) {
+function Field({
+  label,
+  htmlFor,
+  hint,
+  className = '',
+  children,
+}: {
+  label: string;
+  htmlFor?: string;
+  hint?: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="space-y-1.5">
+    <div className={`space-y-1.5 ${className}`}>
       <label htmlFor={htmlFor} className="block text-sm font-medium text-zinc-700">
         {label}
       </label>
