@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { getCountryCallingCode, parsePhoneNumberFromString, type CountryCode } from 'libphonenumber-js';
+import { RFQ_PRODUCTS } from '../../request-for-quotation/api';
 import PhoneInput from '../../request-for-quotation/PhoneInput';
 import { useAdminToken } from '../AdminShell';
 import {
@@ -13,6 +14,7 @@ import {
   updateManufacturer,
   type Manufacturer,
   type ManufacturerInput,
+  type ManufacturerType,
 } from '../api';
 import {
   DataTable,
@@ -38,11 +40,68 @@ const STATUS_STYLES: Record<string, StatusStyle> = {
   inactive: { label: 'Inactive', pill: 'bg-zinc-100 text-zinc-600 ring-zinc-500/15', dot: 'bg-zinc-400' },
 };
 
-const COLUMNS = ['Company', 'Contact', 'Location', 'Status', 'Added', ''];
+const TYPE_LABELS: Record<ManufacturerType, string> = { garments: 'Garments', fabric: 'Fabric' };
 
-type FormState = Omit<ManufacturerInput, 'phone'> & { phoneCountry: CountryCode; phoneNumber: string };
+const GST_NUMBER = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 
-const EMPTY_FORM: FormState = { companyName: '', email: '', phoneCountry: 'IN', phoneNumber: '', location: '', status: 'active' };
+const COLUMNS = ['Company', 'Contact', 'Type', 'Produces', 'Location', 'Status', 'Added', ''];
+
+type FormState = {
+  companyName: string;
+  email: string;
+  phoneCountry: CountryCode;
+  phoneNumber: string;
+  location: string;
+  gstNumber: string;
+  manufacturerType: ManufacturerType;
+  fabrics: string;
+  products: string[];
+  winnerProduct: string;
+  status: Manufacturer['status'];
+};
+
+const EMPTY_FORM: FormState = {
+  companyName: '',
+  email: '',
+  phoneCountry: 'IN',
+  phoneNumber: '',
+  location: '',
+  gstNumber: '',
+  manufacturerType: 'garments',
+  fabrics: '',
+  products: [],
+  winnerProduct: '',
+  status: 'active',
+};
+
+function ProducesCell({ manufacturer }: { manufacturer: Manufacturer }) {
+  if (manufacturer.manufacturerType === 'fabric') {
+    return (
+      <p className="line-clamp-2 text-zinc-600" title={manufacturer.fabrics ?? undefined}>
+        {manufacturer.fabrics}
+      </p>
+    );
+  }
+
+  const others = manufacturer.products.filter((product) => product !== manufacturer.winnerProduct);
+  return (
+    <div className="space-y-1">
+      {manufacturer.winnerProduct && (
+        <span
+          title="Winner product"
+          className="inline-flex items-center gap-1 whitespace-nowrap rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20"
+        >
+          ★ {manufacturer.winnerProduct}
+        </span>
+      )}
+      {others.length > 0 && (
+        <p className="line-clamp-2 text-xs text-zinc-500" title={others.join(', ')}>
+          {others.join(', ')}
+        </p>
+      )}
+    </div>
+  );
+}
 
 type DialogState = { mode: 'add' } | { mode: 'edit'; manufacturer: Manufacturer } | null;
 
@@ -90,14 +149,18 @@ export default function ManufacturerList() {
 
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <FilterChips styles={STATUS_STYLES} value={list.statusFilter} counts={list.data?.counts} onChange={list.selectStatus} />
-        <SearchBox value={list.searchInput} onChange={list.setSearchInput} placeholder="Search company, email, phone, location…" />
+        <SearchBox
+          value={list.searchInput}
+          onChange={list.setSearchInput}
+          placeholder="Search company, GST, email, phone, location…"
+        />
       </div>
 
       <ErrorBanner message={list.error} />
 
       <DataTable
         columns={COLUMNS}
-        minWidth="900px"
+        minWidth="1150px"
         loading={list.loading}
         loadingLabel="Loading manufacturers…"
         isEmpty={!list.data || list.data.manufacturers.length === 0}
@@ -115,7 +178,12 @@ export default function ManufacturerList() {
       >
         {list.data?.manufacturers.map((m) => (
           <tr key={m.id} className="align-top transition-colors hover:bg-zinc-50/70">
-            <td className="px-4 py-4 font-medium text-zinc-900">{m.companyName}</td>
+            <td className="px-4 py-4">
+              <span className="block font-medium text-zinc-900">{m.companyName}</span>
+              <span className="admin-mono block whitespace-nowrap text-xs text-zinc-500" title="GST No.">
+                {m.gstNumber}
+              </span>
+            </td>
             <td className="px-4 py-4">
               <a href={`mailto:${m.email}`} className="block break-all text-zinc-900 underline-offset-2 hover:underline">
                 {m.email}
@@ -123,6 +191,14 @@ export default function ManufacturerList() {
               <a href={`tel:${m.phone}`} className="admin-mono block whitespace-nowrap text-xs text-zinc-500 hover:text-zinc-900">
                 {formatPhone(m.phone)}
               </a>
+            </td>
+            <td className="whitespace-nowrap px-4 py-4">
+              <span className="inline-flex rounded-md bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700">
+                {TYPE_LABELS[m.manufacturerType]}
+              </span>
+            </td>
+            <td className="max-w-[260px] px-4 py-4">
+              <ProducesCell manufacturer={m} />
             </td>
             <td className="max-w-[240px] px-4 py-4 text-zinc-600">{m.location}</td>
             <td className="px-4 py-4">
@@ -188,6 +264,11 @@ function ManufacturerDialog({
       phoneCountry: parsed?.country ?? 'IN',
       phoneNumber: parsed?.nationalNumber ?? manufacturer.phone,
       location: manufacturer.location,
+      gstNumber: manufacturer.gstNumber,
+      manufacturerType: manufacturer.manufacturerType,
+      fabrics: manufacturer.fabrics ?? '',
+      products: manufacturer.products,
+      winnerProduct: manufacturer.winnerProduct ?? '',
       status: manufacturer.status,
     };
   });
@@ -213,6 +294,13 @@ function ManufacturerDialog({
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => setForm((f) => ({ ...f, [key]: value }));
 
+  const toggleProduct = (product: string) =>
+    setForm((f) => {
+      const products = f.products.includes(product) ? f.products.filter((p) => p !== product) : [...f.products, product];
+      const winnerProduct = products.includes(f.winnerProduct) ? f.winnerProduct : products.length === 1 ? products[0] : '';
+      return { ...f, products, winnerProduct };
+    });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const parsedPhone = parsePhoneNumberFromString(form.phoneNumber, form.phoneCountry);
@@ -220,16 +308,30 @@ function ManufacturerDialog({
       setError(`Enter a valid phone number for +${getCountryCallingCode(form.phoneCountry)}.`);
       return;
     }
+    const gstNumber = form.gstNumber.trim().toUpperCase();
+    if (!GST_NUMBER.test(gstNumber)) {
+      setError('Enter a valid 15-character GST number, e.g. 33ABCDE1234F1Z5.');
+      return;
+    }
+    if (form.manufacturerType === 'garments' && form.products.length === 0) {
+      setError('Select at least one product.');
+      return;
+    }
 
     setSaving(true);
     setError('');
-    const input: ManufacturerInput = {
+    const base = {
       companyName: form.companyName.trim(),
       email: form.email.trim(),
       phone: parsedPhone.number,
       location: form.location.trim(),
+      gstNumber,
       status: form.status,
     };
+    const input: ManufacturerInput =
+      form.manufacturerType === 'fabric'
+        ? { ...base, manufacturerType: 'fabric', fabrics: form.fabrics.trim() }
+        : { ...base, manufacturerType: 'garments', products: form.products, winnerProduct: form.winnerProduct };
     try {
       if (manufacturer) await updateManufacturer(token, manufacturer.id, input);
       else await createManufacturer(token, input);
@@ -255,7 +357,7 @@ function ManufacturerDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="manufacturer-dialog-title"
-        className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white shadow-2xl"
+        className="w-full max-w-lg rounded-2xl border border-zinc-200 bg-white shadow-2xl"
       >
         <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
           <h2 id="manufacturer-dialog-title" className="text-base font-semibold">
@@ -282,6 +384,19 @@ function ManufacturerDialog({
               onChange={(e) => set('companyName', e.target.value)}
               placeholder="Shree Ganesh Garments"
               className={inputCls}
+            />
+          </Field>
+          <Field label="GST No." htmlFor="m-gst">
+            <input
+              id="m-gst"
+              required
+              maxLength={15}
+              value={form.gstNumber}
+              onChange={(e) => set('gstNumber', e.target.value.toUpperCase())}
+              placeholder="33ABCDE1234F1Z5"
+              autoComplete="off"
+              spellCheck={false}
+              className={`${inputCls} admin-mono uppercase`}
             />
           </Field>
           <Field label="Email" htmlFor="m-email">
@@ -317,23 +432,83 @@ function ManufacturerDialog({
               className={inputCls}
             />
           </Field>
-          <Field label="Status">
-            <div className="grid grid-cols-2 gap-1 rounded-lg bg-zinc-100 p-1">
-              {(['active', 'inactive'] as const).map((status) => (
-                <button
-                  key={status}
-                  type="button"
-                  onClick={() => set('status', status)}
-                  aria-pressed={form.status === status}
-                  className={`flex items-center justify-center gap-2 rounded-md py-1.5 text-sm font-medium transition ${
-                    form.status === status ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'
-                  }`}
+          <Field label="Type of manufacturer">
+            <Segmented
+              options={(['garments', 'fabric'] as const).map((type) => ({ value: type, label: TYPE_LABELS[type] }))}
+              value={form.manufacturerType}
+              onChange={(type) => set('manufacturerType', type)}
+            />
+          </Field>
+
+          {form.manufacturerType === 'fabric' ? (
+            <Field label="Fabrics you manufacture" htmlFor="m-fabrics" hint="Separate fabrics with commas.">
+              <textarea
+                id="m-fabrics"
+                required
+                rows={3}
+                maxLength={500}
+                value={form.fabrics}
+                onChange={(e) => set('fabrics', e.target.value)}
+                placeholder="Cotton jersey, French terry, Fleece, Denim"
+                className={`${inputCls} resize-none`}
+              />
+            </Field>
+          ) : (
+            <>
+              <Field label="Type of products" hint={`${form.products.length} selected`}>
+                <div className="flex flex-wrap gap-1.5">
+                  {RFQ_PRODUCTS.map((product) => {
+                    const selected = form.products.includes(product);
+                    return (
+                      <button
+                        key={product}
+                        type="button"
+                        onClick={() => toggleProduct(product)}
+                        aria-pressed={selected}
+                        className={`rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset transition ${
+                          selected
+                            ? 'bg-zinc-900 text-white ring-zinc-900'
+                            : 'bg-white text-zinc-600 ring-zinc-200 hover:bg-zinc-50 hover:text-zinc-900'
+                        }`}
+                      >
+                        {product}
+                      </button>
+                    );
+                  })}
+                </div>
+              </Field>
+              <Field label="Winner product" htmlFor="m-winner" hint="The product this manufacturer is best at.">
+                <select
+                  id="m-winner"
+                  required
+                  value={form.winnerProduct}
+                  onChange={(e) => set('winnerProduct', e.target.value)}
+                  disabled={form.products.length === 0}
+                  className={`${inputCls} disabled:cursor-not-allowed disabled:bg-zinc-50 disabled:text-zinc-400`}
                 >
-                  <span className={`h-1.5 w-1.5 rounded-full ${STATUS_STYLES[status].dot}`} />
-                  {STATUS_STYLES[status].label}
-                </button>
-              ))}
-            </div>
+                  <option value="" disabled>
+                    {form.products.length === 0 ? 'Select products first' : 'Select winner product'}
+                  </option>
+                  {form.products.map((product) => (
+                    <option key={product} value={product}>
+                      {product}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </>
+          )}
+
+          <Field label="Status">
+            <Segmented
+              options={(['active', 'inactive'] as const).map((status) => ({
+                value: status,
+                label: STATUS_STYLES[status].label,
+                dot: STATUS_STYLES[status].dot,
+              }))}
+              value={form.status}
+              onChange={(status) => set('status', status)}
+            />
           </Field>
 
           {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-inset ring-red-600/15">{error}</p>}
@@ -349,6 +524,35 @@ function ManufacturerDialog({
           </button>
         </div>
       </form>
+    </div>
+  );
+}
+
+function Segmented<T extends string>({
+  options,
+  value,
+  onChange,
+}: {
+  options: { value: T; label: string; dot?: string }[];
+  value: T;
+  onChange: (value: T) => void;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-1 rounded-lg bg-zinc-100 p-1">
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          onClick={() => onChange(option.value)}
+          aria-pressed={value === option.value}
+          className={`flex items-center justify-center gap-2 rounded-md py-1.5 text-sm font-medium transition ${
+            value === option.value ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'
+          }`}
+        >
+          {option.dot && <span className={`h-1.5 w-1.5 rounded-full ${option.dot}`} />}
+          {option.label}
+        </button>
+      ))}
     </div>
   );
 }

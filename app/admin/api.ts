@@ -113,18 +113,29 @@ export async function updateRfqStatus(token: string, id: string, status: string)
   });
 }
 
+export type ManufacturerType = 'garments' | 'fabric';
+
 export type Manufacturer = {
   id: string;
   companyName: string;
   email: string;
   phone: string;
   location: string;
+  gstNumber: string;
+  manufacturerType: ManufacturerType;
+  fabrics: string | null;
+  products: string[];
+  winnerProduct: string | null;
   status: 'active' | 'inactive';
   createdAt: string;
   updatedAt: string;
 };
 
-export type ManufacturerInput = Pick<Manufacturer, 'companyName' | 'email' | 'phone' | 'location' | 'status'>;
+type ManufacturerBaseInput = Pick<Manufacturer, 'companyName' | 'email' | 'phone' | 'location' | 'gstNumber' | 'status'>;
+
+export type ManufacturerInput =
+  | (ManufacturerBaseInput & { manufacturerType: 'fabric'; fabrics: string })
+  | (ManufacturerBaseInput & { manufacturerType: 'garments'; products: string[]; winnerProduct: string });
 
 export type ManufacturerPage = {
   manufacturers: Manufacturer[];
@@ -149,9 +160,9 @@ export function createManufacturer(token: string, input: ManufacturerInput) {
   });
 }
 
-export function updateManufacturer(token: string, id: string, input: Partial<ManufacturerInput>) {
+export function updateManufacturer(token: string, id: string, input: ManufacturerInput) {
   return adminRequest<Manufacturer>(token, `/api/admin/manufacturers/${encodeURIComponent(id)}`, 'Failed to update manufacturer.', {
-    method: 'PATCH',
+    method: 'PUT',
     body: JSON.stringify(input),
   });
 }
