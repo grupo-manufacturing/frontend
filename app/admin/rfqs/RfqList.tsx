@@ -35,6 +35,12 @@ const STATUS_ACTIONS: Record<string, StatusAction[]> = {
       confirmText: 'as Quotation sent',
       className: 'bg-zinc-900 text-white hover:bg-zinc-700',
     },
+    {
+      to: 'lost',
+      label: 'Lost',
+      confirmText: 'as Lost (rejected without a quotation)',
+      className: 'bg-white text-zinc-600 ring-1 ring-inset ring-zinc-200 hover:bg-zinc-50',
+    },
   ],
   quotation: [
     {
