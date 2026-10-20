@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useId } from 'react';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
 
 export const inputCls =
@@ -39,6 +40,143 @@ export const timeFormatter = new Intl.DateTimeFormat('en-IN', { hour: 'numeric',
 
 export function formatPhone(phone: string) {
   return parsePhoneNumberFromString(phone)?.formatInternational() ?? phone;
+}
+
+const inrWhole = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
+const inrPaise = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 2 });
+
+export function formatInr(amount: number) {
+  return (Number.isInteger(amount) ? inrWhole : inrPaise).format(amount);
+}
+
+export function Field({
+  label,
+  htmlFor,
+  hint,
+  className = '',
+  children,
+}: {
+  label: string;
+  htmlFor?: string;
+  hint?: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={`space-y-1.5 ${className}`}>
+      <label htmlFor={htmlFor} className="block text-sm font-medium text-zinc-700">
+        {label}
+      </label>
+      {children}
+      {hint && <p className="text-xs text-zinc-400">{hint}</p>}
+    </div>
+  );
+}
+
+// Ids of open dialogs, innermost last, so Escape only closes the dialog on top.
+const openDialogs: string[] = [];
+
+/**
+ * A modal centred on screen: closes on Escape or a click outside, and locks page scroll while open.
+ * The header and footer stay put while the body scrolls. Pass onSubmit to render it as a form.
+ */
+export function Dialog({
+  title,
+  onClose,
+  onSubmit,
+  footer,
+  className = 'max-w-3xl',
+  children,
+}: {
+  title: React.ReactNode;
+  onClose: () => void;
+  onSubmit?: (e: React.FormEvent) => void;
+  footer?: React.ReactNode;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const titleId = useId();
+
+  useEffect(() => {
+    openDialogs.push(titleId);
+    return () => {
+      openDialogs.splice(openDialogs.indexOf(titleId), 1);
+    };
+  }, [titleId]);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && openDialogs[openDialogs.length - 1] === titleId) onClose();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [onClose, titleId]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const previous = root.style.overflow;
+    root.style.overflow = 'hidden';
+    return () => {
+      root.style.overflow = previous;
+    };
+  }, []);
+
+  const panelProps = {
+    onMouseDown: (e: React.MouseEvent) => e.stopPropagation(),
+    role: 'dialog',
+    'aria-modal': true,
+    'aria-labelledby': titleId,
+    className: `flex max-h-full w-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl ${className}`,
+  };
+
+  const content = (
+    <>
+      <div className="flex shrink-0 items-center justify-between gap-4 border-b border-zinc-100 px-6 py-4">
+        <h2 id={titleId} className="flex items-center gap-3 text-base font-semibold">
+          {title}
+        </h2>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="grid h-8 w-8 place-items-center rounded-lg text-lg text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700"
+        >
+          ×
+        </button>
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{children}</div>
+      {footer}
+    </>
+  );
+
+  return (
+    <div
+      className="fixed inset-0 z-30 flex items-center justify-center bg-zinc-900/30 p-4 backdrop-blur-[2px] sm:p-10"
+      onMouseDown={onClose}
+    >
+      {onSubmit ? (
+        <form {...panelProps} onSubmit={onSubmit}>
+          {content}
+        </form>
+      ) : (
+        <div {...panelProps}>{content}</div>
+      )}
+    </div>
+  );
+}
+
+export function DialogFooter({ saving, submitLabel, onCancel }: { saving: boolean; submitLabel: string; onCancel: () => void }) {
+  return (
+    <div className="flex shrink-0 justify-end gap-2 border-t border-zinc-100 px-6 py-4">
+      <button type="button" onClick={onCancel} className={ghostButtonCls}>
+        Cancel
+      </button>
+      <button type="submit" disabled={saving} className={primaryButtonCls}>
+        {saving && <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />}
+        {submitLabel}
+      </button>
+    </div>
+  );
 }
 
 export type StatusStyle = { label: string; pill: string; dot: string };

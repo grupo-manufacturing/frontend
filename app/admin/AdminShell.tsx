@@ -18,6 +18,7 @@ export function useAdminToken(): string {
 
 const NAV = [
   { href: '/admin/rfqs', label: 'RFQs' },
+  { href: '/admin/orders', label: 'Orders' },
   { href: '/admin/manufacturers', label: 'Manufacturers' },
 ];
 

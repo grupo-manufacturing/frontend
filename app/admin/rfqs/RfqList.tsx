@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useAdminToken } from '../AdminShell';
 import { fetchAdminRfqs, updateRfqStatus, type AdminRfq } from '../api';
+import OrderDetailsDialog from '../orders/OrderDetailsDialog';
+import ConvertOrderDialog from './ConvertOrderDialog';
 import {
   DataTable,
   dateFormatter,
@@ -43,12 +45,6 @@ const STATUS_ACTIONS: Record<string, StatusAction[]> = {
     },
   ],
   quotation: [
-    {
-      to: 'won',
-      label: 'Won',
-      confirmText: 'as Won (customer accepted the quotation)',
-      className: 'bg-white text-emerald-700 ring-1 ring-inset ring-emerald-200 hover:bg-emerald-50',
-    },
     {
       to: 'lost',
       label: 'Lost',
@@ -101,6 +97,20 @@ export default function RfqList() {
   const token = useAdminToken();
   const list = useAdminList(token, fetchAdminRfqs, 'Failed to load RFQs.');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [converting, setConverting] = useState<AdminRfq | null>(null);
+  const [openOrderId, setOpenOrderId] = useState<string | null>(null);
+
+  const onConverted = (rfqId: string, order: { id: string; orderNumber: string }) => {
+    setConverting(null);
+    list.setData(
+      (current) =>
+        current && {
+          ...current,
+          rfqs: current.rfqs.map((r) => (r.id === rfqId ? { ...r, status: 'won', order } : r)),
+        },
+    );
+    list.reloadQuietly();
+  };
 
   const changeStatus = async (rfq: AdminRfq, action: StatusAction) => {
     if (!window.confirm(`Mark ${rfq.rfqNumber} (${rfq.brandName}) ${action.confirmText}? This cannot be undone.`)) return;
@@ -193,6 +203,26 @@ export default function RfqList() {
               </td>
               <td className="px-4 py-4">
                 <StatusPill status={rfq.status} styles={STATUS_STYLES} />
+                {rfq.order ? (
+                  <button
+                    type="button"
+                    onClick={() => setOpenOrderId(rfq.order?.id ?? null)}
+                    className="admin-mono mt-2 block whitespace-nowrap text-xs font-medium text-emerald-700 underline-offset-2 hover:underline"
+                  >
+                    {rfq.order.orderNumber} →
+                  </button>
+                ) : (
+                  rfq.status === 'quotation' && (
+                    <button
+                      type="button"
+                      onClick={() => setConverting(rfq)}
+                      disabled={updatingId !== null}
+                      className="mt-2 block whitespace-nowrap rounded-md bg-emerald-600 px-2 py-1 text-xs font-medium text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Convert to Order
+                    </button>
+                  )
+                )}
                 {STATUS_ACTIONS[rfq.status] && (
                   <div className="mt-2 flex gap-1.5">
                     {STATUS_ACTIONS[rfq.status].map((action) => (
@@ -213,6 +243,17 @@ export default function RfqList() {
           );
         })}
       </DataTable>
+
+      {converting && (
+        <ConvertOrderDialog
+          token={token}
+          rfq={converting}
+          onClose={() => setConverting(null)}
+          onConverted={(order) => onConverted(converting.id, order)}
+        />
+      )}
+
+      {openOrderId && <OrderDetailsDialog token={token} orderId={openOrderId} onClose={() => setOpenOrderId(null)} />}
     </main>
   );
 }

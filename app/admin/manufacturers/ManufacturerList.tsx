@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { getCountryCallingCode, parsePhoneNumberFromString, type CountryCode } from 'libphonenumber-js';
 import { RFQ_PRODUCTS } from '../../request-for-quotation/api';
 import PhoneInput from '../../request-for-quotation/PhoneInput';
@@ -19,11 +19,13 @@ import {
 import {
   DataTable,
   dateFormatter,
+  Dialog,
+  DialogFooter,
   EmptyState,
   ErrorBanner,
+  Field,
   FilterChips,
   formatPhone,
-  ghostButtonCls,
   Icon,
   ICONS,
   inputCls,
@@ -275,23 +277,6 @@ function ManufacturerDialog({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [onClose]);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    const previous = root.style.overflow;
-    root.style.overflow = 'hidden';
-    return () => {
-      root.style.overflow = previous;
-    };
-  }, []);
-
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => setForm((f) => ({ ...f, [key]: value }));
 
   const toggleProduct = (product: string) =>
@@ -347,188 +332,157 @@ function ManufacturerDialog({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-30 flex items-start justify-center overflow-y-auto bg-zinc-900/30 px-4 py-10 backdrop-blur-[2px]"
-      onMouseDown={onClose}
+    <Dialog
+      title={manufacturer ? 'Edit Manufacturer' : 'Add Manufacturer'}
+      onClose={onClose}
+      onSubmit={handleSubmit}
+      footer={<DialogFooter saving={saving} submitLabel={manufacturer ? 'Save Changes' : 'Add Manufacturer'} onCancel={onClose} />}
     >
-      <form
-        onSubmit={handleSubmit}
-        onMouseDown={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="manufacturer-dialog-title"
-        className="w-full max-w-3xl rounded-2xl border border-zinc-200 bg-white shadow-2xl"
-      >
-        <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
-          <h2 id="manufacturer-dialog-title" className="text-base font-semibold">
-            {manufacturer ? 'Edit Manufacturer' : 'Add Manufacturer'}
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="grid h-8 w-8 place-items-center rounded-lg text-lg text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700"
-          >
-            ×
-          </button>
-        </div>
+      <div className="grid grid-cols-1 gap-x-5 gap-y-4 px-6 py-5 sm:grid-cols-2">
+        <Field label="Company name" htmlFor="m-company">
+          <input
+            id="m-company"
+            required
+            autoFocus
+            maxLength={150}
+            value={form.companyName}
+            onChange={(e) => set('companyName', e.target.value)}
+            placeholder="Shree Ganesh Garments"
+            className={inputCls}
+          />
+        </Field>
+        <Field label="GST No." htmlFor="m-gst">
+          <input
+            id="m-gst"
+            required
+            maxLength={15}
+            value={form.gstNumber}
+            onChange={(e) => set('gstNumber', e.target.value.toUpperCase())}
+            placeholder="33ABCDE1234F1Z5"
+            autoComplete="off"
+            spellCheck={false}
+            className={`${inputCls} admin-mono uppercase`}
+          />
+        </Field>
+        <Field label="Email" htmlFor="m-email">
+          <input
+            id="m-email"
+            type="email"
+            required
+            maxLength={254}
+            value={form.email}
+            onChange={(e) => set('email', e.target.value)}
+            placeholder="contact@shreeganesh.in"
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Phone" htmlFor="m-phone">
+          <PhoneInput
+            id="m-phone"
+            variant="admin"
+            country={form.phoneCountry}
+            onCountryChange={(country) => set('phoneCountry', country)}
+            number={form.phoneNumber}
+            onNumberChange={(number) => set('phoneNumber', number)}
+          />
+        </Field>
+        <Field label="Location" htmlFor="m-location">
+          <input
+            id="m-location"
+            required
+            maxLength={200}
+            value={form.location}
+            onChange={(e) => set('location', e.target.value)}
+            placeholder="Tiruppur, Tamil Nadu"
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Type of Manufacturer">
+          <Segmented
+            options={(['garments', 'fabric'] as const).map((type) => ({ value: type, label: TYPE_LABELS[type] }))}
+            value={form.manufacturerType}
+            onChange={(type) => set('manufacturerType', type)}
+          />
+        </Field>
 
-        <div className="grid grid-cols-1 gap-x-5 gap-y-4 px-6 py-5 sm:grid-cols-2">
-          <Field label="Company name" htmlFor="m-company">
-            <input
-              id="m-company"
+        {form.manufacturerType === 'fabric' ? (
+          <Field label="Fabrics you manufacture" htmlFor="m-fabrics" hint="Separate fabrics with commas.">
+            <textarea
+              id="m-fabrics"
               required
-              autoFocus
-              maxLength={150}
-              value={form.companyName}
-              onChange={(e) => set('companyName', e.target.value)}
-              placeholder="Shree Ganesh Garments"
-              className={inputCls}
+              rows={3}
+              maxLength={500}
+              value={form.fabrics}
+              onChange={(e) => set('fabrics', e.target.value)}
+              placeholder="Cotton jersey, French terry, Fleece, Denim"
+              className={`${inputCls} resize-none`}
             />
           </Field>
-          <Field label="GST No." htmlFor="m-gst">
-            <input
-              id="m-gst"
-              required
-              maxLength={15}
-              value={form.gstNumber}
-              onChange={(e) => set('gstNumber', e.target.value.toUpperCase())}
-              placeholder="33ABCDE1234F1Z5"
-              autoComplete="off"
-              spellCheck={false}
-              className={`${inputCls} admin-mono uppercase`}
-            />
-          </Field>
-          <Field label="Email" htmlFor="m-email">
-            <input
-              id="m-email"
-              type="email"
-              required
-              maxLength={254}
-              value={form.email}
-              onChange={(e) => set('email', e.target.value)}
-              placeholder="contact@shreeganesh.in"
-              className={inputCls}
-            />
-          </Field>
-          <Field label="Phone" htmlFor="m-phone">
-            <PhoneInput
-              id="m-phone"
-              variant="admin"
-              country={form.phoneCountry}
-              onCountryChange={(country) => set('phoneCountry', country)}
-              number={form.phoneNumber}
-              onNumberChange={(number) => set('phoneNumber', number)}
-            />
-          </Field>
-          <Field label="Location" htmlFor="m-location">
-            <input
-              id="m-location"
-              required
-              maxLength={200}
-              value={form.location}
-              onChange={(e) => set('location', e.target.value)}
-              placeholder="Tiruppur, Tamil Nadu"
-              className={inputCls}
-            />
-          </Field>
-          <Field label="Type of Manufacturer">
-            <Segmented
-              options={(['garments', 'fabric'] as const).map((type) => ({ value: type, label: TYPE_LABELS[type] }))}
-              value={form.manufacturerType}
-              onChange={(type) => set('manufacturerType', type)}
-            />
-          </Field>
-
-          {form.manufacturerType === 'fabric' ? (
-            <Field label="Fabrics you manufacture" htmlFor="m-fabrics" hint="Separate fabrics with commas.">
-              <textarea
-                id="m-fabrics"
-                required
-                rows={3}
-                maxLength={500}
-                value={form.fabrics}
-                onChange={(e) => set('fabrics', e.target.value)}
-                placeholder="Cotton jersey, French terry, Fleece, Denim"
-                className={`${inputCls} resize-none`}
-              />
-            </Field>
-          ) : (
-            <>
-              <Field label="Type of Products" hint={`${form.products.length} selected`} className="sm:col-span-2">
-                <div className="flex flex-wrap gap-1.5">
-                  {RFQ_PRODUCTS.map((product) => {
-                    const selected = form.products.includes(product);
-                    return (
-                      <button
-                        key={product}
-                        type="button"
-                        onClick={() => toggleProduct(product)}
-                        aria-pressed={selected}
-                        className={`rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset transition ${
-                          selected
-                            ? 'bg-zinc-900 text-white ring-zinc-900'
-                            : 'bg-white text-zinc-600 ring-zinc-200 hover:bg-zinc-50 hover:text-zinc-900'
-                        }`}
-                      >
-                        {product}
-                      </button>
-                    );
-                  })}
-                </div>
-              </Field>
-              <Field label="Winner Product" htmlFor="m-winner" hint="The product this manufacturer is best at.">
-                <select
-                  id="m-winner"
-                  required
-                  value={form.winnerProduct}
-                  onChange={(e) => set('winnerProduct', e.target.value)}
-                  disabled={form.products.length === 0}
-                  className={`${inputCls} disabled:cursor-not-allowed disabled:bg-zinc-50 disabled:text-zinc-400`}
-                >
-                  <option value="" disabled>
-                    {form.products.length === 0 ? 'Select products first' : 'Select winner product'}
-                  </option>
-                  {form.products.map((product) => (
-                    <option key={product} value={product}>
+        ) : (
+          <>
+            <Field label="Type of Products" hint={`${form.products.length} selected`} className="sm:col-span-2">
+              <div className="flex flex-wrap gap-1.5">
+                {RFQ_PRODUCTS.map((product) => {
+                  const selected = form.products.includes(product);
+                  return (
+                    <button
+                      key={product}
+                      type="button"
+                      onClick={() => toggleProduct(product)}
+                      aria-pressed={selected}
+                      className={`rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset transition ${
+                        selected
+                          ? 'bg-zinc-900 text-white ring-zinc-900'
+                          : 'bg-white text-zinc-600 ring-zinc-200 hover:bg-zinc-50 hover:text-zinc-900'
+                      }`}
+                    >
                       {product}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-            </>
-          )}
+                    </button>
+                  );
+                })}
+              </div>
+            </Field>
+            <Field label="Winner Product" htmlFor="m-winner" hint="The product this manufacturer is best at.">
+              <select
+                id="m-winner"
+                required
+                value={form.winnerProduct}
+                onChange={(e) => set('winnerProduct', e.target.value)}
+                disabled={form.products.length === 0}
+                className={`${inputCls} disabled:cursor-not-allowed disabled:bg-zinc-50 disabled:text-zinc-400`}
+              >
+                <option value="" disabled>
+                  {form.products.length === 0 ? 'Select products first' : 'Select winner product'}
+                </option>
+                {form.products.map((product) => (
+                  <option key={product} value={product}>
+                    {product}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </>
+        )}
 
-          <Field label="Status">
-            <Segmented
-              options={(['active', 'inactive'] as const).map((status) => ({
-                value: status,
-                label: STATUS_STYLES[status].label,
-                dot: STATUS_STYLES[status].dot,
-              }))}
-              value={form.status}
-              onChange={(status) => set('status', status)}
-            />
-          </Field>
+        <Field label="Status">
+          <Segmented
+            options={(['active', 'inactive'] as const).map((status) => ({
+              value: status,
+              label: STATUS_STYLES[status].label,
+              dot: STATUS_STYLES[status].dot,
+            }))}
+            value={form.status}
+            onChange={(status) => set('status', status)}
+          />
+        </Field>
 
-          {error && (
-            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-inset ring-red-600/15 sm:col-span-2">
-              {error}
-            </p>
-          )}
-        </div>
-
-        <div className="flex justify-end gap-2 border-t border-zinc-100 px-6 py-4">
-          <button type="button" onClick={onClose} className={ghostButtonCls}>
-            Cancel
-          </button>
-          <button type="submit" disabled={saving} className={primaryButtonCls}>
-            {saving && <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />}
-            {manufacturer ? 'Save Changes' : 'Add Manufacturer'}
-          </button>
-        </div>
-      </form>
-    </div>
+        {error && (
+          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-inset ring-red-600/15 sm:col-span-2">
+            {error}
+          </p>
+        )}
+      </div>
+    </Dialog>
   );
 }
 
@@ -557,30 +511,6 @@ function Segmented<T extends string>({
           {option.label}
         </button>
       ))}
-    </div>
-  );
-}
-
-function Field({
-  label,
-  htmlFor,
-  hint,
-  className = '',
-  children,
-}: {
-  label: string;
-  htmlFor?: string;
-  hint?: string;
-  className?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className={`space-y-1.5 ${className}`}>
-      <label htmlFor={htmlFor} className="block text-sm font-medium text-zinc-700">
-        {label}
-      </label>
-      {children}
-      {hint && <p className="text-xs text-zinc-400">{hint}</p>}
     </div>
   );
 }

@@ -14,6 +14,7 @@ export type AdminRfq = {
   status: string;
   createdAt: string;
   items: { product: string; quantity: number }[];
+  order: { id: string; orderNumber: string } | null;
 };
 
 export type AdminRfqPage = {
@@ -170,5 +171,114 @@ export function updateManufacturer(token: string, id: string, input: Manufacture
 export async function deleteManufacturer(token: string, id: string): Promise<void> {
   await adminRequest(token, `/api/admin/manufacturers/${encodeURIComponent(id)}`, 'Failed to delete manufacturer.', {
     method: 'DELETE',
+  });
+}
+
+/** Manufacturers an order can be assigned to: active garments manufacturers. */
+export async function fetchAssignableManufacturers(token: string): Promise<Manufacturer[]> {
+  const params = new URLSearchParams({ page: '1', pageSize: '100', status: 'active', type: 'garments', counts: '0' });
+  const page = await adminRequest<ManufacturerPage>(token, `/api/admin/manufacturers?${params}`, 'Failed to load manufacturers.');
+  return page.manufacturers;
+}
+
+export type OrderStatus = 'confirmed' | 'sampling' | 'in_production' | 'delivered' | 'cancelled';
+
+export type PaymentMethod = 'bank_transfer' | 'upi' | 'cash' | 'other';
+
+export type PaymentParty = 'customer' | 'manufacturer';
+
+export type OrderItem = {
+  product: string;
+  quantity: number;
+  unitPrice: number;
+  lineTotal: number;
+  manufacturerUnitPrice: number;
+  manufacturerLineTotal: number;
+};
+
+export type AdminOrder = {
+  id: string;
+  orderNumber: string;
+  rfqNumber: string;
+  status: OrderStatus;
+  customerName: string;
+  brandName: string;
+  email: string;
+  phone: string;
+  manufacturerName: string;
+  items: OrderItem[];
+  totalAmount: number;
+  amountReceived: number;
+  balanceDue: number;
+  manufacturerTotal: number;
+  amountPaidToManufacturer: number;
+  manufacturerBalanceDue: number;
+  createdAt: string;
+};
+
+export type AdminOrderPage = {
+  orders: AdminOrder[];
+  total: number;
+  counts?: Record<string, number>;
+  page: number;
+  pageSize: number;
+};
+
+export type OrderPayment = {
+  id: string;
+  party: PaymentParty;
+  amount: number;
+  paidOn: string;
+  method: PaymentMethod | null;
+  reference: string | null;
+  createdAt: string;
+};
+
+export type AdminOrderDetail = Omit<AdminOrder, 'rfqNumber' | 'manufacturerName'> & {
+  shippingAddress: string;
+  updatedAt: string;
+  rfq: { id: string; rfqNumber: string; location: string; techPackUrl: string | null };
+  manufacturer: { id: string; companyName: string; email: string; phone: string; location: string };
+  payments: OrderPayment[];
+};
+
+export type ConvertRfqInput = {
+  manufacturerId: string;
+  shippingAddress: string;
+  items: { product: string; quantity: number; unitPrice: number; manufacturerUnitPrice: number }[];
+  amountReceived: number;
+  amountPaidToManufacturer: number;
+};
+
+export type PaymentInput = { party: PaymentParty; amount: number; paidOn: string; method: PaymentMethod; reference?: string };
+
+export function convertRfqToOrder(token: string, rfqId: string, input: ConvertRfqInput) {
+  return adminRequest<{ id: string; orderNumber: string }>(
+    token,
+    `/api/admin/rfqs/${encodeURIComponent(rfqId)}/convert`,
+    'Failed to convert RFQ to order.',
+    { method: 'POST', body: JSON.stringify(input) },
+  );
+}
+
+export function fetchOrders(token: string, page: number, pageSize: number, filters: ListFilters = {}) {
+  return adminRequest<AdminOrderPage>(token, listPath('/api/admin/orders', page, pageSize, filters), 'Failed to load orders.');
+}
+
+export function fetchOrder(token: string, id: string) {
+  return adminRequest<AdminOrderDetail>(token, `/api/admin/orders/${encodeURIComponent(id)}`, 'Failed to load order.');
+}
+
+export function updateOrderStatus(token: string, id: string, status: OrderStatus) {
+  return adminRequest<AdminOrderDetail>(token, `/api/admin/orders/${encodeURIComponent(id)}/status`, 'Failed to update status.', {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  });
+}
+
+export function addOrderPayment(token: string, id: string, input: PaymentInput) {
+  return adminRequest<AdminOrderDetail>(token, `/api/admin/orders/${encodeURIComponent(id)}/payments`, 'Failed to add payment.', {
+    method: 'POST',
+    body: JSON.stringify(input),
   });
 }
