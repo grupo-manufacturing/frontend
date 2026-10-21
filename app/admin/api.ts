@@ -187,14 +187,7 @@ export type PaymentMethod = 'bank_transfer' | 'upi' | 'cash' | 'other';
 
 export type PaymentParty = 'customer' | 'manufacturer';
 
-export type OrderItem = {
-  product: string;
-  quantity: number;
-  unitPrice: number;
-  lineTotal: number;
-  manufacturerUnitPrice: number;
-  manufacturerLineTotal: number;
-};
+export type OrderItem = { product: string; quantity: number };
 
 export type AdminOrder = {
   id: string;
@@ -229,7 +222,7 @@ export type OrderPayment = {
   party: PaymentParty;
   amount: number;
   paidOn: string;
-  method: PaymentMethod | null;
+  method: PaymentMethod;
   reference: string | null;
   createdAt: string;
 };
@@ -245,9 +238,15 @@ export type AdminOrderDetail = Omit<AdminOrder, 'rfqNumber' | 'manufacturerName'
 export type ConvertRfqInput = {
   manufacturerId: string;
   shippingAddress: string;
-  items: { product: string; quantity: number; unitPrice: number; manufacturerUnitPrice: number }[];
+  items: OrderItem[];
+  totalAmount: number;
+  manufacturerTotal: number;
   amountReceived: number;
+  receivedMethod: PaymentMethod;
+  receivedReference?: string;
   amountPaidToManufacturer: number;
+  manufacturerPaymentMethod?: PaymentMethod;
+  manufacturerPaymentReference?: string;
 };
 
 export type PaymentInput = { party: PaymentParty; amount: number; paidOn: string; method: PaymentMethod; reference?: string };

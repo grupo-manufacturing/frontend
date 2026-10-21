@@ -19,7 +19,16 @@ import { useAdminList } from '../useAdminList';
 import OrderDetailsDialog from './OrderDetailsDialog';
 import { ORDER_STATUS_STYLES } from './orderStatus';
 
-const COLUMNS = ['Order', 'Created', 'Customer', 'Manufacturer', 'Products', 'Amount', 'Status'];
+const COLUMNS = ['Order', 'Created', 'Customer', 'Manufacturer', 'Products', 'Grupo Price', 'Manufacturer Price', 'Net Profit', 'Status'];
+
+function DueLine({ amount, paidLabel, cancelled }: { amount: number; paidLabel: string; cancelled: boolean }) {
+  if (amount === 0) return <p className="text-xs text-emerald-700">{paidLabel}</p>;
+  return (
+    <p className={`text-xs ${cancelled ? 'text-zinc-400' : 'text-amber-700'}`}>
+      Due <span className="admin-mono">{formatInr(amount)}</span>
+    </p>
+  );
+}
 
 export default function OrderList() {
   const token = useAdminToken();
@@ -39,7 +48,7 @@ export default function OrderList() {
 
       <DataTable
         columns={COLUMNS}
-        minWidth="1100px"
+        minWidth="1300px"
         loading={list.loading}
         loadingLabel="Loading orders…"
         isEmpty={!list.data || list.data.orders.length === 0}
@@ -58,6 +67,9 @@ export default function OrderList() {
         {list.data?.orders.map((order) => {
           const createdAt = new Date(order.createdAt);
           const totalUnits = order.items.reduce((sum, item) => sum + item.quantity, 0);
+          const cancelled = order.status === 'cancelled';
+          const netProfit = (Math.round(order.totalAmount * 100) - Math.round(order.manufacturerTotal * 100)) / 100;
+          const profitTone = cancelled ? 'text-zinc-400' : netProfit < 0 ? 'text-red-600' : netProfit > 0 ? 'text-emerald-700' : 'text-zinc-900';
           return (
             <tr
               key={order.id}
@@ -94,16 +106,14 @@ export default function OrderList() {
               </td>
               <td className="whitespace-nowrap px-4 py-4">
                 <p className="admin-mono font-medium text-zinc-900">{formatInr(order.totalAmount)}</p>
-                {order.balanceDue === 0 ? (
-                  <p className="text-xs text-emerald-700">Fully paid</p>
-                ) : (
-                  <p className={`text-xs ${order.status === 'cancelled' ? 'text-zinc-400' : 'text-amber-700'}`}>
-                    Due <span className="admin-mono">{formatInr(order.balanceDue)}</span>
-                  </p>
-                )}
-                <p className="text-xs text-zinc-400">
-                  Mfr due <span className="admin-mono">{formatInr(order.manufacturerBalanceDue)}</span>
-                </p>
+                <DueLine amount={order.balanceDue} paidLabel="Fully received" cancelled={cancelled} />
+              </td>
+              <td className="whitespace-nowrap px-4 py-4">
+                <p className="admin-mono font-medium text-zinc-900">{formatInr(order.manufacturerTotal)}</p>
+                <DueLine amount={order.manufacturerBalanceDue} paidLabel="Fully paid" cancelled={cancelled} />
+              </td>
+              <td className={`admin-mono whitespace-nowrap px-4 py-4 font-medium ${profitTone}`}>
+                {formatInr(netProfit)}
               </td>
               <td className="px-4 py-4">
                 <StatusPill status={order.status} styles={ORDER_STATUS_STYLES} />

@@ -8,6 +8,7 @@ import {
   fetchOrder,
   updateOrderStatus,
   type AdminOrderDetail,
+  type OrderPayment,
   type OrderStatus,
   type PaymentMethod,
   type PaymentParty,
@@ -30,7 +31,23 @@ import {
 } from '../ui';
 import { NEXT_ORDER_STEP, ORDER_PIPELINE, ORDER_STATUS_STYLES, PAYMENT_METHOD_LABELS, PAYMENT_PARTY_LABELS } from './orderStatus';
 
-const todayInIndia = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+const isoDateInIndia = (date: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(date);
+const todayInIndia = () => isoDateInIndia(new Date());
+
+function PaymentTime({ payment }: { payment: OrderPayment }) {
+  const recordedAt = new Date(payment.createdAt);
+  const backdated = isoDateInIndia(recordedAt) !== payment.paidOn;
+  return (
+    <>
+      <p className="text-zinc-900">{dateFormatter.format(new Date(payment.paidOn))}</p>
+      <p className="text-xs text-zinc-500">
+        {backdated
+          ? `Recorded ${dateFormatter.format(recordedAt)}, ${timeFormatter.format(recordedAt)}`
+          : timeFormatter.format(recordedAt)}
+      </p>
+    </>
+  );
+}
 
 function errorMessage(err: unknown, fallback: string): string | null {
   if (err instanceof AdminAuthError) {
@@ -240,15 +257,11 @@ function OrderBody({
       <section className="overflow-hidden rounded-xl border border-zinc-200">
         <h3 className="border-b border-zinc-200 px-4 py-3 text-sm font-semibold">Products</h3>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] text-left text-sm">
+          <table className="w-full min-w-[360px] text-left text-sm">
             <thead>
               <tr className="border-b border-zinc-200 bg-zinc-50/60 text-xs font-medium text-zinc-500">
                 <th className="px-4 py-2.5">Product</th>
                 <th className="px-4 py-2.5 text-right">Quantity</th>
-                <th className="px-4 py-2.5 text-right">Customer price</th>
-                <th className="px-4 py-2.5 text-right">Customer total</th>
-                <th className="px-4 py-2.5 text-right">Manufacturer price</th>
-                <th className="px-4 py-2.5 text-right">Manufacturer total</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100">
@@ -256,21 +269,13 @@ function OrderBody({
                 <tr key={item.product}>
                   <td className="px-4 py-3 text-zinc-900">{item.product}</td>
                   <td className="admin-mono px-4 py-3 text-right text-zinc-700">{item.quantity.toLocaleString('en-IN')}</td>
-                  <td className="admin-mono px-4 py-3 text-right text-zinc-700">{formatInr(item.unitPrice)}</td>
-                  <td className="admin-mono px-4 py-3 text-right text-zinc-900">{formatInr(item.lineTotal)}</td>
-                  <td className="admin-mono px-4 py-3 text-right text-zinc-700">{formatInr(item.manufacturerUnitPrice)}</td>
-                  <td className="admin-mono px-4 py-3 text-right text-zinc-900">{formatInr(item.manufacturerLineTotal)}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
               <tr className="border-t border-zinc-200 bg-zinc-50/60">
                 <td className="px-4 py-3 font-medium text-zinc-900">Total</td>
-                <td className="admin-mono px-4 py-3 text-right text-zinc-700">{totalUnits.toLocaleString('en-IN')}</td>
-                <td />
-                <td className="admin-mono px-4 py-3 text-right font-semibold text-zinc-900">{formatInr(order.totalAmount)}</td>
-                <td />
-                <td className="admin-mono px-4 py-3 text-right font-semibold text-zinc-900">{formatInr(order.manufacturerTotal)}</td>
+                <td className="admin-mono px-4 py-3 text-right font-semibold text-zinc-900">{totalUnits.toLocaleString('en-IN')}</td>
               </tr>
             </tfoot>
           </table>
@@ -280,7 +285,7 @@ function OrderBody({
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <MoneySummary
           title="Customer"
-          totalLabel="Order total"
+          totalLabel="Final customer price"
           total={order.totalAmount}
           paidLabel="Received"
           paid={order.amountReceived}
@@ -291,7 +296,7 @@ function OrderBody({
         />
         <MoneySummary
           title="Manufacturer"
-          totalLabel="Manufacturer total"
+          totalLabel="Final manufacturer price"
           total={order.manufacturerTotal}
           paidLabel="Paid"
           paid={order.amountPaidToManufacturer}
@@ -308,7 +313,7 @@ function OrderBody({
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead>
               <tr className="border-b border-zinc-200 bg-zinc-50/60 text-xs font-medium text-zinc-500">
-                <th className="px-4 py-2.5">Date</th>
+                <th className="px-4 py-2.5">Date &amp; time</th>
                 <th className="px-4 py-2.5">Type</th>
                 <th className="px-4 py-2.5">Method</th>
                 <th className="px-4 py-2.5">Reference</th>
@@ -318,7 +323,9 @@ function OrderBody({
             <tbody className="divide-y divide-zinc-100">
               {order.payments.map((payment) => (
                 <tr key={payment.id}>
-                  <td className="whitespace-nowrap px-4 py-3 text-zinc-900">{dateFormatter.format(new Date(payment.paidOn))}</td>
+                  <td className="whitespace-nowrap px-4 py-3">
+                    <PaymentTime payment={payment} />
+                  </td>
                   <td className="px-4 py-3">
                     <span
                       className={`inline-flex rounded-md px-2 py-0.5 text-xs font-medium ${
@@ -329,7 +336,7 @@ function OrderBody({
                     </span>
                   </td>
                   <td className="px-4 py-3 text-zinc-700">
-                    {payment.method ? PAYMENT_METHOD_LABELS[payment.method] : <span className="text-zinc-300">—</span>}
+                    {PAYMENT_METHOD_LABELS[payment.method]}
                   </td>
                   <td className="admin-mono px-4 py-3 text-xs text-zinc-600">{payment.reference ?? <span className="text-zinc-300">—</span>}</td>
                   <td className="admin-mono px-4 py-3 text-right text-zinc-900">{formatInr(payment.amount)}</td>
