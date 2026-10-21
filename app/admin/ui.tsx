@@ -21,6 +21,10 @@ export const ICONS = {
   plus: 'M10 4.5v11M4.5 10h11',
   edit: 'M12.5 4.5l3 3M4 16l1-4 8.5-8.5 3 3L8 15l-4 1Z',
   trash: 'M4.5 6h11M8 6V4.5h4V6M6 6l.7 9.5h6.6L14 6',
+  check: 'M4.5 10.5l3.5 3.5 7.5-8',
+  close: 'M5.5 5.5l9 9M14.5 5.5l-9 9',
+  alert: 'M10 6.5v4M10 13.5v.01M10 17a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z',
+  info: 'M10 9.5v4M10 6.5v.01M10 17a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z',
 };
 
 export function Icon({ d, className = 'h-4 w-4' }: { d: string; className?: string }) {

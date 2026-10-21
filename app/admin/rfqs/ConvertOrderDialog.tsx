@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { RFQ_MIN_QUANTITY, RFQ_PRODUCTS } from '../../request-for-quotation/api';
 import {
   AdminAuthError,
-  clearSession,
+  expireSession,
   convertRfqToOrder,
   fetchAssignableManufacturers,
   type AdminRfq,
@@ -177,7 +177,7 @@ export default function ConvertOrderDialog({
       .catch((err) => {
         if (cancelled) return;
         if (err instanceof AdminAuthError) {
-          clearSession();
+          expireSession();
           return;
         }
         setManufacturers([]);
@@ -236,7 +236,7 @@ export default function ConvertOrderDialog({
       onConverted(order);
     } catch (err) {
       if (err instanceof AdminAuthError) {
-        clearSession();
+        expireSession();
         return;
       }
       setError(err instanceof Error ? err.message : 'Failed to convert RFQ to order.');

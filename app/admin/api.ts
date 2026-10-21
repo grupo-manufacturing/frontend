@@ -1,4 +1,5 @@
 import { OMS_API_URL } from '../request-for-quotation/api';
+import { toast } from './toast';
 
 const SESSION_KEY = 'grupo_admin_session';
 
@@ -55,6 +56,16 @@ export function getSessionToken(): string | null {
 export function clearSession() {
   localStorage.removeItem(SESSION_KEY);
   notifySessionListeners();
+}
+
+export function expireSession() {
+  if (getSessionToken()) toast.info('Your session has expired. Please log in again.');
+  clearSession();
+}
+
+export function logout() {
+  clearSession();
+  toast.info('You have been logged out.');
 }
 
 export async function adminLogin(username: string, password: string): Promise<void> {
@@ -273,6 +284,25 @@ export function updateOrderStatus(token: string, id: string, status: OrderStatus
     method: 'PATCH',
     body: JSON.stringify({ status }),
   });
+}
+
+export type AnalyticsPeriod = 'this_month' | 'last_3_months' | 'all_time';
+
+export type RfqStatus = 'lead' | 'quotation' | 'won' | 'lost';
+
+export type Analytics = {
+  period: AnalyticsPeriod;
+  summary: { revenue: number; manufacturerCost: number; netProfit: number; orders: number };
+  cash: { received: number; receivable: number; paidToManufacturers: number; payableToManufacturers: number };
+  rfqFunnel: { counts: Record<RfqStatus, number>; winRate: number | null };
+  ordersByStatus: Record<OrderStatus, number>;
+  topProducts: { product: string; units: number; orders: number }[];
+  topManufacturers: { id: string; name: string; orders: number; value: number; profit: number }[];
+  monthlyTrend: { month: string; orders: number; revenue: number; profit: number }[];
+};
+
+export function fetchAnalytics(token: string, period: AnalyticsPeriod) {
+  return adminRequest<Analytics>(token, `/api/admin/analytics?period=${period}`, 'Failed to load analytics.');
 }
 
 export function addOrderPayment(token: string, id: string, input: PaymentInput) {

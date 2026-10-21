@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import {
   AdminAuthError,
   addOrderPayment,
-  clearSession,
+  expireSession,
   fetchOrder,
   updateOrderStatus,
   type AdminOrderDetail,
@@ -29,6 +29,7 @@ import {
   StatusPill,
   timeFormatter,
 } from '../ui';
+import { toast } from '../toast';
 import { NEXT_ORDER_STEP, ORDER_PIPELINE, ORDER_STATUS_STYLES, PAYMENT_METHOD_LABELS, PAYMENT_PARTY_LABELS } from './orderStatus';
 
 const isoDateInIndia = (date: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(date);
@@ -51,7 +52,7 @@ function PaymentTime({ payment }: { payment: OrderPayment }) {
 
 function errorMessage(err: unknown, fallback: string): string | null {
   if (err instanceof AdminAuthError) {
-    clearSession();
+    expireSession();
     return null;
   }
   return err instanceof Error ? err.message : fallback;
@@ -103,6 +104,7 @@ export default function OrderDetailsDialog({
     setError('');
     try {
       setOrder(await updateOrderStatus(token, order.id, to));
+      toast.success(to === 'cancelled' ? `${order.orderNumber} cancelled` : `${order.orderNumber} moved to ${ORDER_STATUS_STYLES[to].label}`);
       onChanged?.();
     } catch (err) {
       const message = errorMessage(err, 'Failed to update status.');
@@ -462,15 +464,15 @@ function PaymentDialog({
     setSaving(true);
     setError('');
     try {
-      onSaved(
-        await addOrderPayment(token, order.id, {
-          party,
-          amount: Number(amount),
-          paidOn,
-          method,
-          reference: reference.trim() || undefined,
-        }),
-      );
+      const updated = await addOrderPayment(token, order.id, {
+        party,
+        amount: Number(amount),
+        paidOn,
+        method,
+        reference: reference.trim() || undefined,
+      });
+      toast.success(`${formatInr(Number(amount))} ${isCustomer ? 'received from customer' : 'paid to manufacturer'} · ${order.orderNumber}`);
+      onSaved(updated);
     } catch (err) {
       const message = errorMessage(err, 'Failed to record payment.');
       if (message) setError(message);

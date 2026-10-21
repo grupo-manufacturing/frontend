@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { createContext, useContext, useEffect, useState, useSyncExternalStore } from 'react';
 import { wakeOmsBackend } from '../request-for-quotation/api';
-import { adminLogin, clearSession, getSessionToken, subscribeSession } from './api';
+import { adminLogin, getSessionToken, logout, subscribeSession } from './api';
+import Toaster from './Toaster';
 import { FieldIcon, Icon, ICONS, inputCls } from './ui';
 
 const TokenContext = createContext<string | null>(null);
@@ -20,6 +21,7 @@ const NAV = [
   { href: '/admin/rfqs', label: 'RFQs' },
   { href: '/admin/orders', label: 'Orders' },
   { href: '/admin/manufacturers', label: 'Manufacturers' },
+  { href: '/admin/analytics', label: 'Analytics' },
 ];
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
@@ -30,9 +32,23 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
     wakeOmsBackend();
   }, []);
 
-  if (token === undefined) return <div className="min-h-screen bg-zinc-50" />;
-  if (!token) return <LoginScreen />;
+  return (
+    <>
+      {token === undefined ? (
+        <div className="min-h-screen bg-zinc-50" />
+      ) : token ? (
+        <Dashboard token={token} pathname={pathname}>
+          {children}
+        </Dashboard>
+      ) : (
+        <LoginScreen />
+      )}
+      <Toaster />
+    </>
+  );
+}
 
+function Dashboard({ token, pathname, children }: { token: string; pathname: string; children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-900 antialiased">
       <header className="sticky top-0 z-20 border-b border-zinc-200/80 bg-white/80 backdrop-blur">
@@ -62,7 +78,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
           </div>
           <button
             type="button"
-            onClick={clearSession}
+            onClick={logout}
             aria-label="Log out"
             title="Log out"
             className="grid h-9 w-9 place-items-center rounded-lg text-red-500 transition hover:bg-red-50 hover:text-red-600"

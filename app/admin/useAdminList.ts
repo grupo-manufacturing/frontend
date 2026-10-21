@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { AdminAuthError, clearSession, type ListFilters } from './api';
+import { AdminAuthError, expireSession, type ListFilters } from './api';
+import { toast } from './toast';
 
 const PAGE_SIZE = 25;
 
@@ -47,7 +48,7 @@ export function useAdminList<T extends ListPage>(token: string, fetcher: Fetcher
       .catch((err) => {
         if (cancelled) return;
         if (err instanceof AdminAuthError) {
-          clearSession();
+          expireSession();
           return;
         }
         setError(err instanceof Error ? err.message : errorText);
@@ -87,16 +88,14 @@ export function useAdminList<T extends ListPage>(token: string, fetcher: Fetcher
     setReloadKey((key) => key + 1);
   };
 
-  // Re-fetches (including counts) without showing the loading state, e.g. after an edit.
   const reloadQuietly = () => setReloadKey((key) => key + 1);
 
-  /** Reports an error from a mutation; expired sessions log the admin out. */
   const handleError = (err: unknown, fallback: string) => {
     if (err instanceof AdminAuthError) {
-      clearSession();
+      expireSession();
       return;
     }
-    setError(err instanceof Error ? err.message : fallback);
+    toast.error(err instanceof Error ? err.message : fallback);
   };
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;

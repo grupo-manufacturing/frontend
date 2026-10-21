@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useAdminToken } from '../AdminShell';
-import { fetchAdminRfqs, updateRfqStatus, type AdminRfq } from '../api';
+import { fetchAdminRfqs, updateRfqStatus, type AdminRfq, type RfqStatus } from '../api';
+import { toast } from '../toast';
 import OrderDetailsDialog from '../orders/OrderDetailsDialog';
 import ConvertOrderDialog from './ConvertOrderDialog';
 import {
@@ -16,16 +17,9 @@ import {
   SearchBox,
   StatusPill,
   timeFormatter,
-  type StatusStyle,
 } from '../ui';
 import { useAdminList } from '../useAdminList';
-
-const STATUS_STYLES: Record<string, StatusStyle> = {
-  lead: { label: 'Lead', pill: 'bg-sky-50 text-sky-700 ring-sky-600/15', dot: 'bg-sky-500' },
-  quotation: { label: 'Quotation', pill: 'bg-amber-50 text-amber-700 ring-amber-600/20', dot: 'bg-amber-500' },
-  won: { label: 'Won', pill: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20', dot: 'bg-emerald-500' },
-  lost: { label: 'Lost', pill: 'bg-zinc-100 text-zinc-600 ring-zinc-500/15', dot: 'bg-zinc-400' },
-};
+import { RFQ_STATUS_STYLES } from './rfqStatus';
 
 type StatusAction = { to: string; label: string; confirmText: string; className: string };
 
@@ -102,6 +96,7 @@ export default function RfqList() {
 
   const onConverted = (rfqId: string, order: { id: string; orderNumber: string }) => {
     setConverting(null);
+    toast.success(`Order ${order.orderNumber} created`);
     list.setData(
       (current) =>
         current && {
@@ -115,9 +110,10 @@ export default function RfqList() {
   const changeStatus = async (rfq: AdminRfq, action: StatusAction) => {
     if (!window.confirm(`Mark ${rfq.rfqNumber} (${rfq.brandName}) ${action.confirmText}? This cannot be undone.`)) return;
     setUpdatingId(rfq.id);
-    list.setError('');
     try {
       await updateRfqStatus(token, rfq.id, action.to);
+      const label = RFQ_STATUS_STYLES[action.to as RfqStatus].label;
+      toast.success(action.to === 'lost' ? `${rfq.rfqNumber} marked as ${label}` : `${rfq.rfqNumber} moved to ${label}`);
       list.setData((current) =>
         current && {
           ...current,
@@ -137,7 +133,7 @@ export default function RfqList() {
       <PageHeader title="Requests for Quotation" loading={list.loading} onRefresh={list.refresh} />
 
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <FilterChips styles={STATUS_STYLES} value={list.statusFilter} counts={list.data?.counts} onChange={list.selectStatus} />
+        <FilterChips styles={RFQ_STATUS_STYLES} value={list.statusFilter} counts={list.data?.counts} onChange={list.selectStatus} />
         <SearchBox value={list.searchInput} onChange={list.setSearchInput} placeholder="Search RFQ no., name, brand, email, phone…" />
       </div>
 
@@ -202,7 +198,7 @@ export default function RfqList() {
                 )}
               </td>
               <td className="px-4 py-4">
-                <StatusPill status={rfq.status} styles={STATUS_STYLES} />
+                <StatusPill status={rfq.status} styles={RFQ_STATUS_STYLES} />
                 {rfq.order ? (
                   <button
                     type="button"

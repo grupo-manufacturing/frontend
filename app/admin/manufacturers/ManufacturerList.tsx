@@ -7,7 +7,7 @@ import PhoneInput from '../../request-for-quotation/PhoneInput';
 import { useAdminToken } from '../AdminShell';
 import {
   AdminAuthError,
-  clearSession,
+  expireSession,
   createManufacturer,
   deleteManufacturer,
   fetchManufacturers,
@@ -16,6 +16,7 @@ import {
   type ManufacturerInput,
   type ManufacturerType,
 } from '../api';
+import { toast } from '../toast';
 import {
   DataTable,
   dateFormatter,
@@ -116,9 +117,9 @@ export default function ManufacturerList() {
   const remove = async (manufacturer: Manufacturer) => {
     if (!window.confirm(`Delete ${manufacturer.companyName}? This cannot be undone.`)) return;
     setDeletingId(manufacturer.id);
-    list.setError('');
     try {
       await deleteManufacturer(token, manufacturer.id);
+      toast.success(`${manufacturer.companyName} deleted`);
       list.setData(
         (current) =>
           current && {
@@ -320,10 +321,11 @@ function ManufacturerDialog({
     try {
       if (manufacturer) await updateManufacturer(token, manufacturer.id, input);
       else await createManufacturer(token, input);
+      toast.success(`${input.companyName} ${manufacturer ? 'updated' : 'added'}`);
       onSaved();
     } catch (err) {
       if (err instanceof AdminAuthError) {
-        clearSession();
+        expireSession();
         return;
       }
       setError(err instanceof Error ? err.message : 'Failed to save manufacturer.');
