@@ -65,7 +65,7 @@ export default function AnalyticsDashboard() {
   };
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+    <main className="px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader title="Analytics" loading={loading} onRefresh={refresh}>
         <div className="flex rounded-lg border border-zinc-200 bg-white p-0.5 shadow-sm" role="tablist" aria-label="Period">
           {PERIODS.map((option) => (

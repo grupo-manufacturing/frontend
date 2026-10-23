@@ -142,7 +142,7 @@ export default function ManufacturerList() {
   };
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+    <main className="px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader title="Manufacturers" loading={list.loading} onRefresh={list.refresh}>
         <button type="button" onClick={() => setDialog({ mode: 'add' })} className={primaryButtonCls}>
           <Icon d={ICONS.plus} />
