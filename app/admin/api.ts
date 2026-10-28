@@ -35,7 +35,7 @@ export async function adminLogin(username: string, password: string): Promise<vo
 
 export type ListFilters = { status?: string; search?: string; withCounts?: boolean };
 
-function listPath(base: string, page: number, pageSize: number, filters: ListFilters) {
+export function listPath(base: string, page: number, pageSize: number, filters: ListFilters) {
   const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
   if (filters.status) params.set('status', filters.status);
   if (filters.search) params.set('q', filters.search);

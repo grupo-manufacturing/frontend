@@ -10,7 +10,8 @@ type ListPage = { total: number; pageSize: number; counts?: Record<string, numbe
 
 type Fetcher<T extends ListPage> = (token: string, page: number, pageSize: number, filters: ListFilters) => Promise<T>;
 
-export function useAdminList<T extends ListPage>(token: string, fetcher: Fetcher<T>, errorText: string) {
+/** Pass the portal's own expire function when the list belongs to a session other than the admin's. */
+export function useAdminList<T extends ListPage>(token: string, fetcher: Fetcher<T>, errorText: string, onExpired: () => void = expireSession) {
   const [page, setPage] = useState(1);
   const [reloadKey, setReloadKey] = useState(0);
   const [data, setData] = useState<T | null>(null);
@@ -48,7 +49,7 @@ export function useAdminList<T extends ListPage>(token: string, fetcher: Fetcher
       .catch((err) => {
         if (cancelled) return;
         if (err instanceof AdminAuthError) {
-          expireSession();
+          onExpired();
           return;
         }
         setError(err instanceof Error ? err.message : errorText);
@@ -59,7 +60,7 @@ export function useAdminList<T extends ListPage>(token: string, fetcher: Fetcher
     return () => {
       cancelled = true;
     };
-  }, [token, fetcher, errorText, page, reloadKey, statusFilter, search]);
+  }, [token, fetcher, errorText, onExpired, page, reloadKey, statusFilter, search]);
 
   const selectStatus = (status: string) => {
     if (status === statusFilter) return;
@@ -92,7 +93,7 @@ export function useAdminList<T extends ListPage>(token: string, fetcher: Fetcher
 
   const handleError = (err: unknown, fallback: string) => {
     if (err instanceof AdminAuthError) {
-      expireSession();
+      onExpired();
       return;
     }
     toast.error(err instanceof Error ? err.message : fallback);
