@@ -122,7 +122,11 @@ export async function fetchAssignableManufacturers(token: string): Promise<Manuf
   return page.manufacturers;
 }
 
-export type OrderStatus = 'confirmed' | 'sampling' | 'in_production' | 'delivered' | 'cancelled';
+export type OrderStatus = 'confirmed' | 'sampling' | 'in_production' | 'shipped' | 'delivered' | 'cancelled';
+
+export type Shipment = { courierCompany: string; trackingId: string; notes: string | null };
+
+export type ShipmentInput = { courierCompany: string; trackingId: string; notes?: string };
 
 export type PaymentMethod = 'bank_transfer' | 'upi' | 'cash' | 'other';
 
@@ -170,6 +174,7 @@ export type OrderPayment = {
 
 export type AdminOrderDetail = Omit<AdminOrder, 'rfqNumber' | 'manufacturerName'> & {
   shippingAddress: string;
+  shipment: Shipment | null;
   updatedAt: string;
   rfq: { id: string; rfqNumber: string; location: string; techPackUrl: string | null };
   manufacturer: { id: string; companyName: string; email: string; phone: string; location: string };
@@ -212,10 +217,10 @@ export function fetchOrder(token: string, id: string) {
   return adminRequest<AdminOrderDetail>(token, `/api/admin/orders/${encodeURIComponent(id)}`, 'Failed to load order.');
 }
 
-export function updateOrderStatus(token: string, id: string, status: OrderStatus) {
+export function updateOrderStatus(token: string, id: string, status: OrderStatus, shipment?: ShipmentInput) {
   return adminRequest<AdminOrderDetail>(token, `/api/admin/orders/${encodeURIComponent(id)}/status`, 'Failed to update status.', {
     method: 'PATCH',
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ status, shipment }),
   });
 }
 

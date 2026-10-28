@@ -1,9 +1,19 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { OrderStatus } from '../../admin/api';
-import { Card, MoneySummary, Pipeline, ProductsTable, TechPackLink, Timeline } from '../../admin/orders/orderParts';
+import type { OrderStatus, ShipmentInput } from '../../admin/api';
+import {
+  Card,
+  MoneySummary,
+  Pipeline,
+  ProductsTable,
+  ShipmentCard,
+  shippedAt,
+  TechPackLink,
+  Timeline,
+} from '../../admin/orders/orderParts';
 import { MANUFACTURER_NEXT_STEP, ORDER_STATUS_STYLES } from '../../admin/orders/orderStatus';
+import ShipmentDialog from '../../admin/orders/ShipmentDialog';
 import { toast } from '../../admin/toast';
 import { dateFormatter, Dialog, ErrorBanner, ghostButtonCls, primaryButtonCls, StatusPill, timeFormatter } from '../../admin/ui';
 import {
@@ -38,6 +48,7 @@ export default function OrderDetailsDialog({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updating, setUpdating] = useState(false);
+  const [shipping, setShipping] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -58,20 +69,39 @@ export default function OrderDetailsDialog({
     };
   }, [token, orderId]);
 
+  const applyStatus = async (current: ManufacturerOrderDetail, to: OrderStatus, shipment?: ShipmentInput) => {
+    setOrder(await updateManufacturerOrderStatus(token, current.id, to, shipment));
+    toast.success(`${current.orderNumber} moved to ${ORDER_STATUS_STYLES[to].label}`);
+    onChanged?.();
+  };
+
   const changeStatus = async (to: OrderStatus) => {
     if (!order) return;
+    if (to === 'shipped') {
+      setShipping(true);
+      return;
+    }
     if (!window.confirm(`Move ${order.orderNumber} to ${ORDER_STATUS_STYLES[to].label}? This cannot be undone.`)) return;
     setUpdating(true);
     setError('');
     try {
-      setOrder(await updateManufacturerOrderStatus(token, order.id, to));
-      toast.success(`${order.orderNumber} moved to ${ORDER_STATUS_STYLES[to].label}`);
-      onChanged?.();
+      await applyStatus(order, to);
     } catch (err) {
       const message = errorMessage(err, 'Failed to update status.');
       if (message) setError(message);
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const ship = async (shipment: ShipmentInput) => {
+    if (!order) return;
+    try {
+      await applyStatus(order, 'shipped', shipment);
+      setShipping(false);
+    } catch (err) {
+      const message = errorMessage(err, 'Failed to mark the order as shipped.');
+      if (message) throw new Error(message);
     }
   };
 
@@ -91,33 +121,37 @@ export default function OrderDetailsDialog({
   );
 
   return (
-    <Dialog
-      title={
-        order ? (
-          <>
-            <span className="admin-mono">{order.orderNumber}</span>
-            <StatusPill status={order.status} styles={ORDER_STATUS_STYLES} />
-          </>
+    <>
+      <Dialog
+        title={
+          order ? (
+            <>
+              <span className="admin-mono">{order.orderNumber}</span>
+              <StatusPill status={order.status} styles={ORDER_STATUS_STYLES} />
+            </>
+          ) : (
+            'Order Details'
+          )
+        }
+        onClose={onClose}
+        footer={footer}
+        className="max-w-4xl"
+      >
+        {loading ? (
+          <div className="flex justify-center py-24" role="status">
+            <span className="h-6 w-6 animate-spin rounded-full border-2 border-zinc-200 border-t-zinc-900" />
+          </div>
+        ) : !order ? (
+          <div className="px-6 py-5">
+            <ErrorBanner message={error || 'Order not found.'} />
+          </div>
         ) : (
-          'Order Details'
-        )
-      }
-      onClose={onClose}
-      footer={footer}
-      className="max-w-4xl"
-    >
-      {loading ? (
-        <div className="flex justify-center py-24" role="status">
-          <span className="h-6 w-6 animate-spin rounded-full border-2 border-zinc-200 border-t-zinc-900" />
-        </div>
-      ) : !order ? (
-        <div className="px-6 py-5">
-          <ErrorBanner message={error || 'Order not found.'} />
-        </div>
-      ) : (
-        <OrderBody order={order} error={error} />
-      )}
-    </Dialog>
+          <OrderBody order={order} error={error} />
+        )}
+      </Dialog>
+
+      {order && shipping && <ShipmentDialog orderNumber={order.orderNumber} onClose={() => setShipping(false)} onSubmit={ship} />}
+    </>
   );
 }
 
@@ -133,6 +167,8 @@ function OrderBody({ order, error }: { order: ManufacturerOrderDetail; error: st
       {error && <ErrorBanner message={error} />}
 
       <Pipeline status={order.status} />
+
+      {order.shipment && <ShipmentCard shipment={order.shipment} shippedAt={shippedAt(order.timeline)} />}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Card title="Shipping address">

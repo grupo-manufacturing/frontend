@@ -1,4 +1,12 @@
-import { listPath, type ListFilters, type OrderItem, type OrderStatus, type StatusEvent } from '../admin/api';
+import {
+  listPath,
+  type ListFilters,
+  type OrderItem,
+  type OrderStatus,
+  type Shipment,
+  type ShipmentInput,
+  type StatusEvent,
+} from '../admin/api';
 import { createSession } from '../admin/session';
 
 export { AuthError as ManufacturerAuthError } from '../admin/session';
@@ -58,6 +66,7 @@ export type ManufacturerOrder = {
 
 export type ManufacturerOrderDetail = ManufacturerOrder & {
   shippingAddress: string;
+  shipment: Shipment | null;
   techPackUrl: string | null;
   updatedAt: string;
   timeline: StatusEvent[];
@@ -87,11 +96,11 @@ export function fetchManufacturerOrder(token: string, id: string) {
   );
 }
 
-export function updateManufacturerOrderStatus(token: string, id: string, status: OrderStatus) {
+export function updateManufacturerOrderStatus(token: string, id: string, status: OrderStatus, shipment?: ShipmentInput) {
   return manufacturerSession.request<ManufacturerOrderDetail>(
     token,
     `/api/manufacturer/orders/${encodeURIComponent(id)}/status`,
     'Failed to update status.',
-    { method: 'PATCH', body: JSON.stringify({ status }) },
+    { method: 'PATCH', body: JSON.stringify({ status, shipment }) },
   );
 }

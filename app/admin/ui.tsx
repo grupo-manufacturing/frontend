@@ -26,6 +26,8 @@ export const ICONS = {
   close: 'M5.5 5.5l9 9M14.5 5.5l-9 9',
   alert: 'M10 6.5v4M10 13.5v.01M10 17a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z',
   info: 'M10 9.5v4M10 6.5v.01M10 17a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z',
+  truck:
+    'M2.5 5.5h9v8h-9v-8ZM11.5 8h3l3 3v2.5h-6M5.5 16a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM14.5 16a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z',
 };
 
 export function Icon({ d, className = 'h-4 w-4' }: { d: string; className?: string }) {

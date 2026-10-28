@@ -12,6 +12,7 @@ import {
   type OrderStatus,
   type PaymentMethod,
   type PaymentParty,
+  type ShipmentInput,
 } from '../api';
 import {
   dateFormatter,
@@ -28,8 +29,15 @@ import {
   timeFormatter,
 } from '../ui';
 import { toast } from '../toast';
-import { Card, MoneySummary, Pipeline, ProductsTable, TechPackLink, Timeline } from './orderParts';
-import { NEXT_ORDER_STEP, ORDER_STATUS_STYLES, PAYMENT_METHOD_LABELS, PAYMENT_PARTY_LABELS } from './orderStatus';
+import { Card, MoneySummary, Pipeline, ProductsTable, ShipmentCard, shippedAt, TechPackLink, Timeline } from './orderParts';
+import {
+  CANCELLABLE_STATUSES,
+  NEXT_ORDER_STEP,
+  ORDER_STATUS_STYLES,
+  PAYMENT_METHOD_LABELS,
+  PAYMENT_PARTY_LABELS,
+} from './orderStatus';
+import ShipmentDialog from './ShipmentDialog';
 
 const isoDateInIndia = (date: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(date);
 const todayInIndia = () => isoDateInIndia(new Date());
@@ -74,6 +82,7 @@ export default function OrderDetailsDialog({
   const [error, setError] = useState('');
   const [updating, setUpdating] = useState(false);
   const [recordingFor, setRecordingFor] = useState<PaymentParty | null>(null);
+  const [shipping, setShipping] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -94,17 +103,25 @@ export default function OrderDetailsDialog({
     };
   }, [token, orderId]);
 
+  const applyStatus = async (current: AdminOrderDetail, to: OrderStatus, shipment?: ShipmentInput) => {
+    setOrder(await updateOrderStatus(token, current.id, to, shipment));
+    toast.success(to === 'cancelled' ? `${current.orderNumber} cancelled` : `${current.orderNumber} moved to ${ORDER_STATUS_STYLES[to].label}`);
+    onChanged?.();
+  };
+
   const changeStatus = async (to: OrderStatus) => {
     if (!order) return;
+    if (to === 'shipped') {
+      setShipping(true);
+      return;
+    }
     const question =
       to === 'cancelled' ? `Cancel ${order.orderNumber}?` : `Move ${order.orderNumber} to ${ORDER_STATUS_STYLES[to].label}?`;
     if (!window.confirm(`${question} This cannot be undone.`)) return;
     setUpdating(true);
     setError('');
     try {
-      setOrder(await updateOrderStatus(token, order.id, to));
-      toast.success(to === 'cancelled' ? `${order.orderNumber} cancelled` : `${order.orderNumber} moved to ${ORDER_STATUS_STYLES[to].label}`);
-      onChanged?.();
+      await applyStatus(order, to);
     } catch (err) {
       const message = errorMessage(err, 'Failed to update status.');
       if (message) setError(message);
@@ -113,8 +130,19 @@ export default function OrderDetailsDialog({
     }
   };
 
+  const ship = async (shipment: ShipmentInput) => {
+    if (!order) return;
+    try {
+      await applyStatus(order, 'shipped', shipment);
+      setShipping(false);
+    } catch (err) {
+      const message = errorMessage(err, 'Failed to mark the order as shipped.');
+      if (message) throw new Error(message);
+    }
+  };
+
   const next = order && NEXT_ORDER_STEP[order.status];
-  const cancellable = order !== null && order.status !== 'cancelled' && order.status !== 'delivered';
+  const cancellable = order !== null && CANCELLABLE_STATUSES.includes(order.status);
 
   const footer = (
     <div className="flex shrink-0 items-center justify-between gap-2 border-t border-zinc-100 px-6 py-4">
@@ -174,6 +202,8 @@ export default function OrderDetailsDialog({
         )}
       </Dialog>
 
+      {order && shipping && <ShipmentDialog orderNumber={order.orderNumber} onClose={() => setShipping(false)} onSubmit={ship} />}
+
       {order && recordingFor && (
         <PaymentDialog
           token={token}
@@ -213,6 +243,8 @@ function OrderBody({
       {error && <ErrorBanner message={error} />}
 
       <Pipeline status={order.status} />
+
+      {order.shipment && <ShipmentCard shipment={order.shipment} shippedAt={shippedAt(order.timeline)} />}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Card title="Customer">

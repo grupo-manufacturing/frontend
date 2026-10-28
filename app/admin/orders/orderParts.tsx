@@ -1,4 +1,4 @@
-import type { OrderStatus, StatusEvent } from '../api';
+import type { OrderStatus, Shipment, StatusEvent } from '../api';
 import { dateFormatter, formatInr, ghostButtonCls, Icon, ICONS, timeFormatter } from '../ui';
 import { ORDER_PIPELINE, ORDER_STATUS_STYLES } from './orderStatus';
 
@@ -72,7 +72,7 @@ export function Pipeline({ status }: { status: OrderStatus }) {
 
   const currentIndex = ORDER_PIPELINE.indexOf(status);
   return (
-    <ol className="grid grid-cols-4 gap-2" aria-label="Order progress">
+    <ol className="grid grid-cols-5 gap-2" aria-label="Order progress">
       {ORDER_PIPELINE.map((step, i) => {
         const reached = i <= currentIndex;
         return (
@@ -84,6 +84,46 @@ export function Pipeline({ status }: { status: OrderStatus }) {
       })}
     </ol>
   );
+}
+
+export function ShipmentCard({ shipment, shippedAt }: { shipment: Shipment; shippedAt?: string }) {
+  const at = shippedAt ? new Date(shippedAt) : null;
+  return (
+    <section className="overflow-hidden rounded-xl border border-teal-200 bg-teal-50/40">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-teal-100 px-4 py-3">
+        <h3 className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+          <Icon d={ICONS.truck} className="h-4 w-4 text-teal-700" />
+          Shipment
+        </h3>
+        {at && (
+          <p className="text-xs text-zinc-500">
+            Shipped {dateFormatter.format(at)}, {timeFormatter.format(at)}
+          </p>
+        )}
+      </div>
+      <dl className="grid grid-cols-1 gap-x-6 gap-y-3 px-4 py-3 text-sm sm:grid-cols-2">
+        <div>
+          <dt className="text-xs text-zinc-500">Courier company</dt>
+          <dd className="mt-0.5 font-medium text-zinc-900">{shipment.courierCompany}</dd>
+        </div>
+        <div>
+          <dt className="text-xs text-zinc-500">Tracking ID</dt>
+          <dd className="admin-mono mt-0.5 break-all font-medium text-zinc-900">{shipment.trackingId}</dd>
+        </div>
+        {shipment.notes && (
+          <div className="sm:col-span-2">
+            <dt className="text-xs text-zinc-500">Notes</dt>
+            <dd className="mt-0.5 whitespace-pre-line text-zinc-700">{shipment.notes}</dd>
+          </div>
+        )}
+      </dl>
+    </section>
+  );
+}
+
+/** When the order was marked shipped, from its status history. */
+export function shippedAt(timeline: StatusEvent[]): string | undefined {
+  return timeline.find((event) => event.status === 'shipped')?.createdAt;
 }
 
 export function ProductsTable({ items }: { items: { product: string; quantity: number }[] }) {
