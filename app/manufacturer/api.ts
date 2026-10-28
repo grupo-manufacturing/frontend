@@ -21,6 +21,30 @@ export function fetchMe(token: string) {
   return manufacturerSession.request<ManufacturerProfile>(token, '/api/manufacturer/me', 'Failed to load your account.');
 }
 
+export type ManufacturerDetails = ManufacturerProfile & {
+  phone: string;
+  location: string;
+  gstNumber: string;
+  fabrics: string | null;
+  products: string[];
+  winnerProduct: string | null;
+};
+
+export type ProfileInput =
+  | { phone: string; location: string; fabrics: string }
+  | { phone: string; location: string; products: string[]; winnerProduct: string };
+
+export function fetchProfile(token: string) {
+  return manufacturerSession.request<ManufacturerDetails>(token, '/api/manufacturer/profile', 'Failed to load your profile.');
+}
+
+export function updateProfile(token: string, input: ProfileInput) {
+  return manufacturerSession.request<ManufacturerDetails>(token, '/api/manufacturer/profile', 'Failed to save your profile.', {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+}
+
 export type ManufacturerOrder = {
   id: string;
   orderNumber: string;

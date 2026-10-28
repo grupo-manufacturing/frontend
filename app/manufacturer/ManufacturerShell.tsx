@@ -8,7 +8,10 @@ import { expireManufacturerSession, fetchMe, ManufacturerAuthError, manufacturer
 
 export const useManufacturerToken = useSessionToken;
 
-const NAV: NavItem[] = [{ href: '/manufacturer/orders', label: 'Orders' }];
+const NAV: NavItem[] = [
+  { href: '/manufacturer/orders', label: 'Orders' },
+  { href: '/manufacturer/profile', label: 'Profile' },
+];
 
 /** Shows who is signed in; also checks the session is still valid (e.g. the account was made inactive). */
 function AccountName() {

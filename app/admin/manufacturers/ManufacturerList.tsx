@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { getCountryCallingCode, parsePhoneNumberFromString, type CountryCode } from 'libphonenumber-js';
-import { RFQ_PRODUCTS } from '../../request-for-quotation/api';
 import PhoneInput from '../../request-for-quotation/PhoneInput';
 import { useAdminToken } from '../AdminShell';
 import {
@@ -37,6 +36,7 @@ import {
   type StatusStyle,
 } from '../ui';
 import { useAdminList } from '../useAdminList';
+import ProductPicker from './ProductPicker';
 
 const STATUS_STYLES: Record<string, StatusStyle> = {
   active: { label: 'Active', pill: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20', dot: 'bg-emerald-500' },
@@ -284,13 +284,6 @@ function ManufacturerDialog({
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => setForm((f) => ({ ...f, [key]: value }));
 
-  const toggleProduct = (product: string) =>
-    setForm((f) => {
-      const products = f.products.includes(product) ? f.products.filter((p) => p !== product) : [...f.products, product];
-      const winnerProduct = products.includes(f.winnerProduct) ? f.winnerProduct : products.length === 1 ? products[0] : '';
-      return { ...f, products, winnerProduct };
-    });
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const parsedPhone = parsePhoneNumberFromString(form.phoneNumber, form.phoneCountry);
@@ -456,53 +449,15 @@ function ManufacturerDialog({
               value={form.fabrics}
               onChange={(e) => set('fabrics', e.target.value)}
               placeholder="Cotton jersey, French terry, Fleece, Denim"
-              className={`${inputCls} resize-none`}
+              className={`${inputCls} min-h-20 resize-none py-2`}
             />
           </Field>
         ) : (
-          <>
-            <Field label="Type of Products" hint={`${form.products.length} selected`} className="sm:col-span-2">
-              <div className="flex flex-wrap gap-1.5">
-                {RFQ_PRODUCTS.map((product) => {
-                  const selected = form.products.includes(product);
-                  return (
-                    <button
-                      key={product}
-                      type="button"
-                      onClick={() => toggleProduct(product)}
-                      aria-pressed={selected}
-                      className={`rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset transition ${
-                        selected
-                          ? 'bg-zinc-900 text-white ring-zinc-900'
-                          : 'bg-white text-zinc-600 ring-zinc-200 hover:bg-zinc-50 hover:text-zinc-900'
-                      }`}
-                    >
-                      {product}
-                    </button>
-                  );
-                })}
-              </div>
-            </Field>
-            <Field label="Winner Product" htmlFor="m-winner" hint="The product this manufacturer is best at.">
-              <select
-                id="m-winner"
-                required
-                value={form.winnerProduct}
-                onChange={(e) => set('winnerProduct', e.target.value)}
-                disabled={form.products.length === 0}
-                className={`${inputCls} disabled:cursor-not-allowed disabled:bg-zinc-50 disabled:text-zinc-400`}
-              >
-                <option value="" disabled>
-                  {form.products.length === 0 ? 'Select products first' : 'Select winner product'}
-                </option>
-                {form.products.map((product) => (
-                  <option key={product} value={product}>
-                    {product}
-                  </option>
-                ))}
-              </select>
-            </Field>
-          </>
+          <ProductPicker
+            value={{ products: form.products, winnerProduct: form.winnerProduct }}
+            onChange={(selection) => setForm((f) => ({ ...f, ...selection }))}
+            winnerHint="The product this manufacturer is best at."
+          />
         )}
 
         {error && (
