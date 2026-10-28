@@ -13,6 +13,7 @@ export const primaryButtonCls =
   'inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-zinc-900 px-3.5 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60';
 
 export const ICONS = {
+  mail: 'M3.5 5.5h13v9h-13v-9ZM3.5 6l6.5 5 6.5-5',
   user: 'M10 10a3.25 3.25 0 1 0 0-6.5 3.25 3.25 0 0 0 0 6.5ZM4 16.5c.8-2.6 3.1-4 6-4s5.2 1.4 6 4',
   search: 'M9 15.5a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13ZM17.5 17.5l-3.9-3.9',
   lock: 'M5.5 9V6.5a4.5 4.5 0 0 1 9 0V9M4.5 9h11v7.5h-11V9Z',

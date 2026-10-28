@@ -52,6 +52,7 @@ const COLUMNS = ['Company', 'Contact', 'Type', 'Produces', 'Location', 'Status',
 type FormState = {
   companyName: string;
   email: string;
+  password: string;
   phoneCountry: CountryCode;
   phoneNumber: string;
   location: string;
@@ -66,6 +67,7 @@ type FormState = {
 const EMPTY_FORM: FormState = {
   companyName: '',
   email: '',
+  password: '',
   phoneCountry: 'IN',
   phoneNumber: '',
   location: '',
@@ -264,6 +266,7 @@ function ManufacturerDialog({
     return {
       companyName: manufacturer.companyName,
       email: manufacturer.email,
+      password: manufacturer.password,
       phoneCountry: parsed?.country ?? 'IN',
       phoneNumber: parsed?.nationalNumber ?? manufacturer.phone,
       location: manufacturer.location,
@@ -275,6 +278,7 @@ function ManufacturerDialog({
       status: manufacturer.status,
     };
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -309,6 +313,7 @@ function ManufacturerDialog({
     const base = {
       companyName: form.companyName.trim(),
       email: form.email.trim(),
+      password: form.password,
       phone: parsedPhone.number,
       location: form.location.trim(),
       gstNumber,
@@ -378,6 +383,29 @@ function ManufacturerDialog({
             className={inputCls}
           />
         </Field>
+        <Field label="Portal password" htmlFor="m-password" hint="The manufacturer signs in with this email and password.">
+          <div className="relative">
+            <input
+              id="m-password"
+              type={showPassword ? 'text' : 'password'}
+              required
+              minLength={8}
+              maxLength={100}
+              autoComplete="new-password"
+              value={form.password}
+              onChange={(e) => set('password', e.target.value)}
+              placeholder="At least 8 characters"
+              className={`${inputCls} admin-mono pr-16`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((show) => !show)}
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-md px-2 py-1 text-xs font-medium text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900"
+            >
+              {showPassword ? 'Hide' : 'Show'}
+            </button>
+          </div>
+        </Field>
         <Field label="Phone" htmlFor="m-phone">
           <PhoneInput
             id="m-phone"
@@ -404,6 +432,17 @@ function ManufacturerDialog({
             options={(['garments', 'fabric'] as const).map((type) => ({ value: type, label: TYPE_LABELS[type] }))}
             value={form.manufacturerType}
             onChange={(type) => set('manufacturerType', type)}
+          />
+        </Field>
+        <Field label="Status" hint="Only active manufacturers can sign in.">
+          <Segmented
+            options={(['active', 'inactive'] as const).map((status) => ({
+              value: status,
+              label: STATUS_STYLES[status].label,
+              dot: STATUS_STYLES[status].dot,
+            }))}
+            value={form.status}
+            onChange={(status) => set('status', status)}
           />
         </Field>
 
@@ -465,18 +504,6 @@ function ManufacturerDialog({
             </Field>
           </>
         )}
-
-        <Field label="Status">
-          <Segmented
-            options={(['active', 'inactive'] as const).map((status) => ({
-              value: status,
-              label: STATUS_STYLES[status].label,
-              dot: STATUS_STYLES[status].dot,
-            }))}
-            value={form.status}
-            onChange={(status) => set('status', status)}
-          />
-        </Field>
 
         {error && (
           <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-inset ring-red-600/15 sm:col-span-2">
