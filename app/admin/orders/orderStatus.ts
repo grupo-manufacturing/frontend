@@ -17,6 +17,11 @@ export const NEXT_ORDER_STEP: Partial<Record<OrderStatus, { to: OrderStatus; lab
   in_production: { to: 'delivered', label: 'Mark Delivered' },
 };
 
+export const MANUFACTURER_NEXT_STEP: Partial<Record<OrderStatus, { to: OrderStatus; label: string }>> = {
+  confirmed: NEXT_ORDER_STEP.confirmed,
+  sampling: NEXT_ORDER_STEP.sampling,
+};
+
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   bank_transfer: 'Bank transfer',
   upi: 'UPI',

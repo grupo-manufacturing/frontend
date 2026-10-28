@@ -28,7 +28,7 @@ import {
   timeFormatter,
 } from '../ui';
 import { toast } from '../toast';
-import { Card, MoneySummary, Pipeline, ProductsTable, TechPackLink } from './orderParts';
+import { Card, MoneySummary, Pipeline, ProductsTable, TechPackLink, Timeline } from './orderParts';
 import { NEXT_ORDER_STEP, ORDER_STATUS_STYLES, PAYMENT_METHOD_LABELS, PAYMENT_PARTY_LABELS } from './orderStatus';
 
 const isoDateInIndia = (date: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(date);
@@ -315,6 +315,8 @@ function OrderBody({
           </table>
         </div>
       </section>
+
+      <Timeline events={order.timeline} actorLabels={{ admin: 'Admin', manufacturer: order.manufacturer.companyName }} />
     </div>
   );
 }

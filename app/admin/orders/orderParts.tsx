@@ -1,5 +1,5 @@
-import type { OrderStatus } from '../api';
-import { formatInr, ghostButtonCls, Icon, ICONS } from '../ui';
+import type { OrderStatus, StatusEvent } from '../api';
+import { dateFormatter, formatInr, ghostButtonCls, Icon, ICONS, timeFormatter } from '../ui';
 import { ORDER_PIPELINE, ORDER_STATUS_STYLES } from './orderStatus';
 
 export function Card({ title, children }: { title: string; children: React.ReactNode }) {
@@ -115,6 +115,35 @@ export function ProductsTable({ items }: { items: { product: string; quantity: n
           </tfoot>
         </table>
       </div>
+    </section>
+  );
+}
+
+export function Timeline({ events, actorLabels }: { events: StatusEvent[]; actorLabels: Record<StatusEvent['changedBy'], string> }) {
+  return (
+    <section className="overflow-hidden rounded-xl border border-zinc-200">
+      <h3 className="border-b border-zinc-200 px-4 py-3 text-sm font-semibold">Status history</h3>
+      <ol className="px-4 py-3">
+        {events.map((event, i) => {
+          const at = new Date(event.createdAt);
+          const style = ORDER_STATUS_STYLES[event.status];
+          return (
+            <li key={event.id} className="relative flex gap-3 pb-4 last:pb-0">
+              {i < events.length - 1 && <span aria-hidden className="absolute left-[5px] top-4 h-full w-px bg-zinc-200" />}
+              <span className={`relative mt-1.5 h-[11px] w-[11px] shrink-0 rounded-full ring-2 ring-white ${style.dot}`} />
+              <div className="flex min-w-0 flex-1 flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 text-sm">
+                <p className="text-zinc-900">
+                  <span className="font-medium">{style.label}</span>
+                  <span className="text-zinc-500"> · by {actorLabels[event.changedBy]}</span>
+                </p>
+                <p className="text-xs text-zinc-500">
+                  {dateFormatter.format(at)}, {timeFormatter.format(at)}
+                </p>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
     </section>
   );
 }

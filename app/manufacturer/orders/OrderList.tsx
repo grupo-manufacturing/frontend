@@ -106,7 +106,14 @@ export default function OrderList() {
         })}
       </DataTable>
 
-      {openOrderId && <OrderDetailsDialog token={token} orderId={openOrderId} onClose={() => setOpenOrderId(null)} />}
+      {openOrderId && (
+        <OrderDetailsDialog
+          token={token}
+          orderId={openOrderId}
+          onClose={() => setOpenOrderId(null)}
+          onChanged={list.reloadQuietly}
+        />
+      )}
     </main>
   );
 }

@@ -174,7 +174,10 @@ export type AdminOrderDetail = Omit<AdminOrder, 'rfqNumber' | 'manufacturerName'
   rfq: { id: string; rfqNumber: string; location: string; techPackUrl: string | null };
   manufacturer: { id: string; companyName: string; email: string; phone: string; location: string };
   payments: OrderPayment[];
+  timeline: StatusEvent[];
 };
+
+export type StatusEvent = { id: string; status: OrderStatus; changedBy: 'admin' | 'manufacturer'; createdAt: string };
 
 export type ConvertRfqInput = {
   manufacturerId: string;

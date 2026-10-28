@@ -1,4 +1,4 @@
-import { listPath, type ListFilters, type OrderItem, type OrderStatus } from '../admin/api';
+import { listPath, type ListFilters, type OrderItem, type OrderStatus, type StatusEvent } from '../admin/api';
 import { createSession } from '../admin/session';
 
 export { AuthError as ManufacturerAuthError } from '../admin/session';
@@ -36,6 +36,7 @@ export type ManufacturerOrderDetail = ManufacturerOrder & {
   shippingAddress: string;
   techPackUrl: string | null;
   updatedAt: string;
+  timeline: StatusEvent[];
 };
 
 export type ManufacturerOrderPage = {
@@ -59,5 +60,14 @@ export function fetchManufacturerOrder(token: string, id: string) {
     token,
     `/api/manufacturer/orders/${encodeURIComponent(id)}`,
     'Failed to load order.',
+  );
+}
+
+export function updateManufacturerOrderStatus(token: string, id: string, status: OrderStatus) {
+  return manufacturerSession.request<ManufacturerOrderDetail>(
+    token,
+    `/api/manufacturer/orders/${encodeURIComponent(id)}/status`,
+    'Failed to update status.',
+    { method: 'PATCH', body: JSON.stringify({ status }) },
   );
 }
