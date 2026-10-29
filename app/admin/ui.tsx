@@ -18,7 +18,6 @@ export const ICONS = {
   search: 'M9 15.5a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13ZM17.5 17.5l-3.9-3.9',
   lock: 'M5.5 9V6.5a4.5 4.5 0 0 1 9 0V9M4.5 9h11v7.5h-11V9Z',
   logout: 'M8 3.5H5A1.5 1.5 0 0 0 3.5 5v10A1.5 1.5 0 0 0 5 16.5h3M13 6.5 16.5 10 13 13.5M16.5 10H8',
-  refresh: 'M16.5 10a6.5 6.5 0 1 1-1.9-4.6M16.5 3.5v3.5H13',
   plus: 'M10 4.5v11M4.5 10h11',
   edit: 'M12.5 4.5l3 3M4 16l1-4 8.5-8.5 3 3L8 15l-4 1Z',
   trash: 'M4.5 6h11M8 6V4.5h4V6M6 6l.7 9.5h6.6L14 6',
@@ -200,27 +199,11 @@ export function StatusPill({ status, styles }: { status: string; styles: Record<
   );
 }
 
-export function PageHeader({
-  title,
-  loading,
-  onRefresh,
-  children,
-}: {
-  title: string;
-  loading: boolean;
-  onRefresh: () => void;
-  children?: React.ReactNode;
-}) {
+export function PageHeader({ title, children }: { title: string; children?: React.ReactNode }) {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div className="mb-6 flex min-h-9 flex-wrap items-end justify-between gap-4">
       <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-      <div className="flex items-center gap-2">
-        <button type="button" onClick={onRefresh} disabled={loading} className={ghostButtonCls}>
-          <Icon d={ICONS.refresh} className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
-        </button>
-        {children}
-      </div>
+      {children && <div className="flex items-center gap-2">{children}</div>}
     </div>
   );
 }

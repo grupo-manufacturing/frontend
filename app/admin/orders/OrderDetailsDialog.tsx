@@ -28,6 +28,7 @@ import {
   StatusPill,
   timeFormatter,
 } from '../ui';
+import { useRealtime } from '../realtime';
 import { toast } from '../toast';
 import { Card, MoneySummary, Pipeline, ProductsTable, ShipmentCard, shippedAt, TechPackLink, Timeline } from './orderParts';
 import {
@@ -83,6 +84,18 @@ export default function OrderDetailsDialog({
   const [updating, setUpdating] = useState(false);
   const [recordingFor, setRecordingFor] = useState<PaymentParty | null>(null);
   const [shipping, setShipping] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+
+  useRealtime((signal) => {
+    if (
+      signal.type === 'resync' ||
+      ('orderId' in signal && signal.orderId === orderId) ||
+      (signal.type === 'manufacturer.updated' && signal.manufacturerId === order?.manufacturer.id) ||
+      (signal.type === 'manufacturer.profile_updated' && signal.manufacturerId === order?.manufacturer.id)
+    ) {
+      setReloadKey((key) => key + 1);
+    }
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -101,7 +114,7 @@ export default function OrderDetailsDialog({
     return () => {
       cancelled = true;
     };
-  }, [token, orderId]);
+  }, [token, orderId, reloadKey]);
 
   const applyStatus = async (current: AdminOrderDetail, to: OrderStatus, shipment?: ShipmentInput) => {
     setOrder(await updateOrderStatus(token, current.id, to, shipment));
@@ -202,7 +215,7 @@ export default function OrderDetailsDialog({
         )}
       </Dialog>
 
-      {order && shipping && <ShipmentDialog orderNumber={order.orderNumber} onClose={() => setShipping(false)} onSubmit={ship} />}
+      {order && shipping && order.status === 'in_production' && <ShipmentDialog orderNumber={order.orderNumber} onClose={() => setShipping(false)} onSubmit={ship} />}
 
       {order && recordingFor && (
         <PaymentDialog

@@ -5,6 +5,7 @@ import { useAdminToken } from '../AdminShell';
 import { fetchAdminRfqs, updateRfqStatus, type AdminRfq, type RfqStatus } from '../api';
 import { toast } from '../toast';
 import OrderDetailsDialog from '../orders/OrderDetailsDialog';
+import { useRealtime } from '../realtime';
 import ConvertOrderDialog from './ConvertOrderDialog';
 import {
   DataTable,
@@ -94,6 +95,10 @@ export default function RfqList() {
   const [converting, setConverting] = useState<AdminRfq | null>(null);
   const [openOrderId, setOpenOrderId] = useState<string | null>(null);
 
+  useRealtime((signal) => {
+    if (signal.type === 'resync' || signal.type.startsWith('rfq.') || signal.type === 'order.created') list.reloadQuietly();
+  });
+
   const onConverted = (rfqId: string, order: { id: string; orderNumber: string }) => {
     setConverting(null);
     toast.success(`Order ${order.orderNumber} created`);
@@ -130,7 +135,7 @@ export default function RfqList() {
 
   return (
     <main className="px-4 py-8 sm:px-6 lg:px-8">
-      <PageHeader title="Requests for Quotation" loading={list.loading} onRefresh={list.refresh} />
+      <PageHeader title="Requests for Quotation" />
 
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <FilterChips styles={RFQ_STATUS_STYLES} value={list.statusFilter} counts={list.data?.counts} onChange={list.selectStatus} />

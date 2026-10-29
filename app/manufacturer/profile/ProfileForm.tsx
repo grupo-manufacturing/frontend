@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getCountryCallingCode, parsePhoneNumberFromString, type CountryCode } from 'libphonenumber-js';
 import ProductPicker, { type ProductSelection } from '../../admin/manufacturers/ProductPicker';
+import { useRealtime } from '../../admin/realtime';
 import { toast } from '../../admin/toast';
 import { ErrorBanner, Field, ghostButtonCls, Icon, ICONS, inputCls, PageHeader, primaryButtonCls } from '../../admin/ui';
 import PhoneInput from '../../request-for-quotation/PhoneInput';
@@ -63,12 +64,11 @@ export default function ProfileForm() {
   const [saveError, setSaveError] = useState('');
 
   const load = useCallback(async () => {
-    setLoading(true);
-    setLoadError('');
     try {
       const result = await fetchProfile(token);
       setProfile(result);
       setForm(toForm(result));
+      setLoadError('');
       setSaveError('');
     } catch (err) {
       const message = errorMessage(err, 'Failed to load your profile.');
@@ -85,6 +85,11 @@ export default function ProfileForm() {
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => setForm((f) => f && { ...f, [key]: value });
 
   const dirty = !!profile && !!form && JSON.stringify(form) !== JSON.stringify(toForm(profile));
+
+  useRealtime((signal) => {
+    const relevant = signal.type === 'resync' || signal.type === 'manufacturer.updated' || signal.type === 'manufacturer.profile_updated';
+    if (relevant && !dirty && !saving) load();
+  });
 
   const discard = () => {
     if (!profile) return;
@@ -129,7 +134,7 @@ export default function ProfileForm() {
 
   return (
     <main className="px-4 py-8 sm:px-6 lg:px-8">
-      <PageHeader title="Profile" loading={loading} onRefresh={load} />
+      <PageHeader title="Profile" />
 
       <ErrorBanner message={loadError} />
 

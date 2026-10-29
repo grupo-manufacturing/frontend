@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAdminToken } from '../AdminShell';
 import { AdminAuthError, expireSession, fetchAnalytics, type Analytics, type AnalyticsPeriod, type OrderStatus, type RfqStatus } from '../api';
 import { ORDER_STATUS_STYLES } from '../orders/orderStatus';
+import { useRealtime } from '../realtime';
 import { RFQ_STATUS_STYLES } from '../rfqs/rfqStatus';
 import { ErrorBanner, formatInr, PageHeader, type StatusStyle } from '../ui';
 
@@ -59,14 +60,13 @@ export default function AnalyticsDashboard() {
     setPeriod(next);
   };
 
-  const refresh = () => {
-    setLoading(true);
-    setReloadKey((key) => key + 1);
-  };
+  useRealtime((signal) => {
+    if (signal.type !== 'manufacturer.created') setReloadKey((key) => key + 1);
+  });
 
   return (
     <main className="px-4 py-8 sm:px-6 lg:px-8">
-      <PageHeader title="Analytics" loading={loading} onRefresh={refresh}>
+      <PageHeader title="Analytics">
         <div className="flex rounded-lg border border-zinc-200 bg-white p-0.5 shadow-sm" role="tablist" aria-label="Period">
           {PERIODS.map((option) => (
             <button

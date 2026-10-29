@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import LoginScreen from '../admin/LoginScreen';
+import { ORDER_STATUS_STYLES } from '../admin/orders/orderStatus';
 import PortalShell, { useSessionToken, type NavItem } from '../admin/PortalShell';
-import { ICONS } from '../admin/ui';
+import { useRealtime, type RealtimeEvent } from '../admin/realtime';
+import { formatInr, ICONS } from '../admin/ui';
 import { expireManufacturerSession, fetchMe, ManufacturerAuthError, manufacturerLogin, manufacturerSession } from './api';
 
 export const useManufacturerToken = useSessionToken;
@@ -13,10 +15,16 @@ const NAV: NavItem[] = [
   { href: '/manufacturer/profile', label: 'Profile' },
 ];
 
-/** Shows who is signed in; also checks the session is still valid (e.g. the account was made inactive). */
 function AccountName() {
   const token = useSessionToken();
   const [companyName, setCompanyName] = useState<string | null>(null);
+  const [checkKey, setCheckKey] = useState(0);
+
+  useRealtime((signal) => {
+    if (signal.type === 'resync' || signal.type === 'manufacturer.updated' || signal.type === 'manufacturer.deleted') {
+      setCheckKey((key) => key + 1);
+    }
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -30,16 +38,31 @@ function AccountName() {
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, checkKey]);
 
   if (!companyName) return null;
   return <span className="hidden max-w-[260px] truncate text-sm font-medium text-zinc-700 sm:block">{companyName}</span>;
+}
+
+function liveToast(event: RealtimeEvent): string | null {
+  switch (event.type) {
+    case 'order.created':
+      return `New order assigned: ${event.orderNumber}`;
+    case 'order.status_changed':
+      return `${event.orderNumber} moved to ${ORDER_STATUS_STYLES[event.status].label} by Grupo`;
+    case 'order.payment_added':
+      return `Grupo recorded a payment of ${formatInr(event.amount)} for ${event.orderNumber}`;
+    default:
+      return null;
+  }
 }
 
 export default function ManufacturerShell({ children }: { children: React.ReactNode }) {
   return (
     <PortalShell
       session={manufacturerSession}
+      role="manufacturer"
+      liveToast={liveToast}
       badge="Manufacturer"
       nav={NAV}
       headerExtra={<AccountName />}

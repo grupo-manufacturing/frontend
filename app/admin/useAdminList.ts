@@ -84,11 +84,6 @@ export function useAdminList<T extends ListPage>(token: string, fetcher: Fetcher
     setPage(next);
   };
 
-  const refresh = () => {
-    setLoading(true);
-    setReloadKey((key) => key + 1);
-  };
-
   const reloadQuietly = () => setReloadKey((key) => key + 1);
 
   const handleError = (err: unknown, fallback: string) => {
@@ -117,7 +112,6 @@ export function useAdminList<T extends ListPage>(token: string, fetcher: Fetcher
     setSearchInput,
     isFiltered: Boolean(search || statusFilter),
     clearFilters,
-    refresh,
     reloadQuietly,
   };
 }

@@ -14,6 +14,7 @@ import {
 } from '../../admin/orders/orderParts';
 import { MANUFACTURER_NEXT_STEP, ORDER_STATUS_STYLES } from '../../admin/orders/orderStatus';
 import ShipmentDialog from '../../admin/orders/ShipmentDialog';
+import { useRealtime } from '../../admin/realtime';
 import { toast } from '../../admin/toast';
 import { dateFormatter, Dialog, ErrorBanner, ghostButtonCls, primaryButtonCls, StatusPill, timeFormatter } from '../../admin/ui';
 import {
@@ -49,6 +50,11 @@ export default function OrderDetailsDialog({
   const [error, setError] = useState('');
   const [updating, setUpdating] = useState(false);
   const [shipping, setShipping] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+
+  useRealtime((signal) => {
+    if (signal.type === 'resync' || ('orderId' in signal && signal.orderId === orderId)) setReloadKey((key) => key + 1);
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -67,7 +73,7 @@ export default function OrderDetailsDialog({
     return () => {
       cancelled = true;
     };
-  }, [token, orderId]);
+  }, [token, orderId, reloadKey]);
 
   const applyStatus = async (current: ManufacturerOrderDetail, to: OrderStatus, shipment?: ShipmentInput) => {
     setOrder(await updateManufacturerOrderStatus(token, current.id, to, shipment));
@@ -150,7 +156,7 @@ export default function OrderDetailsDialog({
         )}
       </Dialog>
 
-      {order && shipping && <ShipmentDialog orderNumber={order.orderNumber} onClose={() => setShipping(false)} onSubmit={ship} />}
+      {order && shipping && order.status === 'in_production' && <ShipmentDialog orderNumber={order.orderNumber} onClose={() => setShipping(false)} onSubmit={ship} />}
     </>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ORDER_STATUS_STYLES } from '../../admin/orders/orderStatus';
+import { isOrderSignal, useRealtime } from '../../admin/realtime';
 import {
   DataTable,
   dateFormatter,
@@ -26,9 +27,13 @@ export default function OrderList() {
   const list = useAdminList(token, fetchManufacturerOrders, 'Failed to load orders.', expireManufacturerSession);
   const [openOrderId, setOpenOrderId] = useState<string | null>(null);
 
+  useRealtime((signal) => {
+    if (isOrderSignal(signal)) list.reloadQuietly();
+  });
+
   return (
     <main className="px-4 py-8 sm:px-6 lg:px-8">
-      <PageHeader title="Orders" loading={list.loading} onRefresh={list.refresh} />
+      <PageHeader title="Orders" />
 
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <FilterChips styles={ORDER_STATUS_STYLES} value={list.statusFilter} counts={list.data?.counts} onChange={list.selectStatus} />

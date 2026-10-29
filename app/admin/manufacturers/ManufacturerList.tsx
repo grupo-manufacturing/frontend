@@ -15,6 +15,7 @@ import {
   type ManufacturerInput,
   type ManufacturerType,
 } from '../api';
+import { useRealtime } from '../realtime';
 import { toast } from '../toast';
 import {
   DataTable,
@@ -116,6 +117,10 @@ export default function ManufacturerList() {
   const [dialog, setDialog] = useState<DialogState>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  useRealtime((signal) => {
+    if (signal.type === 'resync' || signal.type.startsWith('manufacturer.')) list.reloadQuietly();
+  });
+
   const remove = async (manufacturer: Manufacturer) => {
     if (!window.confirm(`Delete ${manufacturer.companyName}? This cannot be undone.`)) return;
     setDeletingId(manufacturer.id);
@@ -145,7 +150,7 @@ export default function ManufacturerList() {
 
   return (
     <main className="px-4 py-8 sm:px-6 lg:px-8">
-      <PageHeader title="Manufacturers" loading={list.loading} onRefresh={list.refresh}>
+      <PageHeader title="Manufacturers">
         <button type="button" onClick={() => setDialog({ mode: 'add' })} className={primaryButtonCls}>
           <Icon d={ICONS.plus} />
           Add Manufacturer
